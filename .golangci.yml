@@ -1,7 +1,26 @@
 version: "2"
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - golines
+  settings:
+    gofmt:
+      rewrite-rules:
+        - pattern: 'interface{}'
+          replacement: 'any'
+        - pattern: 'a[b:len(a)]'
+          replacement: 'a[b:]'
+    goimports:
+      local-prefixes:
+        - github.com/BemusedVermin/achlydesa-heptarchy
+    golines:
+      max-len: 120
 linters:
+  default: standard
   enable:
     - depguard
+    - forbidigo
   settings:
     depguard:
       rules:
@@ -11,5 +30,55 @@ linters:
           deny:
             - pkg: "charm.land"
               desc: "the core must not import UI packages"
+            - pkg: "github.com/charmbracelet"
+              desc: "the core must not import UI packages"
             - pkg: "github.com/hajimehoshi/ebiten"
               desc: "the core must not import UI packages"
+        features-stay-independent:
+          files:
+            - "**/internal/core/explore/**"
+            - "**/internal/core/procgen/**"
+            - "**/internal/core/combat/**"
+            - "**/internal/core/agents/**"
+            - "**/internal/core/seats/**"
+            - "**/internal/core/cast/**"
+            - "**/internal/core/rumor/**"
+            - "**/internal/core/investigation/**"
+            - "!$test"
+          deny:
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/procgen"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/combat"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/agents"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/seats"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/cast"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rumor"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+            - pkg: "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/investigation"
+              desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
+        randomness-through-rng:
+          files:
+            - "**/internal/core/**"
+            - "!**/internal/core/rng/**"
+          deny:
+            - pkg: "math/rand"
+              desc: "use internal/core/rng named streams (AGENTS.md rule 3)"
+            - pkg: "math/rand/v2"
+              desc: "use internal/core/rng named streams (AGENTS.md rule 3)"
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: '^time\.(Now|Since)$'
+          pkg: '^time$'
+          msg: "the core must not read the wall clock (AGENTS.md rule 3)"
+  exclusions:
+    rules:
+      - linters:
+          - forbidigo
+        path-except: internal/core/

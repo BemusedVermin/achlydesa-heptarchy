@@ -1,7 +1,7 @@
 ---
 id: M1-01
 title: Tooling, lint guards and package stubs
-status: todo
+status: review
 milestone: M1
 kind: seam
 depends_on: []
@@ -71,16 +71,16 @@ Pin each action to a major version.
 
 ## Acceptance criteria
 
-- [ ] `go build ./...` passes and `go run ./cmd/heptarchy` still walks the prototype map.
-- [ ] `golangci-lint run` passes on the clean tree.
-- [ ] Layers: temporarily create `internal/core/combat/doc.go` and a file in `internal/core/explore` that imports it. Lint fails with the layers message. Remove both.
-- [ ] Randomness: a temporary import of `math/rand/v2` in `internal/core/sim` fails lint; the same import in `internal/core/rng` passes. Remove both.
-- [ ] Time: a temporary `time.Now()` call in `internal/core/sim` fails lint; the same call in `cmd/heptarchy` passes. Remove both.
-- [ ] Purity: a temporary Bubble Tea import in `internal/core/sim` fails lint. Remove it.
-- [ ] `go tool task check` exits 0 on the clean tree and non-zero when a Go file is badly formatted.
-- [ ] `go tool task --list` shows every task with its description.
+- [x] `go build ./...` passes and `go run ./cmd/heptarchy` still walks the prototype map.
+- [x] `golangci-lint run` passes on the clean tree.
+- [x] Layers: temporarily create `internal/core/combat/doc.go` and a file in `internal/core/explore` that imports it. Lint fails with the layers message. Remove both.
+- [x] Randomness: a temporary import of `math/rand/v2` in `internal/core/sim` fails lint; the same import in `internal/core/rng` passes. Remove both.
+- [x] Time: a temporary `time.Now()` call in `internal/core/sim` fails lint; the same call in `cmd/heptarchy` passes. Remove both.
+- [x] Purity: a temporary Bubble Tea import in `internal/core/sim` fails lint. Remove it.
+- [x] `go tool task check` exits 0 on the clean tree and non-zero when a Go file is badly formatted.
+- [x] `go tool task --list` shows every task with its description.
 - [ ] `go tool task check` works the same from PowerShell on Windows and from bash on Linux (note both runs in Notes).
-- [ ] Notes record the exact output line of each deliberate violation.
+- [x] Notes record the exact output line of each deliberate violation.
 
 ## Out of scope
 
@@ -89,3 +89,16 @@ Pin each action to a major version.
 - CUE setup and the real `content` task (M1-06).
 
 ## Notes
+
+- Windows (Git Bash) run of `go tool task check`: exit 0. The PowerShell run and the Linux run (CI) are not yet done; that criterion stays unticked until the owner runs it in PowerShell and CI goes green.
+- golangci-lint v2.15.0 installed locally with `go install`. CI pins the action to `v8` with `version: v2.5`, and the CI step is install-only. That version string is unverified, so check it on the first CI run.
+- **Deviation:** depguard's `$MOD` variable was not expanded in this version, so the `features-stay-independent` deny list uses the full module path.
+- **Deviation:** at the owner's request, added a `formatters` section (gofmt, goimports with the module as local prefix, golines at 120 columns). The `fmt` and `fmt-check` tasks run `golangci-lint fmt` and `golangci-lint fmt --diff` instead of plain gofmt, so they need golangci-lint on the PATH.
+- `cmd/heptarchy/main.go`: besides the import path, `game.` became `prototype.` throughout, and `defer f.Close()` became `defer func() { _ = f.Close() }()` to satisfy errcheck, which the standard linter set enables.
+- The forbidigo exclusion uses `path-except: internal/core/`.
+- Deliberate violations (all removed afterwards):
+  - Layers: `internal\core\exploread.go:3:8: import 'github.com/BemusedVermin/achlydesa-heptarchy/internal/core/combat' is not allowed from list 'features-stay-independent': feature packages import only foundation packages (AGENTS.md rule 2) (depguard)`
+  - Randomness: `internal\core\simad.go:3:8: import 'math/rand/v2' is not allowed from list 'randomness-through-rng': use internal/core/rng named streams (AGENTS.md rule 3) (depguard)`. The same import in `internal/core/rng` gave 0 issues.
+  - Time: `internal\core\simad.go:5:9: use of `time.Now` forbidden because "the core must not read the wall clock (AGENTS.md rule 3)" (forbidigo)`. The same call in `cmd/heptarchy` gave 0 issues.
+  - Purity: `internal\core\simad.go:3:8: import 'charm.land/bubbletea/v2' is not allowed from list 'core-is-pure': the core must not import UI packages (depguard)`
+  - Formatting: an unformatted Go file made `go tool task check` exit 201.

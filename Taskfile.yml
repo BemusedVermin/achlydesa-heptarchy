@@ -1,0 +1,55 @@
+version: "3"
+
+tasks:
+  fmt:
+    desc: Format all Go files in place (gofmt, goimports, golines)
+    preconditions:
+      - sh: command -v golangci-lint
+        msg: "golangci-lint is not on the PATH; install it from https://golangci-lint.run/welcome/install/"
+    cmds:
+      - golangci-lint fmt
+
+  fmt-check:
+    desc: Fail if any Go file is not formatted (gofmt, goimports, golines)
+    preconditions:
+      - sh: command -v golangci-lint
+        msg: "golangci-lint is not on the PATH; install it from https://golangci-lint.run/welcome/install/"
+    cmds:
+      - golangci-lint fmt --diff
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: "Run tests (extra args after --, e.g. -- -run Foo ./internal/core/sim)"
+    cmds:
+      - go test {{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}./...{{end}}
+
+  lint:
+    desc: Run golangci-lint (a separately installed binary)
+    preconditions:
+      - sh: command -v golangci-lint
+        msg: "golangci-lint is not on the PATH; install it from https://golangci-lint.run/welcome/install/"
+    cmds:
+      - golangci-lint run
+
+  content:
+    desc: Validate content (placeholder until M1-06)
+    cmds:
+      - echo "no content yet"
+
+  check:
+    desc: Run every check before finishing (fmt-check, vet, test, lint, content)
+    cmds:
+      - task: fmt-check
+      - task: vet
+      - task: test
+      - task: lint
+      - task: content
+
+  run:
+    desc: Run the game (args after --, e.g. -- play --seed 1)
+    cmds:
+      - go run ./cmd/heptarchy {{.CLI_ARGS}}
