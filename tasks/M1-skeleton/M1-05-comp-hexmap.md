@@ -1,7 +1,7 @@
 ---
 id: M1-05
 title: "comp basics and hexmap: 3D cells, chunks, topology"
-status: review
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-03]
