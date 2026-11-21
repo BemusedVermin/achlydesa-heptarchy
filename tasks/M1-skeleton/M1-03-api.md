@@ -1,7 +1,7 @@
 ---
 id: M1-03
 title: "api: the plain-data boundary and its codec"
-status: review
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-01]
