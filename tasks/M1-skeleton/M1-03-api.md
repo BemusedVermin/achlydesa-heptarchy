@@ -1,7 +1,7 @@
 ---
 id: M1-03
 title: "api: the plain-data boundary and its codec"
-status: todo
+status: review
 milestone: M1
 kind: seam
 depends_on: [M1-01]
@@ -113,12 +113,12 @@ func (c *Codec) ReadLog(r io.Reader) ([]Command, error)
 
 ## Acceptance criteria
 
-- [ ] Round trip: a test command and event encode and decode to equal values.
-- [ ] Unknown kind, duplicate registration and a malformed kind each return an error.
-- [ ] A three-command log written with `WriteLog` reads back equal with `ReadLog`.
-- [ ] A `rapid` property: random field values on a test command survive a round trip.
-- [ ] `api` imports only the standard library.
-- [ ] `go tool task check` passes.
+- [x] Round trip: a test command and event encode and decode to equal values.
+- [x] Unknown kind, duplicate registration and a malformed kind each return an error.
+- [x] A three-command log written with `WriteLog` reads back equal with `ReadLog`.
+- [x] A `rapid` property: random field values on a test command survive a round trip.
+- [x] `api` imports only the standard library.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -126,3 +126,9 @@ func (c *Codec) ReadLog(r io.Reader) ([]Command, error)
 - Protobuf.
 
 ## Notes
+
+- Implemented as specced. Codec signatures follow the suggestions; the kind registries are split per command and event, so a kind may be used once as each.
+- Added the exported constant `RejectedKind` (`core.rejected`) so callers need not repeat the string.
+- `ReadLog` skips blank lines and names the failing line number in errors.
+- `rapid` is used in tests only; non-test `api` code imports only the standard library.
+- Files touched outside the list: none. Follow-ups filed: none.
