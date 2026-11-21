@@ -1,7 +1,7 @@
 ---
 id: M1-02
 title: "rng: named deterministic streams"
-status: todo
+status: done
 milestone: M1
 kind: feature
 depends_on: [M1-01]
@@ -60,16 +60,21 @@ Stream names are declared as constants in the package that owns them (`combat` d
 
 ## Acceptance criteria
 
-- [ ] The same seed and name give identical first 1,000 values across two `Streams` values.
-- [ ] Creating "a" then "b" gives the same sequences as creating "b" then "a".
-- [ ] Different names give different sequences.
-- [ ] Draw some values, `State()`, keep drawing; a new `Streams` with `Restore()` produces the same continuation.
-- [ ] `Derived` with the same inputs reproduces; a different salt differs.
-- [ ] A `rapid` property over random seeds and names checks the first two criteria.
-- [ ] `go tool task check` passes.
+- [x] The same seed and name give identical first 1,000 values across two `Streams` values.
+- [x] Creating "a" then "b" gives the same sequences as creating "b" then "a".
+- [x] Different names give different sequences.
+- [x] Draw some values, `State()`, keep drawing; a new `Streams` with `Restore()` produces the same continuation.
+- [x] `Derived` with the same inputs reproduces; a different salt differs.
+- [x] A `rapid` property over random seeds and names checks the first two criteria.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Writing stream state into save files (M1-12).
 
 ## Notes
+
+- Added `pgregory.net/rapid` to `go.mod`: the criteria require a property test, and the tech design names it as the property-testing library.
+- `Restore` replaces the whole stream set: streams absent from the saved state restart from their seed on next `Get`.
+- Files touched outside the list: `internal/core/rng/doc.go` (stream-name convention), `go.mod`, `go.sum`.
+- No follow-ups filed.

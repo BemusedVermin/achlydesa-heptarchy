@@ -133,6 +133,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mvdan.cc/sh/v3 v3.14.1 // indirect
 	mvdan.cc/sh/x v0.0.0-20260922090537-aebdf2b86f56 // indirect
+	pgregory.net/rapid v1.3.0 // indirect
 )
 
 tool github.com/go-task/task/v3/cmd/task
