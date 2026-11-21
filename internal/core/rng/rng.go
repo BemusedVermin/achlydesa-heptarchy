@@ -14,6 +14,8 @@ type stream struct {
 }
 
 // Streams hands out one PCG stream per name, all derived from the world seed.
+// It is not safe for concurrent use: only the goroutine that changes the world
+// may draw from it.
 type Streams struct {
 	seed    uint64
 	streams map[string]*stream
