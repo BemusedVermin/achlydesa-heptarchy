@@ -15,7 +15,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-03](M1-skeleton/M1-03-api.md) | api: the plain-data boundary and its codec | done | seam | S | M1-01 |
 | [M1-04](M1-skeleton/M1-04-sim.md) | sim: world, event bus, scheduler, command registry | done | seam | M | M1-02, M1-03 |
 | [M1-05](M1-skeleton/M1-05-comp-hexmap.md) | comp basics and hexmap: 3D cells, chunks, topology | done | seam | M | M1-03 |
-| [M1-06](M1-skeleton/M1-06-content.md) | content: CUE loader, IDs, text, formulas | todo | seam | M | M1-03 |
+| [M1-06](M1-skeleton/M1-06-content.md) | content: CUE loader, IDs, text, formulas | done | seam | M | M1-03 |
 | [M1-07](M1-skeleton/M1-07-templates-spawn.md) | Templates as component bags, and spawning | todo | seam | M | M1-04, M1-05, M1-06 |
 | [M1-08](M1-skeleton/M1-08-clock.md) | clock: ticks, phases and days | todo | feature | S | M1-04, M1-06 |
 | [M1-15](M1-skeleton/M1-15-turns.md) | turns: one shared timeline for every body | todo | seam | M | M1-04, M1-07, M1-08 |

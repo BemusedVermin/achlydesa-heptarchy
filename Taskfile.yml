@@ -35,10 +35,16 @@ tasks:
     cmds:
       - golangci-lint run
 
-  content:
-    desc: Validate content (placeholder until M1-06)
+  schema:
+    desc: Regenerate the CUE schemas (*_go_gen.cue) from the Go content structs
     cmds:
-      - echo "no content yet"
+      - go tool cue get go --local ./internal/core/api ./internal/content
+      - go run ./internal/tools/cuefix internal
+
+  content:
+    desc: Validate the content data against the schemas
+    cmds:
+      - go tool cue vet ./content/...
 
   check:
     desc: Run every check before finishing (fmt-check, vet, test, lint, content)

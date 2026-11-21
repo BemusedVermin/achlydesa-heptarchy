@@ -1,7 +1,7 @@
 ---
 id: M1-06
 title: "content: CUE loader, IDs, text, formulas"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-03]
@@ -110,15 +110,15 @@ In `Taskfile.yml`, add `schema` (`go tool cue get go --local ./internal/content`
 
 ## Acceptance criteria
 
-- [ ] `Load("content/data")` succeeds; `MoveCost("terrain.packed_clay", MoveEnv{})` returns 1.
-- [ ] A solid terrain without `move_cost` fails validation.
-- [ ] A bad ID, a dangling text reference and a formula that doesn't compile each fail with a message naming the path. Use table tests with inline CUE written to `t.TempDir()`.
-- [ ] Loading the same data twice gives the same `Hash`; changing one value changes it.
-- [ ] `Render` fills `{{.who}}`-style arguments and handles a missing ID.
-- [ ] `FuzzLoad` (fuzzed CUE text as one data file) never panics; run it for 30 seconds and note that in Notes.
-- [ ] `go tool task content` passes, and fails when a terrain drops a required field.
-- [ ] `go tool task schema` regenerates the `_go_gen.cue` files with no diff on a clean tree.
-- [ ] `go tool task check` passes.
+- [x] `Load("content/data")` succeeds; `MoveCost("terrain.packed_clay", MoveEnv{})` returns 1.
+- [x] A solid terrain without `move_cost` fails validation.
+- [x] A bad ID, a dangling text reference and a formula that doesn't compile each fail with a message naming the path. Use table tests with inline CUE written to `t.TempDir()`.
+- [x] Loading the same data twice gives the same `Hash`; changing one value changes it.
+- [x] `Render` fills `{{.who}}`-style arguments and handles a missing ID.
+- [x] `FuzzLoad` (fuzzed CUE text as one data file) never panics; run it for 30 seconds and note that in Notes.
+- [x] `go tool task content` passes, and fails when a terrain drops a required field.
+- [x] `go tool task schema` regenerates the `_go_gen.cue` files with no diff on a clean tree.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -128,3 +128,14 @@ In `Taskfile.yml`, add `schema` (`go tool cue get go --local ./internal/content`
 ## Notes
 
 If `go tool cue get go --local` can't generate the schema for a non-main package, fall back to `cue get go $MOD/internal/content`, which writes to `cue.mod/gen/`. Record which one worked, and if it's the fallback, update the Content pipeline section and the layout in `docs/go-technical-design.md` to match.
+
+### Implementation notes (M1-06)
+
+- **Schema generation:** `go tool cue get go --local` worked for a non-main package; the `cue.mod/gen` fallback was not needed.
+- **Deviation, lower-case CUE module path:** CUE rejects upper-case module paths, but the Go path has `BemusedVermin`. `cue.mod/module.cue` is `github.com/bemusedvermin/achlydesa-heptarchy`, and the new `internal/tools/cuefix` rewrites the generated imports to match. `task schema` runs it after `cue get go`; data files import the lower-case path. `task schema` also generates `internal/core/api/*_go_gen.cue`, because the content schema imports `api.#ContentID`.
+- **Solid without `move_cost`** is enforced in Go (`Load`), not in CUE, so `cue vet` alone does not catch it. Dropping a schema-required field (e.g. `opaque`) makes `task content` fail (checked by hand).
+- **Formulas** compile with `expr.Env(MoveEnv{})` and `expr.AsInt64()`; a terrain without a formula costs 0.
+- **Text templates** are parsed at load (a bad template fails with its path) and `Render` uses `missingkey=zero`, so a missing argument renders empty.
+- **FuzzLoad:** ran 30s, no panics (about 470 execs; CUE loading is slow, roughly 11/sec).
+- Files outside the list: `internal/tools/cuefix/`, `internal/core/api/*_go_gen.cue`, `go.mod`/`go.sum`, `tasks/INDEX.md`.
+- No follow-ups filed.
