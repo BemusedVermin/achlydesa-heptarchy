@@ -1,7 +1,7 @@
 ---
 id: M1-04
 title: "sim: world, event bus, scheduler, command registry"
-status: todo
+status: review
 milestone: M1
 kind: seam
 depends_on: [M1-02, M1-03]
@@ -120,13 +120,13 @@ Reuse the scheduler's sorting function for views; don't write it twice.
 
 ## Acceptance criteria
 
-- [ ] Scheduler: with A, B (after A), C (after A) and D (after B and C), the order is A, B, C, D, and it's identical over 100 runs.
-- [ ] Scheduler: a cycle, an unknown `After` name and a cross-cadence `After` each error at `Freeze`, naming the systems.
-- [ ] Bus: an event published inside a subscriber is delivered after the current one, and `Drain` returns all of them in order.
-- [ ] Bus: a subscriber that republishes forever makes `Drain` return an error instead of hanging.
-- [ ] Commands: a registered test command dispatches to its handler; an unknown kind errors; a duplicate `Handle` errors.
-- [ ] `NewUID` returns 1, 2, 3 on a fresh world.
-- [ ] `go tool task check` passes.
+- [x] Scheduler: with A, B (after A), C (after A) and D (after B and C), the order is A, B, C, D, and it's identical over 100 runs.
+- [x] Scheduler: a cycle, an unknown `After` name and a cross-cadence `After` each error at `Freeze`, naming the systems.
+- [x] Bus: an event published inside a subscriber is delivered after the current one, and `Drain` returns all of them in order.
+- [x] Bus: a subscriber that republishes forever makes `Drain` return an error instead of hanging.
+- [x] Commands: a registered test command dispatches to its handler; an unknown kind errors; a duplicate `Handle` errors.
+- [x] `NewUID` returns 1, 2, 3 on a fresh world.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -134,3 +134,11 @@ Reuse the scheduler's sorting function for views; don't write it twice.
 - Spawning entities (M1-07).
 
 ## Notes
+
+- Added `order.go` (not in the Deliverables list): the shared `sortByAfter` used by both the scheduler and the views, as the spec asks for one sort function.
+- Ark is v0.8.3; `ecs.NewWorld()` is used with its defaults.
+- `Bus.Drain` clears the queue when it hits `MaxCascade`, so the world is usable after the error. Events already delivered are still returned alongside the error.
+- `Scheduler.Register` also rejects a nil `Run` and an out-of-range cadence; `Views.Register` rejects a nil `Build`.
+- `Views.Build` sets `View.Tick` from `w.Now`; other sections are left to builders.
+- Bus subscriber names are stored for diagnostics but not yet used in any message.
+- No follow-ups filed.
