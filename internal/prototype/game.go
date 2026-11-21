@@ -1,4 +1,4 @@
-package game
+package prototype
 
 import hex "github.com/gravitton/hexagon"
 

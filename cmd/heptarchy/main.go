@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	hex "github.com/gravitton/hexagon"
+
+	prototype "github.com/BemusedVermin/achlydesa-heptarchy/internal/prototype"
 )
 
 var moveKeys = map[string]hex.Direction{
@@ -20,7 +21,7 @@ var moveKeys = map[string]hex.Direction{
 }
 
 type model struct {
-	g   *game.Game
+	g   *prototype.Game
 	msg string
 }
 
@@ -37,8 +38,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	if dir, ok := moveKeys[key.String()]; ok {
 		m.msg = ""
-		for _, ev := range m.g.Apply(game.Move{Dir: dir}) {
-			if _, bumped := ev.(game.Bumped); bumped {
+		for _, ev := range m.g.Apply(prototype.Move{Dir: dir}) {
+			if _, bumped := ev.(prototype.Bumped); bumped {
 				m.msg = "Packed clay. No way through."
 			}
 		}
@@ -66,7 +67,7 @@ func (m model) View() tea.View {
 		}
 		p := hex.DoubleWidth.To(h)
 		glyph := '.'
-		if t == game.Wall {
+		if t == prototype.Wall {
 			glyph = '#'
 		}
 		rows[p.Y-minY][p.X-minX] = glyph
@@ -94,10 +95,10 @@ func main() {
 			fmt.Println("fatal:", err)
 			os.Exit(1)
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 	}
 
-	if _, err := tea.NewProgram(model{g: game.New()}).Run(); err != nil {
+	if _, err := tea.NewProgram(model{g: prototype.New()}).Run(); err != nil {
 		fmt.Println("error:", err)
 		os.Exit(1)
 	}
