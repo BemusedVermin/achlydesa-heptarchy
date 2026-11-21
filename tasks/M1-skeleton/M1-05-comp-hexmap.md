@@ -1,7 +1,7 @@
 ---
 id: M1-05
 title: "comp basics and hexmap: 3D cells, chunks, topology"
-status: todo
+status: review
 milestone: M1
 kind: seam
 depends_on: [M1-03]
@@ -148,16 +148,26 @@ Conversions between `api` types and gravitton/hexagon happen only inside `hexmap
 
 ## Acceptance criteria
 
-- [ ] `Prisms` neighbors, `Above` and `Below` match hand-computed cells for each `Dir`.
-- [ ] A `rapid` property: `Set` then `At` round-trips for random cells, including negative coordinates and chunk edges.
-- [ ] The source is asked for each chunk once; edits survive and `Edits()` is sorted.
-- [ ] Stepping: level, up one, refused up two, down one, a drop of three (`Fall` 3), refused past `MaxDrop`, and up refused without headroom.
-- [ ] Overlap: two tunnels crossing the same hexes at depths 0 and 4 never step into each other.
-- [ ] `CellsIn` is sorted and stable over 100 calls.
-- [ ] `go tool task check` passes.
+- [x] `Prisms` neighbors, `Above` and `Below` match hand-computed cells for each `Dir`.
+- [x] A `rapid` property: `Set` then `At` round-trips for random cells, including negative coordinates and chunk edges.
+- [x] The source is asked for each chunk once; edits survive and `Edits()` is sorted.
+- [x] Stepping: level, up one, refused up two, down one, a drop of three (`Fall` 3), refused past `MaxDrop`, and up refused without headroom.
+- [x] Overlap: two tunnels crossing the same hexes at depths 0 and 4 never step into each other.
+- [x] `CellsIn` is sorted and stable over 100 calls.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Sight and pathing (M1-14). Maps from content and the plan view (M1-10). Generated sources (M5). Unloading chunks under a memory budget (M5).
 
 ## Notes
+
+- **No gravitton/hexagon or fzipp/astar yet.** `Prisms` and `CellsIn` use a six-entry axial offset table and plain loops, which is all this task needs. The library conversions the spec mentions are left for M1-14 (sight and pathing), where they earn their place.
+- **Additions beyond the spec:** `api.DirCount` and `Dir.Valid`; `hexmap.KeyOf` and `ChunkKey.Origin`; `Chunk.Get/Set/NewChunk` (local coordinates); `FuncSource` (a `Source` from a cell-to-terrain function, used by tests and handy for uniform maps); `DefaultStepRules()` and `ErrBadDir`.
+- **Decisions on unspecified points:**
+  - `StepDown` leaves `Fall` at 0; only `StepDrop` sets it. `Fall` counts cells below the neighbor cell, so a drop of three is `Fall` 3.
+  - A link to another map counts as solid for `Standable` and headroom checks, since this map can't see it. A `Step` whose neighbor link leaves the map is returned as a level step as given.
+  - `Step` returns `ErrBadDir` for a direction outside the six; `Prisms.Neighbor` returns the cell itself for one.
+  - `Map.Set` always returns nil today; the error is kept for sources that may refuse edits later.
+- Files touched outside the list: none.
+- Follow-ups filed: none.
