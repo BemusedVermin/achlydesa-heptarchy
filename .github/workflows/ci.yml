@@ -14,7 +14,7 @@ jobs:
           go-version-file: go.mod
       - uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.5
+          version: v2.15.0
           install-mode: binary
-          args: --version
+          install-only: true
       - run: go tool task check
