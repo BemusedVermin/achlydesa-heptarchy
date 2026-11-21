@@ -86,6 +86,11 @@ func TestProperties(t *testing.T) {
 		seed := rapid.Uint64().Draw(t, "seed")
 		first := rapid.StringMatching(`[a-z]{1,8}`).Draw(t, "first")
 		second := rapid.StringMatching(`[a-z]{1,8}`).Draw(t, "second")
+		// Two draws from one stream continue it, so the order check below
+		// only holds for distinct names.
+		if first == second {
+			t.SkipNow()
+		}
 
 		if !slices.Equal(draw(New(seed), first, 50), draw(New(seed), first, 50)) {
 			t.Fatal("same seed and name diverged")
