@@ -30,7 +30,7 @@ While `heptarchy play --dev` runs, saving a CUE file reloads content between com
 
 - `Watch(dir string, onChange func(*Registry, error)) (stop func(), err error)` watches `dir` recursively. It debounces bursts (150 ms), reloads, and calls back with the new registry or the error.
 - `SwapContent` re-runs the checks `game.New` does against the registries (primitives, event kinds). On success it replaces `w.Content`; on failure it returns the error and keeps the old content.
-- Swapping happens only between commands, on the Bubble Tea goroutine (send the result as a `tea.Msg`). The core stays single-threaded.
+- Swapping happens only between commands, on the Bubble Tea goroutine (send the result as a `tea.Msg`). Only one goroutine changes the world.
 - Entities spawned from a template keep their components; new spawns use the new template. Document this in the doc comment.
 - The swap clears `game.History()` reproducibility: log a warning line in the view that replays from before the swap won't match.
 

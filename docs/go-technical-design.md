@@ -10,7 +10,7 @@ The game is one Go module: a pure engine core with no UI imports, content held a
 - **Pure core.** `internal/core` never imports a UI package, and a linter rule enforces it.
 - **Content is data.** CUE files hold every material, form, creature, town and candidate; formulas inside them are Expr expressions.
 - **Go structs are the source of truth.** CUE schemas are generated from them, so content and code can't drift apart.
-- **Deterministic.** Seeded random streams and a single-threaded tick make any run replayable.
+- **Deterministic.** Seeded random streams and a single writer to the world make any run replayable. Parallel work is pure computation, applied in a fixed order.
 
 &#91;embedded content: module layout · one core, content in, four consumers\]
 
@@ -47,7 +47,7 @@ The game will change once it's played, so every place the game design already ex
 ### What stays concrete
 
 - **The hex grid.** Hexes are decided, so there's no square-grid option, though the hex library still stays behind `hexmap`.
-- **Turn-based and single-threaded.** No real-time loop and no concurrency in the core.
+- **Turn-based, with one writer.** No real-time loop. Only one goroutine changes the world; anything parallel is pure computation applied in a fixed order.
 - **Primitives in Go, compositions in data.** No embedded scripting language beyond Expr formulas; a new primitive is a deliberate code change.
 - **No mod loader and no networking.** The `core/game` boundary already allows an out-of-process frontend if one is ever built.
 - **A seam needs a feature.** No abstraction goes in unless the game design names something that needs it.
@@ -185,7 +185,7 @@ What stays as code versus data:
 
 ## Simulation loop and determinism
 
-The simulation runs single-threaded in a fixed order, so the same seed and the same inputs always produce the same run.
+One goroutine changes the world, in a fixed order, so the same seed and the same inputs always produce the same run.
 
 ### Tick order
 
@@ -208,6 +208,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 - **Named streams.** Every subsystem draws from its own PCG stream, so adding a feature in combat never changes procgen.
 - **No hidden order.** Never let Go map iteration order or goroutines decide an outcome; sort by entity ID where order matters.
+- **Parallel, then in order.** Work may run on other goroutines only as pure computation: it reads its inputs and returns results without touching the world. The world's goroutine then applies the results in a fixed order (by chunk key, region ID or seed). Procgen chunks, harness games and off-screen region updates fit this. The `sim` registries are safe for concurrent use; the ECS world, `World.Now` and the RNG streams are not.
 - **Procgen seeds** come from the world seed plus the export count, so any export's layout can be regenerated exactly.
 
 ### Saves and replays
