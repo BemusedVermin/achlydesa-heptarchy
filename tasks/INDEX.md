@@ -11,7 +11,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
 | [M1-01](M1-skeleton/M1-01-tooling.md) | Tooling, lint guards and package stubs | done | seam | S | none |
-| [M1-02](M1-skeleton/M1-02-rng.md) | rng: named deterministic streams | todo | feature | S | M1-01 |
+| [M1-02](M1-skeleton/M1-02-rng.md) | rng: named deterministic streams | review | feature | S | M1-01 |
 | [M1-03](M1-skeleton/M1-03-api.md) | api: the plain-data boundary and its codec | todo | seam | S | M1-01 |
 | [M1-04](M1-skeleton/M1-04-sim.md) | sim: world, event bus, scheduler, command registry | todo | seam | M | M1-02, M1-03 |
 | [M1-05](M1-skeleton/M1-05-comp-hexmap.md) | comp basics and hexmap: 3D cells, chunks, topology | todo | seam | M | M1-03 |
