@@ -1,7 +1,7 @@
 ---
 id: M1-06
 title: "content: CUE loader, IDs, text, formulas"
-status: review
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-03]
