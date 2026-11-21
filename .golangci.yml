@@ -1,0 +1,15 @@
+version: "2"
+linters:
+  enable:
+    - depguard
+  settings:
+    depguard:
+      rules:
+        core-is-pure:
+          files:
+            - "**/internal/core/**/*.go"
+          deny:
+            - pkg: "charm.land"
+              desc: "the core must not import UI packages"
+            - pkg: "github.com/hajimehoshi/ebiten"
+              desc: "the core must not import UI packages"

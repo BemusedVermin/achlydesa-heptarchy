@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug heptarchy",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/heptarchy",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Attach to headless dlv",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "debugAdapter": "dlv-dap",
+      "host": "127.0.0.1",
+      "port": 43000
+    }
+  ]
+}
