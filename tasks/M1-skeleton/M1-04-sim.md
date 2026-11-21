@@ -1,7 +1,7 @@
 ---
 id: M1-04
 title: "sim: world, event bus, scheduler, command registry"
-status: review
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-02, M1-03]
@@ -142,3 +142,4 @@ Reuse the scheduler's sorting function for views; don't write it twice.
 - `Views.Build` sets `View.Tick` from `w.Now`; other sections are left to builders.
 - Bus subscriber names are stored for diagnostics but not yet used in any message.
 - No follow-ups filed.
+- Concurrency (owner request, beyond the spec): the bus, scheduler, commands, views and UID counter are safe for concurrent use. Locks guard only registry state and are never held while a subscriber, system, handler or builder runs. `Drain` runs one at a time; a call made during another drain (or from a subscriber) returns `nil, nil` and the running drain delivers its events. `World.Now`, the Ark ECS and `rng.Streams` are not synchronized, and `api.Codec` is not safe against `Handle` racing with encode/decode. This departs from AGENTS.md rule 3 (single-threaded core); the rule should be reconciled by the owner.

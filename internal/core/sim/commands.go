@@ -3,6 +3,7 @@ package sim
 import (
 	"fmt"
 	"sort"
+	"sync"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
@@ -12,8 +13,10 @@ import (
 // api.Rejected and returns 0, nil; errors are for bugs only.
 type Handler[C api.Command] func(w *World, cmd C) (cost int64, err error)
 
-// Commands routes each command kind to its handler.
+// Commands routes each command kind to its handler. Safe for concurrent use;
+// the lock is never held while a handler runs.
 type Commands struct {
+	mu       sync.RWMutex
 	handlers map[string]func(w *World, cmd api.Command) (int64, error)
 }
 
@@ -27,6 +30,8 @@ func NewCommands() *Commands {
 func Handle[C api.Command](w *World, h Handler[C]) error {
 	var zero C
 	kind := zero.CommandKind()
+	w.Commands.mu.Lock()
+	defer w.Commands.mu.Unlock()
 	if _, dup := w.Commands.handlers[kind]; dup {
 		return fmt.Errorf("sim: duplicate command handler for %q", kind)
 	}
@@ -45,7 +50,9 @@ func Handle[C api.Command](w *World, h Handler[C]) error {
 
 // Dispatch runs the handler for cmd's kind. An unknown kind is an error.
 func (c *Commands) Dispatch(w *World, cmd api.Command) (cost int64, err error) {
+	c.mu.RLock()
 	handler, ok := c.handlers[cmd.CommandKind()]
+	c.mu.RUnlock()
 	if !ok {
 		return 0, fmt.Errorf("sim: no handler for command kind %q", cmd.CommandKind())
 	}
@@ -54,6 +61,8 @@ func (c *Commands) Dispatch(w *World, cmd api.Command) (cost int64, err error) {
 
 // Kinds returns the registered command kinds, sorted.
 func (c *Commands) Kinds() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	kinds := make([]string, 0, len(c.handlers))
 	for kind := range c.handlers {
 		kinds = append(kinds, kind)

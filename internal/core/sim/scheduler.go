@@ -3,6 +3,7 @@ package sim
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 // Cadence says when a system runs.
@@ -29,7 +30,9 @@ type System struct {
 }
 
 // Scheduler holds the registered systems and, once frozen, their run order.
+// Safe for concurrent use; the lock is never held while a system runs.
 type Scheduler struct {
+	mu      sync.RWMutex
 	systems map[string]System
 	order   [cadenceCount][]string
 	frozen  bool
@@ -43,6 +46,8 @@ func NewScheduler() *Scheduler {
 // Register adds a system. It errors on a duplicate name, an invalid cadence,
 // a missing Run func, or after Freeze.
 func (s *Scheduler) Register(sys System) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	switch {
 	case s.frozen:
 		return fmt.Errorf("sim: register system %q after freeze", sys.Name)
@@ -61,6 +66,8 @@ func (s *Scheduler) Register(sys System) error {
 // Freeze sorts each cadence on After, breaking ties by name. It errors on an
 // unknown After name, an After naming a system of another cadence, or a cycle.
 func (s *Scheduler) Freeze() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	var perCadence [cadenceCount][]orderItem
 	for _, sys := range s.systems {
 		for _, dep := range sys.After {
@@ -87,6 +94,8 @@ func (s *Scheduler) Freeze() error {
 
 // Order returns the system names of cadence c in run order. Empty before Freeze.
 func (s *Scheduler) Order(c Cadence) []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	if c >= cadenceCount {
 		return nil
 	}
@@ -96,14 +105,22 @@ func (s *Scheduler) Order(c Cadence) []string {
 // Run runs every system of cadence c in order, draining the bus after each,
 // and stops at the first error. It errors before Freeze.
 func (s *Scheduler) Run(w *World, c Cadence) error {
+	s.mu.RLock()
 	if !s.frozen {
+		s.mu.RUnlock()
 		return errors.New("sim: run systems before freeze")
 	}
 	if c >= cadenceCount {
+		s.mu.RUnlock()
 		return fmt.Errorf("sim: invalid cadence %d", c)
 	}
-	for _, name := range s.order[c] {
-		if err := s.systems[name].Run(w); err != nil {
+	// After Freeze nothing changes, so the order is safe to use unlocked.
+	order := s.order[c]
+	systems := s.systems
+	s.mu.RUnlock()
+
+	for _, name := range order {
+		if err := systems[name].Run(w); err != nil {
 			return fmt.Errorf("sim: system %q: %w", name, err)
 		}
 		if _, err := w.Bus.Drain(w); err != nil {
