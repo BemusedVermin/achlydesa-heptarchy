@@ -1,7 +1,7 @@
 ---
 id: M1-01
 title: Tooling, lint guards and package stubs
-status: review
+status: done
 milestone: M1
 kind: seam
 depends_on: []
