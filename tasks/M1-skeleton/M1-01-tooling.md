@@ -91,7 +91,7 @@ Pin each action to a major version.
 ## Notes
 
 - Windows (Git Bash) run of `go tool task check`: exit 0. The PowerShell run and the Linux run (CI) are not yet done; that criterion stays unticked until the owner runs it in PowerShell and CI goes green.
-- golangci-lint v2.15.0 installed locally with `go install`. CI pins the action to `v8` with `version: v2.15.0`, and the CI step is install-only. That version string is unverified, so check it on the first CI run.
+- golangci-lint v2.15.0 installed locally with `go install`. CI pins the action to `v8` with `version: v2.15.0` and `install-only: true`. The first CI attempt with `args: --version` failed (it ran `golangci-lint run --version`).
 - **Deviation:** depguard's `$MOD` variable was not expanded in this version, so the `features-stay-independent` deny list uses the full module path.
 - **Deviation:** at the owner's request, added a `formatters` section (gofmt, goimports with the module as local prefix, golines at 120 columns). The `fmt` and `fmt-check` tasks run `golangci-lint fmt` and `golangci-lint fmt --diff` instead of plain gofmt, so they need golangci-lint on the PATH.
 - `cmd/heptarchy/main.go`: besides the import path, `game.` became `prototype.` throughout, and `defer f.Close()` became `defer func() { _ = f.Close() }()` to satisfy errcheck, which the standard linter set enables.
