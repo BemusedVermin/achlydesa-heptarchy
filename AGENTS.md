@@ -40,14 +40,22 @@ Module path: `github.com/BemusedVermin/achlydesa-heptarchy`. The owner works in 
 
 ## Working on a task
 
-The full workflow is in `tasks/README.md`. In short:
+The full workflow is in `tasks/README.md`. In Claude Code, `/do-task <ID>` walks through all of it. In short:
 
-1. Pick a `todo` task in `tasks/INDEX.md` whose dependencies are all `done`. Set it to `in-progress` in both the task file and the index.
+1. Pick a `todo` task whose dependencies are all `done` (`go run ./internal/tools/agentkit ready` lists them). Set it to `in-progress` in both the task file and the index.
 2. Read the task file, then the doc sections it links.
 3. Implement only what the task's Deliverables and Spec cover. Signatures in a spec are the intended shape; keep the names unless they clash with something real, and say so in Notes if you change one.
 4. Verify against every acceptance criterion and run the checks. Tick the criteria in the task file.
 5. Fill in the task's Notes: assumptions, deviations, files touched outside the list, follow-ups filed.
 6. Set the status to `done` in the file and the index, then open a PR using the body layout in `.github/pull_request_template.md` (Summary, Notes, Test plan). Merging the PR completes the task.
+
+## Branches, pushes and pull requests
+
+- Work on a branch named `task/<ID>-<slug>`, made from `origin/master`. Never commit to master, force-push, delete a branch, or merge a pull request: the owner merges.
+- `go tool task check` must pass on the exact commit you push. Before a `git push`, the guard runs the check if it hasn't passed on that commit yet.
+- On a task branch, don't edit `AGENTS.md`, `CLAUDE.md`, `docs/`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or `internal/tools/agentkit/`. If your task needs one of them changed, file a follow-up that says what should change.
+- To update a branch you've pushed, add commits. To catch up with master, merge `origin/master` into it. Never rebase or amend commits you've pushed.
+- The guardrails are hooks in `internal/tools/agentkit`, wired up in `.claude/settings.json`. When one refuses a command, do what its reason says. Don't run the same thing another way.
 
 ## Follow-up tasks: required
 

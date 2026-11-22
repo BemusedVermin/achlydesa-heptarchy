@@ -54,6 +54,9 @@ tasks:
       - task: test
       - task: lint
       - task: content
+      # Record the commit the check passed on (when the tree is clean), so the agent guardrails
+      # let the next git push through without running the check again. See internal/tools/agentkit.
+      - go run ./internal/tools/agentkit mark-checked
 
   run:
     desc: Run the game (args after --, e.g. -- play --seed 1)
