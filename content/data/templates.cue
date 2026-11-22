@@ -12,7 +12,7 @@ templates: {
 	}
 	"template.person.salken": {
 		appearance: {glyph: "@", color: "cyan"}
-		actor: controller: "player"
+		actor: controller: "follow"
 		actions: ["action.step"]
 	}
 	"template.party.main": party: members: ["template.person.reaper", "template.person.salken"]

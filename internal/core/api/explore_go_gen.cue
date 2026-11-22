@@ -4,8 +4,46 @@
 
 package api
 
-#MovedKind: "explore.moved"
-#FellKind:  "explore.fell"
+#MovedKind:          "explore.moved"
+#FellKind:           "explore.fell"
+#ControlKind:        "explore.control"
+#LeadKind:           "explore.lead"
+#ControlChangedKind: "explore.control_changed"
+#LeaderChangedKind:  "explore.leader_changed"
+
+#ControlFollow:     "follow"
+#ControlIndividual: "individual"
+#ControlByPlayer:   "player"
+#ControlByAlert:    "alert"
+
+// Control sets how the party is controlled: a player's choice, which an alert does not override
+// when it ends. It is allowed at any time.
+#Control: {
+	party: #UID   @go(Party)
+	mode:  string @go(Mode)
+}
+
+// Lead makes a member the leader, at the front of the party order. It is allowed at any time.
+#Lead: {
+	party:  #UID @go(Party)
+	member: #UID @go(Member)
+}
+
+// ControlChanged reports that the party's control mode changed.
+#ControlChanged: {
+	party: #UID   @go(Party)
+	mode:  string @go(Mode)
+	by:    string @go(By)
+}
+
+// LeaderChanged reports that another member leads the party.
+#LeaderChanged: {
+	party:  #UID @go(Party)
+	leader: #UID @go(Leader)
+
+	// Name is the leader's rendered name, for the log.
+	name: string @go(Name)
+}
 
 #MoveLevel: "level"
 #MoveUp:    "up"

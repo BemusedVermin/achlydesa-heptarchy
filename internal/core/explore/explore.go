@@ -53,15 +53,47 @@ func controlledParty(w *sim.World) (ecs.Entity, bool) {
 	return ecs.Entity{}, false
 }
 
-// membersOf lists the members of a party in party order, which is spawn order, which is UID order.
+// membersOf lists the members of a party in party order: the leader first, each follower behind the
+// member it follows. Anyone the order does not name comes last, by UID.
 func membersOf(w *sim.World, party ecs.Entity) []ecs.Entity {
 	var members []ecs.Entity
 	query := ecs.NewFilter1[comp.MemberOf](w.ECS).Query(ecs.Rel[comp.MemberOf](party))
 	for query.Next() {
 		members = append(members, query.Entity())
 	}
-	slices.SortFunc(members, func(a, b ecs.Entity) int { return cmp.Compare(w.UIDOf(a), w.UIDOf(b)) })
+	rank := map[api.UID]int{}
+	if parties := ecs.NewMap[comp.Party](w.ECS); alive(w, party) && parties.Has(party) {
+		for i, uid := range parties.Get(party).Order {
+			rank[uid] = i
+		}
+	}
+	rankOf := func(e ecs.Entity) int {
+		if r, ok := rank[w.UIDOf(e)]; ok {
+			return r
+		}
+		return len(rank)
+	}
+	slices.SortFunc(members, func(a, b ecs.Entity) int {
+		return cmp.Or(cmp.Compare(rankOf(a), rankOf(b)), cmp.Compare(w.UIDOf(a), w.UIDOf(b)))
+	})
 	return members
+}
+
+// bodyAt returns the body standing in the cell, other than except. With several, the lowest UID.
+func bodyAt(w *sim.World, mapID api.MapID, cell api.Cell, except ecs.Entity) (ecs.Entity, bool) {
+	var found ecs.Entity
+	query := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
+	for query.Next() {
+		pos, _ := query.Get()
+		e := query.Entity()
+		if e == except || pos.Map != mapID || pos.At != cell {
+			continue
+		}
+		if found.IsZero() || w.UIDOf(e) < w.UIDOf(found) {
+			found = e
+		}
+	}
+	return found, !found.IsZero()
 }
 
 // partyOf returns the party a member belongs to.
@@ -206,7 +238,7 @@ func Start(w *sim.World) error {
 }
 
 // spawnParty spawns the template's party. The leader stands on the mark; each other member stands
-// on the nearest free standable cell. M1-16 refines this placement.
+// on the nearest free standable cell, nearest in steps.
 func spawnParty(w *sim.World, id api.MapID, mark api.Cell, template api.ContentID) error {
 	party, err := w.Spawn(template, nil)
 	if err != nil {
@@ -214,16 +246,18 @@ func spawnParty(w *sim.World, id api.MapID, mark api.Cell, template api.ContentI
 	}
 	m := w.Maps.Get(id)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
+	trails := ecs.NewMap[comp.Trail](w.ECS)
 	taken := map[api.Cell]bool{}
 	for i, member := range membersOf(w, party) {
 		at := mark
 		if i > 0 {
-			if at, err = nearestFree(m, mark, taken); err != nil {
+			if at, err = nearestFree(m, mark, stateOf(w).rules, taken); err != nil {
 				return err
 			}
 		}
 		taken[at] = true
 		positions.Add(member, &comp.Pos{Map: id, At: at})
+		trails.Add(member, &comp.Trail{Last: at})
 	}
 	ecs.NewMap[comp.Controlled](w.ECS).Add(party, &comp.Controlled{})
 	for _, member := range membersOf(w, party) {
@@ -236,38 +270,43 @@ func spawnParty(w *sim.World, id api.MapID, mark api.Cell, template api.ContentI
 	return nil
 }
 
-// searchRadius is how far from the mark a member is placed before giving up.
+// searchRadius is how many steps from the mark a member is placed before giving up.
 const searchRadius = 8
 
-// nearestFree finds the standable cell closest to the mark that nobody stands on: nearest in
-// hexes, then in depth, then the shallower, then by R and Q.
-func nearestFree(m *hexmap.Map, mark api.Cell, taken map[api.Cell]bool) (api.Cell, error) {
-	for radius := 0; radius <= searchRadius; radius++ {
-		var found []api.Cell
-		for _, cell := range m.CellsIn(mark.Hex, radius, mark.Depth-radius, mark.Depth+radius) {
-			if hexmap.Distance(cell.Hex, mark.Hex) != radius || taken[cell] {
-				continue
-			}
-			standable, err := m.Standable(cell)
-			if err != nil {
-				return api.Cell{}, err
-			}
-			if standable {
-				found = append(found, cell)
+// nearestFree finds the free standable cell fewest steps from the mark, searching breadth-first
+// over Step. Ties go to the first cell by depth, then R, then Q.
+func nearestFree(
+	m *hexmap.Map, mark api.Cell, rules hexmap.StepRules, taken map[api.Cell]bool,
+) (api.Cell, error) {
+	seen := map[api.Cell]bool{mark: true}
+	frontier := []api.Cell{mark}
+	for radius := 0; radius <= searchRadius && len(frontier) > 0; radius++ {
+		var free []api.Cell
+		for _, cell := range frontier {
+			if !taken[cell] {
+				free = append(free, cell)
 			}
 		}
-		if len(found) == 0 {
-			continue
+		if len(free) > 0 {
+			return slices.MinFunc(free, compareCells), nil
 		}
-		slices.SortFunc(found, func(a, b api.Cell) int {
-			return cmp.Or(
-				cmp.Compare(abs(a.Depth-mark.Depth), abs(b.Depth-mark.Depth)),
-				compareCells(a, b),
-			)
-		})
-		return found[0], nil
+		var next []api.Cell
+		for _, cell := range frontier {
+			for dir := api.Dir(0); dir < api.DirCount; dir++ {
+				step, can, err := m.Step(cell, dir, rules)
+				if err != nil {
+					return api.Cell{}, err
+				}
+				if !can || (step.To.Map != 0 && step.To.Map != m.ID()) || seen[step.To.Cell] {
+					continue
+				}
+				seen[step.To.Cell] = true
+				next = append(next, step.To.Cell)
+			}
+		}
+		frontier = next
 	}
-	return api.Cell{}, fmt.Errorf("explore: no free standable cell within %d of the start mark", searchRadius)
+	return api.Cell{}, fmt.Errorf("explore: no free standable cell within %d steps of the start mark", searchRadius)
 }
 
 func abs(n int) int {

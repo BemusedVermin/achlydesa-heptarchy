@@ -14,4 +14,6 @@ party: {
 	max_drop:      8
 	// Climbing costs more than descending, on top of the step's own ticks.
 	climb_cost: "5"
+	// An alert puts every member under the player's hand, and gives single file back when it ends.
+	individual_on_alert: true
 }

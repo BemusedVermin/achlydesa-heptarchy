@@ -28,7 +28,24 @@ type Appearance struct {
 // Party is what a whole party shares. It sits on the party entity, which has no position.
 type Party struct {
 	Slots  int     `json:"slots"`  // fighters at a time, copied from content at spawn
-	Leader api.UID `json:"leader"` // the member who leads
+	Leader api.UID `json:"leader"` // the member who leads; always first in Order
+	// Order is the party order: the leader first, then the rest. Each follower follows the member
+	// just before it. Spawning fills it from the party template.
+	Order []api.UID `json:"order"`
+	// Alert is set by the danger check (M2-07) and is always false until then.
+	Alert bool `json:"alert"`
+	// Control is api.ControlFollow or api.ControlIndividual.
+	Control string `json:"control"`
+	// ControlBy is who set Control last: api.ControlByPlayer or api.ControlByAlert.
+	ControlBy string `json:"control_by"`
+	// AlertSeen is the last Alert value the party_control system acted on.
+	AlertSeen bool `json:"alert_seen"`
+}
+
+// Trail is the cell a party member left on its most recent step, which the member behind it steps
+// into.
+type Trail struct {
+	Last api.Cell `json:"last"`
 }
 
 // MemberOf is the Ark relation from a party member to its party entity.

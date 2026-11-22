@@ -427,6 +427,16 @@ func Release(w *sim.World, c Channel) error {
 	return nil
 }
 
+// Reschedule puts a body back on the timeline at its current decision tick, keeping its channels
+// as they are. Deciding takes a body off the timeline until it acts or waits, so a body whose
+// controller changed while the player was deciding for it needs this to be decided for again.
+func Reschedule(w *sim.World, body ecs.Entity) {
+	st := stateOf(w)
+	if w.ECS.Alive(body) && st.actors.Has(body) {
+		st.schedule(w, body)
+	}
+}
+
 // Speed is the body's speed, as the world's speed hook gives it.
 func Speed(w *sim.World, body ecs.Entity) int { return stateOf(w).speed(w, body) }
 

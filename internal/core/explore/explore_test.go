@@ -279,20 +279,24 @@ func TestAStepUpCostsMoreThanTheSameStepDown(t *testing.T) {
 	if fx.pos(leader).At.Depth != 4 {
 		t.Fatalf("leader at %+v, want the chamber's depth", fx.pos(leader))
 	}
-	busy := func() int64 {
+	// stepBusy steps the leader and returns the ticks the step kept it busy, counted from the tick
+	// it stepped: by the time Apply returns the followers have caught up and time has moved on.
+	stepBusy := func(dir string) ([]api.Event, int64) {
+		fx.toLeader()
+		start := fx.w.Now
+		events := fx.step(dir)
 		e, _ := fx.w.ByUID(leader)
-		return ecs.NewMap[comp.Busy](fx.w.ECS).Get(e).Until - fx.w.Now
+		return events, ecs.NewMap[comp.Busy](fx.w.ECS).Get(e).Until - start
 	}
-	events := fx.stepLeader("w") // up the slope: its first step is a step up
+	events, up := stepBusy("w") // up the slope: its first step is a step up
 	if moved, _ := find[api.Moved](events); moved.Kind != api.MoveUp {
 		t.Fatalf("moved = %+v, want a step up", moved)
 	}
-	up := busy()
-	events = fx.stepLeader("e") // and back down
+	events, down := stepBusy("e") // and back down
 	if moved, _ := find[api.Moved](events); moved.Kind != api.MoveDown {
 		t.Fatalf("moved = %+v, want a step down", moved)
 	}
-	if down := busy(); up <= down {
+	if up <= down {
 		t.Errorf("a step up kept the channel busy %d ticks, a step down %d; want up to cost more", up, down)
 	}
 }
