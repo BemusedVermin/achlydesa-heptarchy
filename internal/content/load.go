@@ -94,6 +94,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		moveCosts: map[api.ContentID]*vm.Program{},
 		templates: map[api.ContentID]*template.Template{},
 		actions:   map[api.ContentID]compiledAction{},
+		types:     map[api.ContentID]*vm.Program{},
 	}
 	var problems []error
 	problems = append(problems, registry.checkIDs()...)
@@ -104,6 +105,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTemplates()...)
 	problems = append(problems, registry.checkBodies()...)
 	problems = append(problems, registry.checkActions()...)
+	problems = append(problems, registry.checkTypes()...)
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.checkMaps()...)
@@ -192,6 +194,21 @@ func (r *Registry) checkIDs() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Bodies) {
 		if err := checkID("bodies", key, "body"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Types) {
+		if err := checkID("types", key, "type"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Items) {
+		if err := checkID("items", key, "item"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Factions) {
+		if err := checkID("factions", key, "faction"); err != nil {
 			problems = append(problems, err)
 		}
 	}

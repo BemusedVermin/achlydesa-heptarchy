@@ -39,7 +39,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | --- | --- | --- | --- | --- | --- |
 | [M2-01](M2-combat/M2-01-knowledge.md) | knowledge: the fact store | done | seam | S | M1-11, M1-13 |
 | [M2-02](M2-combat/M2-02-bodies-parts.md) | Bodies and parts as entities, as channels | done | feature | M | M1-11, M1-13 |
-| [M2-03](M2-combat/M2-03-materials-types-items.md) | Materials, types, items and the party's pack | todo | feature | S | M2-02 |
+| [M2-03](M2-combat/M2-03-materials-types-items.md) | Materials, types, items and the party's pack | done | feature | S | M2-02 |
 | [M2-04](M2-combat/M2-04-effects.md) | Combat effect primitives | todo | feature | M | M2-01, M2-03 |
 | [M2-05](M2-combat/M2-05-triggers.md) | Triggers: content reacting to events | todo | seam | S | M2-04 |
 | [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | todo | content | M | M2-04 |

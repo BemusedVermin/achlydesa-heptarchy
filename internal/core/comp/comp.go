@@ -164,4 +164,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Protected](world)
 	ecs.ComponentID[Dead](world)
 	ecs.ComponentID[Downed](world)
+	ecs.ComponentID[Inventory](world)
 }

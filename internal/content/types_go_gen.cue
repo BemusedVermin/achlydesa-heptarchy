@@ -27,6 +27,12 @@ import (
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	parts: {[string]: #PartTemplate} @go(Parts,map[string]PartTemplate)
 	bodies: {[string]: #BodyPlan} @go(Bodies,map[string]BodyPlan)
+
+	// Types are the damage types ("type." IDs), Items the things types burn ("item." IDs) and
+	// Factions the sides things fight for ("faction." IDs).
+	types: {[string]: #DamageType} @go(Types,map[string]DamageType)
+	items: {[string]: #Item} @go(Items,map[string]Item)
+	factions: {[string]: #Faction} @go(Factions,map[string]Faction)
 }
 
 // Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
@@ -50,6 +56,37 @@ import (
 // Material is a substance things are made of.
 #Material: {
 	name: api.#ContentID @go(Name)
+	weak_to: [...api.#ContentID] @go(WeakTo,[]api.ContentID)
+	immune_to: [...api.#ContentID] @go(ImmuneTo,[]api.ContentID)
+	tags: [...string] @go(Tags,[]string)
+}
+
+// DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
+// only that it may need an item and may have a condition.
+#DamageType: {
+	name:       api.#ContentID        @go(Name)
+	innate:     bool                  @go(Innate)
+	consumes?:  null | api.#ContentID @go(Consumes,*api.ContentID)
+	condition?: string                @go(Condition)
+}
+
+// Item is something the pack carries.
+#Item: {
+	name:  api.#ContentID @go(Name)
+	kind:  string         @go(Kind)
+	bound: bool           @go(Bound)
+}
+
+// Faction is a side. Hostility is not symmetric unless both sides list each other.
+#Faction: {
+	name: api.#ContentID @go(Name)
+	hostile_to: [...api.#ContentID] @go(HostileTo,[]api.ContentID)
+}
+
+// StackDef is some of an item a template starts with.
+#StackDef: {
+	item:  api.#ContentID @go(Item)
+	count: int            @go(Count)
 }
 
 // Terrain is what one cell of the world is made of: solid (clay, rock) or open (air, later water).
@@ -93,6 +130,9 @@ import (
 
 	// Protected gives the entity plot armor: it is downed rather than killed.
 	protected?: bool @go(Protected)
+
+	// Inventory is the pack the entity starts with.
+	inventory?: [...#StackDef] @go(Inventory,[]StackDef)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.

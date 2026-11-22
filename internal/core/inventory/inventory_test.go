@@ -1,0 +1,204 @@
+package inventory_test
+
+import (
+	"bytes"
+	"slices"
+	"testing"
+
+	"github.com/mlange-42/ark/ecs"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+)
+
+const contentDir = "../../../content/data"
+
+func newHolder(w *sim.World) ecs.Entity {
+	return ecs.NewMap1[comp.Identity](w.ECS).NewEntity(&comp.Identity{UID: w.NewUID()})
+}
+
+func stacks(w *sim.World, holder ecs.Entity) []comp.ItemStack {
+	return slices.Clone(ecs.NewMap[comp.Inventory](w.ECS).Get(holder).Stacks)
+}
+
+func TestStacksMergeAndStaySorted(t *testing.T) {
+	w := sim.NewWorld(1)
+	holder := newHolder(w)
+	for _, s := range []comp.ItemStack{
+		{Item: "item.lees", Count: 1},
+		{Item: "item.coal", Count: 2},
+		{Item: "item.keepsake", Count: 1, BoundTo: 9},
+		{Item: "item.coal", Count: 3},
+		{Item: "item.keepsake", Count: 1, BoundTo: 4},
+		{Item: "item.coal", Count: 0},
+	} {
+		inventory.Add(w, holder, s)
+	}
+	want := []comp.ItemStack{
+		{Item: "item.coal", Count: 5},
+		{Item: "item.keepsake", Count: 1, BoundTo: 4},
+		{Item: "item.keepsake", Count: 1, BoundTo: 9},
+		{Item: "item.lees", Count: 1},
+	}
+	if got := stacks(w, holder); !slices.Equal(got, want) {
+		t.Errorf("stacks = %+v, want %+v", got, want)
+	}
+}
+
+func TestTake(t *testing.T) {
+	w := sim.NewWorld(1)
+	holder := newHolder(w)
+	inventory.Add(w, holder, comp.ItemStack{Item: "item.coal", Count: 3})
+	inventory.Add(w, holder, comp.ItemStack{Item: "item.keepsake", Count: 1, BoundTo: 4})
+
+	tests := []struct {
+		name    string
+		item    api.ContentID
+		boundTo api.UID
+		n       int
+		want    bool
+		left    int
+	}{
+		{"more than held fails", "item.coal", 0, 4, false, 3},
+		{"exactly held succeeds and empties the stack", "item.keepsake", 4, 1, true, 0},
+		{"wrong owner fails", "item.keepsake", 5, 1, false, 0},
+		{"some succeeds", "item.coal", 0, 2, true, 1},
+		{"missing item fails", "item.lees", 0, 1, false, 0},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := inventory.Take(w, holder, tc.item, tc.boundTo, tc.n); got != tc.want {
+				t.Errorf("Take = %v, want %v", got, tc.want)
+			}
+			if got := inventory.Count(w, holder, tc.item, tc.boundTo); got != tc.left {
+				t.Errorf("Count = %d, want %d", got, tc.left)
+			}
+		})
+	}
+	if got := stacks(w, holder); len(got) != 1 || got[0].Count != 1 {
+		t.Errorf("stacks = %+v, want only one coal", got)
+	}
+}
+
+func TestCountOfAnEntityWithNoPackIsZero(t *testing.T) {
+	w := sim.NewWorld(1)
+	holder := newHolder(w)
+	if got := inventory.Count(w, holder, "item.coal", 0); got != 0 {
+		t.Errorf("Count = %d, want 0", got)
+	}
+	if inventory.Take(w, holder, "item.coal", 0, 1) {
+		t.Error("Take from no pack succeeded")
+	}
+}
+
+func TestAllElevenTypesLoadAndNameNeedsItsOwner(t *testing.T) {
+	reg, err := content.Load(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := len(reg.TypeIDs()); got != 11 {
+		t.Errorf("types = %d, want 11", got)
+	}
+	tests := []struct {
+		target, bound uint64
+		want          bool
+	}{{7, 7, true}, {7, 8, false}, {7, 0, false}}
+	for _, tc := range tests {
+		got, err := reg.TypeAllowed("type.name", content.TypeEnv{TargetUID: tc.target, ItemBoundTo: tc.bound})
+		if err != nil || got != tc.want {
+			t.Errorf("name target %d bound %d = %v, %v; want %v", tc.target, tc.bound, got, err, tc.want)
+		}
+	}
+	if got, err := reg.TypeAllowed("type.cut", content.TypeEnv{}); err != nil || !got {
+		t.Errorf("cut = %v, %v; want always allowed", got, err)
+	}
+	if w := reg.Warnings(); len(w) != 0 {
+		t.Errorf("warnings = %v, want none", w)
+	}
+}
+
+func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
+	bundle, err := content.LoadBundle(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	deep := bundle.Factions["faction.deep"]
+	deep.HostileTo = nil
+	bundle.Factions["faction.deep"] = deep
+	reg, err := content.New(bundle)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reg.Warnings()) != 1 {
+		t.Errorf("warnings = %v, want one", reg.Warnings())
+	}
+}
+
+func TestBadTypeContentIsRejected(t *testing.T) {
+	bundle, err := content.LoadBundle(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bad := bundle.Types["type.name"]
+	bad.Condition = "no_such_field == 1"
+	bundle.Types["type.name"] = bad
+	missing := api.ContentID("item.nothing")
+	burn := bundle.Types["type.burn"]
+	burn.Consumes = &missing
+	bundle.Types["type.burn"] = burn
+	if _, err := content.New(bundle); err == nil {
+		t.Error("content with a bad condition and an unknown item loaded")
+	}
+}
+
+func partyOf(t *testing.T, w *sim.World) ecs.Entity {
+	t.Helper()
+	query := ecs.NewFilter1[comp.Party](w.ECS).Query()
+	defer query.Close()
+	if !query.Next() {
+		t.Fatal("no party")
+	}
+	return query.Entity()
+}
+
+func TestPartyStartsWithConsumablesAndSaveKeepsThePack(t *testing.T) {
+	reg, err := content.Load(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var world *sim.World
+	cfg := game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
+		world = w
+		return nil
+	}}
+	g, err := game.New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	party := partyOf(t, world)
+	for _, item := range []api.ContentID{
+		"item.coal", "item.salk_dust", "item.lake_water", "item.daylight_jar", "item.violet_blood", "item.lees",
+	} {
+		if got := inventory.Count(world, party, item, 0); got < 1 {
+			t.Errorf("party has %d of %s, want some", got, item)
+		}
+	}
+	inventory.Take(world, party, "item.coal", 0, 1)
+	before := stacks(world, party)
+
+	var buf bytes.Buffer
+	if err := g.Save(&buf); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := game.Load(cfg, &buf); err != nil {
+		t.Fatal(err)
+	}
+	if got := stacks(world, partyOf(t, world)); !slices.Equal(got, before) {
+		t.Errorf("loaded pack = %+v, want %+v", got, before)
+	}
+}

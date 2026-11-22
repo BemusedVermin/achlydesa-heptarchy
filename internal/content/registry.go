@@ -20,6 +20,8 @@ type Registry struct {
 	climbCost *vm.Program                          // compiled party.climb_cost formula, nil when empty
 	templates map[api.ContentID]*template.Template // parsed text, by text ID
 	actions   map[api.ContentID]compiledAction     // compiled action formulas
+	types     map[api.ContentID]*vm.Program        // compiled type conditions; absent when a type has none
+	warnings  []string
 }
 
 // Hash is a hex SHA-256 of the whole bundle; equal content gives an equal hash.
