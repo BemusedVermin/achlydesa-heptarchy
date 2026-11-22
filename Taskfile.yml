@@ -38,7 +38,7 @@ tasks:
   schema:
     desc: Regenerate the CUE schemas (*_go_gen.cue) from the Go content structs
     cmds:
-      - go tool cue get go --local ./internal/core/api ./internal/content
+      - go tool cue get go --local ./internal/core/api ./internal/core/comp ./internal/content
       - go run ./internal/tools/cuefix internal
 
   content:

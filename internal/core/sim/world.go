@@ -5,6 +5,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 )
@@ -19,9 +20,16 @@ type World struct {
 	Commands *Commands
 	Views    *Views
 	Codec    *api.Codec
+	// Content is the loaded content; game.New sets it.
+	Content *content.Registry
 	// Now is the current tick; only clock writes it.
 	Now     int64
 	nextUID atomic.Uint64
+
+	// Spawning state belongs to the world's one writer, like the ECS.
+	maps     *mappers
+	spawners []Spawner
+	byUID    map[api.UID]ecs.Entity
 }
 
 // NewWorld returns an empty world whose random streams derive from seed.
@@ -36,6 +44,9 @@ func NewWorld(seed uint64) *World {
 		Codec:    api.NewCodec(),
 	}
 	w.nextUID.Store(1)
+	w.maps = newMappers(w.ECS)
+	w.byUID = map[api.UID]ecs.Entity{}
+	w.registerCoreSpawners()
 	return w
 }
 

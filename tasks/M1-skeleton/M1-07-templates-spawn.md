@@ -1,7 +1,7 @@
 ---
 id: M1-07
 title: Templates as component bags, and spawning
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-04, M1-05, M1-06]
@@ -87,12 +87,12 @@ This task registers two spawners. `party` adds `comp.Party` with the configured 
 
 ## Acceptance criteria
 
-- [ ] Spawning `template.party.main` gives a party entity with `Identity` and `Party{Slots: 4, Leader: <first member's UID>}`, plus two member entities (`template.person.reaper`, `template.person.salken`) with `Identity`, `Appearance` (glyph `@`, different colors) and `MemberOf` the party, in template order.
-- [ ] `ByUID` finds it; after `Despawn` it doesn't, and the next spawn gets a new UID.
-- [ ] Spawners run in registration order (a test with two recording spawners).
-- [ ] An unknown template ID is an error; a template with no components still gets `Identity`.
-- [ ] Spawning the same templates in the same order on two worlds with the same seed gives the same UIDs.
-- [ ] `go tool task check` passes.
+- [x] Spawning `template.party.main` gives a party entity with `Identity` and `Party{Slots: 4, Leader: <first member's UID>}`, plus two member entities (`template.person.reaper`, `template.person.salken`) with `Identity`, `Appearance` (glyph `@`, different colors) and `MemberOf` the party, in template order.
+- [x] `ByUID` finds it; after `Despawn` it doesn't, and the next spawn gets a new UID.
+- [x] Spawners run in registration order (a test with two recording spawners).
+- [x] An unknown template ID is an error; a template with no components still gets `Identity`.
+- [x] Spawning the same templates in the same order on two worlds with the same seed gives the same UIDs.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -100,3 +100,10 @@ This task registers two spawners. `party` adds `comp.Party` with the configured 
 - Placing the party on a map at game start (M1-10).
 
 ## Notes
+
+- Spawners `party` and `party_members` are registered by `NewWorld`, so every world has them. They read `World.Content`, which must be set before spawning (`Spawn` errors if it's nil).
+- `Spawn` removes the entity again if a spawner fails, and `party_members` removes members it already spawned, so a failed spawn leaves nothing behind.
+- Content checks added beyond the spec: template IDs start with `template.`, a party needs at least one member, members must exist, and a member can't itself be a party (rejects cycles; easy to relax later). `party.slots` and `party.sight_radius` must be at least 1, so the existing content tests' sample data gained a `party` block.
+- `comp.MemberOf` embeds `ecs.RelationMarker` with `json:"-"` so the generated CUE schema doesn't import Ark.
+- Files outside the list: `Taskfile.yml` (the `schema` task now includes `./internal/core/comp`), `internal/content/{load,registry}.go` (validation, `Template` and `Party` accessors), `internal/content/load_test.go`, and the generated `*_go_gen.cue` files for `comp` and `content`.
+- No follow-ups filed.

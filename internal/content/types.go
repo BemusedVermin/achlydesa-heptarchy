@@ -1,6 +1,9 @@
 package content
 
-import "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+import (
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+)
 
 // Bundle is the whole of content/data as decoded. Later tasks add fields.
 type Bundle struct {
@@ -8,6 +11,8 @@ type Bundle struct {
 	Terrains  map[string]Terrain  `json:"terrains"`
 	Text      map[string]string   `json:"text"`
 	Calendar  Calendar            `json:"calendar"`
+	Templates map[string]Template `json:"templates"`
+	Party     PartyConfig         `json:"party"`
 }
 
 // Material is a substance things are made of.
@@ -37,4 +42,22 @@ type Phase struct {
 	ID    api.ContentID `json:"id"`    // "phase.dawn"
 	Name  api.ContentID `json:"name"`  // a text ID
 	Ticks int64         `json:"ticks"` // how long the phase lasts; at least 1
+}
+
+// Template is a bag of optional components. A nil field means "no such component".
+type Template struct {
+	Appearance *comp.Appearance `json:"appearance,omitempty"`
+	Party      *PartyDef        `json:"party,omitempty"`
+	// Later: Body, Combatant, Needs, Inventory, Triggers, ...
+}
+
+// PartyDef makes a template a party: the member templates it brings with it.
+type PartyDef struct {
+	Members []api.ContentID `json:"members"` // member templates, in party order; the first leads
+}
+
+// PartyConfig holds the numbers every party shares.
+type PartyConfig struct {
+	Slots       int `json:"slots"`        // fighters at a time; 4 to start
+	SightRadius int `json:"sight_radius"` // hexes; 6 to start
 }

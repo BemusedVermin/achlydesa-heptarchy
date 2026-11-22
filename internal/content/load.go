@@ -61,6 +61,8 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.compileText()...)
 	problems = append(problems, registry.checkTextRefs()...)
 	problems = append(problems, registry.checkCalendar()...)
+	problems = append(problems, registry.checkTemplates()...)
+	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.compileFormulas()...)
 	if err := errors.Join(problems...); err != nil {
 		return nil, fmt.Errorf("content: invalid: %w", err)
@@ -109,6 +111,11 @@ func (r *Registry) checkIDs() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Text) {
 		if err := checkID("text", key, "text"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Templates) {
+		if err := checkID("templates", key, "template"); err != nil {
 			problems = append(problems, err)
 		}
 	}
@@ -187,6 +194,42 @@ func (r *Registry) compileFormulas() []error {
 			continue
 		}
 		r.moveCosts[api.ContentID(key)] = program
+	}
+	return problems
+}
+
+func (r *Registry) checkTemplates() []error {
+	var problems []error
+	for _, key := range sortedKeys(r.bundle.Templates) {
+		def := r.bundle.Templates[key].Party
+		if def == nil {
+			continue
+		}
+		path := fmt.Sprintf("templates[%q].party.members", key)
+		if len(def.Members) == 0 {
+			problems = append(problems, fmt.Errorf("%s: a party needs at least one member", path))
+		}
+		for i, member := range def.Members {
+			target, ok := r.bundle.Templates[string(member)]
+			switch {
+			case !ok:
+				problems = append(problems, fmt.Errorf("%s[%d]: unknown template %q", path, i, member))
+			case target.Party != nil:
+				problems = append(problems, fmt.Errorf("%s[%d]: member %q is itself a party", path, i, member))
+			}
+		}
+	}
+	return problems
+}
+
+func (r *Registry) checkParty() []error {
+	var problems []error
+	cfg := r.bundle.Party
+	if cfg.Slots < 1 {
+		problems = append(problems, fmt.Errorf("party.slots: must be at least 1, got %d", cfg.Slots))
+	}
+	if cfg.SightRadius < 1 {
+		problems = append(problems, fmt.Errorf("party.sight_radius: must be at least 1, got %d", cfg.SightRadius))
 	}
 	return problems
 }
