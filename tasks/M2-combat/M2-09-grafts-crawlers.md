@@ -17,7 +17,7 @@ Grafted parts sometimes act on their own, and parts severed from pre-entropy thi
 
 ## Context
 
-- Game design: "Combat → Grafts", "Combat → Bodies and turns" (pre-entropy things don't know how to die), "Combat → Types" (Rot also eats grafts).
+- Game design: "Combat → Grafts", "Combat → Bodies and timing" (pre-entropy things don't know how to die), "Combat → Types" (Rot also eats grafts).
 - M2-04 `spawn_from_part`, M2-05 triggers, M2-08 the chooser.
 
 ## Deliverables
@@ -30,16 +30,16 @@ Grafted parts sometimes act on their own, and parts severed from pre-entropy thi
 
 ## Spec
 
-- **`act_alone`** (params: none). The source part, which must be a graft, picks a valid move in reach for its host body using the registered chooser. It may target anyone, either side. The move is resolved without spending the host's action. Publish `MoveUsed` with `Autonomous: true`.
+- **`act_alone`** (params: none). The source part, which must be a graft, picks a startable intent that uses only its own channel, through the registered chooser. It may target anyone, either side. It starts that intent for its host with the usual wind-up, and `ActionStarted` carries `Autonomous: true`. The host's other parts stay free.
 - **`attach_part`** from a pack piece adds `comp.Graft` and copies the piece item's triggers onto the new part's `comp.Triggers`.
-- **Autonomy content:** the piece's trigger is on `turns.turn_started`, role `source`, `if: roll < 0.15`, `do: act_alone`. The number is a placeholder.
-- **Crawling content:** the creature's trigger is on `combat.part_severed`, role `target`, `if: roll < 0.3`, `do: spawn_from_part(faction: "faction.crawling")`, where `faction.crawling` is hostile to everyone.
+- **Autonomy content:** the piece's trigger is on `timeline.ready`, role `source`, `if: roll < 0.15`, `do: act_alone`. The number is a placeholder.
+- **Crawling content:** the creature's trigger is on `combat.part_severed`, role `target`, `if: roll < 0.3`, `do: spawn_from_part(faction: "faction.crawling", controller: "hunt")`, where `faction.crawling` is hostile to everyone.
 - **Rot eats grafts:** a material or type trigger, so Rot damages any `Graft` part it hits on either side.
 
 ## Acceptance criteria
 
-- [ ] With the roll forced to 0 (a test stream), a grafted member's graft acts on its own at turn start, and the host keeps its actions.
-- [ ] Severing a pre-entropy creature's arm with a forced roll turns that arm into a body at its cell, with `Pos`, allegiance `faction.crawling` and a `Turn` with the `hunt` controller, so it takes its own turns.
+- [ ] With the roll forced to 0 (a test stream), when its host decides, a grafted member's graft starts a swing on its own, and the host's other arms stay free.
+- [ ] Severing a pre-entropy creature's arm with a forced roll turns that arm into a body at its cell, with `Pos`, allegiance `faction.crawling`, and an `Actor` with the `hunt` controller, so it acts on its own.
 - [ ] The party stays on alert while a crawling part outlives its source, until it's dead too.
 - [ ] Rot used on a grafted ally damages the graft.
 - [ ] `go tool task check` passes.

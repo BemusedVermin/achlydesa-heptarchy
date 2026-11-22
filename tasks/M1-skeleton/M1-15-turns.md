@@ -11,6 +11,8 @@ size: M
 
 # M1-15 · turns: one shared timeline for every body
 
+> **Changed after completion:** turns are replaced by part-level action timing, and this package is renamed `timeline`. See [M1-17](M1-17-action-timing.md) and [M1-18](M1-18-pending-actions.md).
+
 ## Goal
 
 Exploration and fights happen on the same turns, roguelike-style. Every acting entity, in the party or not, sits on one timeline of ticks, and the clock jumps to whoever acts next. A turn is one step plus one use of each working arm. Controllers (the player, a follower, an AI) decide what happens in it. Nothing in the engine knows whether a fight is going on.

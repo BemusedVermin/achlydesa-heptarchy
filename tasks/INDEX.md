@@ -19,9 +19,13 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-07](M1-skeleton/M1-07-templates-spawn.md) | Templates as component bags, and spawning | done | seam | M | M1-04, M1-05, M1-06 |
 | [M1-08](M1-skeleton/M1-08-clock.md) | clock: ticks, phases and days | done | feature | S | M1-04, M1-06 |
 | [M1-15](M1-skeleton/M1-15-turns.md) | turns: one shared timeline for every body | done | seam | M | M1-04, M1-07, M1-08 |
-| [M1-09](M1-skeleton/M1-09-game.md) | game: the public API | todo | seam | M | M1-15 |
+| [M1-17](M1-skeleton/M1-17-action-timing.md) | timeline: part-level action timing | todo | seam | L | M1-15 |
+| [M1-09](M1-skeleton/M1-09-game.md) | game: the public API | todo | seam | M | M1-17 |
 | [M1-14](M1-skeleton/M1-14-sight-pathing.md) | hexmap: sight lines and pathing in 3D | todo | feature | M | M1-05 |
-| [M1-10](M1-skeleton/M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | todo | feature | L | M1-09, M1-14 |
+| [M1-18](M1-skeleton/M1-18-pending-actions.md) | timeline: actions that land later | todo | seam | M | M1-17 |
+| [M1-19](M1-skeleton/M1-19-effects-core.md) | effects: the effect core, selectors and timing primitives | todo | seam | M | M1-06, M1-18 |
+| [M1-20](M1-skeleton/M1-20-actions.md) | actions: content-defined actions | todo | seam | L | M1-07, M1-14, M1-19 |
+| [M1-10](M1-skeleton/M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | todo | feature | L | M1-09, M1-14, M1-20 |
 | [M1-16](M1-skeleton/M1-16-lead-follow.md) | Lead and follow | todo | feature | M | M1-10 |
 | [M1-11](M1-skeleton/M1-11-tui.md) | Terminal frontend on the new API, with a CLI | todo | feature | M | M1-16 |
 | [M1-12](M1-skeleton/M1-12-save.md) | save: versioned snapshots and migrations | todo | seam | M | M1-16 |
@@ -34,16 +38,16 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
 | [M2-01](M2-combat/M2-01-knowledge.md) | knowledge: the fact store | todo | seam | S | M1-11, M1-13 |
-| [M2-02](M2-combat/M2-02-bodies-parts.md) | Bodies and parts as entities, with turn budgets and speed | todo | feature | M | M1-11, M1-13 |
+| [M2-02](M2-combat/M2-02-bodies-parts.md) | Bodies and parts as entities, as channels | todo | feature | M | M1-11, M1-13 |
 | [M2-03](M2-combat/M2-03-materials-types-items.md) | Materials, types, items and the party's pack | todo | feature | S | M2-02 |
-| [M2-04](M2-combat/M2-04-effects.md) | effects: context, registry and the primitives | todo | seam | L | M2-01, M2-03 |
+| [M2-04](M2-combat/M2-04-effects.md) | Combat effect primitives | todo | feature | M | M2-01, M2-03 |
 | [M2-05](M2-combat/M2-05-triggers.md) | Triggers: content reacting to events | todo | seam | S | M2-04 |
-| [M2-06](M2-combat/M2-06-forms-moves.md) | Forms, reach and move resolution | todo | feature | M | M2-04 |
+| [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | todo | content | M | M2-04 |
 | [M2-07](M2-combat/M2-07-hostility-alert-death.md) | Hostility, alert and death | todo | feature | M | M2-06 |
-| [M2-08](M2-combat/M2-08-act-options-controller.md) | The act command, options and the creature controller | todo | feature | M | M2-07 |
+| [M2-08](M2-combat/M2-08-act-options-controller.md) | The bodies view and the creature controller | todo | feature | M | M2-07 |
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
-| [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, golden encounters and properties | todo | test | M | M2-09 |
+| [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
 | [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | todo | feature | S | M1-11, M1-13 |
 
 ## Later milestones (outlines)

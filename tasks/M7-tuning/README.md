@@ -10,6 +10,7 @@
 
 - **Long runs.** `harness run --seeds 500 --days 365` with smarter policies (a party that hunts seats, one that ignores them).
 - **Metric definitions.** Seat stages and passes, deaths per town, migrations, towns emptied, export effects, fights per day.
+- **Lethality targets.** Fight length, and win rates for blind versus informed parties against each creature family, so preparation keeps deciding fights as content grows.
 - **Analysis** in a notebook or spreadsheet outside the repo's Go code.
 - **Performance.** pprof on the off-screen tick so 500 seeds over 365 days finishes overnight.
 - **Balance passes** on game length, seat speed per stage, kill setback, export frequency, and the combat placeholders from M2.

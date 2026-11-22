@@ -1,6 +1,6 @@
 ---
 id: M2-02
-title: Bodies and parts as entities, with turn budgets and speed
+title: Bodies and parts as entities, as channels
 status: todo
 milestone: M2
 kind: feature
@@ -9,15 +9,15 @@ discovered_by: null
 size: M
 ---
 
-# M2-02 · Bodies and parts as entities, with turn budgets and speed
+# M2-02 · Bodies and parts as entities, as channels
 
 ## Goal
 
-Bodies are made of part entities joined by a relation, built from content body plans, so severing, grafting, reattaching and a part fighting on its own are all just relation changes. Arms set how many actions a body gets each turn, and legs set how often its turns come.
+Bodies are made of part entities joined by a relation, built from content body plans, so severing, grafting, reattaching and a part fighting on its own are all just relation changes. Each attached part becomes a timeline channel tagged by its slot and grants, so actions can ask for "one arm", "two arms" or "legs", and legs set how fast a body steps.
 
 ## Context
 
-- Game design: "Combat → Bodies and turns", "Party", "Living deep → Three tiers of people" (plot armor).
+- Game design: "Combat → Bodies and timing", "Party", "Living deep → Three tiers of people" (plot armor).
 - Tech design: "Designing for pivots" (Parts as entities, Entity templates, The party).
 - This milestone's README, "The combat model" (Bodies, Grants, Death).
 - Ark relations: the user guide's relations chapter and `go doc github.com/mlange-42/ark/ecs RelationMarker`.
@@ -28,7 +28,7 @@ Bodies are made of part entities joined by a relation, built from content body p
 - `content/data/bodies.cue`: `body.human` and one creature plan; `content/data/templates.cue`: the two protagonists' templates get human bodies.
 - `internal/core/comp/body.go`: the components and relations.
 - `internal/core/sim/` or a new foundation file `internal/core/comp/bodyquery.go`: body queries (see Spec for where).
-- Spawners `body` and `protected`, the `turns` budget and speed hooks, with tests.
+- Spawners `body` and `protected`, the timeline's channel and speed hooks, with tests.
 
 ## Spec
 
@@ -91,12 +91,12 @@ Put these in the new package `internal/core/anatomy`, which `AGENTS.md` and the 
 
 **Spawners:** `body` spawns one part entity per plan entry with `PartOf` the new body; parts have no `Pos` of their own while attached. `protected` adds `Protected` when the template sets it. `MemberOf` and party members already exist from M1-07.
 
-**Turn hooks:** register `turns.SetBudget` to give one step and one action per functioning action part, and `turns.SetSpeed` to sum the speed grants of functioning parts. A body with no legs has speed 0 and slow turns; it can still crawl one step. M2-04 extends the budget for locked parts and granted or drained actions.
+**Timeline hooks:** register `timeline.SetChannels` to give each body its own channel (tagged `body`) plus one per attached part. A part's channel is tagged `part`, its slot (`arm`, `legs`, `head`, ...), and `grant:<kind>` for each grant. Register `timeline.SetSpeed` to sum the speed grants of functioning parts. A body with no legs has speed 0, so `step_ticks` makes its steps slow; it can still crawl.
 
 ## Acceptance criteria
 
 - [ ] Spawning `template.party.main` gives each of the two members five human parts (head, two arms, legs, torso as vital), all with UIDs.
-- [ ] A human's budget is one step and two actions; with an arm's `PartOf` removed, one action on its next turn; with its legs removed, its turns come further apart (`turn_ticks` with speed 0).
+- [ ] A human has six channels: its body plus its five parts, each tagged with its slot and grants. Removing an arm's `PartOf` removes that channel; with its legs removed, a step keeps it busy longer (`step_ticks` with speed 0).
 - [ ] `Grants(member, "action")` is 2 and `Grants(member, "targeting")` is 1 for a human.
 - [ ] A material override in a plan changes that part's material.
 - [ ] Removing a part's `PartOf` relation drops it from `Parts` and `Grants`.

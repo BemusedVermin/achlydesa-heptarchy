@@ -4,7 +4,7 @@ title: "explore: maps from content, movement and the seamless plan view"
 status: todo
 milestone: M1
 kind: feature
-depends_on: [M1-09, M1-14]
+depends_on: [M1-09, M1-14, M1-20]
 discovered_by: null
 size: L
 ---
@@ -13,13 +13,13 @@ size: L
 
 ## Goal
 
-Party members step through a 3D map authored in CUE, one turn at a time: along soops, up and down slopes, off ledges, past tunnels that cross underneath. The core flattens what the party can see into one 2D hex view with no layers in it, so the deep reads as one continuous space, the way Minecraft's caves do.
+Party members step through a 3D map authored in CUE, each step taking time set by their legs and the ground: along soops, up and down slopes, off ledges, past tunnels that cross underneath. The core flattens what the party can see into one 2D hex view with no layers in it, so the deep reads as one continuous space, the way Minecraft's caves do.
 
 ## Context
 
 - Game design: "The living deep → The hex grid" (seamless depth).
 - Tech design: "Designing for pivots" (Maps, Plan view, Choices come from the core, The party).
-- M1-05 cells and stepping, M1-07 spawning, M1-09 `game`, M1-14 sight, M1-15 turns.
+- M1-05 cells and stepping, M1-07 spawning, M1-09 `game`, M1-14 sight, M1-17 the timeline and its channels, M1-20 actions (stepping is the content action `action.step`).
 
 ## Deliverables
 
@@ -60,7 +60,7 @@ type Start struct {
 }
 ```
 
-- `PartyConfig` gains `SightDepth int` (how many cells up and down the party sees; start at 6), `MaxStepUp`, `MaxStepDown`, `MaxDrop` (1, 1, 8), and `ClimbCost string`, an Expr in ticks added to each step up. Climbing costing more than descending is deliberate.
+- `PartyConfig` gains `SightDepth int` (how many cells up and down the party sees; start at 6), `MaxStepUp`, `MaxStepDown`, `MaxDrop` (1, 1, 8), and `ClimbCost string`, an Expr in ticks added to each step up, on top of the timeline's `StepTicks`. Climbing costing more than descending is deliberate.
 - `Bundle` gains `Maps` (`map.`) and `Start`.
 - Validation: every character in every layer is in the legend or the marks, legend targets are terrains, each mark appears once, and the start's map, template and mark exist.
 - Use the hex library's odd-r offset conversion; confirm its name with `go doc`.
@@ -76,10 +76,9 @@ type Start struct {
 
 **api:**
 
-- `Step{ Actor api.UID; Dir api.Dir }`, kind `explore.step`.
+- Stepping has no command of its own: it's `action.step`, started with `actions.do` (M1-20).
 - `Moved{ Actor api.UID; Map api.MapID; From, To api.Cell; Kind string }`, kind `explore.moved`. `Kind` is `level`, `up`, `down` or `drop`.
 - `Fell{ Actor api.UID; Cells int }`, kind `explore.fell`, loggable. Injuries from falls come in M2 (file a follow-up linking them to leg damage).
-- `Bumped{ Actor api.UID; At api.Cell }`, kind `explore.bumped`, loggable with `text.explore.bump`.
 - The view sections:
 
 ```go
@@ -137,18 +136,21 @@ So a soop crossing under the party's hall is never drawn while the hall's floor 
 
 **explore:**
 
-- `Install` registers `explore.step`, the view builders `explore.map` and `explore.party`, and an options builder.
-- The options builder adds six options, `step.e` to `step.se`, when the current actor is a player-controlled party member that hasn't stepped this turn. Each is disabled, with the reason from `text.explore.bump`, when `Step` finds nothing in that direction.
+- `Install` registers the `step` effect primitive and the view builders `explore.map` and `explore.party`. Step options come from M1-20 (`step/e` to `step/se`).
 - A start function, called by `game.New` after `Install`, builds every `MapDef` into a `hexmap.Map` with an `explore` source and `Prisms` topology, stored on the world (give `sim.World` a `Maps *hexmap.Maps` field, a registry by ID). Map IDs are assigned in sorted content-ID order from 1. It spawns the start party, places the leader at the mark and each other member in the nearest free standable cell (M1-16 refines this), marks the party `Controlled`, and records the members' first sight as seen.
-- **Step:** rejected unless `Actor` is the current, player-controlled actor and it hasn't stepped this turn. `hexmap.Step` in the given direction. If there's a step, update `Pos`, spend the step (`turns.Spend`), publish `Moved` (plus `Fell` for a drop), add the new sight to the party's `Seen`, and return the cost: `MoveCost` of the floor terrain under the destination, plus `ClimbCost` for a step up. The cost lands in the actor's `Extra`, so climbing delays its next turn. Otherwise publish `Bumped` and return 0. For now a step always ends the turn; M1-16 makes that depend on the party's alert.
+- **The `step` primitive** takes no parameters and uses `ctx.Dir`.
+  - `Check` runs `hexmap.Step` and fails with `text.explore.bump` when there's no step, so a blocked direction is a disabled option with that reason.
+  - `Apply` moves at once: update `Pos`, publish `Moved` (plus `Fell` for a drop), and add the new sight to the party's `Seen`. Then `timeline.Extend` the used channels by `MoveCost` of the floor under the destination, plus `ClimbCost` for a step up; `action.step`'s recovery already covers `StepTicks`.
+  - Moving first and paying after is what lets a body step out of reach of a swing that hasn't landed yet.
+- **Visibility:** register the timeline's visibility hook so a body appears on the timeline when its cell is in the party's current sight.
 
 ## Acceptance criteria
 
-- [ ] `game.New` puts the leader at the hall's center and opens on its turn; the view's visible cells match the prototype's field of view there.
+- [ ] `game.New` puts the leader at the hall's center and opens on its decision; the view's visible cells match the prototype's field of view there.
 - [ ] On `map.test.descent`, walking the slope moves the leader down four depths in four steps with `Moved` kind `down`. The view at every step shows a continuous floor with `Below` changing smoothly, and no gap where the slope is.
 - [ ] Standing in the hall, the soop crossing under it at depth 2 never appears in `MapView`, and no step reaches it.
 - [ ] Stepping off the ledge publishes `Moved` kind `drop` and `Fell{Cells: 3}`. Climbing back that way is a disabled option.
-- [ ] A step up delays the actor's next turn more than the same step down.
+- [ ] A step up keeps the stepping channels busy longer than the same step down, and a slower body's steps take longer than a faster one's.
 - [ ] Remembered cells stay in `MapView.Cells` with `Visible: false` after the party walks away.
 - [ ] A `MapView` encoded to JSON contains no field named depth or layer (a test checks the encoded keys).
 - [ ] Replaying 200 random steps gives the same hash as playing them.
