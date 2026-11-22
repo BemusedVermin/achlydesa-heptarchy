@@ -22,11 +22,13 @@ const (
 
 // PartDamaged reports that a part lost integrity.
 type PartDamaged struct {
-	Body      UID   `json:"body"`
-	Part      UID   `json:"part"`
-	Amount    int   `json:"amount"`    // the integrity it actually lost
-	Integrity int   `json:"integrity"` // what it has left
-	Tick      int64 `json:"tick"`
+	Body      UID `json:"body"`
+	Part      UID `json:"part"`
+	Amount    int `json:"amount"`    // the integrity it actually lost
+	Integrity int `json:"integrity"` // what it has left
+	// Type is the damage type the action chose, or empty when it chose none.
+	Type ContentID `json:"type,omitempty"`
+	Tick int64     `json:"tick"`
 }
 
 // EventKind implements [Event].
@@ -64,3 +66,27 @@ type StatusAdded struct {
 
 // EventKind implements [Event].
 func (StatusAdded) EventKind() string { return StatusAddedKind }
+
+// Subjects implements [Subjected]: the body is the target.
+func (e PartDamaged) Subjects() map[string]UID { return partSubjects(e.Body, e.Part) }
+
+// Subjects implements [Subjected]: the body is the target.
+func (e PartSevered) Subjects() map[string]UID { return partSubjects(e.Body, e.Part) }
+
+// Subjects implements [Subjected]: the body is the target.
+func (e PartAttached) Subjects() map[string]UID { return partSubjects(e.Body, e.Part) }
+
+// Subjects implements [Subjected]: the body is the target.
+func (e StatusAdded) Subjects() map[string]UID { return map[string]UID{SubjectTarget: e.Body} }
+
+// Choices implements [Chosen]: the damage type, when there is one.
+func (e PartDamaged) Choices() map[string]string {
+	if e.Type == "" {
+		return nil
+	}
+	return map[string]string{"type": string(e.Type)}
+}
+
+func partSubjects(body, part UID) map[string]UID {
+	return map[string]UID{SubjectTarget: body, SubjectPart: part}
+}

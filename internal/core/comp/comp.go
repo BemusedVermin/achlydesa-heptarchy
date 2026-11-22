@@ -163,6 +163,12 @@ type Allegiance struct {
 	Faction api.ContentID `json:"faction"` // a faction ID
 }
 
+// Triggers lists the content triggers an entity carries from its template, by trigger ID (see
+// content.TriggerID). The trigger runner reads it so it need not look at content for every event.
+type Triggers struct {
+	IDs []string `json:"ids"`
+}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -190,4 +196,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Statuses](world)
 	ecs.ComponentID[Graft](world)
 	ecs.ComponentID[Allegiance](world)
+	ecs.ComponentID[Triggers](world)
 }

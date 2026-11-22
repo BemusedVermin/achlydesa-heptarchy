@@ -17,11 +17,14 @@ package api
 
 // PartDamaged reports that a part lost integrity.
 #PartDamaged: {
-	body:      #UID  @go(Body)
-	part:      #UID  @go(Part)
-	amount:    int   @go(Amount)
-	integrity: int   @go(Integrity)
-	tick:      int64 @go(Tick)
+	body:      #UID @go(Body)
+	part:      #UID @go(Part)
+	amount:    int  @go(Amount)
+	integrity: int  @go(Integrity)
+
+	// Type is the damage type the action chose, or empty when it chose none.
+	type?: #ContentID @go(Type)
+	tick:  int64      @go(Tick)
 }
 
 // PartSevered reports that a part came off its body. It stays in the world, where the body stands.

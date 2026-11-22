@@ -227,5 +227,10 @@ func (r *Registry) EffectSites() []EffectSite {
 			sites = append(sites, EffectSite{Path: fmt.Sprintf("actions[%q].on_land", id), Refs: def.OnLand})
 		}
 	}
+	for _, site := range r.TriggerSites() {
+		if len(site.Trigger.Do) > 0 {
+			sites = append(sites, EffectSite{Path: site.Path + ".do", Refs: site.Trigger.Do})
+		}
+	}
 	return sites
 }

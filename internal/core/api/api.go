@@ -44,3 +44,18 @@ func (Rejected) EventKind() string { return RejectedKind }
 
 // LogText implements [Loggable].
 func (r Rejected) LogText() Text { return r.Reason }
+
+// Roles an entity can play in a [Subjected] event.
+const (
+	SubjectSource = "source"
+	SubjectTarget = "target"
+	SubjectPart   = "part"
+)
+
+// Subjected events name the entities they are about, by role ("source", "target", "part"), so
+// content triggers can find who they apply to. A role an event has no entity for is left out.
+type Subjected interface{ Subjects() map[string]UID }
+
+// Chosen events carry the choices of the action that caused them, such as "type": "type.burn", for
+// the formulas of the triggers they fire.
+type Chosen interface{ Choices() map[string]string }

@@ -142,7 +142,8 @@ func applyDamage(ctx *effects.Context, p effects.Params) error {
 		lost := min(amount, part.Integrity)
 		part.Integrity -= lost
 		w.Bus.Publish(api.PartDamaged{
-			Body: w.UIDOf(body), Part: w.UIDOf(c.Entity), Amount: lost, Integrity: part.Integrity, Tick: w.Now,
+			Body: w.UIDOf(body), Part: w.UIDOf(c.Entity), Amount: lost, Integrity: part.Integrity,
+			Type: api.ContentID(ctx.Choices["type"]), Tick: w.Now,
 		})
 		if part.Integrity == 0 {
 			sever(w, c.Entity, api.SeveredWorn)

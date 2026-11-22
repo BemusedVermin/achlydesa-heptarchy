@@ -149,6 +149,12 @@ func (c *Codec) DecodeEvent(data []byte) (Event, error) {
 	return e, nil
 }
 
+// HasEvent reports whether an event kind is registered.
+func (c *Codec) HasEvent(kind string) bool {
+	_, ok := c.events[kind]
+	return ok
+}
+
 // WriteLog writes a replay log: one command envelope per line (JSON Lines).
 func (c *Codec) WriteLog(w io.Writer, cmds []Command) error {
 	for i, cmd := range cmds {

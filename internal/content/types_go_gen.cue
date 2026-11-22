@@ -42,6 +42,7 @@ import (
 // nothing of any one status: formulas read the ones a body has through the statuses variable.
 #Status: {
 	name: api.#ContentID @go(Name)
+	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
 }
 
 // Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
@@ -68,6 +69,9 @@ import (
 	weak_to: [...api.#ContentID] @go(WeakTo,[]api.ContentID)
 	immune_to: [...api.#ContentID] @go(ImmuneTo,[]api.ContentID)
 	tags: [...string] @go(Tags,[]string)
+
+	// Triggers run for parts made of the material.
+	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
 }
 
 // DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
@@ -87,6 +91,9 @@ import (
 
 	// Part is the part template ("part." ID) a piece becomes when grafted on; only a piece has one.
 	part?: null | api.#ContentID @go(Part,*api.ContentID)
+
+	// Triggers run for holders of the item.
+	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
 }
 
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
@@ -145,6 +152,23 @@ import (
 
 	// Inventory is the pack the entity starts with.
 	inventory?: [...#StackDef] @go(Inventory,[]StackDef)
+
+	// Triggers react to events for the entities spawned from this template.
+	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
+}
+
+#RoleSource: "source"
+#RoleTarget: "target"
+#RolePart:   "part"
+#RoleAny:    "any"
+
+// Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
+// template, material, status or item; the entities that carry that thing run it.
+#Trigger: {
+	on: string @go(On)
+	if: string @go(If)
+	do: [...#EffectRef] @go(Do,[]EffectRef)
+	role: string @go(Role)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.

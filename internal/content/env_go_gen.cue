@@ -30,6 +30,7 @@ package content
 	Statuses: [...string] @go(,[]string)
 	Locked: bool
 	Graft:  bool
+	Type:   string
 }
 
 // ActionEnv is what an action's formulas see. Grow it deliberately.
