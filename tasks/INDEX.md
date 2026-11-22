@@ -62,6 +62,7 @@ Each becomes task files when the milestone before it is done.
 | M5 · Procgen | [M5-procgen/README.md](M5-procgen/README.md) |
 | M6 · Emergence | [M6-emergence/README.md](M6-emergence/README.md) |
 | M7 · Tuning | [M7-tuning/README.md](M7-tuning/README.md) |
+| M8 · Story | [M8-story/README.md](M8-story/README.md) |
 
 ## Follow-ups
 

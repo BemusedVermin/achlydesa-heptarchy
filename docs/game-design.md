@@ -20,7 +20,7 @@ The game takes place on the clay plain and in the deep beneath its crawlspaces, 
 
 ### Existing canon the game leans on
 
-- **The plain:** pastel peach clay, dundies, the salk (surface), crawlspaces linked by soops, ibben (freemen) and salken (slaves), the test at ten, the Osten, the thrukk, Reapers, standing at attention indoors, and the lunn.
+- **The plain:** pastel peach clay, dundies, the salk (surface), crawlspaces linked by soops, ibben (freemen) and salken (slaves), the test at ten, the Osten, the thrukk, Reapers, standing at attention indoors, the lunn, and the Skadders (who preach fewer births).
 - **Theology:** soul is divisible and passed down, never newly made. Suffering erodes it, death by hibblejaunt annihilates it, and a life without suffering earns the immortal body of yore. In this game the doctrine's truth stays ambiguous.
 - **Hibblejaunts:** sacred, synthetic animals from beyond the rift that fight each other constantly. Never fought by people.
 - **Pieces of Serilmen:** buried ancient technology, believed to be the parts of a dismembered god. A slave who finds one is elevated and must leave the fields.
@@ -47,6 +47,8 @@ The game takes place on the clay plain and in the deep beneath its crawlspaces, 
 | Early ascension | Looks like slow dying: fever, wasting, weeks of not quite going. |
 | Serilmen's truth | The pieces are the refugees who died holding the door shut behind the crossing. The defectors (Salumen) opened it. Reassembled, Serilmen can reach the direction nothing on the plain can travel. |
 | Graft will | Grafted pieces want to be reassembled. They sometimes act on their own and quietly shape the options offered. |
+| Fatherless children | A child with no father's household goes to the fields at birth. |
+| Reapers' standing | Reapers don't marry. When a Reaper stands in a room, what happens there is lawful. |
 
 ## World and towns
 
@@ -160,7 +162,7 @@ What falls out of it:
 
 - **Candidates leave a trail.** When a seat passes, the offer finds the most wounded person and draws them below. Noticing who slips out of town at night is investigation.
 - **Rumors travel and drift.** News moves only when people carry it, between towns and through the deep, and it distorts with each retelling. Drifted rumors are where many false positives come from.
-- **Quests come from unmet needs.** A resident who can't meet a need asks the party: find a missing son, bring water, carry a body to the thrukk. There is no authored quest list.
+- **Quests come from unmet needs.** A resident who can't meet a need asks the party: find a missing son, bring water, carry a body to the thrukk. There is no quest list: a request is a story like any other (see Story → Emergent stories).
 - **Towns can empty.** If water fails or monsters keep coming, people migrate to other towns, and a town can be abandoned.
 - **Traders cross the deep.** When a trader dies on the way, the next town runs short.
 - **Plot armor is allowed.** Authored characters can be flagged as protected in their data; everyone else can die, and the seat simulation adapts.
@@ -218,12 +220,12 @@ Neither protagonist can ever become a candidate.
 
 The salken's piece drags them across the salk to a crawlspace, and they enter through the lunn, the way the dead are carried in. The ibben assume they are dying and call the Reaper.
 
-He arrives to reap the salken. The piece turns hard toward his other patient, a woman due to be reaped tomorrow, and the salken says plainly that she isn't dying. If the player spares her, she goes into the deep that night. If the player reaps her, her husband starts wasting within days and goes down himself. Either way the duo follow, and the choice only changed who.
+He arrives to reap the salken. The piece turns hard toward his other patient, a woman due to be reaped tomorrow, and the salken says plainly that she isn't dying. Her husband has already promised to marry her sister once she's gone, and the sister is in the room. If the player spares her, she goes into the deep that night, and the husband declares her dead and marries the sister anyway. If the player reaps her, he marries the sister within the week, starts wasting within days and goes down himself. Either way the duo follow, and the choice only changed who.
 
 ### Act I: The first god
 
 1. The opening above, ending with the first descent into the deep.
-2. The fixed companions join, including one who loves a candidate, though nobody knows it yet.
+2. The fixed companions join, including one who lost the woman he loved at an Osten and is looking for her. Nobody knows yet that she's a candidate.
 3. A seat further along than anyone knew completes on schedule. A god walks out onto the salk and some crawlspaces start to worship it. It came from a seat the Reaper passed.
 
 ### Act II: The hunt
@@ -231,7 +233,7 @@ He arrives to reap the salken. The piece turns hard toward his other patient, a 
 1. The loop: read the piece, investigate, crawl, kill. Each kill sets a seat back, so it seems to work, and new candidates seem like fresh discoveries.
 2. Export days begin and the deep shifts overnight. Scraps of lore hint at a far side.
 3. The grafts start pulling, and the party grows stranger.
-4. Midpoint: the companion's beloved is a candidate. Killing the beloved passes the seat to the companion; sparing them leaves the companion a false positive.
+4. Midpoint: the companion's beloved, the bride taken at the Osten, is a candidate. Killing her passes the seat to the companion; sparing her leaves the companion a false positive.
 5. The reveal, in the oldest layer of the deep: seven peaks, seven seats. Every kill only handed a seat to someone new.
 
 ### Act III: The seven peaks
@@ -249,6 +251,107 @@ He arrives to reap the salken. The piece turns hard toward his other patient, a 
 - The protagonists did what every candidate did: reached for a power to fix the world while someone unseen pays.
 - The final lore implies Serilmen was always going to finish closing the door. The characters believe they chose; the player is left unsure.
 - Final image: the flock, violet with each other's blood, under an empty sky.
+
+### How the story runs
+
+The story is a set of scenes that world state unlocks, not a sequence of quest steps. The simulation decides who, where and when; scenes give those moments words, faces and choices.
+
+- **Scenes** are short authored units: who is in them (roles), when they can play (a condition over world state), where they play (a slot: resting in town, arriving somewhere, after a kill, visiting a household, or a specific event), their tone (heavy or soft), their lines, the player's choices, and what they change.
+- **The spine** is a handful of scenes keyed to seat stages, kills, places reached and facts learned: the opening, the first god, the midpoint, the reveal, the last seven and the door. The goal never changes; the route is the player's.
+- **Arcs** are chains of scenes for each authored character and for the protagonists' bond, keyed to what they've lived through, how close they are, and what the deep has done to their bodies.
+- **Set pieces.** The biggest moments are staged: before the scene, the director brings the cast together and pauses the clock. The key acts stay playable: the reap in the opening and the kill at the midpoint are the player's own actions, through the normal menus.
+- **The director** picks one scene per slot: spine scenes first, then open threads, then stories found in the simulation, then everyday scenes. It alternates heavy and soft, so a hard scene is followed by room to recover, and it nudges the simulation when the spine needs it, for example in who a seat's offer finds. In the fiction, the director is Serilmen.
+- **Surviving the simulation.** Anyone can die, so spine scenes cast roles, not names ("the first god" is whichever seat completes first), and every spine scene has a fallback or casts only characters with plot armor. The harness checks that the spine completes on every seed.
+
+### Story beats (draft)
+
+Heavy and soft beats alternate. Soft beats build the warmth the heavy ones break, and they give the player room to recover; without them the world is only grim. Every character here is an adult unless stated otherwise, and none of it is graphic: the weight is in what people are made to agree to.
+
+**The main story**
+
+- **The first kill.** Whoever went below is still themselves: lucid, and grateful to feel well for the first time in years. They ask the Reaper why he's here. Afterward the salken says the piece has gone quiet.
+- **The first god.** The Reaper has been dreaming of a woman's face and tells the salken so. When the god walks out onto the salk, he says her name: she's the widow of a man he reaped last spring. Her worshippers tell him she always called the Reaper kind.
+- **The reveal.** The salken works it out first: "We never killed one. We passed them all." The Reaper turns on them, because their piece led him to every one of those people. It's the worst fight they have.
+- **The last seven.** Each archon the party let sit speaks to them before the fight. Several are the women below.
+- **The door.** Before they part, the salken admits the piece pulled them toward him on the first day. He says he doesn't care why they met.
+
+**The bride of the Osten (the companion beat)**
+
+- **The Osten.** The winner takes a young woman from the losing crawlspace as his slave wife. She was engaged to one of the losers, and her family doesn't fight it, because fighting means war. The man she was engaged to joins the party later as the companion.
+- **The household.** She crawls whenever her husband stands, and he stands all the time. He beats her where the household can see; the town treats it as his right, and so does she when asked.
+- **"Tell them I'm dying."** She asks the Reaper to declare her slowly dying so he can give her a quick death, the only way out the doctrine allows. Lying makes him a murderer by his own doctrine; refusing leaves her where she is; taking her onto the salk makes her a field slave under the flock; killing the husband gets her sent to the fields anyway.
+- **The midpoint.** A seat finds her, the most wounded person in reach. Kill her and the seat passes to the companion, who has now lost her twice, and the Reaper recognizes his fever. Spare her and she sits, and the companion fights on knowing what she'll become.
+
+**The woman called a vampire**
+
+- **The sanction.** She recovered from the despair after her first child, so her crawlspace says she stole soul. She's pregnant again, and the elders and the Skadders rule that a vampire's child would be born of stolen soul and must be ended before she's cast onto the salk. They need the Reaper to stand in the room so it's lawful. He can refuse; then it happens with him on his knees, unlawful, and nobody stops it.
+- **The shelter.** On the surface she shelters the party from the flock and tells them about both her children. She asks the salken whether slaves are allowed to grieve.
+- **Her wish.** A seat finds her. Mothers in her old crawlspace stop losing soul to their children, and it's taken from everyone nearby instead. Her accusers sicken first and beg the party to kill her. She asks whether she's what they said she was now.
+
+**The pregnant woman**
+
+- **No father's household.** The father of her child is someone the party killed. To keep the child out of the fields, she must marry whoever will claim it, and the only man who will is one she fears. The Reaper can't claim it, and in the salken village the child would be born a slave. She decides in front of the party and asks them to leave before the wedding. A later visit shows the life she chose.
+
+**The fields**
+
+- **A mercy for a slave.** A field slave asks the Reaper to reap her before the flock comes, because death by hibblejaunt annihilates the soul. Reapers serve the ibben, and the other slaves object: someone has to work her row in the open. The salken worked that row once.
+- **The elevated one.** The field slaves expect the salken to challenge a hibblejaunt, as the doctrine says the elevated can. When they don't, their old field partner, whose child the flock took while the salken was gone, calls them a false god.
+- **The orphan's crawlspace.** Its children haven't grown in a year, so none reaches the test at ten. The mothers know who the candidate is and hide him. If he's killed, the test resumes and a girl the party knows is sent to the fields; the salken walks her up to the salk and tells her the truth when she asks.
+
+**The spent mother**
+
+- **No soul to save.** A woman lost in despair after childbirth is held to have a spent soul, so the Reaper is forbidden to reap her, however she suffers. Her husband begs him anyway. If he reaps her, the town says he wasted a reaping on something soulless; if she recovers, she'll be called a vampire.
+
+**The Reaper**
+
+- **The archon who thanks him.** The enshrined archon greets him by name and thanks him for the mercy he gave its mother. He walks out without a word, and the salken finds him later sitting in the thrukk.
+- **"You were supposed to come."** The candidate whose wish ends painful dying is a man whose wife died slowly while the Reaper was at another call. He tells the Reaper he doesn't need him anymore, and soon no one will.
+- **The remnant.** A thing that has never died asks the Reaper to teach it how to die well. At the end it asks him to reap it, and he does. He tells the salken it's the first one he was sure about.
+
+**The two of them**
+
+- **Crawling past.** In a town that hates salken, the ibben spit on the salken as they come through the lunn, and the Reaper walks past without stopping it, because he needs those people to talk. That night the salken asks whether he would have stopped it for an ibben.
+- **Standing.** Later, grafted, the salken stands indoors, and the room has to stand for a slave. The next day the party learns the town took it out on a salken servant.
+- **Cut it out.** When the salken learns the piece steered their choice to leave the fields, they ask the Reaper to cut it out of them. He refuses, and they don't speak until the next town.
+
+**People from the simulation**
+
+- **The deserter.** A recruit the party left behind is a candidate. His first words when they find him are "You left me."
+
+**Soft beats**
+
+- **Crawling lessons.** The Reaper teaches the salken ibben customs: when to crawl, when to stand at attention. They keep standing at the wrong moment and making the whole room stand. It pays off when the salken stands on purpose.
+- **The first dundie.** The salken farmed dundies all their life and never ate one cooked; the Reaper has never eaten one raw. They trade, and both are disappointed.
+- **"You came back for me."** The first time one carries the other out of the deep, the one carried says it that night, and the other doesn't know how to answer. It comes before Crawling past, so that one stings.
+- **The bride's laugh.** The companion tells how he got engaged: he lost a dundie-eating contest on purpose because she was keeping score. On a visit to her household, she hears he's with the party and laughs, the only time in her thread.
+- **The remnant's firsts.** Its first scar, its first time tired, its first sleep. It wakes from its first dream and asks, very seriously, whether that happens every night.
+- **The hand.** The severed hand behaves like a stray: it sleeps on whoever is warmest, steals food, and holds the Reaper's hand while he sleeps. Everyone pretends not to notice.
+- **"Is the world a dream?"** On a night's rest the party argues over the exiles' belief that this world is a dream you wake from at death. The remnant, which has never died, can't decide which way to vote.
+- **A wedding people want.** Two people marry because they want to. A Reaper at a wedding is bad luck, so he waits outside while the salken learns to dance on all fours. It sits near the forced marriages, so the player sees what those women were denied.
+- **The false alarm.** A reaping call turns out to be an old woman with a bad cold who called by mistake. She's mortified and makes him tea, and he stays an hour.
+- **The boy who passed.** A boy passes the test at ten and his family throws a party. The salken goes, and is glad for him.
+- **The recruit who made it.** A recruit who joined to earn lake water for his mother survives and brings it home, and the party is invited to dinner.
+- **The still town.** Wounds don't fester there, and for the first time the party sleeps without keeping watch, until the town starts to rot.
+- **The partner's seed.** After calling them a false god, the salken's old field partner finds the party and gives the salken a dundie seed from their row: "Come back alive."
+
+### Emergent stories
+
+Emergent stories use the same scenes as authored ones; the difference is casting. An authored scene has its cast fixed, and an emergent scene is cast from whoever in the simulation fits. The writing carries the weight in both, dark or light; the simulation supplies who, why and what came before.
+
+- **Characters** carry traits (setting-specific ones such as devout, dutiful and proud, plus generic ones such as kind, cruel and fearful), beliefs, relationships of a kind (loves, owns, owes, fears, blames), the cast model's losses and lack, hooks (specific facts to hang a story on, such as "lost his betrothed at the Osten"), and strain. Traits and hooks are content. Traits change only through a scene that shows the change.
+- **The chronicle** records the events that matter, each with its causes: who killed whom, who was taken, who was left behind, who was reaped and who grieved. Lines can quote it: "the man who took her at the Osten".
+- **Casting keeps people in character.**
+  - **Fit or silence.** Each role has requirements and a fit score over traits and hooks. If nobody fits well enough, the scene doesn't play: no scene is better than a miscast one.
+  - **Against type only as a break.** A scene that makes someone act against their nature has to declare it, and it opens a thread about it.
+  - **Characters decide in character.** When someone other than the player chooses inside a scene, each option is weighted by their traits. A kind man almost never picks the cruel option; when fear, duty or custom pushes him to, it costs him strain and opens a thread.
+- **Strain** measures how far the world has forced someone from who they are, and on the plain that's constant. Acting against your traits, by choice or under custom, adds it; party members gain it too when the player makes them act against their nature. Past a threshold, a turn scene plays and their traits shift. Strain counts toward the wounds that decide who a seat finds.
+- **Threads** make sure what happens is followed up. A break, a death that leaves people grieving, a promise, a betrayal or a grudge opens a thread. The director prefers scenes that move open threads, and a thread closes when a scene resolves it; if the person is gone, it closes with a scene where someone remembers.
+- **Story patterns** watch the chronicle for shapes: a recruit the party abandoned takes a seat; someone reaped leaves a spouse who goes below; a maimed creature comes back. A partial match can foreshadow (a rumor about the deserter); a complete match casts and plays its scene.
+- **Scenes without the party** resolve through the characters' own choices, with no text. They enter the chronicle and reach the player later as rumors, drifting as they travel.
+- **Authored characters go through the same system,** so an emergent scene that casts the Reaper speaks in his voice, and authored characters can rule themselves out of roles (the Reaper is never anyone's lover in an emergent scene). Authored scenes read emergent threads, and emergent scenes read authored facts.
+- **Requests are stories too.** An unmet need opens a thread, and a scene puts the ask to the party.
+
+An example: an Osten happens in a crawlspace the party has never visited, unscripted. If the winner is cruel, the household scenes cast him as he is and open a thread about the woman he took; weeks later the generic "ask to be reaped" scene casts her, and its lines name him and that day. If the winner is kind, that scene never casts him, because he doesn't fit. A different one plays: custom forces a kind man to keep a slave wife, he gains strain, and his thread is about what he does with it. Either way it's the same theme, and nobody acts out of character.
 
 ## Candidates and seats
 
@@ -500,10 +603,12 @@ Every resident of the crawlspaces carries a tiny model:
 Person:  relationships  (who they love, and how much)
          losses         (simulated: deaths, reaps, exiles, exports, archon prices)
          lack           (what they never had; drives HOW a wish curdles)
+         traits         (who they are; content-defined, see Emergent stories)
+         strain         (how far they've been forced to act against their traits)
          authored_wish  (optional)
 ```
 
-When a seat passes, everyone is scored by how badly the kill wounded them: relationship strength to the dead holder, plus accumulated losses. The top scorer takes the seat.
+When a seat passes, everyone is scored by how badly the kill wounded them: relationship strength to the dead holder, plus accumulated losses and strain. The top scorer takes the seat.
 
 Residents are full agents (see People with needs); these fields are the part of their state the seat simulation reads. When a seat passes, the offer finds the top scorer and draws them into the deep.
 
@@ -585,6 +690,7 @@ The language choice and the clock's numbers block implementation; the rest is co
 - [ ] Story rework, starting with the opening.
 - [ ] Whether the slave doctrine's one-on-one challenge against a hibblejaunt appears in play.
 - [ ] Whether the interface itself is the Demiurge's: honest about what you can do, quietly shaped in what it offers.
+- [ ] The bond's ending: whether the piece steered it too, or it's the one thing the protagonists keep.
 
 * [ ] Party death: can a fixed party member die for good, or only be maimed?
 * [ ] Act I: is the "first god" the already-enshrined archon, or a second seat completing?
