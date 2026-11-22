@@ -1,3 +1,5 @@
 debug.log
 *.exe
-.claude
+# Claude Code: personal settings and agent worktrees stay local; the shared setup in .claude/ is committed.
+.claude/settings.local.json
+.claude/worktrees/
