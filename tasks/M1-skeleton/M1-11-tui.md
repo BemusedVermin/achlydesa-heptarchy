@@ -55,6 +55,7 @@ type Screen interface {
 | `.` | `wait/event` |
 | `,` | `wait/phase` |
 | `tab` | the next `lead/<uid>` option, cycling |
+| `f` | `control/individual` or `control/follow`, whichever is offered |
 | `esc`, `ctrl+c` | quit |
 
 When a key's option isn't in the view, nothing happens; when it's disabled, the status line shows its reason. A help line (`bubbles/help`) lists the bindings whose options are present.
@@ -82,7 +83,7 @@ func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string
 
 ## Acceptance criteria
 
-- [ ] `go run ./cmd/heptarchy play --seed 1` shows the hall, walks the leader with the six keys while the follower trails, shows the reason when a direction is blocked, `.` waits until something happens, `,` waits to the next phase, and `tab` changes the leader. The timeline strip shows the party's upcoming decisions, and selecting a tick lists them.
+- [ ] `go run ./cmd/heptarchy play --seed 1` shows the hall, walks the leader with the six keys while the follower trails, shows the reason when a direction is blocked, `.` waits until something happens, `,` waits to the next phase, `tab` changes the leader, and `f` switches between lead and follow and controlling each member, with the status line showing which mode is on. The timeline strip shows the party's upcoming decisions, and selecting a tick lists them.
 - [ ] `--record run.jsonl` writes a log that `game.Replay` reproduces to the same hash (test via a helper, not the TTY).
 - [ ] Golden tests for `RenderMap`: the start view, after walking away (dimmed memory), halfway down the descent's slope (shading changes smoothly), and a pane smaller than the map. Regenerate with `go test ./internal/frontend/tui -update`.
 - [ ] Pressing the key for a disabled move shows its reason in the status line and sends nothing.

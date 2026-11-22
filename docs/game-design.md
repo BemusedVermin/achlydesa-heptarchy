@@ -360,7 +360,7 @@ Fights happen on the same hex map and on the same clock as exploring, like a rog
 - **One timeline.** Every body, in the party or not, acts on one shared clock of ticks.
 - **Parts act on their own time.** A step keeps the body busy for a time its legs set, and a swing keeps one arm busy. A body decides whenever one of its parts is free, so more arms means more swings in the air at once, and a swing can start while the legs recover from a step.
 - **Some actions need more than one part.** A Sweep takes both arms and a Graft takes two hands, and some effects hit several parts or stop everything a body is doing.
-- **Lead and follow.** With no hostile in sight, the player moves a leader and the rest trail in single file. Once a hostile is in sight, each member's decisions come to the player.
+- **Lead and follow.** The player moves a leader and the rest trail in single file, or controls each member directly, and can switch between the two at any time. A hostile coming into sight switches to individual control automatically, and the party goes back to following when the danger passes, unless the player chose the mode.
 - **Moves come from menus.** The player positions a member on the grid, then picks the action, type and target from a menu.
 - **Position matters.** A move reaches only what's in sight and in range. In a soop one cell wide only the front member can fight, and ledges and slopes give height.
 - **The timeline strip.** Like the turn-order bars in many RPGs, a strip shows the upcoming ticks: an icon on each tick where something happens, +N when several things share one, and selecting a tick lists who acts and what lands.

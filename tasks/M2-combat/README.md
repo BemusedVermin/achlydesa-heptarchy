@@ -60,7 +60,7 @@ Every M2 task builds on this. The source is `docs/game-design.md` → "Combat"; 
 - **Short fights:** a fight is decided in a handful of landings, measured in tens of ticks, not hundreds.
 - **Blind parties lose.** Without knowing the materials or carrying the matching types, the party wears parts down while the enemy takes theirs off. Planning is the investigation loop: learn materials, fetch consumables, choose the ground and time the approach.
 
-**Alert.** When a hostile body is visible to any party member, the party is on alert (M1-16's `Party.Alert`), and every member's decisions come to the player. After `combat.calm_ticks` with no hostile in sight, the party relaxes back into lead and follow.
+**Alert.** When a hostile body is visible to any party member, the party is on alert (M1-16's `Party.Alert`). That switches a party in follow mode to individual control. After `combat.calm_ticks` with no hostile in sight the alert ends, and the party goes back to follow mode if the alert was what switched it. The player can switch modes at any time (M1-16).
 
 **Sides.** Each body that fights has `comp.Allegiance{Faction}`. Content factions list which factions they're hostile to; two bodies are enemies when either faction lists the other.
 

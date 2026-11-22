@@ -58,9 +58,9 @@ func Hostile(w *sim.World, a, b ecs.Entity) bool
 
 ## Acceptance criteria
 
-- [ ] Walking the leader into sight of the hall's creature sets `Alert`, publishes `AlertStarted`, and gives every member's decisions to the player.
+- [ ] Walking the leader into sight of the hall's creature sets `Alert`, publishes `AlertStarted`, and switches a party in follow mode to individual control.
 - [ ] On `map.test.descent`, standing in the hall directly over the creature in the soop below never sets `Alert`: there's no sight through rock.
-- [ ] After `CalmTicks` with no hostile visible, `AlertEnded` fires and lead and follow resume.
+- [ ] After `CalmTicks` with no hostile visible, `AlertEnded` fires and lead and follow resume, unless the player chose individual control.
 - [ ] `Hostile` is symmetric when only one faction lists the other (table test).
 - [ ] Applying damage directly (through effects) until a vital part is gone kills the body: the corpse stays on the map with its corpse glyph and never decides again.
 - [ ] A protected member is downed instead of killed; downing every member publishes `PartyLost`, and the next command is rejected.
