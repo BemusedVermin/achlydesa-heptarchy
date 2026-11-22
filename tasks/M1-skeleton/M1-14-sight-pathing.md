@@ -1,7 +1,7 @@
 ---
 id: M1-14
 title: "hexmap: sight lines and pathing in 3D"
-status: todo
+status: done
 milestone: M1
 kind: feature
 depends_on: [M1-05]
@@ -55,14 +55,14 @@ Use fzipp/astar with a graph type whose `Neighbours` yields the cells `Step` rea
 
 ## Acceptance criteria
 
-- [ ] In an open room, every cell within range is visible; walls bounding it are visible; cells behind walls aren't.
-- [ ] Standing at a shaft's edge shows cells down the shaft; a tunnel four cells below through solid rock isn't visible.
-- [ ] Standing at the top of a ramp shows the slope going down.
-- [ ] `Path` walks down a ramp, refuses to climb a three-cell ledge (`MaxStepUp` 1), and does go down it as a drop when no other route exists.
-- [ ] A search with no route in an all-solid infinite map returns false within `maxNodes` expansions.
-- [ ] Repeated calls give identical results (100 runs).
-- [ ] Benchmarks: `Visible` at radius 6 and depth range 6 takes under 2 ms; record the numbers in Notes.
-- [ ] `go tool task check` passes.
+- [x] In an open room, every cell within range is visible; walls bounding it are visible; cells behind walls aren't.
+- [x] Standing at a shaft's edge shows cells down the shaft; a tunnel four cells below through solid rock isn't visible.
+- [x] Standing at the top of a ramp shows the slope going down.
+- [x] `Path` walks down a ramp, refuses to climb a three-cell ledge (`MaxStepUp` 1), and does go down it as a drop when no other route exists.
+- [x] A search with no route in an all-solid infinite map returns false within `maxNodes` expansions.
+- [x] Repeated calls give identical results (100 runs).
+- [x] Benchmarks: `Visible` at radius 6 and depth range 6 takes under 2 ms; record the numbers in Notes.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -70,3 +70,9 @@ Use fzipp/astar with a graph type whose `Neighbours` yields the cells `Step` rea
 - Sight across map links.
 
 ## Notes
+
+- `fzipp/astar` has no expansion limit, so `Path` counts `Neighbours` calls and stops yielding neighbours after `maxNodes`; the search then drains and returns no route.
+- `Visible` includes `from` itself. Vertical lines (same hex, different depth) check the cells strictly between. `Path` returns both ends and treats nil `cost` as 1 per step. Steps through links to other maps are skipped.
+- Benchmark (`go test ./internal/core/hexmap -bench Visible`, radius 6, depth range 6, open floor): about 0.90 ms/op, 1664 allocs/op, on the developer's machine; the limit is 2 ms.
+- Added `github.com/fzipp/astar` v0.3.0 as the spec asked.
+- Follow-up filed: [M1-14.F1](../followups/M1-14.F1-sight-across-links.md), sight and pathing across map links.
