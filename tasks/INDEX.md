@@ -38,7 +38,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
 | [M2-01](M2-combat/M2-01-knowledge.md) | knowledge: the fact store | todo | seam | S | M1-11, M1-13 |
-| [M2-02](M2-combat/M2-02-bodies-parts.md) | Bodies and parts as entities, as channels | todo | feature | M | M1-11, M1-13 |
+| [M2-02](M2-combat/M2-02-bodies-parts.md) | Bodies and parts as entities, as channels | done | feature | M | M1-11, M1-13 |
 | [M2-03](M2-combat/M2-03-materials-types-items.md) | Materials, types, items and the party's pack | todo | feature | S | M2-02 |
 | [M2-04](M2-combat/M2-04-effects.md) | Combat effect primitives | todo | feature | M | M2-01, M2-03 |
 | [M2-05](M2-combat/M2-05-triggers.md) | Triggers: content reacting to events | todo | seam | S | M2-04 |
@@ -78,6 +78,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-10.F1](followups/M1-10.F1-slope-floor-in-plan-view.md) | Plan view: a slope's ceiling beats its floor | done | question | M1 | M1-10 |
 | [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | todo | feature | M2 | M1-10 |
 | [M1-10.F1.F1](followups/M1-10.F1.F1-plan-view-reachability.md) | Plan view: draw by reachability within a limit | done | feature | M1 | M1-10.F1 |
+| [M2-02.F1](followups/M2-02.F1-despawn-body-parts.md) | Despawning a body must remove its parts | proposed | bug | M2 | M2-02 |
 | [M1-10.F1.F1.F1](followups/M1-10.F1.F1.F1-cache-plan-reachability.md) | Plan view: do not recompute reachability on every view build | proposed | debt | unplanned | M1-10.F1.F1 |
 | [M1-10.F3](followups/M1-10.F3-sight-vs-prototype.md) | Sight differs from the prototype at pillar edges | obsolete | debt | M1 | M1-10 |
 | [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | unplanned | M1-16 |

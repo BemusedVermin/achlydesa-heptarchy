@@ -1,7 +1,7 @@
 ---
 id: M2-02
 title: Bodies and parts as entities, as channels
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M1-11, M1-13]
@@ -96,14 +96,14 @@ Put these in the new package `internal/core/anatomy`, which `AGENTS.md` and the 
 
 ## Acceptance criteria
 
-- [ ] Spawning `template.party.main` gives each of the two members five human parts (head, two arms, legs, torso as vital), all with UIDs.
-- [ ] A human has six channels: its body plus its five parts, each tagged with its slot and grants. Removing an arm's `PartOf` removes that channel; with its legs removed, a step keeps it busy longer (`step_ticks` with speed 0).
-- [ ] `Grants(member, "action")` is 2 and `Grants(member, "targeting")` is 1 for a human.
-- [ ] A material override in a plan changes that part's material.
-- [ ] Removing a part's `PartOf` relation drops it from `Parts` and `Grants`.
-- [ ] Spawning is deterministic: UIDs and part order match across two worlds.
-- [ ] Save and load keeps bodies, parts and relations (round trip through `game.Save`).
-- [ ] `go tool task check` passes.
+- [x] Spawning `template.party.main` gives each of the two members five human parts (head, two arms, legs, torso as vital), all with UIDs.
+- [x] A human has six channels: its body plus its five parts, each tagged with its slot and grants. Removing an arm's `PartOf` removes that channel; with its legs removed, a step keeps it busy longer (`step_ticks` with speed 0).
+- [x] `Grants(member, "action")` is 2 and `Grants(member, "targeting")` is 1 for a human.
+- [x] A material override in a plan changes that part's material.
+- [x] Removing a part's `PartOf` relation drops it from `Parts` and `Grants`.
+- [x] Spawning is deterministic: UIDs and part order match across two worlds.
+- [x] Save and load keeps bodies, parts and relations (round trip through `game.Save`).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -111,3 +111,21 @@ Put these in the new package `internal/core/anatomy`, which `AGENTS.md` and the 
 - Recruits joining the party (M3).
 
 ## Notes
+
+Deviations:
+
+- `comp.Grant` lives in `comp`, not `content`. `content` imports `comp` (for `Appearance`), so `comp.Part.Grants` cannot name a `content` type without a cycle. `content.PartTemplate.Grants` is `[]comp.Grant`. The grant kind constants (`content.GrantAction`, `GrantTargeting`, `GrantSpeed`, `GrantKinds`) are in `content`.
+- Body queries and install are in the new package `internal/core/anatomy` (as the Spec says), not `comp/bodyquery.go`. `anatomy.Install` runs in `game.installAll` after `timeline.Install`.
+- `timeline.Reschedule` already existed in `timeline` (M1), so it was not added again; I only extended its doc comment. `Reschedule` is called when a body is spawned with parts. Losing or attaching parts later is for the tasks that do it (M2-04, M2-07, M2-09). The Reschedule test uses a hook that goes from "only the arm is usable" to "every channel is usable", because a body decides as soon as any usable channel is free, so rejecting the only busy channel never brings a decision forward.
+- Added `sim.World.NewIdentified(template)`: part entities need an `Identity` with a UID that is in the UID index, and the index is private to `sim`.
+- `Grants` and `speed` count only functioning parts (attached, integrity above 0). Channels exist for every attached part, whatever its integrity.
+- An entity with no `comp.Body` keeps one body channel and the configured `default_speed`, so test fixtures and bodiless templates behave as before.
+- Both protagonists are `protected: true`; the docs say plot armor is set per authored character, and this is easy to change in `templates.cue`.
+- `TestASlowerBodysStepsTakeLonger` (explore) set `Timeline.DefaultSpeed`; bodies now take speed from their legs, so it edits `part.human_legs` instead.
+- Text IDs added: `text.part.*` (part names).
+
+Content: `bodies.cue` has `body.human` and `body.crawler` (clay core, one slow leg part, a maw), seven part templates, all with placeholder numbers.
+
+Files touched outside the list: `internal/content/{load,registry}.go`, `content/data/text.cue`, `internal/core/game/install.go`, `internal/core/sim/spawn.go`, `internal/core/explore/explore_test.go`, the regenerated `*_go_gen.cue`.
+
+Follow-ups filed: [M2-02.F1](../followups/M2-02.F1-despawn-body-parts.md) (despawning a body orphans its parts).

@@ -80,6 +80,20 @@ func (r *Registry) Template(id api.ContentID) (Template, bool) {
 	return template, ok
 }
 
+// Part returns the part template with the given ID. Its Grants slice is shared with the registry:
+// don't change it.
+func (r *Registry) Part(id api.ContentID) (PartTemplate, bool) {
+	part, ok := r.bundle.Parts[string(id)]
+	return part, ok
+}
+
+// Body returns the body plan with the given ID. Its Parts slice is shared with the registry: don't
+// change it.
+func (r *Registry) Body(id api.ContentID) (BodyPlan, bool) {
+	plan, ok := r.bundle.Bodies[string(id)]
+	return plan, ok
+}
+
 // Party returns the numbers every party shares.
 func (r *Registry) Party() PartyConfig { return r.bundle.Party }
 

@@ -251,6 +251,48 @@ func TestSecondChannelLetsTheBodyDecideAgain(t *testing.T) {
 	}
 }
 
+func TestRescheduleBringsADecisionForwardWhenAHookChanges(t *testing.T) {
+	fx := newFixture(t, 1)
+	ai := fx.spawn(t, timeline.IdleController, 2)
+	arm := twoChannels(t, fx, ai)
+	// Only the arm counts, so the body decides when the arm frees, at tick 9.
+	timeline.SetUsable(
+		fx.w,
+		func(_ *sim.World, _ ecs.Entity, c timeline.Channel) bool { return c.Entity == arm.Entity },
+	)
+	if err := timeline.Occupy(fx.w, fx.bodyChannel(ai), 4); err != nil {
+		t.Fatal(err)
+	}
+	if err := timeline.Occupy(fx.w, arm, 9); err != nil {
+		t.Fatal(err)
+	}
+	readyAt := func() int64 {
+		t.Helper()
+		view, _ := fx.view(t)
+		for _, entry := range view.Timeline.Entries {
+			if entry.Kind == "ready" && entry.Actor == fx.w.UIDOf(ai) {
+				return entry.Tick
+			}
+		}
+		t.Fatal("the body is not on the timeline")
+		return 0
+	}
+	if got := readyAt(); got != 9 {
+		t.Fatalf("ready at %d, want 9", got)
+	}
+	// Now the body channel counts too. Nothing requeues the body until Reschedule says so.
+	timeline.SetUsable(fx.w, func(*sim.World, ecs.Entity, timeline.Channel) bool { return true })
+	if got := readyAt(); got != 9 {
+		t.Fatalf("ready at %d before Reschedule, want the old 9", got)
+	}
+	timeline.Reschedule(fx.w, ai)
+	if got := readyAt(); got != 4 {
+		t.Errorf("ready at %d after Reschedule, want 4", got)
+	}
+	// An entity with no Actor is left alone.
+	timeline.Reschedule(fx.w, arm.Entity)
+}
+
 func TestUnusableChannelsDoNotMakeABodyDecide(t *testing.T) {
 	fx := newFixture(t, 1)
 	player := fx.spawn(t, timeline.PlayerController, 2)

@@ -97,6 +97,44 @@ type Seen struct {
 	ByMap map[api.MapID][]api.Cell `json:"by_map"`
 }
 
+// Grant is something a part gives its body: the ability to act, to aim, or speed.
+type Grant struct {
+	Kind  string `json:"kind"`            // "action" | "targeting" | "speed"
+	Value int    `json:"value,omitempty"` // speed amount; ignored for the others
+}
+
+// Body marks an entity as a body made of parts.
+type Body struct {
+	Plan api.ContentID `json:"plan"` // the body plan it was built from
+}
+
+// Part is one part of a body, an entity of its own. It belongs to a body while it has PartOf.
+type Part struct {
+	Template     api.ContentID `json:"template"`
+	Slot         string        `json:"slot"`
+	Material     api.ContentID `json:"material"`
+	Integrity    int           `json:"integrity"`
+	MaxIntegrity int           `json:"max_integrity"`
+	Grants       []Grant       `json:"grants"` // copied from content at spawn
+	Vital        bool          `json:"vital"`
+}
+
+// PartOf is the Ark relation from a part to the body it is attached to. Removing it severs the part.
+type PartOf struct {
+	ecs.RelationMarker `json:"-"`
+}
+
+// Protected gives a body plot armor: when it would die it is downed instead.
+type Protected struct{}
+
+// Dead marks a body that has died, at a tick.
+type Dead struct {
+	Tick int64 `json:"tick"`
+}
+
+// Downed marks a protected body that has fallen.
+type Downed struct{}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -113,4 +151,10 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Landing](world)
 	ecs.ComponentID[Controlled](world)
 	ecs.ComponentID[Seen](world)
+	ecs.ComponentID[Body](world)
+	ecs.ComponentID[Part](world)
+	ecs.ComponentID[PartOf](world)
+	ecs.ComponentID[Protected](world)
+	ecs.ComponentID[Dead](world)
+	ecs.ComponentID[Downed](world)
 }

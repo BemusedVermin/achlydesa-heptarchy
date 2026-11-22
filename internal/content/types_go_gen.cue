@@ -21,6 +21,10 @@ import (
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
 	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
 	start: #Start @go(Start)
+
+	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
+	parts: {[string]: #PartTemplate} @go(Parts,map[string]PartTemplate)
+	bodies: {[string]: #BodyPlan} @go(Bodies,map[string]BodyPlan)
 }
 
 // Material is a substance things are made of.
@@ -60,6 +64,15 @@ import (
 
 	// Actions lists the actions a body of this template knows, as "action." IDs.
 	actions?: [...api.#ContentID] @go(Actions,[]api.ContentID)
+
+	// Name is the text ID of the entity's name, for display.
+	name?: null | api.#ContentID @go(Name,*api.ContentID)
+
+	// Body is the body plan ("body." ID) the entity is built from.
+	body?: null | api.#ContentID @go(Body,*api.ContentID)
+
+	// Protected gives the entity plot armor: it is downed rather than killed.
+	protected?: bool @go(Protected)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -174,6 +187,31 @@ import (
 	// range (and in sight, if required)".
 	connects?: string @go(Connects)
 	tags?: [...string] @go(Tags,[]string)
+}
+
+#GrantAction:    "action"
+#GrantTargeting: "targeting"
+#GrantSpeed:     "speed"
+
+// PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.
+#PartTemplate: {
+	name:      api.#ContentID @go(Name)
+	slot:      string         @go(Slot)
+	material:  api.#ContentID @go(Material)
+	integrity: int            @go(Integrity)
+	grants: [...comp.#Grant] @go(Grants,[]comp.Grant)
+	vital?: bool @go(Vital)
+}
+
+// BodyPlan lists the parts a body is built from, in order.
+#BodyPlan: {
+	parts: [...#PlanPart] @go(Parts,[]PlanPart)
+}
+
+// PlanPart is one entry of a body plan.
+#PlanPart: {
+	part:      api.#ContentID @go(Part)
+	material?: api.#ContentID @go(Material)
 }
 
 // Requirement is one set of channels an action occupies.

@@ -17,6 +17,9 @@ type Bundle struct {
 	Actions   map[string]ActionDef `json:"actions"`
 	Maps      map[string]MapDef    `json:"maps"`
 	Start     Start                `json:"start"`
+	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
+	Parts  map[string]PartTemplate `json:"parts"`
+	Bodies map[string]BodyPlan     `json:"bodies"`
 }
 
 // Material is a substance things are made of.
@@ -55,7 +58,13 @@ type Template struct {
 	Actor      *ActorDef        `json:"actor,omitempty"`
 	// Actions lists the actions a body of this template knows, as "action." IDs.
 	Actions []api.ContentID `json:"actions,omitempty"`
-	// Later: Body, Combatant, Needs, Inventory, Triggers, ...
+	// Name is the text ID of the entity's name, for display.
+	Name *api.ContentID `json:"name,omitempty"`
+	// Body is the body plan ("body." ID) the entity is built from.
+	Body *api.ContentID `json:"body,omitempty"`
+	// Protected gives the entity plot armor: it is downed rather than killed.
+	Protected bool `json:"protected,omitempty"`
+	// Later: Combatant, Needs, Inventory, Triggers, ...
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -168,6 +177,37 @@ type ActionDef struct {
 	// range (and in sight, if required)".
 	Connects string   `json:"connects,omitempty"`
 	Tags     []string `json:"tags,omitempty"` // free tags for rules and content: "attack", "movement", ...
+}
+
+// Grant kinds a part may give its body.
+const (
+	GrantAction    = "action"    // the part can carry out actions, such as an arm
+	GrantTargeting = "targeting" // the part aims the body's attacks, such as a head
+	GrantSpeed     = "speed"     // the part adds Value to the body's speed, such as legs
+)
+
+// GrantKinds lists the grant kinds a part may name.
+var GrantKinds = []string{GrantAction, GrantTargeting, GrantSpeed}
+
+// PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.
+type PartTemplate struct {
+	Name      api.ContentID `json:"name"`     // a text ID
+	Slot      string        `json:"slot"`     // "head", "arm", "legs", ...: free text, for display and grafting
+	Material  api.ContentID `json:"material"` // a material ID
+	Integrity int           `json:"integrity"`
+	Grants    []comp.Grant  `json:"grants"`
+	Vital     bool          `json:"vital,omitempty"`
+}
+
+// BodyPlan lists the parts a body is built from, in order.
+type BodyPlan struct {
+	Parts []PlanPart `json:"parts"`
+}
+
+// PlanPart is one entry of a body plan.
+type PlanPart struct {
+	Part     api.ContentID `json:"part"`               // a part template ID
+	Material api.ContentID `json:"material,omitempty"` // override, e.g. a clay arm
 }
 
 // Requirement is one set of channels an action occupies.

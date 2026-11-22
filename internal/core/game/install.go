@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
@@ -15,6 +16,7 @@ func installAll(w *sim.World, clk *clock.Clock) error {
 	steps := []func() error{
 		func() error { return clock.Install(w, clk, w.Content) },
 		func() error { return timeline.Install(w, clk) },
+		func() error { return anatomy.Install(w) },
 		func() error { return effects.Install(w) },
 		func() error { return actions.Install(w) },
 		func() error { return explore.Install(w) },

@@ -383,7 +383,10 @@ func TestASlowerBodysStepsTakeLonger(t *testing.T) {
 	ticks := func(speed int64) int64 {
 		fx := newFixture(t, "", func(b *content.Bundle) {
 			b.Timeline.StepTicks = "speed >= 2 ? 10 : 25"
-			b.Timeline.DefaultSpeed = int(speed)
+			// Bodies take their speed from their legs.
+			legs := b.Parts["part.human_legs"]
+			legs.Grants = []comp.Grant{{Kind: content.GrantSpeed, Value: int(speed)}}
+			b.Parts["part.human_legs"] = legs
 		})
 		before := fx.view().Tick
 		fx.stepLeader("e")

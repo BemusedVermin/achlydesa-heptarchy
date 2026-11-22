@@ -81,6 +81,15 @@ func (w *World) Spawn(template api.ContentID, at *comp.Pos) (ecs.Entity, error) 
 	return e, nil
 }
 
+// NewIdentified makes an entity that has only an Identity with a new UID, for things that are not
+// spawned from a template of their own, such as body parts. The caller adds the rest.
+func (w *World) NewIdentified(template api.ContentID) ecs.Entity {
+	uid := w.NewUID()
+	e := w.maps.identity.NewEntity(&comp.Identity{UID: uid, Template: template})
+	w.byUID[uid] = e
+	return e
+}
+
 // Despawn removes the entity and its UID index entry. The UID is never reused.
 // Despawning a dead entity does nothing.
 func (w *World) Despawn(e ecs.Entity) {
