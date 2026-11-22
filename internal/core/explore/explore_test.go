@@ -205,6 +205,108 @@ func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
 	}
 }
 
+// checkSlopeIsFloor fails unless every slope hex of map.test.descent is drawn as floor with Below
+// equal to its depth minus the leader's. The slope's hex k, k = 1..4, is at depth k, k hexes east of
+// the hall's opening.
+func checkSlopeIsFloor(t *testing.T, fx *fixture, openingQ, row, leaderDepth int, when string) {
+	t.Helper()
+	view := fx.view()
+	for k := 0; k <= 4; k++ {
+		h := api.Hex{Q: openingQ + k, R: row}
+		c, drawn := cellAt(view.Map, h)
+		if !drawn {
+			t.Errorf("%s: no cell drawn at slope hex %v", when, h)
+			continue
+		}
+		if want := k - leaderDepth; c.Glyph != "." || c.Below != want {
+			t.Errorf("%s: hex %v = %+v, want a floor glyph at Below %d", when, h, c, want)
+		}
+	}
+}
+
+func TestTheSlopeIsDrawnAsFloorWalkingDownAndBackUp(t *testing.T) {
+	fx := newFixture(t, "map.test.descent", nil)
+	leader := fx.view().Party.Members[0].UID
+	start := fx.pos(leader)
+	for range 6 {
+		fx.stepLeader("e")
+	}
+	openingQ, row := start.At.Hex.Q+6, start.At.Hex.R
+	checkSlopeIsFloor(t, fx, openingQ, row, 0, "at the opening")
+	for depth := 1; depth <= 4; depth++ {
+		fx.stepLeader("e")
+		fx.toLeader()
+		checkSlopeIsFloor(t, fx, openingQ, row, depth, "going down")
+	}
+	for depth := 3; depth >= 0; depth-- {
+		events := fx.stepLeader("w")
+		if moved, ok := find[api.Moved](events); !ok || moved.Kind != api.MoveUp || moved.To.Depth != depth {
+			t.Fatalf("moved = %+v, %v; want a step up to depth %d", moved, ok, depth)
+		}
+		fx.toLeader()
+		checkSlopeIsFloor(t, fx, openingQ, row, depth, "coming back up")
+	}
+}
+
+func TestTheRangeCapLeavesFarSlopeFloorToTheWalls(t *testing.T) {
+	farSlope := func(planRange int) api.CellView {
+		fx := newFixture(t, "map.test.descent", func(b *content.Bundle) { b.Party.PlanRange = planRange })
+		leader := fx.view().Party.Members[0].UID
+		start := fx.pos(leader)
+		for range 6 {
+			fx.stepLeader("e")
+		}
+		c, drawn := cellAt(fx.view().Map, api.Hex{Q: start.At.Hex.Q + 10, R: start.At.Hex.R})
+		if !drawn {
+			t.Fatalf("range %d: the slope's last hex is not drawn", planRange)
+		}
+		return c
+	}
+	if c := farSlope(12); c.Glyph != "." || c.Below != 4 {
+		t.Errorf("within range: %+v, want the slope's floor at Below 4", c)
+	}
+	if c := farSlope(2); c.Glyph != "#" {
+		t.Errorf("past the range cap: %+v, want the wall of the ceiling above the slope", c)
+	}
+}
+
+func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
+	fx := newFixture(t, "map.test.ledge", func(b *content.Bundle) {
+		b.Maps["map.test.ledge"] = content.MapDef{
+			Name: "text.map.test_descent", Fill: "terrain.packed_clay", Open: "terrain.air",
+			Legend: map[string]api.ContentID{"#": "terrain.packed_clay", ".": "terrain.air"},
+			Marks:  map[string]string{"@": "party_start"},
+			Layers: []content.LayerDef{
+				// The party stands at q=0 and a shaft is open above its neighbour at q=1; q=2 is solid
+				// with a standable shelf two cells up that no one can climb to.
+				{Depth: 0, Rows: []string{"@."}},
+				{Depth: -1, Rows: []string{" ."}},
+				{Depth: -2, Rows: []string{" .."}},
+				{Depth: -3, Rows: []string{" .."}},
+			},
+		}
+		b.Start.Map = "map.test.ledge"
+		b.Templates["template.party.main"] = content.Template{
+			Party: &content.PartyDef{Members: []api.ContentID{"template.person.reaper"}},
+		}
+	})
+	leader := fx.view().Party.Members[0].UID
+	at := fx.pos(leader).At
+	h := api.Hex{Q: at.Hex.Q + 2, R: at.Hex.R}
+	// The shelf must be in sight, or the test proves nothing.
+	sight, err := fx.w.Maps.Get(fx.pos(leader).Map).Visible(at, 6, 6)
+	if err != nil || !slices.Contains(sight, api.Cell{Hex: h, Depth: -2}) {
+		t.Fatalf("the shelf at %v is not visible (%v); the test needs it in sight", h, err)
+	}
+	c, drawn := cellAt(fx.view().Map, h)
+	if !drawn {
+		t.Fatalf("hex %v is not drawn", h)
+	}
+	if c.Glyph != "#" || c.Below != 0 {
+		t.Errorf("hex %v = %+v, want the wall at the party's depth, not the unreachable shelf", h, c)
+	}
+}
+
 func TestTheSoopUnderTheHallIsNeverDrawnAndNoStepReachesIt(t *testing.T) {
 	fx := newFixture(t, "map.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID

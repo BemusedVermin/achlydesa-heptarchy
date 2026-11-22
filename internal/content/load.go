@@ -309,7 +309,7 @@ func (r *Registry) checkParty() []error {
 		problems = append(problems, fmt.Errorf("party.sight_radius: must be at least 1, got %d", cfg.SightRadius))
 	}
 	for name, value := range map[string]int{
-		"sight_depth": cfg.SightDepth, "plan_floor_depth": cfg.PlanFloorDepth, "max_step_up": cfg.MaxStepUp, "max_step_down": cfg.MaxStepDown,
+		"sight_depth": cfg.SightDepth, "plan_range": cfg.PlanRange, "max_step_up": cfg.MaxStepUp, "max_step_down": cfg.MaxStepDown,
 		"max_drop": cfg.MaxDrop,
 	} {
 		if value < 0 {
