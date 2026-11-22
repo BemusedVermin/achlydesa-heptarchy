@@ -33,6 +33,10 @@ text: {
 	"text.material.clay": "clay"
 	"text.terrain.wall":  "wall"
 	"text.hello":         "Hello, {{.who}}!"
+	"text.phase.dawn":    "dawn"
+}
+calendar: {
+	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]
 }
 `
 
@@ -139,6 +143,14 @@ text: "text.a": "a"
 text: "text.a": "{{.who"
 `,
 			want: []string{`text["text.a"]`},
+		},
+		{
+			name: "bad calendar",
+			src: `
+text: "text.a": "a"
+calendar: {phases: [{id: "day.dawn", name: "text.missing", ticks: 0}]}
+`,
+			want: []string{"calendar.phases[0].ticks", "calendar.phases[0]", "text.missing"},
 		},
 		{
 			name: "all problems are reported",

@@ -47,7 +47,7 @@ The full workflow is in `tasks/README.md`. In short:
 3. Implement only what the task's Deliverables and Spec cover. Signatures in a spec are the intended shape; keep the names unless they clash with something real, and say so in Notes if you change one.
 4. Verify against every acceptance criterion and run the checks. Tick the criteria in the task file.
 5. Fill in the task's Notes: assumptions, deviations, files touched outside the list, follow-ups filed.
-6. Set the status to `review` in the file and the index.
+6. Set the status to `done` in the file and the index, then open a PR. Merging the PR completes the task.
 
 ## Follow-up tasks: required
 

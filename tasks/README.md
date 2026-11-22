@@ -20,7 +20,7 @@ tasks/
 ---
 id: M1-03
 title: "sim: world, event bus and system scheduler"   # quote titles that contain a colon
-status: todo            # proposed | todo | in-progress | blocked | review | done
+status: todo            # proposed | todo | in-progress | blocked | done
 milestone: M1           # M1..M7, or unplanned
 kind: feature           # feature | seam | bug | debt | test | content | question
 depends_on: [M1-01]
@@ -39,8 +39,7 @@ The task file is the source of truth for status. `INDEX.md` mirrors it, so updat
 | `todo` | Ready to start once its dependencies are done | The owner |
 | `in-progress` | Someone is on it | The implementer |
 | `blocked` | Can't continue; Notes say why and link the blocker | The implementer |
-| `review` | Acceptance criteria met; waiting for the owner | The implementer |
-| `done` | Reviewed and merged | The owner |
+| `done` | Acceptance criteria met and the PR is open; merging the PR completes the task | The implementer |
 
 ## Picking a task
 

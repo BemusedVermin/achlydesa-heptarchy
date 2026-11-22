@@ -11,6 +11,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	materials: {[string]: #Material} @go(Materials,map[string]Material)
 	terrains: {[string]: #Terrain} @go(Terrains,map[string]Terrain)
 	text: {[string]: string} @go(Text,map[string]string)
+	calendar: #Calendar @go(Calendar)
 }
 
 // Material is a substance things are made of.
@@ -27,4 +28,17 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	wall_glyph?:  string         @go(WallGlyph)
 	color?:       string         @go(Color)
 	move_cost?:   string         @go(MoveCost)
+}
+
+// Calendar says how ticks group into phases and days. A day is its phases in
+// order, and lasts as many ticks as they add up to.
+#Calendar: {
+	phases: [...#Phase] @go(Phases,[]Phase)
+}
+
+// Phase is one part of the day, such as dawn.
+#Phase: {
+	id:    api.#ContentID @go(ID)
+	name:  api.#ContentID @go(Name)
+	ticks: int64          @go(Ticks)
 }

@@ -12,6 +12,7 @@ package api
 	tick: int64 @go(Tick)
 	options: [...#Option] @go(Options,[]Option)
 	log: [...#LogLine] @go(Log,[]LogLine)
+	clock?: null | #ClockView @go(Clock,*ClockView)
 }
 
 // Option is one thing the player can do right now. Frontends render Label and
