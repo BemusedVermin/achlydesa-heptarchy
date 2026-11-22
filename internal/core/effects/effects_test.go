@@ -569,3 +569,44 @@ func TestInstallRegistersEvents(t *testing.T) {
 		}
 	}
 }
+
+func TestChecksDoNotDrawFromTheRNG(t *testing.T) {
+	fx := newFixture(t)
+	err := effects.Register(fx.w, effects.Primitive{
+		Name: "gauge", Params: []string{"limit"},
+		Apply: func(*effects.Context, effects.Params) error { return nil },
+		Check: func(_ *effects.Context, p effects.Params) (bool, api.Text) {
+			limit, err := p.Int("limit")
+			return err == nil && limit > 0, api.Text{ID: "text.test.nope"}
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	before, err := fx.w.RNG.State()
+	if err != nil {
+		t.Fatal(err)
+	}
+	refs := []content.EffectRef{do("gauge", "limit", "distance + 1")}
+	for range 2 {
+		if ok, _ := effects.Check(fx.ctx(), refs); !ok {
+			t.Fatal("the check should pass")
+		}
+	}
+	after, err := fx.w.RNG.State()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(before, after) {
+		t.Error("checking an effect changed the RNG state")
+	}
+	if ok, _ := effects.Check(fx.ctx(), []content.EffectRef{do("gauge", "limit", "roll")}); ok {
+		t.Error("a check that reads roll should fail rather than draw")
+	}
+	if err := effects.Validate(fx.w, "x", []content.EffectRef{do("gauge", "limit", "roll * 2")}); err == nil {
+		t.Error("Validate should reject a primitive with a Check reading roll")
+	}
+	if err := effects.Validate(fx.w, "x", refs); err != nil {
+		t.Errorf("Validate rejected a check that does not read roll: %v", err)
+	}
+}
