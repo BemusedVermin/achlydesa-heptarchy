@@ -34,12 +34,13 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // MemberOf is the Ark relation from a party member to its party entity.
 #MemberOf: {}
 
-// Turn puts an entity on the timeline.
-#Turn: {
-	next:         int64  @go(Next)
-	controller:   string @go(Controller)
-	stepped:      bool   @go(Stepped)
-	actions_used: int    @go(ActionsUsed)
-	extra:        int64  @go(Extra)
-	open:         bool   @go(Open)
+// Busy marks a channel (a body or one of its parts) busy until a tick. No component means free.
+#Busy: {
+	until: int64 @go(Until)
+}
+
+// Actor puts a body on the timeline.
+#Actor: {
+	controller: string @go(Controller)
+	wait_until: int64  @go(WaitUntil)
 }

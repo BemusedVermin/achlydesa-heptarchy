@@ -2,14 +2,14 @@ package api
 
 // View is everything a frontend needs to draw the current state. It holds
 // display-ready strings; the core resolves text before building it. Later tasks
-// add a section each as a pointer field: Clock (M1-08), Turns (M1-15), Map and Party (M1-10),
+// add a section each as a pointer field: Clock (M1-08), Timeline (M1-17), Map and Party (M1-10),
 // Combat (M2).
 type View struct {
-	Tick    int64      `json:"tick"`
-	Options []Option   `json:"options"`
-	Log     []LogLine  `json:"log"`
-	Clock   *ClockView `json:"clock,omitempty"`
-	Turns   *TurnsView `json:"turns,omitempty"`
+	Tick     int64         `json:"tick"`
+	Options  []Option      `json:"options"`
+	Log      []LogLine     `json:"log"`
+	Clock    *ClockView    `json:"clock,omitempty"`
+	Timeline *TimelineView `json:"timeline,omitempty"`
 }
 
 // Option is one thing the player can do right now. Frontends render Label and

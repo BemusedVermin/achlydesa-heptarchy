@@ -1,7 +1,7 @@
 ---
 id: M1-17
 title: "timeline: part-level action timing"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-15]
@@ -125,15 +125,15 @@ type TimelineEntry struct {
 
 ## Acceptance criteria
 
-- [ ] Occupying a body's only channel for 6 ticks puts its next decision 6 ticks later; `Extend` by 2 more makes it 8.
-- [ ] With two test channels, occupying one leaves the body deciding again at the same tick with the other, and `Run` returns the same body.
-- [ ] A channel that the usable hook rejects doesn't make the body decide when it frees.
-- [ ] `wait/event` jumps to the next entry belonging to someone else; `wait/phase` to the next phase boundary, running PerPhase systems once.
-- [ ] A controller that neither occupies nor waits is made to wait, and the loop doesn't hang.
-- [ ] `TimelineView` lists only visible bodies, within `WindowTicks`, in `(tick, UID)` order.
-- [ ] Two worlds with the same seed and actions produce the same 1,000 entries.
-- [ ] No package named `turns` remains.
-- [ ] `go tool task check` passes.
+- [x] Occupying a body's only channel for 6 ticks puts its next decision 6 ticks later; `Extend` by 2 more makes it 8.
+- [x] With two test channels, occupying one leaves the body deciding again at the same tick with the other, and `Run` returns the same body.
+- [x] A channel that the usable hook rejects doesn't make the body decide when it frees.
+- [x] `wait/event` jumps to the next entry belonging to someone else; `wait/phase` to the next phase boundary, running PerPhase systems once.
+- [x] A controller that neither occupies nor waits is made to wait, and the loop doesn't hang.
+- [x] `TimelineView` lists only visible bodies, within `WindowTicks`, in `(tick, UID)` order.
+- [x] Two worlds with the same seed and actions produce the same 1,000 entries.
+- [x] No package named `turns` remains.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -143,4 +143,14 @@ type TimelineEntry struct {
 
 ## Notes
 
-This is L because the rename touches every caller. If it runs long, land the rename alone first and say so in Notes.
+- **Assumption: decisions start at spawn.** A body spawned at tick 0 decides at tick 0, since all its channels are free. M1-15 made the first turn come one step later.
+- **Deviation: `Channel.Body`.** `Channel` has a `Body` field beside `Entity` and `Tags`, so `Occupy` and `Extend` can find the body of a part channel without a parent lookup. The zero entity means `Entity` is the body; `Channels` fills it in for parts.
+- **Addition: `StepTicks(w, body)`.** An exported helper that runs the content `step_ticks` formula with the body's speed hook, so M1-10 and M1-20 don't repeat it.
+- **`wait/event` and forced waits.** They wait until the earliest other entry, but never less than the next tick. Otherwise a body at the same tick as another would be first in line again and the wait would do nothing. With no other entry they wait one tick.
+- **PerTurn timing.** PerTurn systems run once per entry, when the loop leaves it: before the next entry is taken, not while the same body is still deciding with a second arm.
+- **Controllers.** `Controller.TakeTurn` became `Controller.Decide`; `SetBudget` and the turn budget are gone as specified.
+- **Timeline labels.** The entry label uses text IDs `text.template.<name>` (added for the two sample templates, plus `text.template.unknown`) because bodies have no name component yet.
+- **Content text IDs** moved from `text.turns.*` to `text.timeline.*`; `content/data/turns.cue` is now `timeline.cue`.
+- **Files outside the list:** `internal/content/{env,load,registry,load_test}.go`, `content/data/{templates,text}.cue`, `internal/core/api/view.go`, `internal/core/sim/scheduler.go` and `internal/core/clock/clock.go` (comments). `AGENTS.md`, `.golangci.yml` and `docs/go-technical-design.md` already said `timeline`, so they didn't change.
+- **Single change.** The rename and the new model went in together; the rename alone would not have compiled in a useful shape, since the model replaces the code it touches.
+- **Follow-up filed:** `M1-17.F1` (reschedule bodies when a hook's answer changes).

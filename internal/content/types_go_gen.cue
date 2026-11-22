@@ -16,8 +16,8 @@ import (
 	text: {[string]: string} @go(Text,map[string]string)
 	calendar: #Calendar @go(Calendar)
 	templates: {[string]: #Template} @go(Templates,map[string]Template)
-	party: #PartyConfig @go(Party)
-	turns: #TurnsConfig @go(Turns)
+	party:    #PartyConfig    @go(Party)
+	timeline: #TimelineConfig @go(Timeline)
 }
 
 // Material is a substance things are made of.
@@ -53,7 +53,7 @@ import (
 #Template: {
 	appearance?: null | comp.#Appearance @go(Appearance,*comp.Appearance)
 	party?:      null | #PartyDef        @go(Party,*PartyDef)
-	turn?:       null | #TurnDef         @go(Turn,*TurnDef)
+	actor?:      null | #ActorDef        @go(Actor,*ActorDef)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -67,13 +67,14 @@ import (
 	sight_radius: int @go(SightRadius)
 }
 
-// TurnsConfig holds the numbers of the shared timeline.
-#TurnsConfig: {
-	turn_ticks:    string @go(TurnTicks)
+// TimelineConfig holds the numbers of the shared timeline.
+#TimelineConfig: {
+	step_ticks:    string @go(StepTicks)
 	default_speed: int    @go(DefaultSpeed)
+	window_ticks:  int64  @go(WindowTicks)
 }
 
-// TurnDef puts a template's entities on the timeline.
-#TurnDef: {
+// ActorDef puts a template's entities on the timeline.
+#ActorDef: {
 	controller: string @go(Controller)
 }
