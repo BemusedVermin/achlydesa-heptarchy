@@ -4,7 +4,10 @@
 
 package content
 
-import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
+import (
+	"github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/bemusedvermin/achlydesa-heptarchy/internal/core/comp"
+)
 
 // Bundle is the whole of content/data as decoded. Later tasks add fields.
 #Bundle: {
@@ -12,6 +15,8 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	terrains: {[string]: #Terrain} @go(Terrains,map[string]Terrain)
 	text: {[string]: string} @go(Text,map[string]string)
 	calendar: #Calendar @go(Calendar)
+	templates: {[string]: #Template} @go(Templates,map[string]Template)
+	party: #PartyConfig @go(Party)
 }
 
 // Material is a substance things are made of.
@@ -41,4 +46,21 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	id:    api.#ContentID @go(ID)
 	name:  api.#ContentID @go(Name)
 	ticks: int64          @go(Ticks)
+}
+
+// Template is a bag of optional components. A nil field means "no such component".
+#Template: {
+	appearance?: null | comp.#Appearance @go(Appearance,*comp.Appearance)
+	party?:      null | #PartyDef        @go(Party,*PartyDef)
+}
+
+// PartyDef makes a template a party: the member templates it brings with it.
+#PartyDef: {
+	members: [...api.#ContentID] @go(Members,[]api.ContentID)
+}
+
+// PartyConfig holds the numbers every party shares.
+#PartyConfig: {
+	slots:        int @go(Slots)
+	sight_radius: int @go(SightRadius)
 }

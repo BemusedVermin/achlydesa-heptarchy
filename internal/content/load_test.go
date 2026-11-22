@@ -35,6 +35,7 @@ text: {
 	"text.hello":         "Hello, {{.who}}!"
 	"text.phase.dawn":    "dawn"
 }
+party: {slots: 4, sight_radius: 6}
 calendar: {
 	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]
 }
@@ -88,6 +89,44 @@ terrains: "terrain.wall": {name: "text.a", solid: true, opaque: true}
 text: "text.a": "a"
 `,
 			want: []string{`terrains["terrain.wall"].move_cost`, "required"},
+		},
+		{
+			name: "party with unknown member",
+			src: `
+templates: "template.party.x": party: members: ["template.nope"]
+`,
+			want: []string{`templates["template.party.x"].party.members[0]`, "template.nope"},
+		},
+		{
+			name: "party nested in a party",
+			src: `
+templates: {
+	"template.party.a": party: members: ["template.party.b"]
+	"template.party.b": party: members: ["template.party.a"]
+}
+`,
+			want: []string{"is itself a party"},
+		},
+		{
+			name: "party with no members",
+			src: `
+templates: "template.party.x": party: members: []
+`,
+			want: []string{"at least one member"},
+		},
+		{
+			name: "party numbers too small",
+			src: `
+party: {slots: 0, sight_radius: 0}
+`,
+			want: []string{"party.slots", "party.sight_radius"},
+		},
+		{
+			name: "bad template id",
+			src: `
+templates: "person.x": {}
+`,
+			want: []string{`templates["person.x"]`, `"template."`},
 		},
 		{
 			name: "bad id",

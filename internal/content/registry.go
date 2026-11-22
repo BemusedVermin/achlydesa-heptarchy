@@ -70,3 +70,12 @@ func (r *Registry) Calendar() Calendar {
 	cal.Phases = append([]Phase(nil), cal.Phases...)
 	return cal
 }
+
+// Template returns the template with the given ID. Its pointer fields are shared with the registry: don't change them.
+func (r *Registry) Template(id api.ContentID) (Template, bool) {
+	template, ok := r.bundle.Templates[string(id)]
+	return template, ok
+}
+
+// Party returns the numbers every party shares.
+func (r *Registry) Party() PartyConfig { return r.bundle.Party }
