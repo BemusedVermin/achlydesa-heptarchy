@@ -205,11 +205,17 @@ func templateName(w *sim.World, e ecs.Entity) api.Text {
 	return api.Text{ID: api.ContentID("text.template." + template)}
 }
 
-// Start builds every map of the content and, when the content has a start scenario, spawns the
-// start party on its mark. game.New calls it once, after Install.
-func Start(w *sim.World) error {
+// LoadMaps builds every map from content and registers it, without starting a game. Loading a save
+// calls it instead of Start, then reapplies the saved map edits.
+func LoadMaps(w *sim.World) error {
+	_, _, err := buildMaps(w)
+	return err
+}
+
+// buildMaps registers a map per content map, numbered in content ID order from 1.
+func buildMaps(w *sim.World) (map[api.ContentID]api.MapID, map[api.ContentID]*Source, error) {
 	if w.Content == nil {
-		return errors.New("explore: start: world has no content")
+		return nil, nil, errors.New("explore: start: world has no content")
 	}
 	st := stateOf(w)
 	ids := map[api.ContentID]api.MapID{}
@@ -218,13 +224,23 @@ func Start(w *sim.World) error {
 		def, _ := w.Content.Map(id)
 		src, err := NewSource(w.Content, def)
 		if err != nil {
-			return fmt.Errorf("explore: map %q: %w", id, err)
+			return nil, nil, fmt.Errorf("explore: map %q: %w", id, err)
 		}
 		mapID := api.MapID(i + 1)
 		if err := w.Maps.Add(hexmap.NewMap(mapID, string(id), src, hexmap.Prisms{})); err != nil {
-			return fmt.Errorf("explore: map %q: %w", id, err)
+			return nil, nil, fmt.Errorf("explore: map %q: %w", id, err)
 		}
 		ids[id], sources[id], st.names[mapID] = mapID, src, id
+	}
+	return ids, sources, nil
+}
+
+// Start builds every map of the content and, when the content has a start scenario, spawns the
+// start party on its mark. game.New calls it once, after Install.
+func Start(w *sim.World) error {
+	ids, sources, err := buildMaps(w)
+	if err != nil {
+		return err
 	}
 	start := w.Content.Start()
 	if start.Map == "" {

@@ -1,0 +1,76 @@
+package timeline
+
+import (
+	"cmp"
+	"fmt"
+	"slices"
+
+	"github.com/mlange-42/ark/ecs"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+)
+
+// Saved is the part of the timeline that lives outside the ECS components: who is queued for when,
+// and who is deciding now. Bodies are named by UID. It is plain data so a save can hold it.
+type Saved struct {
+	// Line lists the live entries, sorted by tick then UID.
+	Line []SavedSlot `json:"line"`
+	// Current is the body deciding now, or 0 when there is none.
+	Current api.UID `json:"current"`
+	// Pending says the last entry has not had its per-turn systems run yet.
+	Pending bool `json:"pending"`
+	// Changes is the counter that tells whether a controller did anything.
+	Changes int64 `json:"changes"`
+}
+
+// SavedSlot is one live timeline entry.
+type SavedSlot struct {
+	Tick int64   `json:"tick"`
+	UID  api.UID `json:"uid"`
+}
+
+// Export returns the timeline's state for a save. Stale entries are left out.
+func Export(w *sim.World) Saved {
+	st := stateOf(w)
+	saved := Saved{Line: []SavedSlot{}, Pending: st.pending, Changes: st.changes}
+	for _, s := range st.line {
+		if st.live(w, s) {
+			saved.Line = append(saved.Line, SavedSlot{Tick: s.tick, UID: s.uid})
+		}
+	}
+	slices.SortFunc(saved.Line, func(a, b SavedSlot) int {
+		return cmp.Or(cmp.Compare(a.Tick, b.Tick), cmp.Compare(a.UID, b.UID))
+	})
+	if st.hasCurrent {
+		saved.Current = w.UIDOf(st.current)
+	}
+	return saved
+}
+
+// Import replaces the timeline's queue and current body with saved. The components must already be
+// restored and the UID index rebuilt.
+func Import(w *sim.World, saved Saved) error {
+	st := stateOf(w)
+	st.line = st.line[:0]
+	st.queued = map[ecs.Entity]int64{}
+	for _, s := range saved.Line {
+		e, ok := w.ByUID(s.UID)
+		if !ok || !st.actors.Has(e) {
+			return fmt.Errorf("timeline: saved entry for UID %d has no actor", s.UID)
+		}
+		st.line = append(st.line, slot{tick: s.Tick, uid: s.UID, e: e})
+		st.queued[e] = s.Tick
+	}
+	// Sorted by (tick, uid) is already a valid min-heap.
+	st.current, st.hasCurrent = ecs.Entity{}, false
+	if saved.Current != 0 {
+		e, ok := w.ByUID(saved.Current)
+		if !ok {
+			return fmt.Errorf("timeline: saved current body %d does not exist", saved.Current)
+		}
+		st.current, st.hasCurrent = e, true
+	}
+	st.pending, st.changes = saved.Pending, saved.Changes
+	return nil
+}

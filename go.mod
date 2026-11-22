@@ -10,6 +10,7 @@ require (
 	github.com/gravitton/geometry v1.20.0
 	github.com/gravitton/hexagon v1.9.0
 	github.com/mlange-42/ark v0.8.3
+	github.com/mlange-42/ark-serde v0.3.2
 	pgregory.net/rapid v1.3.0
 )
 
@@ -81,6 +82,7 @@ require (
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/go-task/task/v3 v3.54.0 // indirect
 	github.com/go-task/template v0.2.0 // indirect
+	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/google/s2a-go v0.1.10 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.22 // indirect

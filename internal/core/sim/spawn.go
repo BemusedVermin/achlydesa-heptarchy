@@ -151,3 +151,19 @@ func spawnPartyMembers(w *World, e ecs.Entity, t content.Template) error {
 	}
 	return nil
 }
+
+// ReindexUIDs rebuilds the UID index from the Identity components. Loading a save restores entities
+// without spawning them, so it calls this afterwards. It errors on a duplicate UID.
+func (w *World) ReindexUIDs() error {
+	w.byUID = map[api.UID]ecs.Entity{}
+	query := ecs.NewFilter1[comp.Identity](w.ECS).Query()
+	for query.Next() {
+		e, identity := query.Entity(), query.Get()
+		if _, dup := w.byUID[identity.UID]; dup {
+			query.Close()
+			return fmt.Errorf("sim: duplicate UID %d", identity.UID)
+		}
+		w.byUID[identity.UID] = e
+	}
+	return nil
+}

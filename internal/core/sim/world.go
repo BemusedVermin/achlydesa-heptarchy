@@ -7,6 +7,7 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 )
@@ -48,6 +49,7 @@ func NewWorld(seed uint64) *World {
 		Maps:     hexmap.NewMaps(),
 	}
 	w.nextUID.Store(1)
+	comp.Register(w.ECS)
 	w.maps = newMappers(w.ECS)
 	w.byUID = map[api.UID]ecs.Entity{}
 	w.registerCoreSpawners()
