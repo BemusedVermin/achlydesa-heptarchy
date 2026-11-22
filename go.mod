@@ -11,6 +11,7 @@ require (
 	github.com/gravitton/hexagon v1.9.0
 	github.com/mlange-42/ark v0.8.3
 	github.com/mlange-42/ark-serde v0.3.2
+	github.com/spf13/cobra v1.10.2
 	pgregory.net/rapid v1.3.0
 )
 
@@ -115,7 +116,6 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/sajari/fuzzy v1.0.0 // indirect
-	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect

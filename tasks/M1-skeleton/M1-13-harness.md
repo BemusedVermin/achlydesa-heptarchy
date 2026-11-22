@@ -1,7 +1,7 @@
 ---
 id: M1-13
 title: "harness: seeded runs and replays"
-status: todo
+status: done
 milestone: M1
 kind: feature
 depends_on: [M1-12]
@@ -46,14 +46,27 @@ type Policy interface {
 
 ## Acceptance criteria
 
-- [ ] `harness run --seeds 3 --steps 200` writes 600 rows.
-- [ ] Two runs with the same arguments produce byte-identical CSV (test calls `internal/harness` directly).
-- [ ] `harness replay` of a log written with `Codec.WriteLog` from a test game prints that game's `Hash`.
-- [ ] `--expect` with a wrong hash exits 1.
-- [ ] `go tool task check` passes.
+- [x] `harness run --seeds 3 --steps 200` writes 600 rows.
+- [x] Two runs with the same arguments produce byte-identical CSV (test calls `internal/harness` directly).
+- [x] `harness replay` of a log written with `Codec.WriteLog` from a test game prints that game's `Hash`.
+- [x] `--expect` with a wrong hash exits 1.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Days-long runs and metrics beyond the columns above (M7).
 
 ## Notes
+
+**Assumptions and deviations**
+
+- **Accessor.** The spec's "small test-support accessor on `game`" is `Game.PositionOf(uid) (comp.Pos, bool)` in `internal/core/game/inspect.go`. The leader is the first member in the view's party, and the CSV leaves the position columns empty if there is no party.
+- **`map` column** is the numeric map ID, since `api.MapID` is a number.
+- **A run stops early** for a seed if the view has no enabled options; later seeds still run.
+- **`harness replay` takes the log's seed** from `--seed` (default 1), since the log holds commands only. It builds a fresh game first to get a codec that knows every command kind.
+- **`--expect`** returns an error from cobra, so `main` exits 1. `cmd/harness/main_test.go` covers a match and a mismatch.
+- **No new dependency.** cobra was already in go.mod; `go mod tidy` moves it from indirect to direct.
+
+**Files touched outside the Deliverables:** `internal/core/game/inspect.go`, `internal/harness/doc.go`, `cmd/harness/main_test.go`, `go.mod`.
+
+**Follow-ups filed:** none.
