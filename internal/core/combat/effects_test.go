@@ -444,3 +444,45 @@ func TestSpawnFromPart(t *testing.T) {
 		t.Errorf("channels = %d, want the body and the maw", got)
 	}
 }
+
+func TestRaiseMaxIntegrityKeepsIntegrity(t *testing.T) {
+	r := newRig(t)
+	target := anatomy.Members(r.w, r.party)[1]
+	arms := r.partsOf(target, "arm")
+	parts := ecs.NewMap[comp.Part](r.w.ECS)
+	before := *parts.Get(arms[0])
+	r.apply(t, r.ctx(target), do("raise_max_integrity", "parts", "target:arm", "amount", "3"))
+	for _, arm := range arms {
+		if got := parts.Get(arm).MaxIntegrity; got != before.MaxIntegrity+3 {
+			t.Errorf("max integrity = %d, want %d", got, before.MaxIntegrity+3)
+		}
+		if got := parts.Get(arm).Integrity; got != before.Integrity {
+			t.Errorf("integrity = %d, want %d (unchanged)", got, before.Integrity)
+		}
+	}
+}
+
+func TestCombatEventsNameTheirSource(t *testing.T) {
+	r := newRig(t)
+	target := anatomy.Members(r.w, r.party)[1]
+	reaper := r.w.UIDOf(r.reaper)
+	events := r.apply(t, r.ctx(target),
+		do("damage", "parts", "target:arm", "amount", "1"),
+		do("add_status", "bodies", "target", "status", "status.braced", "ticks", "3"),
+		do("sever", "parts", "target:arm"),
+	)
+	seen := 0
+	for _, e := range events {
+		subjected, ok := e.(api.Subjected)
+		if !ok {
+			continue
+		}
+		seen++
+		if got := subjected.Subjects()[api.SubjectSource]; got != reaper {
+			t.Errorf("%s source = %d, want the reaper %d", e.EventKind(), got, reaper)
+		}
+	}
+	if seen == 0 {
+		t.Fatal("no combat events carried subjects")
+	}
+}

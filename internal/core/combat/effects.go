@@ -66,6 +66,7 @@ func primitives() []effects.Primitive {
 			Kinds:  map[string]effects.Kind{"from": effects.KindText, "item": effects.KindText},
 			Verify: verifyAttach, VerifyContent: verifyAttachContent, Apply: applyAttach, Check: checkAttach,
 		},
+		{Name: "raise_max_integrity", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyRaiseMaxIntegrity},
 		{
 			Name: "reveal", Params: []string{"claim"}, Optional: []string{"source"},
 			Kinds:  map[string]effects.Kind{"claim": effects.KindText, "source": effects.KindText},
@@ -94,7 +95,7 @@ func bodyOf(w *sim.World, part ecs.Entity) ecs.Entity {
 
 // sever takes an attached part off its body: its pending actions are canceled, it keeps its
 // integrity and stays where the body stands, and the body is rescheduled for its lost channel.
-func sever(w *sim.World, part ecs.Entity, cause string) {
+func sever(w *sim.World, source, part ecs.Entity, cause string) {
 	body := bodyOf(w, part)
 	if body.IsZero() {
 		return
@@ -112,7 +113,9 @@ func sever(w *sim.World, part ecs.Entity, cause string) {
 			positions.Add(part, &at)
 		}
 	}
-	w.Bus.Publish(api.PartSevered{Body: w.UIDOf(body), Part: w.UIDOf(part), Cause: cause, Tick: w.Now})
+	w.Bus.Publish(
+		api.PartSevered{Body: w.UIDOf(body), Part: w.UIDOf(part), Cause: cause, Source: w.UIDOf(source), Tick: w.Now},
+	)
 	timeline.Reschedule(w, body)
 }
 
@@ -143,10 +146,33 @@ func applyDamage(ctx *effects.Context, p effects.Params) error {
 		part.Integrity -= lost
 		w.Bus.Publish(api.PartDamaged{
 			Body: w.UIDOf(body), Part: w.UIDOf(c.Entity), Amount: lost, Integrity: part.Integrity,
-			Type: api.ContentID(ctx.Choices["type"]), Tick: w.Now,
+			Type: api.ContentID(ctx.Choices["type"]), Source: w.UIDOf(ctx.Source), Tick: w.Now,
 		})
 		if part.Integrity == 0 {
-			sever(w, c.Entity, api.SeveredWorn)
+			sever(w, ctx.Source, c.Entity, api.SeveredWorn)
+		}
+	}
+	return nil
+}
+
+// applyRaiseMaxIntegrity raises the ceiling of each part's integrity. Integrity itself stays as it
+// is, so the part is sturdier but not healed.
+func applyRaiseMaxIntegrity(ctx *effects.Context, p effects.Params) error {
+	channels, err := p.Channels("parts")
+	if err != nil {
+		return err
+	}
+	amount, err := p.Int("amount")
+	if err != nil {
+		return err
+	}
+	if amount < 0 {
+		return fmt.Errorf("amount must not be negative, got %d", amount)
+	}
+	parts := ecs.NewMap[comp.Part](ctx.World.ECS)
+	for _, c := range channels {
+		if ctx.World.ECS.Alive(c.Entity) && parts.Has(c.Entity) {
+			parts.Get(c.Entity).MaxIntegrity += amount
 		}
 	}
 	return nil
@@ -169,7 +195,7 @@ func applySever(ctx *effects.Context, p effects.Params) error {
 	parts := ecs.NewMap[comp.Part](ctx.World.ECS)
 	for _, c := range channels {
 		if parts.Has(c.Entity) {
-			sever(ctx.World, c.Entity, api.SeveredCut)
+			sever(ctx.World, ctx.Source, c.Entity, api.SeveredCut)
 		}
 	}
 	return nil
@@ -212,7 +238,15 @@ func applyAddStatus(ctx *effects.Context, p effects.Params) error {
 		} else {
 			active.Active = slices.Insert(active.Active, at, entry)
 		}
-		w.Bus.Publish(api.StatusAdded{Body: w.UIDOf(body), Status: entry.Status, Until: entry.Until, Tick: w.Now})
+		w.Bus.Publish(
+			api.StatusAdded{
+				Body:   w.UIDOf(body),
+				Status: entry.Status,
+				Until:  entry.Until,
+				Source: w.UIDOf(ctx.Source),
+				Tick:   w.Now,
+			},
+		)
 	}
 	return nil
 }
@@ -339,7 +373,15 @@ func applyAttach(ctx *effects.Context, p effects.Params) error {
 	if grafts := ecs.NewMap[comp.Graft](w.ECS); !grafts.Has(part) {
 		grafts.Add(part, &comp.Graft{})
 	}
-	w.Bus.Publish(api.PartAttached{Body: w.UIDOf(body), Part: w.UIDOf(part), From: from, Tick: w.Now})
+	w.Bus.Publish(
+		api.PartAttached{
+			Body:   w.UIDOf(body),
+			Part:   w.UIDOf(part),
+			From:   from,
+			Source: w.UIDOf(ctx.Source),
+			Tick:   w.Now,
+		},
+	)
 	timeline.Reschedule(w, body)
 	return nil
 }

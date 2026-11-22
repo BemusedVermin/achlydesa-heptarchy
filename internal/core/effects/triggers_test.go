@@ -18,8 +18,8 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// triggerRig is a game with two crawlers, a and b, and two test primitives: note, which records
-// its text and the body it was aimed at, and raise_max_integrity.
+// triggerRig is a game with two crawlers, a and b, and a test primitive, note, which records
+// its text and the body it was aimed at.
 type triggerRig struct {
 	w     *sim.World
 	a, b  ecs.Entity
@@ -69,15 +69,7 @@ func newTriggerRig(t *testing.T, mutate func(*content.Bundle)) (*triggerRig, err
 					return err
 				},
 			}
-			raise := effects.Primitive{
-				Name: "raise_max_integrity", Params: []string{"amount"},
-				Apply: func(ctx *effects.Context, p effects.Params) error {
-					amount, err := p.Int("amount")
-					ecs.NewMap[comp.Part](w.ECS).Get(ctx.TargetPart).MaxIntegrity += amount
-					return err
-				},
-			}
-			return errorsFirst(effects.Register(w, note), effects.Register(w, raise))
+			return effects.Register(w, note)
 		},
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
 			if _, err := w.Spawn("template.party.main", nil); err != nil { // someone to play the first decision
@@ -92,15 +84,6 @@ func newTriggerRig(t *testing.T, mutate func(*content.Bundle)) (*triggerRig, err
 		},
 	})
 	return r, err
-}
-
-func errorsFirst(errs ...error) error {
-	for _, err := range errs {
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func mustTriggerRig(t *testing.T, mutate func(*content.Bundle)) *triggerRig {
@@ -170,7 +153,7 @@ func TestMaterialTriggerHardensClayWhenBurned(t *testing.T) {
 		clay := b.Materials["material.clay"]
 		clay.Triggers = []content.Trigger{trigger(
 			"combat.part_damaged", content.RolePart, `type == "type.burn"`,
-			ref("raise_max_integrity", "amount", "2"),
+			ref("raise_max_integrity", "parts", "target_part", "amount", "2"),
 		)}
 		b.Materials["material.clay"] = clay
 	}
@@ -398,5 +381,24 @@ func TestContentRejectsBadTriggerShapes(t *testing.T) {
 				t.Errorf("content.New gave %v, want %q", err, tt.want)
 			}
 		})
+	}
+}
+
+func TestSourceRoleTriggerFiresForTheActingBody(t *testing.T) {
+	r := mustTriggerRig(t, func(b *content.Bundle) {
+		tmpl := b.Templates["template.test.crawler"]
+		tmpl.Triggers = []content.Trigger{
+			trigger("combat.part_severed", content.RoleSource, "", ref("note", "text", "acted")),
+		}
+		b.Templates["template.test.crawler"] = tmpl
+	})
+	// a acts on b: only a, the source, hears of it.
+	ctx := &effects.Context{World: r.w, Source: r.a, Target: r.b, TargetPart: r.part(r.b, "head")}
+	if err := r.apply(t, ctx, ref("sever", "parts", "target_part")); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{fmt.Sprintf("acted:%d", r.w.UIDOf(r.b))}
+	if !slices.Equal(r.notes, want) {
+		t.Errorf("notes = %v, want %v", r.notes, want)
 	}
 }

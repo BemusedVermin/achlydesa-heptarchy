@@ -28,7 +28,9 @@ type PartDamaged struct {
 	Integrity int `json:"integrity"` // what it has left
 	// Type is the damage type the action chose, or empty when it chose none.
 	Type ContentID `json:"type,omitempty"`
-	Tick int64     `json:"tick"`
+	// Source is the body that acted, or zero when nothing did.
+	Source UID   `json:"source,omitempty"`
+	Tick   int64 `json:"tick"`
 }
 
 // EventKind implements [Event].
@@ -39,7 +41,9 @@ type PartSevered struct {
 	Body  UID    `json:"body"`
 	Part  UID    `json:"part"`
 	Cause string `json:"cause"` // SeveredWorn or SeveredCut
-	Tick  int64  `json:"tick"`
+	// Source is the body that acted, or zero when nothing did.
+	Source UID   `json:"source,omitempty"`
+	Tick   int64 `json:"tick"`
 }
 
 // EventKind implements [Event].
@@ -50,7 +54,9 @@ type PartAttached struct {
 	Body UID    `json:"body"`
 	Part UID    `json:"part"`
 	From string `json:"from"` // AttachedFromPack or AttachedFromSevered
-	Tick int64  `json:"tick"`
+	// Source is the body that acted, or zero when nothing did.
+	Source UID   `json:"source,omitempty"`
+	Tick   int64 `json:"tick"`
 }
 
 // EventKind implements [Event].
@@ -61,23 +67,27 @@ type StatusAdded struct {
 	Body   UID       `json:"body"`
 	Status ContentID `json:"status"`
 	Until  int64     `json:"until"` // the tick it expires
-	Tick   int64     `json:"tick"`
+	// Source is the body that acted, or zero when nothing did.
+	Source UID   `json:"source,omitempty"`
+	Tick   int64 `json:"tick"`
 }
 
 // EventKind implements [Event].
 func (StatusAdded) EventKind() string { return StatusAddedKind }
 
-// Subjects implements [Subjected]: the body is the target.
-func (e PartDamaged) Subjects() map[string]UID { return partSubjects(e.Body, e.Part) }
+// Subjects implements [Subjected]: the body is the target, and the actor the source.
+func (e PartDamaged) Subjects() map[string]UID { return partSubjects(e.Body, e.Part, e.Source) }
 
-// Subjects implements [Subjected]: the body is the target.
-func (e PartSevered) Subjects() map[string]UID { return partSubjects(e.Body, e.Part) }
+// Subjects implements [Subjected]: the body is the target, and the actor the source.
+func (e PartSevered) Subjects() map[string]UID { return partSubjects(e.Body, e.Part, e.Source) }
 
-// Subjects implements [Subjected]: the body is the target.
-func (e PartAttached) Subjects() map[string]UID { return partSubjects(e.Body, e.Part) }
+// Subjects implements [Subjected]: the body is the target, and the actor the source.
+func (e PartAttached) Subjects() map[string]UID { return partSubjects(e.Body, e.Part, e.Source) }
 
-// Subjects implements [Subjected]: the body is the target.
-func (e StatusAdded) Subjects() map[string]UID { return map[string]UID{SubjectTarget: e.Body} }
+// Subjects implements [Subjected]: the body is the target, and the actor the source.
+func (e StatusAdded) Subjects() map[string]UID {
+	return withSource(map[string]UID{SubjectTarget: e.Body}, e.Source)
+}
 
 // Choices implements [Chosen]: the damage type, when there is one.
 func (e PartDamaged) Choices() map[string]string {
@@ -87,6 +97,14 @@ func (e PartDamaged) Choices() map[string]string {
 	return map[string]string{"type": string(e.Type)}
 }
 
-func partSubjects(body, part UID) map[string]UID {
-	return map[string]UID{SubjectTarget: body, SubjectPart: part}
+func partSubjects(body, part, source UID) map[string]UID {
+	return withSource(map[string]UID{SubjectTarget: body, SubjectPart: part}, source)
+}
+
+// withSource adds the acting body to the subjects when there was one.
+func withSource(subjects map[string]UID, source UID) map[string]UID {
+	if source != 0 {
+		subjects[SubjectSource] = source
+	}
+	return subjects
 }
