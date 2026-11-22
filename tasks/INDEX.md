@@ -2,7 +2,7 @@
 
 The tracker. Each task file's front matter is the source of truth; update this table in the same change. Workflow: [README.md](README.md). Agent rules: [../AGENTS.md](../AGENTS.md).
 
-Status values: `proposed`, `todo`, `in-progress`, `blocked`, `done`. Rows are in dependency order.
+Status values: `proposed`, `todo`, `in-progress`, `blocked`, `done`, `obsolete`. Rows are in dependency order.
 
 ## M1 · Skeleton
 
@@ -28,7 +28,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-10](M1-skeleton/M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | done | feature | L | M1-09, M1-14, M1-20 |
 | [M1-16](M1-skeleton/M1-16-lead-follow.md) | Lead and follow, and switching control | done | feature | M | M1-10 |
 | [M1-11](M1-skeleton/M1-11-tui.md) | Terminal frontend on the new API, with a CLI | todo | feature | M | M1-16 |
-| [M1-12](M1-skeleton/M1-12-save.md) | save: versioned snapshots and migrations | todo | seam | M | M1-16 |
+| [M1-12](M1-skeleton/M1-12-save.md) | save: versioned snapshots and migrations | done | seam | M | M1-16 |
 | [M1-13](M1-skeleton/M1-13-harness.md) | harness: seeded runs and replays | todo | feature | S | M1-12 |
 
 ## M2 · Combat
@@ -68,7 +68,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | proposed | seam | M1 | M1-15 |
+| [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | obsolete | seam | M1 | M1-15 |
 | [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | M1 | M1-14 |
 | [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | proposed | seam | M1 | M1-17 |
 | [M1-18.F1](followups/M1-18.F1-pending-save-roundtrip.md) | Round-trip pending actions through a real save | proposed | test | M1 | M1-18 |
@@ -80,3 +80,4 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-10.F3](followups/M1-10.F3-sight-vs-prototype.md) | Sight differs from the prototype at pillar edges | proposed | debt | M1 | M1-10 |
 | [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | M1 | M1-16 |
 | [M1-16.F2](followups/M1-16.F2-party-view-control.md) | Show the party's control mode and alert in the view | proposed | feature | M1 | M1-16 |
+| [M1-12.F1](followups/M1-12.F1-load-with-spawning-extra.md) | Let Load run a Config.Extra that spawns | proposed | debt | M1 | M1-12 |

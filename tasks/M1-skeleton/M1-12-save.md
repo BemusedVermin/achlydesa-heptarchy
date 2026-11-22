@@ -1,7 +1,7 @@
 ---
 id: M1-12
 title: "save: versioned snapshots and migrations"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-16]
@@ -81,13 +81,13 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error)
 
 ## Acceptance criteria
 
-- [ ] Save at tick 0 then load: identical hash.
-- [ ] A map edit made in a test survives save and load.
-- [ ] A `rapid` property: apply N random commands, save, load, apply M more to both the loaded and the original game; the hashes match.
-- [ ] A save whose version is newer than `CurrentVersion` fails with a clear error; a fake version-0-to-1 migration in a test runs when loading a version-0 document.
-- [ ] Changing content and loading an old save returns a content-hash warning and still loads.
-- [ ] The replay tests from M1-09 and M1-10 still pass with the new `Hash`.
-- [ ] `go tool task check` passes.
+- [x] Save at tick 0 then load: identical hash.
+- [x] A map edit made in a test survives save and load.
+- [x] A `rapid` property: apply N random commands, save, load, apply M more to both the loaded and the original game; the hashes match.
+- [x] A save whose version is newer than `CurrentVersion` fails with a clear error; a fake version-0-to-1 migration in a test runs when loading a version-0 document.
+- [x] Changing content and loading an old save returns a content-hash warning and still loads.
+- [x] The replay tests from M1-09 and M1-10 still pass with the new `Hash`.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -95,3 +95,18 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error)
 - Compression.
 
 ## Notes
+
+**Assumptions and deviations**
+
+- **Resources are not saved.** Ark resources hold hooks, compiled programs and caches that `Install` rebuilds, and some hold funcs, so ark-serde runs with `SkipAllResources`. The one resource with real state, the turn queue, is exported by `timeline.Export` and `timeline.Import` (new `internal/core/timeline/save.go`) as UIDs in a `timeline` section of the file. This supersedes the `Rebuild` that M1-15.F1 proposed: it restores the queue, the current body and the pending flag exactly, where rebuilding from components could not tell a body that is deciding from one that is queued.
+- **Byte-stable output.** ark-serde writes component types and each entity's components in Go map order, and lists entities in archetype order, which differs between a played world and a loaded one. `game.canonical` sorts the type names, sorts entities by ECS ID with their components, and has `encoding/json` sort all object keys. Numbers pass through as `json.Number`. The property test checks the result against a loaded world.
+- **Registration.** ark-serde needs every component type registered before it reads them, and `explore` registered some lazily. `comp.Register` now registers them all, in a fixed order, from `sim.NewWorld`.
+- **Snapshot shape.** `MapEdits` holds `save.MapEdit` (cell and terrain content ID) rather than `hexmap.Edit`, so the file names terrain by ID as in the spec's example and resolves it from content on load. The snapshot also carries `timeline` and `log` (the message log the view shows), neither of which the spec's example listed.
+- **Migrations are a map**, `migrations[n]` upgrading version n to n+1, so a version 0 document can be migrated in a test (`save.ReadWith`, in `export_test.go`). The slice in the spec could not express version 0.
+- **Warnings.** `save.Read` returns `(Snapshot, error)`; it cannot know the loading content. `Header.CheckContent` makes the content-hash warning and `game.Load` returns it.
+- **`Config.Extra` and `Load`.** `Load` runs `Extra` but the ECS must be empty when the save is restored, so an `Extra` that spawns entities makes `Load` fail with an error that says so. Filed as M1-12.F1.
+- **Generated maps** (M5) are not saved yet; only maps built from content are. The question the spec asks for is left to M5's breakdown.
+
+**Files touched outside the Deliverables:** `internal/core/save/doc.go`, `export_test.go`, `internal/core/game/save.go` (the Save and Load code, apart from `game.go`), `internal/core/timeline/save.go`, `internal/core/explore/explore.go` (`LoadMaps`, split out of `Start`), `internal/core/sim/spawn.go` (`ReindexUIDs`), `internal/core/sim/world.go` and `internal/core/comp/comp.go` (`Register`), `go.sum`. `go.mod` also gains `goccy/go-json` as an indirect dependency of ark-serde.
+
+**Follow-ups filed:** M1-12.F1.

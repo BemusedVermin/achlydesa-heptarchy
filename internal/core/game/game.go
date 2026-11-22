@@ -1,8 +1,8 @@
 package game
 
 import (
+	"bytes"
 	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -39,6 +39,31 @@ type Game struct {
 // New builds a game from cfg, installs every package, and plays the timeline forward to the first
 // player decision.
 func New(cfg Config) (*Game, error) {
+	g, err := build(cfg, func(w *sim.World) error {
+		if err := explore.Start(w); err != nil {
+			return fmt.Errorf("game: start: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if _, err := g.world.Bus.Drain(g.world); err != nil {
+		return nil, fmt.Errorf("game: setup events: %w", err)
+	}
+	if _, err := timeline.Run(g.world, g.clock); err != nil {
+		return nil, fmt.Errorf("game: first decision: %w", err)
+	}
+	if _, err := g.world.Bus.Drain(g.world); err != nil {
+		return nil, fmt.Errorf("game: setup events: %w", err)
+	}
+	g.events = nil
+	return g, nil
+}
+
+// build is the path New and Load share: an empty world with every package installed, the content
+// checked and the scheduler frozen. scenario fills the world with its first entities and maps.
+func build(cfg Config, scenario func(w *sim.World) error) (*Game, error) {
 	if cfg.Content == nil {
 		return nil, errors.New("game: no content")
 	}
@@ -50,8 +75,8 @@ func New(cfg Config) (*Game, error) {
 	if err := installAll(g.world, g.clock); err != nil {
 		return nil, fmt.Errorf("game: install: %w", err)
 	}
-	if err := explore.Start(g.world); err != nil {
-		return nil, fmt.Errorf("game: start: %w", err)
+	if err := scenario(g.world); err != nil {
+		return nil, err
 	}
 	if cfg.Extra != nil {
 		if err := cfg.Extra(g.world, g.clock); err != nil {
@@ -67,16 +92,6 @@ func New(cfg Config) (*Game, error) {
 	if err := g.world.Systems.Freeze(); err != nil {
 		return nil, fmt.Errorf("game: %w", err)
 	}
-	if _, err := g.world.Bus.Drain(g.world); err != nil {
-		return nil, fmt.Errorf("game: setup events: %w", err)
-	}
-	if _, err := timeline.Run(g.world, g.clock); err != nil {
-		return nil, fmt.Errorf("game: first decision: %w", err)
-	}
-	if _, err := g.world.Bus.Drain(g.world); err != nil {
-		return nil, fmt.Errorf("game: setup events: %w", err)
-	}
-	g.events = nil
 	return g, nil
 }
 
@@ -129,17 +144,13 @@ func (g *Game) View() (api.View, error) {
 	return g.world.Views.Build(g.world)
 }
 
-// Hash is the SHA-256 of the view as JSON. M1-12 replaces its input with the save bytes.
+// Hash is the SHA-256 of the saved bytes, so it covers everything a save keeps.
 func (g *Game) Hash() ([32]byte, error) {
-	view, err := g.View()
-	if err != nil {
+	var buf bytes.Buffer
+	if err := g.Save(&buf); err != nil {
 		return [32]byte{}, err
 	}
-	data, err := json.Marshal(view)
-	if err != nil {
-		return [32]byte{}, fmt.Errorf("game: hash: %w", err)
-	}
-	return sha256.Sum256(data), nil
+	return sha256.Sum256(buf.Bytes()), nil
 }
 
 // History returns every command applied so far, in order.

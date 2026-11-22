@@ -96,3 +96,21 @@ type Controlled struct{}
 type Seen struct {
 	ByMap map[api.MapID][]api.Cell `json:"by_map"`
 }
+
+// Register registers every component type of this package with the world, in a fixed order. A world
+// restored from a save needs each type registered before it can read the components, and a fixed
+// order keeps component IDs the same in every world.
+func Register(world *ecs.World) {
+	ecs.ComponentID[Pos](world)
+	ecs.ComponentID[Identity](world)
+	ecs.ComponentID[Appearance](world)
+	ecs.ComponentID[Party](world)
+	ecs.ComponentID[Trail](world)
+	ecs.ComponentID[MemberOf](world)
+	ecs.ComponentID[Busy](world)
+	ecs.ComponentID[Actor](world)
+	ecs.ComponentID[Pending](world)
+	ecs.ComponentID[Landing](world)
+	ecs.ComponentID[Controlled](world)
+	ecs.ComponentID[Seen](world)
+}
