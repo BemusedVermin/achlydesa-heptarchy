@@ -43,7 +43,7 @@ func newRig(t testing.TB, seed uint64, bundle content.Bundle) *rig {
 		t.Fatal(err)
 	}
 	r := &rig{}
-	r.cfg = game.Config{Seed: seed, Content: reg, Extra: func(w *sim.World, _ *clock.Clock) error {
+	r.cfg = game.Config{Seed: seed, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
 		r.w = w
 		return nil
 	}}
@@ -61,7 +61,7 @@ func reload(t testing.TB, cfg game.Config, g *game.Game) (*rig, []string) {
 		t.Fatal(err)
 	}
 	r := &rig{}
-	cfg.Extra = func(w *sim.World, _ *clock.Clock) error {
+	cfg.Install = func(w *sim.World, _ *clock.Clock) error {
 		r.w = w
 		return nil
 	}
@@ -114,6 +114,33 @@ func TestSaveThenLoadAtTickZeroHasTheSameHash(t *testing.T) {
 	}
 	if loaded.g.Current() != r.g.Current() || loaded.g.Current() == 0 {
 		t.Errorf("current = %d, want %d", loaded.g.Current(), r.g.Current())
+	}
+}
+
+func TestSaveThenLoadWithASpawnedActorHasTheSameHash(t *testing.T) {
+	bundle := newBundle(t)
+	bundle.Start = content.Start{} // the fixture spawns its own actor
+	reg, err := content.New(bundle)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := game.Config{Seed: 1, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
+		_, err := w.Spawn("template.person.reaper", nil)
+		return err
+	}}
+	g, err := game.New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	loaded, warnings := reload(t, cfg, g)
+	if len(warnings) != 0 {
+		t.Errorf("warnings = %v, want none", warnings)
+	}
+	if hash(t, loaded.g) != hash(t, g) {
+		t.Error("hash changed across save and load")
+	}
+	if loaded.g.Current() != g.Current() || g.Current() == 0 {
+		t.Errorf("current = %d, want %d", loaded.g.Current(), g.Current())
 	}
 }
 
