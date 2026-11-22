@@ -60,6 +60,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 		t.Fatal(err)
 	}
 	bundle.Start = content.Start{}
+	pinNumbers(&bundle)
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Kind: "piece", Part: &armPart}
 	bundle.Text["text.item.test_arm"] = "spare arm"
@@ -70,7 +71,8 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	bundle.Templates["template.test.ally"] = person("idle", "faction.party", allForms)
 	bundle.Templates["template.test.victim"] = person("idle", "faction.deep", allForms)
 	crawler := person("idle", "faction.deep", allForms)
-	crawler.Body, crawler.Combatant.Graftable = ptr(api.ContentID("body.crawler")), false
+	crawler.Body = ptr(api.ContentID("body.crawler"))
+	crawler.Combatant.Graftable, crawler.Combatant.Crawls = false, true
 	bundle.Templates["template.test.crawler"] = crawler
 	relic := person("idle", "faction.deep", nil)
 	relic.Body = ptr(api.ContentID("body.test.old"))
@@ -286,7 +288,7 @@ func TestSweepTakesTwoArmsAndWearsEveryPartAndRevealsMaterials(t *testing.T) {
 	}
 	for _, part := range parts {
 		fact, ok := knowledge.Best(r.w, r.fighter, r.w.UIDOf(part), "claim.material")
-		if !ok || fact.Value != "material.flesh" {
+		if !ok || fact.Value != string(ecs.NewMap[comp.Part](r.w.ECS).Get(part).Material) {
 			t.Errorf("fact about a part = %+v, %v; want its material", fact, ok)
 		}
 	}
@@ -311,8 +313,8 @@ func TestSweepIsNotOfferedWithOnlyOneArmFree(t *testing.T) {
 func TestSoakStrikeSeversClayAndSpendsLakeWater(t *testing.T) {
 	r := newRing(t, map[string]int{"fighter": 0, "crawler": 1})
 	core := r.part(r.crawler, "torso")
-	if _, ok := r.option("strike", "type.soak"); ok {
-		t.Fatal("Soak is offered with no lake water in the pack")
+	if option, ok := r.option("strike", "type.soak", r.uid(r.crawler), r.uid(core)); !ok || option.Enabled {
+		t.Fatalf("Soak with no lake water = %+v, %v; want it listed but disabled", option, ok)
 	}
 	intent := actions.Intent{
 		Actor: r.fighter, Action: "action.strike", Target: r.crawler, TargetPart: core,
@@ -467,8 +469,8 @@ func TestPinLocksThePart(t *testing.T) {
 	}
 }
 
-func TestStandBracesFreezesOthersAndReadiesTheBody(t *testing.T) {
-	r := newRing(t, map[string]int{"fighter": 0, "victim": 1})
+func TestStandBracesFreezesCrawlersAndReadiesTheBody(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "crawler": -1})
 	arm := timeline.Channel{Entity: r.part(r.fighter, "arm"), Body: r.fighter}
 	if err := timeline.Occupy(r.w, arm, 30); err != nil {
 		t.Fatal(err)
@@ -477,8 +479,11 @@ func TestStandBracesFreezesOthersAndReadiesTheBody(t *testing.T) {
 	if !timeline.Free(r.w, arm) {
 		t.Error("Stand did not ready the arm")
 	}
-	if got := r.busyChannels(r.victim); got == 0 {
-		t.Error("Stand did not delay anyone in sight")
+	if got := r.busyChannels(r.crawler); got == 0 {
+		t.Error("Stand did not delay the crawler in sight")
+	}
+	if got := r.busyChannels(r.victim); got != 0 {
+		t.Errorf("Stand delayed %d channels of a body that does not crawl", got)
 	}
 	held := ecs.NewMap[comp.Statuses](r.w.ECS)
 	if !held.Has(r.fighter) || held.Get(r.fighter).Active[0].Status != "status.standing" {
@@ -548,5 +553,56 @@ func TestInASoopOnlyTheFrontMemberReaches(t *testing.T) {
 	reach := actions.Startable(r.w, r.ally)
 	if !slices.ContainsFunc(reach, func(in actions.Intent) bool { return in.Target == r.victim }) {
 		t.Error("the front member has no attack against the creature")
+	}
+}
+
+func TestTypesTheNeededItemIsMissingForAreListedDisabledWithTheReason(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "crawler": 1})
+	core := r.part(r.crawler, "torso")
+	soak, ok := r.option("strike", "type.soak", r.uid(r.crawler), r.uid(core))
+	if !ok || soak.Enabled {
+		t.Fatalf("Soak with no lake water = %+v, %v; want it listed but disabled", soak, ok)
+	}
+	name := r.w.Content.Render(api.Text{ID: "text.item.lake_water"})
+	want := r.w.Content.Render(api.Text{ID: "text.combat.pack_short", Args: map[string]string{"item": name}})
+	if want == "" || soak.Reason != want {
+		t.Errorf("reason = %q, want %q", soak.Reason, want)
+	}
+	r.give("item.lake_water", 1, ecs.Entity{})
+	if soak, _ = r.option("strike", "type.soak", r.uid(r.crawler), r.uid(core)); !soak.Enabled {
+		t.Errorf("Soak with lake water in the pack is still disabled: %+v", soak)
+	}
+}
+
+func TestSweepHurtsEachPartByItsOwnWeakness(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "crawler": 1})
+	r.give("item.lake_water", 1, ecs.Entity{})
+	parts := ecs.NewMap[comp.Part](r.w.ECS)
+	events := r.do("sweep", "type.soak", r.uid(r.crawler))
+	events = append(events, r.wait(4)...)
+	lost := map[api.UID]int{}
+	for _, e := range events {
+		if damaged, ok := e.(api.PartDamaged); ok {
+			lost[damaged.Part] = damaged.Amount
+		}
+	}
+	var weakParts, otherParts int
+	for _, part := range anatomy.Parts(r.w, r.crawler) {
+		material, _ := r.w.Content.Material(parts.Get(part).Material)
+		got := lost[r.w.UIDOf(part)]
+		if slices.Contains(material.WeakTo, "type.soak") {
+			weakParts++
+			if got != 2 {
+				t.Errorf("a part weak to Soak lost %d, want 2", got)
+			}
+		} else {
+			otherParts++
+			if got != 1 {
+				t.Errorf("a part not weak to Soak lost %d, want 1", got)
+			}
+		}
+	}
+	if weakParts == 0 || otherParts == 0 {
+		t.Fatalf("the crawler has %d weak and %d other parts; the test needs both", weakParts, otherParts)
 	}
 }

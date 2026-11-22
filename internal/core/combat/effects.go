@@ -125,21 +125,22 @@ func applyDamage(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
-	amount, err := p.Int("amount")
-	if err != nil {
-		return err
-	}
-	if amount < 0 {
-		return fmt.Errorf("amount must not be negative, got %d", amount)
-	}
-	if amount == 0 {
-		return nil
-	}
 	w := ctx.World
 	parts := ecs.NewMap[comp.Part](w.ECS)
 	for _, c := range channels {
 		body := bodyOf(w, c.Entity)
 		if body.IsZero() || !parts.Has(c.Entity) || parts.Get(c.Entity).Integrity <= 0 {
+			continue
+		}
+		// The amount is worked out for each part, so weak and the other part variables describe it.
+		amount, err := p.IntForPart("amount", c.Entity)
+		if err != nil {
+			return err
+		}
+		if amount < 0 {
+			return fmt.Errorf("amount must not be negative, got %d", amount)
+		}
+		if amount == 0 {
 			continue
 		}
 		part := parts.Get(c.Entity)
@@ -468,6 +469,7 @@ func applySpawnFromPart(ctx *effects.Context, p effects.Params) error {
 	positions.Remove(part)
 	ecs.NewMap[comp.Allegiance](w.ECS).Add(body, &comp.Allegiance{Faction: api.ContentID(faction)})
 	ecs.NewMap[comp.Actor](w.ECS).Add(body, &comp.Actor{Controller: controller})
+	ecs.NewMap[comp.Crawls](w.ECS).Add(body, &comp.Crawls{})
 	ecs.NewMap[comp.PartOf](w.ECS).Add(part, &comp.PartOf{}, body)
 	timeline.Reschedule(w, body)
 	return nil

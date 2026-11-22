@@ -163,5 +163,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	types: [...api.#ContentID] @go(Types,[]api.ContentID)
 }
 
+// Crawls marks a body that crawls: a creature of the soop, or a part that got up and walks. Stand
+// freezes the bodies that carry it.
+#Crawls: {}
+
 // Graftable marks a body that a graft can be fitted onto.
 #Graftable: {}

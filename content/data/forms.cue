@@ -63,11 +63,11 @@ actions: {
 		on_land: [{do: "lock", params: {channels: "target_part", ticks: "8"}}]
 		tags: ["attack"]
 	}
-	// Stand braces the body, freezes everyone in sight and readies the body at once. A body can't stand
+	// Stand braces the body, freezes every crawling body in sight and readies the body at once. A body can't stand
 	// again while still braced, or it could freeze the world for ever. Recovery is 1, not 0: an action
 	// that takes no time is refused (actions.too_quick), and the ready effect frees the channel anyway.
-	// The canon says "anyone who stands freezes everyone who crawls"; until bodies carry a crawls tag,
-	// others:all stands in for them.
+	// The canon: "anyone who stands freezes everyone who crawls". Bodies that crawl carry the crawls
+	// marker (a template's combatant.crawls, or a part that got up).
 	"action.stand": {
 		name: "text.action.stand"
 		key:  "stand"
@@ -78,7 +78,7 @@ actions: {
 		recovery: "1"
 		on_land: [
 			{do: "add_status", params: {bodies: "self", status: "status.standing", ticks: "10"}},
-			{do: "delay", params: {channels: "others:all", ticks: "8"}},
+			{do: "delay", params: {channels: "crawling:all", ticks: "8"}},
 			{do: "ready", params: {channels: "self:all", count: "99"}},
 		]
 		tags: ["stance"]

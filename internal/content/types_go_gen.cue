@@ -163,6 +163,7 @@ import (
 	faction: api.#ContentID @go(Faction)
 	types?: [...api.#ContentID] @go(Types,[]api.ContentID)
 	graftable?: bool @go(Graftable)
+	crawls?:    bool @go(Crawls)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.

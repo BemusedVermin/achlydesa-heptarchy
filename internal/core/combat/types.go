@@ -53,6 +53,9 @@ func spawnCombatant(w *sim.World, e ecs.Entity, t content.Template) error {
 	}
 	ecs.NewMap[comp.Combatant](w.ECS).Add(e, &comp.Combatant{Types: slices.Clone(def.Types)})
 	ecs.NewMap[comp.Allegiance](w.ECS).Add(e, &comp.Allegiance{Faction: def.Faction})
+	if def.Crawls {
+		ecs.NewMap[comp.Crawls](w.ECS).Add(e, &comp.Crawls{})
+	}
 	if def.Graftable {
 		ecs.NewMap[comp.Graftable](w.ECS).Add(e, &comp.Graftable{})
 	}
@@ -69,8 +72,9 @@ func stacksOf(w *sim.World, actor ecs.Entity) []comp.ItemStack {
 	return packs.Get(holder).Stacks
 }
 
-// typeChoices is the "type" choice: the body's innate types, plus each consumable type whose item is
-// in its party's pack, in ID order.
+// typeChoices is the "type" choice: the body's innate types, plus every consumable type, in ID order.
+// A consumable type whose item the pack lacks is still offered: the form's consume effect refuses it
+// with the pack-short reason, so the menu shows it disabled instead of dropping it.
 func typeChoices(w *sim.World, actor ecs.Entity) []string {
 	var offered []string
 	if combatants := ecs.NewMap[comp.Combatant](w.ECS); w.ECS.Alive(actor) && combatants.Has(actor) {
@@ -78,13 +82,8 @@ func typeChoices(w *sim.World, actor ecs.Entity) []string {
 			offered = append(offered, string(id))
 		}
 	}
-	stacks := stacksOf(w, actor)
 	for _, id := range w.Content.TypeIDs() {
-		def, _ := w.Content.Type(id)
-		if def.Innate || def.Consumes == nil {
-			continue
-		}
-		if slices.ContainsFunc(stacks, func(s comp.ItemStack) bool { return s.Item == *def.Consumes && s.Count > 0 }) {
+		if def, _ := w.Content.Type(id); !def.Innate && def.Consumes != nil {
 			offered = append(offered, string(id))
 		}
 	}

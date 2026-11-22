@@ -168,6 +168,10 @@ type Combatant struct {
 	Types []api.ContentID `json:"types"` // innate type IDs
 }
 
+// Crawls marks a body that crawls: a creature of the soop, or a part that got up and walks. Stand
+// freezes the bodies that carry it.
+type Crawls struct{}
+
 // Graftable marks a body that a graft can be fitted onto.
 type Graftable struct{}
 
@@ -200,4 +204,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Allegiance](world)
 	ecs.ComponentID[Combatant](world)
 	ecs.ComponentID[Graftable](world)
+	ecs.ComponentID[Crawls](world)
 }

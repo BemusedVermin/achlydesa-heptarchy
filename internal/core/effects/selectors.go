@@ -19,7 +19,7 @@ const allTag = "all"
 // BodySet is which bodies a selector means.
 type BodySet string
 
-// The body selectors. Allies, enemies, others and everyone all mean "in sight of the source".
+// The body selectors. Allies, enemies, others, everyone and crawling all mean "in sight of the source".
 const (
 	BodiesSelf     BodySet = "self"
 	BodiesTarget   BodySet = "target"
@@ -27,9 +27,18 @@ const (
 	BodiesEnemies  BodySet = "enemies"  // in sight and hostile to the source
 	BodiesOthers   BodySet = "others"   // in sight, not the source
 	BodiesEveryone BodySet = "everyone" // in sight, and the source
+	BodiesCrawling BodySet = "crawling" // in sight, not the source, and carrying comp.Crawls
 )
 
-var bodySets = []BodySet{BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, BodiesOthers, BodiesEveryone}
+var bodySets = []BodySet{
+	BodiesSelf,
+	BodiesTarget,
+	BodiesAllies,
+	BodiesEnemies,
+	BodiesOthers,
+	BodiesEveryone,
+	BodiesCrawling,
+}
 
 // BodySelector is a parsed body selector.
 type BodySelector struct{ Set BodySet }
@@ -102,6 +111,7 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 			return nil, err
 		}
 		hostile := stateOf(w).hostile
+		crawls := ecs.NewMap[comp.Crawls](w.ECS)
 		for _, body := range inSight {
 			isSource := body == ctx.Source
 			switch s.Set {
@@ -109,6 +119,10 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 				out = append(out, body)
 			case BodiesOthers:
 				if !isSource {
+					out = append(out, body)
+				}
+			case BodiesCrawling:
+				if !isSource && crawls.Has(body) {
 					out = append(out, body)
 				}
 			case BodiesAllies:

@@ -156,6 +156,7 @@ type CombatantDef struct {
 	Faction   api.ContentID   `json:"faction"`             // a faction ID
 	Types     []api.ContentID `json:"types,omitempty"`     // innate type IDs the body can load into its forms
 	Graftable bool            `json:"graftable,omitempty"` // whether a graft can be fitted onto it
+	Crawls    bool            `json:"crawls,omitempty"`    // whether it crawls, and so is frozen by a Stand
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.

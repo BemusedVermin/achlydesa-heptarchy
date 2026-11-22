@@ -5,6 +5,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 types: [string]: content.#DamageType
 
 // The eleven types of the design table. Which item a move burns, and when it may be used, is data.
+// The timings and landing effects here are placeholders for M7's tuning; tests set their own numbers.
 types: {
 	"type.cut": {name: "text.type.cut", innate: true}
 	// Press staggers: landing on a body that is winding up cancels its swings.

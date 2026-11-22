@@ -8,26 +8,32 @@ import (
 )
 
 func TestTypeTicksAndSampleForms(t *testing.T) {
-	reg, err := Load(sampleDir)
+	// The sample content's numbers are placeholders, so the test sets the ones it checks.
+	bundle, err := LoadBundle(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	heavy := bundle.Types["type.soak"]
+	heavy.Windup, heavy.Recovery = "1", "2"
+	bundle.Types["type.soak"] = heavy
+	plain := bundle.Types["type.light"]
+	plain.Windup, plain.Recovery = "", ""
+	bundle.Types["type.light"] = plain
+	reg, err := New(bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
 	tests := []struct {
-		id                api.ContentID
-		windup, recovery  int64
-		wantOnLandEffects int
+		id               api.ContentID
+		windup, recovery int64
 	}{
-		{"type.soak", 0, 2, 0},
-		{"type.press", 0, 0, 1},
-		{"type.light", 0, 0, 0},
+		{"type.soak", 1, 2},
+		{"type.light", 0, 0},
 	}
 	for _, tt := range tests {
 		windup, recovery, err := reg.TypeTicks(tt.id, ActionEnv{})
 		if err != nil || windup != tt.windup || recovery != tt.recovery {
 			t.Errorf("%s ticks = %d, %d, %v; want %d, %d", tt.id, windup, recovery, err, tt.windup, tt.recovery)
-		}
-		if def, _ := reg.Type(tt.id); len(def.OnLand) != tt.wantOnLandEffects {
-			t.Errorf("%s has %d landing effects, want %d", tt.id, len(def.OnLand), tt.wantOnLandEffects)
 		}
 	}
 	for _, id := range []api.ContentID{

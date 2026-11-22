@@ -40,6 +40,7 @@ func newRig(t *testing.T) *rig {
 		t.Fatal(err)
 	}
 	bundle.Start = content.Start{}
+	pinNumbers(&bundle)
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Kind: "piece", Part: &armPart}
 	bundle.Statuses["status.braced"] = content.Status{Name: "text.status.braced"}

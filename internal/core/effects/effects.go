@@ -71,6 +71,10 @@ type Params interface {
 	// Has reports whether the reference gave the parameter.
 	Has(name string) bool
 	Int(name string) (int, error)
+	// IntForPart is Int with the given part as the target part, so the part variables (weak, immune,
+	// integrity and the rest) describe it. A formula that reads roll gets the same roll for every part
+	// of one effect, so the RNG stream draws once however many parts there are.
+	IntForPart(name string, part ecs.Entity) (int, error)
 	Float(name string) (float64, error)
 	Bool(name string) (bool, error)
 	String(name string) (string, error)
@@ -305,6 +309,23 @@ type params struct {
 	checking bool
 	// base is the formula environment before roll, worked out the first time a formula runs.
 	base *content.EffectEnv
+	// partRoll is the roll shared by every IntForPart call of this effect, drawn the first time.
+	partRoll *sharedRoll
+	// shared, when set, is where a roll is drawn from instead of the RNG stream.
+	shared *sharedRoll
+}
+
+// sharedRoll is a roll drawn once and reused.
+type sharedRoll struct {
+	drawn bool
+	value float64
+}
+
+func (r *sharedRoll) draw(w *sim.World) float64 {
+	if !r.drawn {
+		r.value, r.drawn = w.RNG.Get(rollStream).Float64(), true
+	}
+	return r.value
 }
 
 func (p *params) Has(name string) bool {
@@ -362,7 +383,10 @@ func (p *params) env(withRoll bool) content.EffectEnv {
 		p.base = &base
 	}
 	env := *p.base
-	if withRoll {
+	switch {
+	case withRoll && p.shared != nil:
+		env.Roll = p.shared.draw(p.ctx.World)
+	case withRoll:
 		env.Roll = p.ctx.World.RNG.Get(rollStream).Float64()
 	}
 	return env
@@ -421,6 +445,17 @@ func (p *params) Int(name string) (int, error) {
 		return 0, err
 	}
 	return int(out.(int64)), nil
+}
+
+func (p *params) IntForPart(name string, part ecs.Entity) (int, error) {
+	if p.partRoll == nil {
+		p.partRoll = &sharedRoll{}
+	}
+	ctx := *p.ctx
+	ctx.TargetPart = part
+	forPart := *p
+	forPart.ctx, forPart.base, forPart.shared = &ctx, nil, p.partRoll
+	return forPart.Int(name)
 }
 
 func (p *params) Float(name string) (float64, error) {
