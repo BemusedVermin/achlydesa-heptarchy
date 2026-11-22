@@ -1,7 +1,7 @@
 ---
 id: M2-12
 title: Content hot reload in dev builds
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M1-11, M1-13]
@@ -36,14 +36,22 @@ While `heptarchy play --dev` runs, saving a CUE file reloads content between com
 
 ## Acceptance criteria
 
-- [ ] Editing a terrain glyph in `content/data` while playing with `--dev` changes it on screen without a restart.
-- [ ] Breaking a CUE file shows the error in the log and the game keeps running on the old content.
-- [ ] A test drives `Watch` with file writes in `t.TempDir()` and gets exactly one callback per burst.
-- [ ] Without `--dev`, nothing watches files.
-- [ ] `go tool task check` passes.
+- [x] Editing a terrain glyph in `content/data` while playing with `--dev` changes it on screen without a restart.
+- [x] Breaking a CUE file shows the error in the log and the game keeps running on the old content.
+- [x] A test drives `Watch` with file writes in `t.TempDir()` and gets exactly one callback per burst.
+- [x] Without `--dev`, nothing watches files.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Reloading Go code.
 
 ## Notes
+
+- New dependency: `github.com/fsnotify/fsnotify` v1.10.1, named in the task, for recursive file watching.
+- `Watch` only reacts to `.cue` files and extensionless paths (folders), so editor temp files do not trigger reloads. New subfolders are added to the watch as they appear.
+- Added `Game.Note(text)` (not in the spec) so the frontend can put the reload failure in the message log; `SwapContent` also logs the "replay will not match" warning through it.
+- The `--dev` flag is on both `heptarchy` and `heptarchy play`. Without it `content.Watch` is never called.
+- Tests: `Watch` (one callback per burst, ignores non-CUE files, missing dir), `SwapContent` (success logs a warning, nil is refused and leaves the game unchanged), and the app's `ContentMsg` handling (success and failure). A failing swap against invalid-but-loadable content is not tested because no sample content makes the primitive checks fail.
+- The first two acceptance criteria are covered by those tests and the code path; I did not drive the interactive TUI by hand.
+- Follow-up filed: M2-12.F1 (content cached at game start, such as the calendar, is not refreshed by a swap).
