@@ -1,7 +1,7 @@
 ---
 id: M2-01
 title: "knowledge: the fact store"
-status: todo
+status: done
 milestone: M2
 kind: seam
 depends_on: [M1-11, M1-13]
@@ -52,13 +52,20 @@ func Best(w *sim.World, knower ecs.Entity, subject api.UID, claim api.ContentID)
 
 ## Acceptance criteria
 
-- [ ] Learning the same (Subject, Claim, Source) twice keeps one fact with the newer value.
-- [ ] `Best` prefers confidence, then the newer tick, then source ID; a test covers each tie-break.
-- [ ] A save and load keeps every fact (round-trip test through `game.Save`).
-- [ ] `go tool task check` passes.
+- [x] Learning the same (Subject, Claim, Source) twice keeps one fact with the newer value.
+- [x] `Best` prefers confidence, then the newer tick, then source ID; a test covers each tie-break.
+- [x] A save and load keeps every fact (round-trip test through `game.Save`).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - The journal screen and investigation (M4); rumor drift (M6).
 
 ## Notes
+
+- `Fact` lives in `internal/core/api/knowledge.go` as `api.Fact`, not in the knowledge package: `comp.Knowledge` needs it and `comp` cannot import `knowledge`. `Learn`, `About` and `Best` keep the spec's signatures (with `api.Fact`).
+- A `Loggable` cannot be loggable only sometimes, so `Learn` publishes `api.FactLearned` (not loggable, always) and, when the knower is the controlled party or one of its members, `api.FactNoticed` (loggable). Its text ID is `text.knowledge.<claim without "claim.">`, via `api.KnowledgeTextID`; the value is passed raw as `{{.value}}`.
+- Content: `claims` and `sources` maps in `content/data/knowledge.cue` (a new file, so concurrent tasks do not collide in `text.cue`), with `claim.material`, `claim.name`, `source.sweep`, `source.rumor`. Validation checks ID shape, name text, and that each claim has its `text.knowledge.*` text. `Registry.Claim` and `Registry.Source` look them up. `Learn` does not check IDs against content at run time.
+- Files outside the list: `internal/content/{types,load,registry,load_test}.go`, generated `*_go_gen.cue`, `content/data/knowledge.cue`.
+- Tie-break test for source ID is deterministic because `Learn` stamps `w.Now`, which the test holds fixed.
+- Follow-up filed: M2-01.F1 (render fact values as text in the log).

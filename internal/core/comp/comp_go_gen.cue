@@ -92,3 +92,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Controlled marks the party the player commands.
 #Controlled: {}
+
+// Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge
+// package's Learn, About and Best rather than changing the slice.
+#Knowledge: {
+	facts: [...api.#Fact] @go(Facts,[]api.Fact)
+}

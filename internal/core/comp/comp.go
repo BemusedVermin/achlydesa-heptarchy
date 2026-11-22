@@ -97,6 +97,12 @@ type Seen struct {
 	ByMap map[api.MapID][]api.Cell `json:"by_map"`
 }
 
+// Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge
+// package's Learn, About and Best rather than changing the slice.
+type Knowledge struct {
+	Facts []api.Fact `json:"facts"`
+}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -113,4 +119,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Landing](world)
 	ecs.ComponentID[Controlled](world)
 	ecs.ComponentID[Seen](world)
+	ecs.ComponentID[Knowledge](world)
 }
