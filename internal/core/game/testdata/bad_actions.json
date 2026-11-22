@@ -1,0 +1,44 @@
+{
+  "action.bad_primitive": {
+    "name": "text.action.step", "key": "bad_primitive",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "no_such_primitive", "params": {}}]
+  },
+  "action.bad_parameter": {
+    "name": "text.action.step", "key": "bad_parameter",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_start": [{"do": "lock", "params": {"channels": "self:body"}}]
+  },
+  "action.bad_selector": {
+    "name": "text.action.step", "key": "bad_selector",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "damage", "params": {"parts": "bogus", "amount": "1"}}]
+  },
+  "action.bad_status": {
+    "name": "text.action.step", "key": "bad_status",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "add_status", "params": {"bodies": "self", "status": "status.nope", "ticks": "3"}}]
+  },
+  "action.bad_item": {
+    "name": "text.action.step", "key": "bad_item",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "consume", "params": {"item": "item.nope"}}]
+  },
+  "action.bad_faction": {
+    "name": "text.action.step", "key": "bad_faction",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "spawn_from_part", "params": {"faction": "faction.nope", "controller": "creature"}}]
+  },
+  "action.bad_piece": {
+    "name": "text.action.step", "key": "bad_piece",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "attach_part", "params": {"from": "pack", "item": "item.coal"}}]
+  }
+}

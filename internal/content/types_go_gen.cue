@@ -33,6 +33,15 @@ import (
 	types: {[string]: #DamageType} @go(Types,map[string]DamageType)
 	items: {[string]: #Item} @go(Items,map[string]Item)
 	factions: {[string]: #Faction} @go(Factions,map[string]Faction)
+
+	// Statuses are the conditions a body can be under for a while ("status." IDs).
+	statuses: {[string]: #Status} @go(Statuses,map[string]Status)
+}
+
+// Status is a condition a body is under until a tick, such as Stand's braced stance. Code knows
+// nothing of any one status: formulas read the ones a body has through the statuses variable.
+#Status: {
+	name: api.#ContentID @go(Name)
 }
 
 // Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
@@ -75,6 +84,9 @@ import (
 	name:  api.#ContentID @go(Name)
 	kind:  string         @go(Kind)
 	bound: bool           @go(Bound)
+
+	// Part is the part template ("part." ID) a piece becomes when grafted on; only a piece has one.
+	part?: null | api.#ContentID @go(Part,*api.ContentID)
 }
 
 // Faction is a side. Hostility is not symmetric unless both sides list each other.

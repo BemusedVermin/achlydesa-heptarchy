@@ -283,31 +283,48 @@ func Occupy(w *sim.World, c Channel, ticks int64) error {
 		return fmt.Errorf("timeline: channel of entity %d is already busy until tick %d",
 			w.UIDOf(c.Entity), st.busy.Get(c.Entity).Until)
 	}
-	st.setBusy(c.Entity, w.Now+ticks)
+	st.setBusy(w, c.Entity, w.Now+ticks, false)
 	st.changes++
 	st.schedule(w, body)
 	return nil
 }
 
 // Extend adds ticks to a channel's busy time, counting from now if it is free, and reschedules its body.
-func Extend(w *sim.World, c Channel, ticks int64) error {
+// It leaves alone whether a lock holds the channel; use Lock for that.
+func Extend(w *sim.World, c Channel, ticks int64) error { return extend(w, c, ticks, false) }
+
+// Lock is Extend for the lock effect: the channel then counts as held (see Locked) until its busy
+// time ends or it is released.
+func Lock(w *sim.World, c Channel, ticks int64) error { return extend(w, c, ticks, true) }
+
+// Locked reports whether the channel is busy because a lock holds it, not because of its own action.
+func Locked(w *sim.World, c Channel) bool {
+	st := stateOf(w)
+	return w.ECS.Alive(c.Entity) && st.busy.Has(c.Entity) && !Free(w, c) && st.busy.Get(c.Entity).Locked
+}
+
+func extend(w *sim.World, c Channel, ticks int64, locked bool) error {
 	st := stateOf(w)
 	body, err := st.checkChannel(w, c, ticks)
 	if err != nil {
 		return err
 	}
-	st.setBusy(c.Entity, st.busyUntil(w, c)+ticks)
+	st.setBusy(w, c.Entity, st.busyUntil(w, c)+ticks, locked)
 	st.changes++
 	st.schedule(w, body)
 	return nil
 }
 
-func (st *state) setBusy(e ecs.Entity, until int64) {
+// setBusy records the busy time. A lock flag left from busy time that has already ended is dropped;
+// an active one stays unless this call sets it.
+func (st *state) setBusy(w *sim.World, e ecs.Entity, until int64, locked bool) {
 	if st.busy.Has(e) {
-		st.busy.Get(e).Until = until
+		busy := st.busy.Get(e)
+		busy.Locked = locked || (busy.Locked && busy.Until > w.Now)
+		busy.Until = until
 		return
 	}
-	st.busy.Add(e, &comp.Busy{Until: until})
+	st.busy.Add(e, &comp.Busy{Until: until, Locked: locked})
 }
 
 // waitUntil sets the body's WaitUntil and reschedules it.

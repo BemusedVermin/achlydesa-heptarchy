@@ -24,6 +24,12 @@ func (r *Registry) Item(id api.ContentID) (Item, bool) {
 	return def, ok
 }
 
+// Status returns the status with the given ID.
+func (r *Registry) Status(id api.ContentID) (Status, bool) {
+	def, ok := r.bundle.Statuses[string(id)]
+	return def, ok
+}
+
 // Faction returns the faction with the given ID. Its HostileTo slice is shared with the registry:
 // don't change it.
 func (r *Registry) Faction(id api.ContentID) (Faction, bool) {
@@ -117,12 +123,26 @@ func (r *Registry) checkTypes() []error {
 		def := r.bundle.Items[key]
 		path := fmt.Sprintf("items[%q]", key)
 		text(path+".name", def.Name)
+		if def.Part != nil {
+			if def.Kind != "piece" {
+				problems = append(
+					problems,
+					fmt.Errorf("%s.part: only a piece becomes a part, not a %s", path, def.Kind),
+				)
+			}
+			if _, ok := r.bundle.Parts[string(*def.Part)]; !ok {
+				problems = append(problems, fmt.Errorf("%s.part: unknown part %q", path, *def.Part))
+			}
+		}
 		if !slices.Contains(ItemKinds, def.Kind) {
 			problems = append(
 				problems,
 				fmt.Errorf("%s.kind: unknown kind %q (want one of %v)", path, def.Kind, ItemKinds),
 			)
 		}
+	}
+	for _, key := range sortedKeys(r.bundle.Statuses) {
+		text(fmt.Sprintf("statuses[%q].name", key), r.bundle.Statuses[key].Name)
 	}
 	for _, key := range sortedKeys(r.bundle.Factions) {
 		def := r.bundle.Factions[key]
