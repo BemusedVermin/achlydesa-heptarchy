@@ -73,7 +73,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | obsolete | seam | M1 | M1-17 |
 | [M1-18.F1](followups/M1-18.F1-pending-save-roundtrip.md) | Round-trip pending actions through a real save | obsolete | test | M1 | M1-18 |
 | [M1-19.F1](followups/M1-19.F1-effect-validation-end-to-end.md) | Test that game.New rejects bad effects in real content | obsolete | test | M1 | M1-19 |
-| [M1-20.F1](followups/M1-20.F1-check-draws-roll.md) | Effect checks must not draw from the RNG | todo | bug | M1 | M1-20 |
+| [M1-20.F1](followups/M1-20.F1-check-draws-roll.md) | Effect checks must not draw from the RNG | done | bug | M1 | M1-20 |
 | [M1-20.F2](followups/M1-20.F2-cell-targets.md) | Cell-targeted actions | proposed | seam | unplanned | M1-20 |
 | [M1-10.F1](followups/M1-10.F1-slope-floor-in-plan-view.md) | Plan view: a slope's ceiling beats its floor | todo | question | M1 | M1-10 |
 | [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | todo | feature | M2 | M1-10 |

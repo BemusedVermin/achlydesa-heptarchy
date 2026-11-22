@@ -7,6 +7,8 @@ import (
 	"sort"
 
 	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/ast"
+	"github.com/expr-lang/expr/parser"
 	"github.com/expr-lang/expr/vm"
 	"github.com/mlange-42/ark/ecs"
 
@@ -78,10 +80,35 @@ type programKey struct {
 	as  string // "int", "float" or "bool"
 }
 
+// program is one compiled formula and whether it reads roll.
+type program struct {
+	vm       *vm.Program
+	usesRoll bool
+}
+
+// usesRoll reports whether the formula src names the roll variable.
+func usesRoll(src string) (bool, error) {
+	tree, err := parser.Parse(src)
+	if err != nil {
+		return false, err
+	}
+	finder := &rollFinder{}
+	ast.Walk(&tree.Node, finder)
+	return finder.found, nil
+}
+
+type rollFinder struct{ found bool }
+
+func (f *rollFinder) Visit(node *ast.Node) {
+	if id, ok := (*node).(*ast.IdentifierNode); ok && id.Value == "roll" {
+		f.found = true
+	}
+}
+
 // state is the registry and hooks effects keep in the world.
 type state struct {
 	primitives map[string]Primitive
-	programs   map[programKey]*vm.Program
+	programs   map[programKey]*program
 	hostile    func(w *sim.World, a, b ecs.Entity) bool
 	maps       func(id api.MapID) *hexmap.Map
 }
@@ -93,7 +120,7 @@ func stateOf(w *sim.World) *state {
 	}
 	st := &state{
 		primitives: map[string]Primitive{},
-		programs:   map[programKey]*vm.Program{},
+		programs:   map[programKey]*program{},
 		hostile:    func(*sim.World, ecs.Entity, ecs.Entity) bool { return false },
 	}
 	res.Add(st)
@@ -172,7 +199,7 @@ func Check(ctx *Context, refs []content.EffectRef) (bool, api.Text) {
 		if !ok || prim.Check == nil {
 			continue
 		}
-		if ok, reason := prim.Check(ctx, &params{ctx: ctx, st: st, prim: prim, raw: ref.Params}); !ok {
+		if ok, reason := prim.Check(ctx, &params{ctx: ctx, st: st, prim: prim, raw: ref.Params, checking: true}); !ok {
 			return false, reason
 		}
 	}
@@ -224,6 +251,12 @@ func validateRef(at string, prim Primitive, ref content.EffectRef) []error {
 			_, err = ParseChannels(src)
 		case KindExpr:
 			_, err = expr.Compile(src, expr.Env(content.EffectEnv{}))
+			if err == nil && prim.Check != nil {
+				var reads bool
+				if reads, err = usesRoll(src); err == nil && reads {
+					err = errors.New("a primitive with a Check cannot read roll: checks must not draw from the RNG")
+				}
+			}
 		case KindText:
 		}
 		if err != nil {
@@ -258,6 +291,9 @@ type params struct {
 	st   *state
 	prim Primitive
 	raw  map[string]string
+	// checking is set while a Check runs. A check must not change the world, so a formula that reads
+	// roll is an error there rather than a draw from the stream.
+	checking bool
 }
 
 func (p *params) Has(name string) bool {
@@ -276,32 +312,44 @@ func (p *params) source(name string, want Kind) (string, error) {
 	return src, nil
 }
 
-// eval compiles (once) and runs an Expr parameter. Each run draws a fresh roll.
+// eval compiles (once) and runs an Expr parameter. A formula that reads roll draws a fresh one from
+// the effects stream; a formula that does not leaves the stream alone.
 func (p *params) eval(name, as string, option expr.Option) (any, error) {
 	src, err := p.source(name, KindExpr)
 	if err != nil {
 		return nil, err
 	}
 	key := programKey{src: src, as: as}
-	program, ok := p.st.programs[key]
+	prog, ok := p.st.programs[key]
 	if !ok {
-		program, err = expr.Compile(src, expr.Env(content.EffectEnv{}), option)
+		compiled, err := expr.Compile(src, expr.Env(content.EffectEnv{}), option)
 		if err != nil {
 			return nil, fmt.Errorf("parameter %q: %w", name, err)
 		}
-		p.st.programs[key] = program
+		reads, err := usesRoll(src)
+		if err != nil {
+			return nil, fmt.Errorf("parameter %q: %w", name, err)
+		}
+		prog = &program{vm: compiled, usesRoll: reads}
+		p.st.programs[key] = prog
 	}
-	out, err := expr.Run(program, p.env())
+	if prog.usesRoll && p.checking {
+		return nil, fmt.Errorf("parameter %q: a check cannot read roll", name)
+	}
+	out, err := expr.Run(prog.vm, p.env(prog.usesRoll))
 	if err != nil {
 		return nil, fmt.Errorf("parameter %q: %w", name, err)
 	}
 	return out, nil
 }
 
-// env builds the formula environment from the context, drawing a fresh roll.
-func (p *params) env() content.EffectEnv {
+// env builds the formula environment from the context, drawing a fresh roll only when asked.
+func (p *params) env(withRoll bool) content.EffectEnv {
 	w := p.ctx.World
-	env := content.EffectEnv{Now: w.Now, Roll: w.RNG.Get(rollStream).Float64()}
+	env := content.EffectEnv{Now: w.Now}
+	if withRoll {
+		env.Roll = w.RNG.Get(rollStream).Float64()
+	}
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if alive(w, p.ctx.Source) && alive(w, p.ctx.Target) &&
 		positions.Has(p.ctx.Source) && positions.Has(p.ctx.Target) {
