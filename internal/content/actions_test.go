@@ -29,13 +29,16 @@ func TestSampleActions(t *testing.T) {
 	if _, present, err := reg.ActionConnects("action.step", env); err != nil || present {
 		t.Errorf("connects present = %v, %v; want the default", present, err)
 	}
-	sites := reg.EffectSites()
-	if len(sites) == 0 || sites[0].Path != `actions["action.step"].on_land` {
-		t.Errorf("EffectSites = %+v, want the step's on_land first", sites)
+	found := false
+	for _, site := range reg.EffectSites() {
+		found = found || site.Path == `actions["action.step"].on_land`
+	}
+	if !found {
+		t.Errorf("EffectSites = %+v, want the step's on_land among them", reg.EffectSites())
 	}
 	template, _ := reg.Template("template.person.reaper")
-	if len(template.Actions) != 1 || template.Actions[0] != "action.step" {
-		t.Errorf("the reaper knows %v, want action.step", template.Actions)
+	if len(template.Actions) == 0 || template.Actions[0] != "action.step" {
+		t.Errorf("the reaper knows %v, want the step first", template.Actions)
 	}
 }
 

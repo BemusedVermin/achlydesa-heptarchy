@@ -73,6 +73,9 @@ func TestChosenRecordsChangeTheAction(t *testing.T) {
 		},
 		mutate: func(b *content.Bundle) {
 			withWater(b)
+			fighter := b.Templates["template.test.fighter"]
+			fighter.Lists = map[string][]string{"types": {"type.cut", "type.test", "type.locked"}}
+			b.Templates["template.test.fighter"] = fighter
 			load := b.Actions["action.test.load"]
 			load.OnLand = []content.EffectRef{{Do: "test.log", Params: map[string]string{"tag": "own"}}}
 			b.Actions["action.test.load"] = load
@@ -125,7 +128,7 @@ func TestContentChoiceMayNotShadowAProvider(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := reg.ChoiceNames(); !slices.Equal(got, []string{"type"}) {
+	if got := reg.ChoiceNames(); !slices.Equal(got, []string{"piece", "type"}) {
 		t.Fatalf("choices = %v", got)
 	}
 }

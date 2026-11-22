@@ -33,6 +33,13 @@ func newBundle(t testing.TB) content.Bundle {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// These tests walk. A member who can also fight is still ready while its legs recover, so they
+	// teach the party only the step.
+	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
+		person := bundle.Templates[id]
+		person.Actions = []api.ContentID{"action.step"}
+		bundle.Templates[id] = person
+	}
 	return bundle
 }
 
