@@ -174,7 +174,7 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 		}
 		return 0
 	})
-	view := &api.TimelineView{Now: w.Now, Entries: entries}
+	view := &api.TimelineView{Now: w.Now, Window: st.cfg.WindowTicks, Entries: entries}
 	v.Timeline = view
 	body, ok := Current(w)
 	if !ok {
