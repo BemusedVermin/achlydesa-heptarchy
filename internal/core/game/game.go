@@ -10,6 +10,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -51,6 +52,9 @@ func New(cfg Config) (*Game, error) {
 		if err := cfg.Extra(g.world, g.clock); err != nil {
 			return nil, fmt.Errorf("game: extra: %w", err)
 		}
+	}
+	if err := effects.ValidateContent(g.world); err != nil {
+		return nil, fmt.Errorf("game: %w", err)
 	}
 	if err := g.world.Systems.Freeze(); err != nil {
 		return nil, fmt.Errorf("game: %w", err)

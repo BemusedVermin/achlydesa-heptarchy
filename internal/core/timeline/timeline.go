@@ -411,3 +411,18 @@ func (st *state) decide(w *sim.World, body ecs.Entity, name string) error {
 	}
 	return nil
 }
+
+// Release frees a busy channel at once and reschedules its body. A free channel is left alone.
+func Release(w *sim.World, c Channel) error {
+	st := stateOf(w)
+	body, err := st.checkChannel(w, c, 1)
+	if err != nil {
+		return err
+	}
+	if st.busy.Has(c.Entity) {
+		st.busy.Remove(c.Entity)
+	}
+	st.changes++
+	st.schedule(w, body)
+	return nil
+}

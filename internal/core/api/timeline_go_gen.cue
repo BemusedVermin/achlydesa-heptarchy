@@ -41,3 +41,23 @@ package api
 	target: #UID   @go(Target)
 	label:  string @go(Label)
 }
+
+#ActionLandedKind:   "timeline.action_landed"
+#ActionCanceledKind: "timeline.action_canceled"
+
+// ActionLanded reports that a pending action has landed and been resolved.
+#ActionLanded: {
+	kind:   string @go(Kind)
+	actor:  #UID   @go(Actor)
+	target: #UID   @go(Target)
+	tick:   int64  @go(Tick)
+}
+
+// ActionCanceled reports that a pending action was removed before it landed.
+#ActionCanceled: {
+	kind:   string @go(Kind)
+	actor:  #UID   @go(Actor)
+	target: #UID   @go(Target)
+	tick:   int64  @go(Tick)
+	reason: #Text  @go(Reason)
+}

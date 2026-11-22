@@ -13,3 +13,12 @@ package content
 #SpeedEnv: {
 	Speed: int
 }
+
+// EffectEnv is everything an effect formula can see. Later tasks add fields deliberately (M2-04
+// adds weak, immune, integrity, height, statuses...).
+#EffectEnv: {
+	Now:       int64
+	Roll:      float64
+	Distance:  int
+	WindingUp: bool
+}

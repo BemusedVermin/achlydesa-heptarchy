@@ -44,3 +44,15 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	controller: string @go(Controller)
 	wait_until: int64  @go(WaitUntil)
 }
+
+// Pending is an action in flight, on an entity of its own: one per action. Whatever the action
+// needs beyond this lives in a kind-specific component on the same entity.
+#Pending: {
+	kind:    string   @go(Kind)
+	actor:   api.#UID @go(Actor)
+	part:    api.#UID @go(Part)
+	target:  api.#UID @go(Target)
+	started: int64    @go(Started)
+	lands:   int64    @go(Lands)
+	seq:     uint64   @go(Seq)
+}

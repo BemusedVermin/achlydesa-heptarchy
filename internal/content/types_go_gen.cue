@@ -78,3 +78,10 @@ import (
 #ActorDef: {
 	controller: string @go(Controller)
 }
+
+// EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for
+// parameters the primitive declares as selectors or text, literal strings.
+#EffectRef: {
+	do: string @go(Do)
+	params: {[string]: string} @go(Params,map[string]string)
+}
