@@ -1,7 +1,7 @@
 ---
 id: M2-03
 title: Materials, types, items and the party's pack
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M2-02]
@@ -100,14 +100,23 @@ func Count(w *sim.World, holder ecs.Entity, item api.ContentID, boundTo api.UID)
 
 ## Acceptance criteria
 
-- [ ] All eleven types load; Name's condition compiles against `TypeEnv`.
-- [ ] `Take` more than the count fails without changing the pack; stacks merge and stay sorted.
-- [ ] The party template starts with a few of each consumable in its pack.
-- [ ] Save and load keeps the pack.
-- [ ] `go tool task check` passes.
+- [x] All eleven types load; Name's condition compiles against `TypeEnv`.
+- [x] `Take` more than the count fails without changing the pack; stacks merge and stay sorted.
+- [x] The party template starts with a few of each consumable in its pack.
+- [x] Save and load keeps the pack.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Using types in moves (M2-06). Buying and finding items (later milestones).
 
 ## Notes
+
+- Bundle keys use the singular prefixes `type.`, `item.`, `faction.` (the spec's `types.` read as a typo); the map fields are `types`, `items`, `factions`.
+- `Template.Inventory` is `[]StackDef{Item, Count}` in content (no `BoundTo`, since a UID can't be authored). The `inventory` spawner lives in `internal/core/inventory` and is installed by `game.installAll` after anatomy. The pack sits on the party entity (`template.party.main`), three of each consumable.
+- Sample types: Cut, Press, Relic, Name are innate; the rest consume their item. Name has no `consumes`: its "used up when spoken" catch is a trigger (M2-05). Keepsake consumes `item.keepsake`, a bound item of kind `keepsake` that I added so the type has something to burn; both Name and Keepsake use `target_uid == item_bound_to`.
+- Materials follow the spec table; `material.old_matter`, `bone`, `eye`, `rift_flesh` are new with text IDs. Each carries one tag of its own name; tune later.
+- Validation also rejects a type both weak and immune on one material, unknown types, items and factions, bad item kinds and bad template packs. One-sided hostility is a warning: `Registry.Warnings()` (new; the registry had no warning channel). Sample factions `faction.party` and `faction.deep` hostile to each other.
+- Added `Registry.Type`, `TypeIDs`, `Item`, `Faction`, `TypeAllowed` (runs the compiled condition).
+- Files outside the list: `comp.go` (registers `Inventory`), `game/install.go`, `content/load.go`, `registry.go`, `types_check.go` (new), `content/data/templates.cue`. `watch_go_gen.cue` appears because `task schema` generates it for M2-12's `watch.go`, which had no generated file.
+- No follow-ups filed.

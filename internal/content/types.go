@@ -22,6 +22,11 @@ type Bundle struct {
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
+	// Types are the damage types ("type." IDs), Items the things types burn ("item." IDs) and
+	// Factions the sides things fight for ("faction." IDs).
+	Types    map[string]DamageType `json:"types"`
+	Items    map[string]Item       `json:"items"`
+	Factions map[string]Faction    `json:"factions"`
 }
 
 // Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
@@ -37,7 +42,41 @@ type Source struct {
 
 // Material is a substance things are made of.
 type Material struct {
-	Name api.ContentID `json:"name"` // a text ID
+	Name     api.ContentID   `json:"name"`      // a text ID
+	WeakTo   []api.ContentID `json:"weak_to"`   // type IDs
+	ImmuneTo []api.ContentID `json:"immune_to"` // type IDs
+	Tags     []string        `json:"tags"`      // e.g. "old_matter", "clay"
+}
+
+// DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
+// only that it may need an item and may have a condition.
+type DamageType struct {
+	Name      api.ContentID  `json:"name"`                // a text ID
+	Innate    bool           `json:"innate"`              // always available, needing no item
+	Consumes  *api.ContentID `json:"consumes,omitempty"`  // item ID used up per move
+	Condition string         `json:"condition,omitempty"` // Expr bool over TypeEnv; empty means always
+}
+
+// Item is something the pack carries.
+type Item struct {
+	Name  api.ContentID `json:"name"`  // a text ID
+	Kind  string        `json:"kind"`  // one of ItemKinds
+	Bound bool          `json:"bound"` // tied to one person, e.g. a name or a keepsake
+}
+
+// ItemKinds lists the kinds an item may have.
+var ItemKinds = []string{"consumable", "piece", "keepsake", "name"}
+
+// Faction is a side. Hostility is not symmetric unless both sides list each other.
+type Faction struct {
+	Name      api.ContentID   `json:"name"`       // a text ID
+	HostileTo []api.ContentID `json:"hostile_to"` // faction IDs
+}
+
+// StackDef is some of an item a template starts with.
+type StackDef struct {
+	Item  api.ContentID `json:"item"`  // an item ID
+	Count int           `json:"count"` // at least 1
 }
 
 // Terrain is what one cell of the world is made of: solid (clay, rock) or open (air, later water).
@@ -77,6 +116,8 @@ type Template struct {
 	Body *api.ContentID `json:"body,omitempty"`
 	// Protected gives the entity plot armor: it is downed rather than killed.
 	Protected bool `json:"protected,omitempty"`
+	// Inventory is the pack the entity starts with.
+	Inventory []StackDef `json:"inventory,omitempty"`
 	// Later: Combatant, Needs, Inventory, Triggers, ...
 }
 

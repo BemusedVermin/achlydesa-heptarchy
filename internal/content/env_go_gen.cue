@@ -31,3 +31,10 @@ package content
 	Used:      int
 	Choice: {[string]: string} @go(,map[string]string)
 }
+
+// TypeEnv is what a damage type's condition can see.
+#TypeEnv: {
+	TargetUID:   uint64
+	ItemBoundTo: uint64
+	TargetTags: [...string] @go(,[]string)
+}

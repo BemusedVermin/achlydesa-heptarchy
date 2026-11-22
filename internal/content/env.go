@@ -27,3 +27,10 @@ type ActionEnv struct {
 	Used      int               `expr:"used"`       // how many channels it occupies
 	Choice    map[string]string `expr:"choice"`     // the choices made, by provider name
 }
+
+// TypeEnv is what a damage type's condition can see.
+type TypeEnv struct {
+	TargetUID   uint64   `expr:"target_uid"`
+	ItemBoundTo uint64   `expr:"item_bound_to"` // 0 when the item isn't bound
+	TargetTags  []string `expr:"target_tags"`
+}
