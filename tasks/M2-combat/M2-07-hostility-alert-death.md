@@ -20,12 +20,12 @@ Fights emerge from the map instead of starting as a mode. This task covers three
 - Game design: "Combat → Fighting on the map", "The living deep → Monsters with needs" (families fight each other), "Three tiers of people" (plot armor).
 - Tech design: "Designing for pivots" (Combat sides, Time).
 - This milestone's README, "The combat model" (Alert, Sides, Death).
-- M1-14 `Visible`, M1-16 `Party.Alert` and lead and follow, M2-02 bodies, M2-06 `Allegiance`.
+- M1-14 `Visible`, M1-16 `Party.Alert` and lead and follow, M2-02 bodies, `comp.Allegiance` (the `spawn_from_part` effect already adds it), M2-13 rules as content.
 
 ## Deliverables
 
-- `internal/content/types.go`: `CombatConfig`; `MapDef.Spawns`; regenerate the schema.
-- `content/data/combat.cue`; a creature spawn on `map.test.hall` and one in the soop under the hall on `map.test.descent`.
+- `internal/content/types.go`: `CombatConfig`; `MapDef.Spawns`; `Template.Faction`; regenerate the schema.
+- `content/data/combat.cue`; factions on the person templates and the sample creature in `templates.cue`; a creature spawn on `map.test.hall` and one in the soop under the hall on `map.test.descent`.
 - `internal/core/comp/comp.go`: `Calm`.
 - `internal/core/api/combat.go`: `AlertStarted`, `AlertEnded`, `BodyDied`, `BodyDowned`, `PartyLost`.
 - `internal/core/combat/hostility.go`, `alert.go`, `death.go`, `install.go`, tests.
@@ -36,6 +36,8 @@ Fights emerge from the map instead of starting as a mode. This task covers three
 ## Spec
 
 **Content:** `CombatConfig{ CalmTicks int64; SightRadius, SightDepth int; CorpseGlyph string; CorpseColor string }` under `combat`. `MapDef` gains `Spawns map[string]api.ContentID`: a mark character to a template, spawned at start in row order, with `Pos` and the template's `Turn`.
+
+**Sides:** `Template.Faction *api.ContentID` (`faction`), checked at load to name a faction. A combat spawner gives each body spawned from such a template `comp.Allegiance{Faction}`.
 
 **Hostility:**
 

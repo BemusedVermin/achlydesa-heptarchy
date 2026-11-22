@@ -35,7 +35,8 @@ The game will change once it's played, so every place the game design already ex
 | View sections | Each package contributes its own section of the view (map, party, combat, journal) | New screens and a second frontend, without one giant snapshot struct |
 | Combat sides | Sides are allegiances to factions with content-defined hostility. There's no fight entity or combat mode: a fight is hostile bodies acting near each other, so anyone joins or leaves by walking in or out | Grafts acting on their own, recruits fleeing, monsters fighting each other, crawling parts, fights spilling into towns |
 | Effects anywhere | Effect primitives act on entities through a generic context, not on combat state | Consumables used while exploring, seat prices, dreams with effects, traps |
-| Actions | Every action, a step included, is content: which channels it occupies (by tag and count), wind-up and recovery formulas, target and range, and effects on start and on landing. Code adds only primitives and small validator and modifier hooks | Two-handed and lunging moves, new forms, effects that hit several limbs or stop a whole body, alternative combat rules tried in CUE |
+| Actions | Every action, a step included, is content: which channels it occupies (by tag and count), wind-up and recovery formulas, target and range, and effects on start and on landing. The choices an action asks for, and what a chosen type or item changes about it, are content too; code adds only primitives | Two-handed and lunging moves, new forms, effects that hit several limbs or stop a whole body, alternative combat rules tried in CUE |
+| Rules | Content records carry generic tags, numbers and lists. Named formulas (`rules`) and content-defined choices read them, and code names no content record, tag or rule | Reworking what weakness means, partial resistances, types that only work on pinned parts, new kinds of item or grant, all in CUE |
 | Triggers | A `Triggers` component from content: on an event, if an Expr condition holds, apply effects | Graft autonomy, curdle modes, exotic recruit abilities and material reactions, all as data |
 | Behaviors | Agent behaviors are registered primitives that content composes and scores with Expr considerations; monsters, people, recruits and candidates share one path | Simulating candidates later, new creature families as pure data |
 | Knowledge | One fact store per knower (subject, claim, source, confidence); the piece, rumors, clues and dreams all write facts | New clue sources, false positives, NPCs who know things, the journal as a view over facts |
@@ -158,10 +159,10 @@ Each package owns one part of the rules and leans on a library for everything el
 | `knowledge` | Facts per knower: subject, claim, source, confidence. The journal is a view over the party's facts | Components only |
 | `inventory` | Packs of item stacks: add, take, count | Components only |
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
-| `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, validator and modifier hooks, the generic do command and its options | `timeline`, `effects` |
+| `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options | `timeline`, `effects` |
 | `explore` | Maps from content, stepping, lead and follow, remembered cells and the plan-view projection; gates between maps later | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
-| `combat` | Hostility between factions, the party's alert, types (the choice, validator and modifier that make forms × types), combat primitives, the creature controller, death, graft autonomy | `effects`, Expr for content formulas |
+| `combat` | Hostility between factions, the party's alert, combat primitives, the creature controller, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
 | `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; full agents on screen, region aggregates off screen | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
@@ -177,14 +178,14 @@ Content goes from Go structs to CUE schemas to validated data, and almost none o
 2. **`cue get go --local` generates the schemas** as `*_go_gen.cue` files beside the Go structs in `internal/content`, so schema and code never drift.
 3. **Authors write data in CUE** under `content/data`. CUE fills defaults and checks references (a form naming an unknown primitive, a creature using an unknown material).
 4. **`cue vet` runs in CI** through `go tool task check`, alongside the tests, so content errors fail before the game starts.
-5. **The loader decodes into Go structs** with `cue/load` and `Value.Decode`, then compiles every Expr formula against a typed environment. A formula that references an unknown variable fails at load, not mid-fight.
+5. **The loader decodes into Go structs** with `cue/load` and `Value.Decode`, then compiles every Expr formula against a typed environment, with named rules inlined. A formula that references an unknown variable or rule fails at load, not mid-fight.
 6. **The result is an immutable content registry** that the core reads.
 7. **Dev builds hot-reload.** fsnotify watches `content/`, rebuilds the registry, and swaps it in between ticks.
 
 What stays as code versus data:
 
-- **Code:** effect primitives, combat resolution, the needs scorer, seat rules, procgen algorithms.
-- **Data:** materials, forms as compositions of primitives, part and creature templates, needs and their curves, towns and gates, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
+- **Code:** effect primitives and the machinery that runs them (selectors, timing, actions), the needs scorer, seat rules, procgen algorithms. Code names no content record, tag or rule, only its own message text; where it needs a record, a config key says which.
+- **Data:** materials, forms as compositions of primitives, the rules that tie them together (what makes a part weak, which types a body may load, what a loaded type does to a form), part and creature templates, needs and their curves, towns and gates, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
 
 ## Simulation loop and determinism
 
@@ -268,7 +269,7 @@ The custom code is the game's rules, plus thin glue to the libraries above. Noth
 
 ### What we write
 
-- **Effect primitives and combat resolution:** channels and timing, actions defined in content, sever rules, types, graft autonomy.
+- **Effect primitives and combat resolution:** channels and timing, actions defined in content, sever rules, graft autonomy.
 - **The needs scorer:** a small utility-scoring loop; the curves themselves are Expr formulas in content.
 - **Seat rules:** the state machine, passing, wound scoring, the piece's readings.
 - **The wish generator:** a pipeline over content tables.

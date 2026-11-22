@@ -19,12 +19,12 @@ The player can see enough to plan: every visible body's parts, what's known abou
 
 - Tech design: "Designing for pivots" (Choices come from the core).
 - Game design: "Combat → Timing", "Combat → Lethality", "Combat → Grafts" (grafts quietly shape what's offered: keep option order in M1-20's one function).
-- M1-17 channels and controllers, M1-18 pending actions, M1-20 actions and options, M2-06 forms, M2-07 hostility and alert.
+- M1-17 channels and controllers, M1-18 pending actions, M1-20 actions and options, M2-06 forms, M2-07 hostility and alert, M2-13 records and rules in formulas.
 
 ## Deliverables
 
 - `internal/core/api/combat.go`: the `BodiesView` section.
-- `internal/content/types.go`: `CombatConfig.AIScore` (Expr over `ChoiceEnv`); regenerate the schema.
+- `internal/content/types.go`: `CombatConfig.AIScore` (Expr over `ScoreEnv`), `CombatConfig.Aims` (Expr over M2-13's `GrantEnv`), `CombatConfig.AttackTag` and `CombatConfig.StepAction`; regenerate the schema.
 - `internal/core/combat/view.go`, `controller.go`, tests and a golden file.
 
 ## Spec
@@ -42,11 +42,11 @@ The player can see enough to plan: every visible body's parts, what's known abou
 **The `hunt` controller,** registered with the timeline:
 
 1. Pick the nearest visible hostile, by hex distance plus depth difference, then UID.
-2. If any startable action (`actions.Startable`) with the `attack` tag reaches it, choose one with the chooser and start it.
-3. Otherwise, if `action.step` is startable, step along `hexmap.Path` toward it (at most 200 nodes).
+2. If any startable action (`actions.Startable`) with the tag `combat.attack_tag` names (`attack` to start) reaches it, choose one with the chooser and start it.
+3. Otherwise, if the action `combat.step_action` names (`action.step` to start) is startable, step along `hexmap.Path` toward it (at most 200 nodes).
 4. Otherwise wait until the next entry.
 
-A body without a functioning `grant:targeting` channel picks its target at random among valid intents (stream `combat`). Hunting creatures don't dodge yet; reading wind-ups is M3 behavior.
+A body for which `combat.aims` is false picks its target at random among valid intents (stream `combat`). `aims` starts as `grant.targeting > 0`, so a body that has lost its head swings wild; code never names the grant kind. Hunting creatures don't dodge yet; reading wind-ups is M3 behavior.
 
 **Chooser:**
 
@@ -58,7 +58,7 @@ type Chooser interface {
 type ScoreChooser struct{}
 ```
 
-`ChoiceEnv` exposes at least `weak`, `immune_known`, `target_is_party`, `consumes_item`, `target_integrity`, `windup` and `height`. Choosers are registered by name, so `agents` can supply a smarter one in M3.
+`ScoreEnv` exposes at least M2-13's `source`, `target`, `chosen` and `pack`, so scores can use `rule.weak` and read the loaded type's `lists.consumes`, plus `immune_known`, `target_is_party`, `target_integrity`, `windup` and `height`. Choosers are registered by name, so `agents` can supply a smarter one in M3.
 
 ## Acceptance criteria
 
