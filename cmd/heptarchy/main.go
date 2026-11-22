@@ -1,105 +1,104 @@
+// Command heptarchy is the game's terminal frontend.
 package main
 
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	hex "github.com/gravitton/hexagon"
+	"github.com/spf13/cobra"
 
-	prototype "github.com/BemusedVermin/achlydesa-heptarchy/internal/prototype"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/frontend/tui"
 )
 
-var moveKeys = map[string]hex.Direction{
-	"d": hex.PointyTopEast,
-	"a": hex.PointyTopWest,
-	"e": hex.PointyTopNorthEast,
-	"q": hex.PointyTopNorthWest,
-	"c": hex.PointyTopSouthEast,
-	"z": hex.PointyTopSouthWest,
-}
-
-type model struct {
-	g   *prototype.Game
-	msg string
-}
-
-func (m model) Init() tea.Cmd { return nil }
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	key, ok := msg.(tea.KeyPressMsg)
-	if !ok {
-		return m, nil
-	}
-	switch key.String() {
-	case "ctrl+c", "esc":
-		return m, tea.Quit
-	}
-	if dir, ok := moveKeys[key.String()]; ok {
-		m.msg = ""
-		for _, ev := range m.g.Apply(prototype.Move{Dir: dir}) {
-			if _, bumped := ev.(prototype.Bumped); bumped {
-				m.msg = "Packed clay. No way through."
-			}
-		}
-	}
-	return m, nil
-}
-
-func (m model) View() tea.View {
-	snap := m.g.View()
-
-	// Bounds of the map in double-width coordinates.
-	minX, minY, maxX, maxY := 0, 0, 0, 0
-	for h := range snap.Tiles {
-		p := hex.DoubleWidth.To(h)
-		minX, maxX = min(minX, p.X), max(maxX, p.X)
-		minY, maxY = min(minY, p.Y), max(maxY, p.Y)
-	}
-	rows := make([][]rune, maxY-minY+1)
-	for y := range rows {
-		rows[y] = []rune(strings.Repeat(" ", maxX-minX+1))
-	}
-	for h, t := range snap.Tiles {
-		if !snap.Visible[h] {
-			continue
-		}
-		p := hex.DoubleWidth.To(h)
-		glyph := '.'
-		if t == prototype.Wall {
-			glyph = '#'
-		}
-		rows[p.Y-minY][p.X-minX] = glyph
-	}
-	pp := hex.DoubleWidth.To(snap.Party)
-	rows[pp.Y-minY][pp.X-minX] = '@'
-
-	var b strings.Builder
-	for _, row := range rows {
-		b.WriteString(string(row))
-		b.WriteByte('\n')
-	}
-	b.WriteString("\nq e / a d / z c to move, esc to quit\n")
-	b.WriteString(m.msg)
-
-	v := tea.NewView(b.String())
-	v.AltScreen = true
-	return v
-}
+const defaultContent = "content/data"
 
 func main() {
+	if err := root().Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+}
+
+// playOptions are the flags of the play command.
+type playOptions struct {
+	seed    uint64
+	content string
+	record  string
+}
+
+func (o *playOptions) addFlags(cmd *cobra.Command) {
+	cmd.Flags().Uint64Var(&o.seed, "seed", 1, "world seed")
+	cmd.Flags().StringVar(&o.content, "content", defaultContent, "content directory")
+	cmd.Flags().StringVar(&o.record, "record", "", "write the command history to this replay log when the game exits")
+}
+
+// root is the command tree. A bare "heptarchy" runs play.
+func root() *cobra.Command {
+	opts := &playOptions{}
+	cmd := &cobra.Command{
+		Use:          "heptarchy",
+		Short:        "Achlydesa: The Dreaming Heptarchy",
+		SilenceUsage: true,
+		Args:         cobra.NoArgs,
+		RunE:         func(*cobra.Command, []string) error { return play(opts) },
+	}
+	opts.addFlags(cmd)
+
+	playOpts := &playOptions{}
+	playCmd := &cobra.Command{
+		Use:   "play",
+		Short: "Play in the terminal",
+		Args:  cobra.NoArgs,
+		RunE:  func(*cobra.Command, []string) error { return play(playOpts) },
+	}
+	playOpts.addFlags(playCmd)
+	cmd.AddCommand(playCmd)
+	return cmd
+}
+
+func play(opts *playOptions) error {
 	if os.Getenv("DEBUG") != "" {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
-			fmt.Println("fatal:", err)
-			os.Exit(1)
+			return err
 		}
 		defer func() { _ = f.Close() }()
 	}
-
-	if _, err := tea.NewProgram(model{g: prototype.New()}).Run(); err != nil {
-		fmt.Println("error:", err)
-		os.Exit(1)
+	reg, err := content.Load(opts.content)
+	if err != nil {
+		return err
 	}
+	g, err := game.New(game.Config{Seed: opts.seed, Content: reg})
+	if err != nil {
+		return err
+	}
+	app, err := tui.NewApp(g)
+	if err != nil {
+		return err
+	}
+	if _, err := tea.NewProgram(app).Run(); err != nil {
+		return err
+	}
+	if opts.record != "" {
+		if err := record(g, opts.record); err != nil {
+			return err
+		}
+	}
+	return app.Err()
+}
+
+func record(g *game.Game, path string) (err error) {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if closeErr := f.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+	return tui.WriteReplay(g, f)
 }

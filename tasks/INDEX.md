@@ -27,7 +27,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-20](M1-skeleton/M1-20-actions.md) | actions: content-defined actions | done | seam | L | M1-07, M1-14, M1-19 |
 | [M1-10](M1-skeleton/M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | done | feature | L | M1-09, M1-14, M1-20 |
 | [M1-16](M1-skeleton/M1-16-lead-follow.md) | Lead and follow, and switching control | done | feature | M | M1-10 |
-| [M1-11](M1-skeleton/M1-11-tui.md) | Terminal frontend on the new API, with a CLI | todo | feature | M | M1-16 |
+| [M1-11](M1-skeleton/M1-11-tui.md) | Terminal frontend on the new API, with a CLI | done | feature | M | M1-16 |
 | [M1-12](M1-skeleton/M1-12-save.md) | save: versioned snapshots and migrations | done | seam | M | M1-16 |
 | [M1-13](M1-skeleton/M1-13-harness.md) | harness: seeded runs and replays | done | feature | S | M1-12 |
 

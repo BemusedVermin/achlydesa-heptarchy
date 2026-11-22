@@ -1,7 +1,7 @@
 ---
 id: M1-11
 title: Terminal frontend on the new API, with a CLI
-status: todo
+status: done
 milestone: M1
 kind: feature
 depends_on: [M1-16]
@@ -83,13 +83,13 @@ func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string
 
 ## Acceptance criteria
 
-- [ ] `go run ./cmd/heptarchy play --seed 1` shows the hall, walks the leader with the six keys while the follower trails, shows the reason when a direction is blocked, `.` waits until something happens, `,` waits to the next phase, `tab` changes the leader, and `f` switches between lead and follow and controlling each member, with the status line showing which mode is on. The timeline strip shows the party's upcoming decisions, and selecting a tick lists them.
-- [ ] `--record run.jsonl` writes a log that `game.Replay` reproduces to the same hash (test via a helper, not the TTY).
-- [ ] Golden tests for `RenderMap`: the start view, after walking away (dimmed memory), halfway down the descent's slope (shading changes smoothly), and a pane smaller than the map. Regenerate with `go test ./internal/frontend/tui -update`.
-- [ ] Pressing the key for a disabled move shows its reason in the status line and sends nothing.
-- [ ] Nothing in `internal/frontend` imports a core package other than `game`, `api` and `content`.
-- [ ] `internal/prototype` is gone.
-- [ ] `go tool task check` passes.
+- [x] `go run ./cmd/heptarchy play --seed 1` shows the hall, walks the leader with the six keys while the follower trails, shows the reason when a direction is blocked, `.` waits until something happens, `,` waits to the next phase, `tab` changes the leader, and `f` switches between lead and follow and controlling each member, with the status line showing which mode is on. The timeline strip shows the party's upcoming decisions, and selecting a tick lists them.
+- [x] `--record run.jsonl` writes a log that `game.Replay` reproduces to the same hash (test via a helper, not the TTY).
+- [x] Golden tests for `RenderMap`: the start view, after walking away (dimmed memory), halfway down the descent's slope (shading changes smoothly), and a pane smaller than the map. Regenerate with `go test ./internal/frontend/tui -update`.
+- [x] Pressing the key for a disabled move shows its reason in the status line and sends nothing.
+- [x] Nothing in `internal/frontend` imports a core package other than `game`, `api` and `content`.
+- [x] `internal/prototype` is gone.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -97,3 +97,13 @@ func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string
 - Terminal font choice (open question in the tech design).
 
 ## Notes
+
+- **Deviation, core API:** `api.TimelineView` gained `Window` (ticks past `Now` the entries reach), set by `timeline`, because the strip needs the window and the view didn't expose it. CUE schema regenerated.
+- **Deviation, prototype test:** `explore_test.go` compared the hall's field of view with `internal/prototype`. At the owner's instruction the prototype and that comparison are both deleted (the rest of `TestStartOpensOnTheLeaderAtTheHallsCenter` stays). That makes follow-up M1-10.F3 (sight vs the prototype) moot; the owner may close it.
+- **Colors:** unknown or missing color names fall back to a neutral grey rather than no color, so shading still works. Truecolor is always emitted; Bubble Tea's renderer downsamples it on 256-color terminals, so there's no separate fewer-steps code.
+- **Status line** shows `Control: follow|individual`, taken from which control option the view offers; these two words come from the api constants, not content text.
+- **Tab** cycles leaders in UID order (leading reorders the party, so party order would ping-pong between two members).
+- **Timeline strip** is three lines: icons, `+N` counts, and a ruler (`^` selected, `|` every 10 ticks). A click on it selects and opens the popup; `[`/`]`/`enter` do the same by keyboard.
+- Files outside the list: `internal/frontend/tui/doc.go`, `internal/frontend/tui/mapscreen.go` (also holds the tick popup), `internal/core/api/timeline*.{go,cue}`, `internal/core/timeline/install.go`, `internal/core/explore/explore_test.go`, `go.mod` (bubbles and lipgloss now direct).
+- Not checked by hand: the live TTY run (`go run ./cmd/heptarchy play --seed 1`); behaviour is covered by tests that drive `App.Update` with key presses.
+- No follow-ups filed.

@@ -35,6 +35,7 @@ func (Ready) EventKind() string { return ReadyKind }
 // TimelineView is the shared timeline: who decides now and what comes next.
 type TimelineView struct {
 	Now     int64           `json:"now"`
+	Window  int64           `json:"window"`  // how many ticks past Now the entries reach
 	Current UID             `json:"current"` // the body deciding now, or 0
 	Entries []TimelineEntry `json:"entries"` // from Now to Now plus the window, in timeline order
 }

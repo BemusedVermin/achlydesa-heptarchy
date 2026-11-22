@@ -27,6 +27,7 @@ package api
 // TimelineView is the shared timeline: who decides now and what comes next.
 #TimelineView: {
 	now:     int64 @go(Now)
+	window:  int64 @go(Window)
 	current: #UID  @go(Current)
 	entries: [...#TimelineEntry] @go(Entries,[]TimelineEntry)
 }

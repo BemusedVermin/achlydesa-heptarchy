@@ -3,7 +3,9 @@ module github.com/BemusedVermin/achlydesa-heptarchy
 go 1.27.4
 
 require (
+	charm.land/bubbles/v2 v2.1.1
 	charm.land/bubbletea/v2 v2.1.2
+	charm.land/lipgloss/v2 v2.0.6
 	cuelang.org/go v0.17.1
 	github.com/expr-lang/expr v1.17.8
 	github.com/fzipp/astar v0.3.0
@@ -17,8 +19,6 @@ require (
 
 require (
 	cel.dev/expr v0.25.2 // indirect
-	charm.land/bubbles/v2 v2.1.1 // indirect
-	charm.land/lipgloss/v2 v2.0.6 // indirect
 	cloud.google.com/go v0.123.0 // indirect
 	cloud.google.com/go/auth v0.24.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.3.0 // indirect

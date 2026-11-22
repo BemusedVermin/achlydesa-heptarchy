@@ -15,7 +15,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/prototype"
 )
 
 const sampleDir = "../../../content/data"
@@ -147,7 +146,7 @@ func cellAt(m *api.MapView, h api.Hex) (api.CellView, bool) {
 
 func TestStartOpensOnTheLeaderAtTheHallsCenter(t *testing.T) {
 	fx := newFixture(t, "", func(b *content.Bundle) {
-		// A party of one, so the view's sight is the leader's alone, as in the prototype.
+		// A party of one, so the view's sight is the leader's alone.
 		b.Templates["template.party.main"] = content.Template{
 			Party: &content.PartyDef{Members: []api.ContentID{"template.person.reaper"}},
 		}
@@ -166,35 +165,6 @@ func TestStartOpensOnTheLeaderAtTheHallsCenter(t *testing.T) {
 	}
 	if view.Map == nil || view.Map.Name != "The test hall" {
 		t.Fatalf("map view = %+v, want the test hall", view.Map)
-	}
-	// The visible cells are exactly the prototype's field of view, around the same center.
-	want := map[api.Hex]bool{}
-	for h, ok := range prototype.New().View().Visible {
-		if ok {
-			want[api.Hex{Q: h.Q, R: h.R}] = true
-		}
-	}
-	got := map[api.Hex]bool{}
-	for _, c := range view.Map.Cells {
-		if c.Visible {
-			got[api.Hex{Q: c.Hex.Q - at.At.Hex.Q, R: c.Hex.R - at.At.Hex.R}] = true
-		}
-	}
-	// M1-14's sight is line based and the prototype's is shadowcasting, so a few hexes behind the
-	// pillars differ; everything else agrees.
-	differ := 0
-	for h := range want {
-		if !got[h] {
-			differ++
-		}
-	}
-	for h := range got {
-		if !want[h] {
-			differ++
-		}
-	}
-	if differ > len(want)/10 {
-		t.Errorf("%d of %d hexes differ from the prototype's field of view", differ, len(want))
 	}
 }
 
