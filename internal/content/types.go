@@ -69,6 +69,9 @@ type PartyConfig struct {
 	SightRadius int `json:"sight_radius"` // hexes; 6 to start
 	// SightDepth is how many cells up and down the party sees; 6 to start.
 	SightDepth int `json:"sight_depth"`
+	// PlanFloorDepth is how many cells above or below the focus a standable cell hides the walls of
+	// the same plan-view hex; 4 to start. It lets a slope read as a floor getting lower.
+	PlanFloorDepth int `json:"plan_floor_depth"`
 	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules: 1, 1 and 8 to start.
 	MaxStepUp   int `json:"max_step_up"`
 	MaxStepDown int `json:"max_step_down"`
