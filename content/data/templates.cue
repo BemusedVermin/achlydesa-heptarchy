@@ -12,6 +12,7 @@ templates: {
 		actions:   ["action.step"]
 		body:      "body.human"
 		protected: true
+		combatant: {faction: "faction.party", types: ["type.cut", "type.press", "type.relic", "type.name"], graftable: true}
 	}
 	"template.person.salken": {
 		name: "text.template.person.salken"
@@ -20,6 +21,7 @@ templates: {
 		actions:   ["action.step"]
 		body:      "body.human"
 		protected: true
+		combatant: {faction: "faction.party", types: ["type.cut", "type.press", "type.relic", "type.name"], graftable: true}
 	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]

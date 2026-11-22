@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
@@ -39,6 +40,83 @@ func (r *Registry) Faction(id api.ContentID) (Faction, bool) {
 
 // Warnings lists problems that don't make the content invalid, such as one-sided hostility.
 func (r *Registry) Warnings() []string { return append([]string(nil), r.warnings...) }
+
+// TypeTicks is the wind-up and recovery ticks the type adds to a form it is loaded into.
+func (r *Registry) TypeTicks(id api.ContentID, env ActionEnv) (windup, recovery int64, err error) {
+	if _, ok := r.bundle.Types[string(id)]; !ok {
+		return 0, 0, fmt.Errorf("content: unknown type %q", id)
+	}
+	run := func(name string, program *vm.Program) (int64, error) {
+		if program == nil {
+			return 0, nil
+		}
+		out, err := expr.Run(program, env)
+		if err != nil {
+			return 0, fmt.Errorf("content: type %q %s: %w", id, name, err)
+		}
+		ticks, ok := out.(int64)
+		if !ok {
+			return 0, fmt.Errorf("content: type %q %s returned %T, not an integer", id, name, out)
+		}
+		return ticks, nil
+	}
+	timing := r.typeTicks[id]
+	if windup, err = run("windup", timing.windup); err != nil {
+		return 0, 0, err
+	}
+	if recovery, err = run("recovery", timing.recovery); err != nil {
+		return 0, 0, err
+	}
+	return windup, recovery, nil
+}
+
+// compiledTypeTicks holds a type's timing formulas, compiled against ActionEnv; nil when empty.
+type compiledTypeTicks struct{ windup, recovery *vm.Program }
+
+// compileTypeTicks compiles a type's wind-up and recovery formulas.
+func compileTypeTicks(path string, def DamageType) (compiledTypeTicks, []error) {
+	var timing compiledTypeTicks
+	var problems []error
+	for _, field := range []struct {
+		name string
+		src  string
+		slot **vm.Program
+	}{{"windup", def.Windup, &timing.windup}, {"recovery", def.Recovery, &timing.recovery}} {
+		if field.src == "" {
+			continue
+		}
+		program, err := expr.Compile(field.src, expr.Env(ActionEnv{}), expr.AsInt64())
+		if err != nil {
+			problems = append(problems, fmt.Errorf("%s.%s: %w", path, field.name, err))
+			continue
+		}
+		*field.slot = program
+	}
+	return timing, problems
+}
+
+// checkCombatant checks a template's combatant: a known faction and innate types.
+func (r *Registry) checkCombatant(key string) []error {
+	def := r.bundle.Templates[key].Combatant
+	if def == nil {
+		return nil
+	}
+	var problems []error
+	path := fmt.Sprintf("templates[%q].combatant", key)
+	if _, ok := r.bundle.Factions[string(def.Faction)]; !ok {
+		problems = append(problems, fmt.Errorf("%s.faction: unknown faction %q", path, def.Faction))
+	}
+	for i, id := range def.Types {
+		kind, ok := r.bundle.Types[string(id)]
+		switch {
+		case !ok:
+			problems = append(problems, fmt.Errorf("%s.types[%d]: unknown type %q", path, i, id))
+		case !kind.Innate:
+			problems = append(problems, fmt.Errorf("%s.types[%d]: type %q is not innate", path, i, id))
+		}
+	}
+	return problems
+}
 
 // TypeAllowed runs the type's condition against env. A type with no condition is always allowed.
 func (r *Registry) TypeAllowed(id api.ContentID, env TypeEnv) (bool, error) {
@@ -104,6 +182,9 @@ func (r *Registry) checkTypes() []error {
 		def := r.bundle.Types[key]
 		path := fmt.Sprintf("types[%q]", key)
 		text(path+".name", def.Name)
+		timing, errs := compileTypeTicks(path, def)
+		problems = append(problems, errs...)
+		r.typeTicks[api.ContentID(key)] = timing
 		if def.Consumes != nil {
 			if _, ok := r.bundle.Items[string(*def.Consumes)]; !ok {
 				problems = append(problems, fmt.Errorf("%s.consumes: unknown item %q", path, *def.Consumes))
@@ -162,6 +243,7 @@ func (r *Registry) checkTypes() []error {
 		}
 	}
 	for _, key := range sortedKeys(r.bundle.Templates) {
+		problems = append(problems, r.checkCombatant(key)...)
 		for i, stack := range r.bundle.Templates[key].Inventory {
 			path := fmt.Sprintf("templates[%q].inventory[%d]", key, i)
 			if _, ok := r.bundle.Items[string(stack.Item)]; !ok {

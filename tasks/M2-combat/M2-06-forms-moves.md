@@ -1,7 +1,7 @@
 ---
 id: M2-06
 title: The seven forms as actions, with types and timing
-status: todo
+status: done
 milestone: M2
 kind: content
 depends_on: [M2-04]
@@ -66,17 +66,35 @@ Body-wide effects apply in UID order. Strike's 99 stands in for "comes off in on
 
 ## Acceptance criteria
 
-- [ ] Each form starts and lands on an adjacent test dummy with the expected events, occupying the right channels: Strike one arm, Sweep and Graft two.
-- [ ] Sweep isn't offered while only one arm is free.
-- [ ] Strike loaded with Soak on a clay part severs it on landing and spends one lake water at the start. With no lake water, the option is disabled with a reason.
-- [ ] The dummy stepping out of reach before a Strike lands makes it miss, and the lake water is still spent.
-- [ ] Name on the wrong target, and Relic against old matter, are rejected by the validator with reasons.
-- [ ] A Press landing on a body that's winding up cancels that swing.
-- [ ] In a one-cell soop, the member behind the front one has no attack options against the creature beyond it.
-- [ ] `go tool task check` passes.
+- [x] Each form starts and lands on an adjacent test dummy with the expected events, occupying the right channels: Strike one arm, Sweep and Graft two.
+- [x] Sweep isn't offered while only one arm is free.
+- [x] Strike loaded with Soak on a clay part severs it on landing and spends one lake water at the start. With no lake water, the option is disabled with a reason.
+- [x] The dummy stepping out of reach before a Strike lands makes it miss, and the lake water is still spent.
+- [x] Name on the wrong target, and Relic against old matter, are rejected by the validator with reasons.
+- [x] A Press landing on a body that's winding up cancels that swing.
+- [x] In a one-cell soop, the member behind the front one has no attack options against the creature beyond it.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Alert and death (M2-07). The bodies view and creature behavior (M2-08).
 
 ## Notes
+
+**Assumptions and deviations**
+
+- **Human part integrity** is now 3 (head, arms, legs) and 5 (torso), as the spec's lethality sentence needs. Flesh is weak to Cut, so a Cut Strike takes off any human part in one blow; the "ordinary" hits in the tests use Press. Crawler parts are unchanged (M2-11 tunes). Three numbers in `combat/effects_test.go` followed.
+- **Stand has recovery 1, not 0.** `actions` refuses a form that takes no time (`too_quick`), and Stand's `ready self:all` frees the channel at once anyway. Stand also `requires` that the body is not already `status.standing`, or it could freeze everyone for ever; for that `ActionEnv` gained `Statuses` (the actor's status IDs), and `status.standing` is new content.
+- **Name now consumes `item.name`** (new, bound, kind `name`). Without an item the type's condition `target_uid == item_bound_to` had nothing to compare to, so Name could never be used. The pack holds one stack per learned name, tied to its owner; the swing spends it, which is "speaking it uses it up". The condition's `item_bound_to` is the target's UID when the pack holds an item bound to it, else the first bound stack's owner, else 0. Keepsake works the same. M2-05's trigger idea for Name is no longer needed for the cost.
+- **`choice.<name>` in text parameters.** Graft's `attach_part(item: choice.piece)` needed a text parameter that reads one of the action's choices; `effects` reads `choice.` prefixed text parameters from `Context.Choices` (`effects.ChoicePrefix`), and `attach_part`'s content check skips them. Choice `piece` offers the pieces in the pack.
+- **Provider and the disabled option.** The `type` provider follows the spec (innate plus consumable types whose item is in the pack), so with no lake water Soak is not listed and `actions.Validate` refuses it with the generic "not available" reason; the pack-short reason shows only for items spent between choosing and starting. Offering spent types as disabled options is filed as M2-06.F4.
+- **Validator**: a body-aimed move (Sweep) is refused as immune only when every attached part is immune. A form tagged `graft` needs a `Graftable` target. Type timing formulas run over `ActionEnv`; `TypeTicks` returns both. A formula error at play time adds nothing (formulas are compiled at load).
+- **Sample content**: forms live in `content/data/forms.cue` but no sample template knows them yet, so existing menus and goldens are unchanged; M2-08/M2-11 hand them out. The two person templates gain `combatant` (faction party, Cut/Press/Relic/Name, graftable). The soop criterion is tested as a line (back member, front member, creature) rather than a authored one-cell map; range 1 is what shuts the back member out.
+- **Shared test names**: the `actions` tests' stand-in choice is now called `flavor`, because `combat.Install` registers the real `type`. The `effects_test` rig adds its status instead of replacing the sample ones. The content test of `EffectSites` now checks for the sites it needs rather than an exact list.
+- `internal/core/timeline/testdata/rapid/...fail` appeared once during a full run (a flaky property test under load, unrelated: it replays green). I deleted it.
+
+**Files outside the Deliverables**
+
+`internal/content/{actions.go,env.go,registry.go,load.go,types_check.go}` (type timing, `EffectSites` for types, `Statuses`, combatant checks), `internal/core/actions/actions.go` (`Statuses` in the env), `internal/core/effects/effects.go` (`choice.` parameters), `internal/core/combat/effects.go` (install, content check), `content/data/{items,statuses,templates,bodies}.cue`, `internal/core/comp/comp.go`, generated `*_go_gen.cue`, and the tests named above.
+
+**Follow-ups filed:** [M2-06.F1](../followups/M2-06.F1-strike-sever-weakness.md) (question: Strike vs Sever on a weakness), [M2-06.F2](../followups/M2-06.F2-crawls-tag.md) (`crawls` tag for Stand), [M2-06.F3](../followups/M2-06.F3-per-part-weakness-in-sweeps.md) (per-part weakness in Sweep), [M2-06.F4](../followups/M2-06.F4-show-unavailable-types.md) (spent types as disabled options).

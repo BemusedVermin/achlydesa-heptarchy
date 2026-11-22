@@ -13,6 +13,8 @@ items: {
 	"item.lees": {name: "text.item.lees", kind: "consumable", bound: false}
 	// A belonging of one candidate, burned by the keepsake type against that candidate.
 	"item.keepsake": {name: "text.item.keepsake", kind: "keepsake", bound: true}
+	// A name the party has learned, tied to its owner and used up when spoken.
+	"item.name": {name: "text.item.name", kind: "name", bound: true}
 }
 
 text: {
@@ -23,4 +25,5 @@ text: {
 	"text.item.violet_blood": "Violet blood"
 	"text.item.lees":         "lees"
 	"text.item.keepsake":     "keepsake"
+	"text.item.name":         "name"
 }

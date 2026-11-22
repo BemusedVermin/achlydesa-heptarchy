@@ -27,7 +27,7 @@ type opts struct {
 	actions []api.ContentID // what the fighter knows; defaults to every test action and the step
 	arms    int             // the fighter's arms; defaults to 3
 	dummyQ  int             // where the dummy stands; defaults to 1, next to the fighter
-	hooks   bool            // register a "type" choice with a validator and a modifier
+	hooks   bool            // register a "flavor" choice with a validator and a modifier
 	mutate  func(*content.Bundle)
 }
 
@@ -76,7 +76,7 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 			Uses: use("body", 1), Target: "self", Windup: "0", Recovery: "4",
 			OnStart: []content.EffectRef{{Do: "test.gate", Params: map[string]string{}}},
 		},
-		"load": {Uses: use("body", 1), Target: "none", Choices: []string{"type"}, Windup: "0", Recovery: "2"},
+		"load": {Uses: use("body", 1), Target: "none", Choices: []string{"flavor"}, Windup: "0", Recovery: "2"},
 	}
 	for key, def := range defs {
 		def.Name, def.Key = api.ContentID("text.action.test."+key), key
@@ -155,7 +155,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 		if err != nil {
 			return err
 		}
-		err = actions.RegisterChoice(w, "type", func(*sim.World, ecs.Entity) []string {
+		err = actions.RegisterChoice(w, "flavor", func(*sim.World, ecs.Entity) []string {
 			return []string{"type.a", "type.b"}
 		})
 		if err != nil || !o.hooks {
@@ -174,13 +174,13 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 // ticks to recover.
 func (fx *fixture) addHooks(w *sim.World) {
 	actions.AddValidator(w, func(_ *sim.World, in actions.Intent) (bool, api.Text) {
-		if in.Choices["type"] == "type.a" {
+		if in.Choices["flavor"] == "type.a" {
 			return false, api.Text{ID: "text.actions.requires"}
 		}
 		return true, api.Text{}
 	})
 	actions.AddModifier(w, func(_ *sim.World, in actions.Intent) actions.Modifier {
-		if in.Choices["type"] == "type.b" {
+		if in.Choices["flavor"] == "type.b" {
 			return actions.Modifier{Recovery: 5}
 		}
 		return actions.Modifier{}
@@ -471,11 +471,11 @@ func TestChoicesHooksAndOptionOrder(t *testing.T) {
 	if !b.Enabled || !strings.Contains(b.Label, "busy 7") {
 		t.Errorf("type.b = %+v; want it enabled and busy 2+5 = 7 ticks", b)
 	}
-	if got := actions.Startable(fx.w, fx.fighter); len(got) != 1 || got[0].Choices["type"] != "type.b" {
+	if got := actions.Startable(fx.w, fx.fighter); len(got) != 1 || got[0].Choices["flavor"] != "type.b" {
 		t.Errorf("Startable = %v, want only type.b", got)
 	}
 	bad := api.Do{
-		Actor: fx.uid(fx.fighter), Action: "action.test.load", Choices: map[string]string{"type": "type.zzz"},
+		Actor: fx.uid(fx.fighter), Action: "action.test.load", Choices: map[string]string{"flavor": "type.zzz"},
 	}
 	if rejected, ok := find[api.Rejected](fx.apply(bad)); !ok || rejected.Reason.ID != "text.actions.bad_choice" {
 		t.Errorf("an unoffered choice was not rejected as bad_choice")

@@ -1,6 +1,7 @@
 package content
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -29,9 +30,14 @@ func TestSampleActions(t *testing.T) {
 	if _, present, err := reg.ActionConnects("action.step", env); err != nil || present {
 		t.Errorf("connects present = %v, %v; want the default", present, err)
 	}
-	sites := reg.EffectSites()
-	if len(sites) != 1 || sites[0].Path != `actions["action.step"].on_land` {
-		t.Errorf("EffectSites = %+v", sites)
+	var paths []string
+	for _, site := range reg.EffectSites() {
+		paths = append(paths, site.Path)
+	}
+	for _, want := range []string{`actions["action.step"].on_land`, `actions["action.strike"].on_land`, `types["type.press"].on_land`} {
+		if !slices.Contains(paths, want) {
+			t.Errorf("EffectSites = %v, want it to include %s", paths, want)
+		}
 	}
 	template, _ := reg.Template("template.person.reaper")
 	if len(template.Actions) != 1 || template.Actions[0] != "action.step" {

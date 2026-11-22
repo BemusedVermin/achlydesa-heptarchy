@@ -59,6 +59,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // Busy marks a channel (a body or one of its parts) busy until a tick. No component means free.
 #Busy: {
 	until: int64 @go(Until)
+
+	// Locked is true when a lock effect, not the channel's own action, is holding it busy.
+	locked?: bool @go(Locked)
 }
 
 // Actor puts a body on the timeline.
@@ -154,3 +157,11 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Allegiance: {
 	faction: api.#ContentID @go(Faction)
 }
+
+// Combatant is what a fighting body can do beyond its forms: the types it carries by nature.
+#Combatant: {
+	types: [...api.#ContentID] @go(Types,[]api.ContentID)
+}
+
+// Graftable marks a body that a graft can be fitted onto.
+#Graftable: {}

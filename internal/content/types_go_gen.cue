@@ -77,6 +77,14 @@ import (
 	innate:     bool                  @go(Innate)
 	consumes?:  null | api.#ContentID @go(Consumes,*api.ContentID)
 	condition?: string                @go(Condition)
+
+	// Windup and Recovery are Expr ticks (over ActionEnv) added to the wind-up and recovery of any
+	// form this type is loaded into. Empty means 0.
+	windup?:   string @go(Windup)
+	recovery?: string @go(Recovery)
+
+	// OnLand are effects appended to the form's own landing effects.
+	on_land?: [...#EffectRef] @go(OnLand,[]EffectRef)
 }
 
 // Item is something the pack carries.
@@ -145,6 +153,16 @@ import (
 
 	// Inventory is the pack the entity starts with.
 	inventory?: [...#StackDef] @go(Inventory,[]StackDef)
+
+	// Combatant makes the entity a fighter: a side, innate types and whether grafts can be fitted.
+	combatant?: null | #CombatantDef @go(Combatant,*CombatantDef)
+}
+
+// CombatantDef puts a template's entities in a fight.
+#CombatantDef: {
+	faction: api.#ContentID @go(Faction)
+	types?: [...api.#ContentID] @go(Types,[]api.ContentID)
+	graftable?: bool @go(Graftable)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.

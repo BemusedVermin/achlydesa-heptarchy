@@ -39,6 +39,7 @@ package content
 	Distance:  int
 	Used:      int
 	Choice: {[string]: string} @go(,map[string]string)
+	Statuses: [...string] @go(,[]string)
 }
 
 // TypeEnv is what a damage type's condition can see.

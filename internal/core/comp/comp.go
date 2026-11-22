@@ -163,6 +163,14 @@ type Allegiance struct {
 	Faction api.ContentID `json:"faction"` // a faction ID
 }
 
+// Combatant is what a fighting body can do beyond its forms: the types it carries by nature.
+type Combatant struct {
+	Types []api.ContentID `json:"types"` // innate type IDs
+}
+
+// Graftable marks a body that a graft can be fitted onto.
+type Graftable struct{}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -190,4 +198,6 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Statuses](world)
 	ecs.ComponentID[Graft](world)
 	ecs.ComponentID[Allegiance](world)
+	ecs.ComponentID[Combatant](world)
+	ecs.ComponentID[Graftable](world)
 }

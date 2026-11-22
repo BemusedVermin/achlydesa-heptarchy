@@ -7,17 +7,25 @@ types: [string]: content.#DamageType
 // The eleven types of the design table. Which item a move burns, and when it may be used, is data.
 types: {
 	"type.cut": {name: "text.type.cut", innate: true}
-	"type.press": {name: "text.type.press", innate: true}
+	// Press staggers: landing on a body that is winding up cancels its swings.
+	"type.press": {
+		name:   "text.type.press"
+		innate: true
+		on_land: [{do: "interrupt", params: {bodies: "target", when: "winding_up"}}]
+	}
 	"type.relic": {name: "text.type.relic", innate: true}
-	// A name works only on its owner; speaking it in the deep using it up is a trigger (M2-05).
+	// A name works only on its owner, and speaking it uses it up: the move spends a name the party has
+	// learned, tied to one person (item.name).
 	"type.name": {
 		name:      "text.type.name"
 		innate:    true
+		consumes:  "item.name"
 		condition: "target_uid == item_bound_to"
 	}
 	"type.burn": {name: "text.type.burn", innate: false, consumes: "item.coal"}
 	"type.rot": {name: "text.type.rot", innate: false, consumes: "item.salk_dust"}
-	"type.soak": {name: "text.type.soak", innate: false, consumes: "item.lake_water"}
+	// Soak is heavy: it adds to the recovery of any form it is loaded into.
+	"type.soak": {name: "text.type.soak", innate: false, consumes: "item.lake_water", recovery: "2"}
 	"type.light": {name: "text.type.light", innate: false, consumes: "item.daylight_jar"}
 	"type.violet": {name: "text.type.violet", innate: false, consumes: "item.violet_blood"}
 	"type.keepsake": {

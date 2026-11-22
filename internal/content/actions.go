@@ -227,5 +227,10 @@ func (r *Registry) EffectSites() []EffectSite {
 			sites = append(sites, EffectSite{Path: fmt.Sprintf("actions[%q].on_land", id), Refs: def.OnLand})
 		}
 	}
+	for _, id := range sortedKeys(r.bundle.Types) {
+		if refs := r.bundle.Types[id].OnLand; len(refs) > 0 {
+			sites = append(sites, EffectSite{Path: fmt.Sprintf("types[%q].on_land", id), Refs: refs})
+		}
+	}
 	return sites
 }

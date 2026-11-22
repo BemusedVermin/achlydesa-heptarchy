@@ -95,6 +95,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		templates: map[api.ContentID]*template.Template{},
 		actions:   map[api.ContentID]compiledAction{},
 		types:     map[api.ContentID]*vm.Program{},
+		typeTicks: map[api.ContentID]compiledTypeTicks{},
 	}
 	var problems []error
 	problems = append(problems, registry.checkIDs()...)

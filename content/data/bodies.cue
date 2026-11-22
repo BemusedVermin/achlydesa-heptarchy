@@ -11,28 +11,28 @@ parts: {
 		name:      "text.part.head"
 		slot:      "head"
 		material:  "material.flesh"
-		integrity: 8
+		integrity: 3
 		grants: [{kind: "targeting"}]
 	}
 	"part.human_arm": {
 		name:      "text.part.arm"
 		slot:      "arm"
 		material:  "material.flesh"
-		integrity: 6
+		integrity: 3
 		grants: [{kind: "action"}]
 	}
 	"part.human_legs": {
 		name:      "text.part.legs"
 		slot:      "legs"
 		material:  "material.flesh"
-		integrity: 10
+		integrity: 3
 		grants: [{kind: "speed", value: 2}]
 	}
 	"part.human_torso": {
 		name:      "text.part.torso"
 		slot:      "torso"
 		material:  "material.flesh"
-		integrity: 12
+		integrity: 5
 		vital:     true
 		grants: []
 	}

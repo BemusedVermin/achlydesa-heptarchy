@@ -35,6 +35,7 @@ type ActionEnv struct {
 	Distance  int               `expr:"distance"`   // hexes from the actor to its target, or 0
 	Used      int               `expr:"used"`       // how many channels it occupies
 	Choice    map[string]string `expr:"choice"`     // the choices made, by provider name
+	Statuses  []string          `expr:"statuses"`   // the actor's status IDs
 }
 
 // TypeEnv is what a damage type's condition can see.

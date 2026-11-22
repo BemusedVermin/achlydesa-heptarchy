@@ -21,6 +21,7 @@ type Registry struct {
 	templates map[api.ContentID]*template.Template // parsed text, by text ID
 	actions   map[api.ContentID]compiledAction     // compiled action formulas
 	types     map[api.ContentID]*vm.Program        // compiled type conditions; absent when a type has none
+	typeTicks map[api.ContentID]compiledTypeTicks  // compiled type wind-up and recovery formulas
 	warnings  []string
 }
 

@@ -75,6 +75,12 @@ type DamageType struct {
 	Innate    bool           `json:"innate"`              // always available, needing no item
 	Consumes  *api.ContentID `json:"consumes,omitempty"`  // item ID used up per move
 	Condition string         `json:"condition,omitempty"` // Expr bool over TypeEnv; empty means always
+	// Windup and Recovery are Expr ticks (over ActionEnv) added to the wind-up and recovery of any
+	// form this type is loaded into. Empty means 0.
+	Windup   string `json:"windup,omitempty"`
+	Recovery string `json:"recovery,omitempty"`
+	// OnLand are effects appended to the form's own landing effects.
+	OnLand []EffectRef `json:"on_land,omitempty"`
 }
 
 // Item is something the pack carries.
@@ -140,7 +146,16 @@ type Template struct {
 	Protected bool `json:"protected,omitempty"`
 	// Inventory is the pack the entity starts with.
 	Inventory []StackDef `json:"inventory,omitempty"`
-	// Later: Combatant, Needs, Inventory, Triggers, ...
+	// Combatant makes the entity a fighter: a side, innate types and whether grafts can be fitted.
+	Combatant *CombatantDef `json:"combatant,omitempty"`
+	// Later: Needs, Triggers, ...
+}
+
+// CombatantDef puts a template's entities in a fight.
+type CombatantDef struct {
+	Faction   api.ContentID   `json:"faction"`             // a faction ID
+	Types     []api.ContentID `json:"types,omitempty"`     // innate type IDs the body can load into its forms
+	Graftable bool            `json:"graftable,omitempty"` // whether a graft can be fitted onto it
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.

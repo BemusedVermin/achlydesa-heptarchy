@@ -42,7 +42,7 @@ func newRig(t *testing.T) *rig {
 	bundle.Start = content.Start{}
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Kind: "piece", Part: &armPart}
-	bundle.Statuses = map[string]content.Status{"status.braced": {Name: "text.status.braced"}}
+	bundle.Statuses["status.braced"] = content.Status{Name: "text.status.braced"}
 	bundle.Text["text.item.test_arm"] = "spare arm"
 	bundle.Text["text.status.braced"] = "braced"
 	bundle.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.crawler"))}
@@ -140,11 +140,11 @@ func TestDamage(t *testing.T) {
 		wantEvents []string
 		wantLeft   int
 	}{
-		{"wears an arm down", "4", []string{api.PartDamagedKind, api.PartDamagedKind}, 2},
+		{"wears an arm down", "2", []string{api.PartDamagedKind, api.PartDamagedKind}, 1},
 		{"past zero severs, damage first", "9", []string{
 			api.PartDamagedKind, api.PartSeveredKind, api.PartDamagedKind, api.PartSeveredKind,
 		}, 0},
-		{"zero does nothing", "0", nil, 6},
+		{"zero does nothing", "0", nil, 3},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -228,8 +228,8 @@ func TestSever(t *testing.T) {
 			if pos := ecs.NewMap[comp.Pos](r.w.ECS); !pos.Has(arm) || *pos.Get(arm) != here {
 				t.Error("the severed arm is not where the body stands")
 			}
-			if got := r.integrity(arm); got != 6 {
-				t.Errorf("a cut arm's integrity = %d, want it kept at 6", got)
+			if got := r.integrity(arm); got != 3 {
+				t.Errorf("a cut arm's integrity = %d, want it kept at 3", got)
 			}
 		})
 	}

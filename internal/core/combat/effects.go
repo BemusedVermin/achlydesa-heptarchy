@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -47,6 +48,9 @@ func Install(w *sim.World) error {
 		if err := effects.Register(w, p); err != nil {
 			return err
 		}
+	}
+	if err := installTypes(w); err != nil {
+		return err
 	}
 	return w.Systems.Register(sim.System{Name: expireSystem, Cadence: sim.PerTurn, Run: expireStatuses})
 }
@@ -492,8 +496,8 @@ func verifyAddStatusContent(reg *content.Registry, raw map[string]string) error 
 
 func verifyAttachContent(reg *content.Registry, raw map[string]string) error {
 	id, ok := raw["item"]
-	if !ok {
-		return nil
+	if !ok || strings.HasPrefix(id, effects.ChoicePrefix) {
+		return nil // a chosen piece is only known when the action is played
 	}
 	item, found := reg.Item(api.ContentID(id))
 	if !found {

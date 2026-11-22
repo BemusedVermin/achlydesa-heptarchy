@@ -2,7 +2,7 @@ package data
 
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
-// Statuses a body can be under for a while. The forms that grant them arrive with M2-06.
+// Statuses a body can be under for a while. The forms that grant them are in forms.cue.
 statuses: [string]: content.#Status
 
 statuses: {}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strings"
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/ast"
@@ -438,7 +439,24 @@ func (p *params) Bool(name string) (bool, error) {
 	return out.(bool), nil
 }
 
-func (p *params) String(name string) (string, error) { return p.source(name, KindText) }
+// ChoicePrefix starts a text parameter that names one of the action's choices instead of a literal:
+// "choice.piece" reads the value chosen for "piece".
+const ChoicePrefix = "choice."
+
+func (p *params) String(name string) (string, error) {
+	src, err := p.source(name, KindText)
+	if err != nil {
+		return "", err
+	}
+	if choice, ok := strings.CutPrefix(src, ChoicePrefix); ok {
+		value, made := p.ctx.Choices[choice]
+		if !made {
+			return "", fmt.Errorf("parameter %q reads choice %q, which the action did not make", name, choice)
+		}
+		return value, nil
+	}
+	return src, nil
+}
 
 func (p *params) Bodies(name string) ([]ecs.Entity, error) {
 	src, err := p.source(name, KindBodies)

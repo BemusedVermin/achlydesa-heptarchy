@@ -256,9 +256,15 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	if choices == nil {
 		choices = map[string]string{}
 	}
+	var statuses []string
+	if held := ecs.NewMap[comp.Statuses](ev.w.ECS); alive(ev.w, p.actor) && held.Has(p.actor) {
+		for _, entry := range held.Get(p.actor).Active {
+			statuses = append(statuses, string(entry.Status))
+		}
+	}
 	return content.ActionEnv{
 		Speed: timeline.Speed(ev.w, p.actor), StepTicks: stepTicks,
-		Distance: ev.distance(p.actor, p.target), Used: len(p.channels), Choice: choices,
+		Distance: ev.distance(p.actor, p.target), Used: len(p.channels), Choice: choices, Statuses: statuses,
 	}, nil
 }
 
