@@ -95,6 +95,10 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 	bundle.Text["text.template.test.dummy"] = "Dummy"
 	bundle.Templates["template.test.fighter"] = content.Template{
 		Actor: &content.ActorDef{Controller: timeline.PlayerController}, Actions: known,
+		// The types a body knows innately are the sample's content choice's business.
+		Data: content.Data{Lists: map[string][]string{
+			"types": {"type.cut", "type.name", "type.press", "type.relic"},
+		}},
 	}
 	bundle.Templates["template.test.dummy"] = content.Template{Actor: &content.ActorDef{Controller: "idle"}}
 	if o.mutate != nil {

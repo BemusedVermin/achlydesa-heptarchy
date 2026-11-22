@@ -2,12 +2,16 @@ package data
 
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
-// Statuses a body can be under for a while. The forms that grant them arrive with M2-06.
+// Statuses a body can be under for a while. The forms that grant them are in forms.cue.
 statuses: [string]: content.#Status
 
-statuses: {}
+statuses: {
+	// Granted by Stand. It carries no rules of its own yet.
+	"status.standing": {name: "text.status.standing"}
+}
 
 text: {
+	"text.status.standing":        "standing"
 	"text.combat.severed":         "The part was cut away."
 	"text.combat.pack_short":      "The pack has no {{.item}}."
 	"text.combat.no_severed_part": "There is no severed part to fit."

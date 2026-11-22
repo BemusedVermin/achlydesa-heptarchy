@@ -22,7 +22,17 @@ const sampleDir = "../../../content/data"
 
 func config(t *testing.T) game.Config {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
+	bundle, err := content.LoadBundle(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// These tests walk and read goldens drawn for a party that can only step.
+	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
+		person := bundle.Templates[id]
+		person.Actions = []api.ContentID{"action.step"}
+		bundle.Templates[id] = person
+	}
+	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -44,7 +44,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-05](M2-combat/M2-05-triggers.md) | Triggers: content reacting to events | done | seam | S | M2-04 |
 | [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | done | feature | S | M1-11, M1-13 |
 | [M2-13](M2-combat/M2-13-rules-as-content.md) | Rules as content: records, rules and choices in CUE | done | seam | L | M2-05, M2-12 |
-| [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | todo | content | M | M2-13 |
+| [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | done | content | M | M2-13 |
 | [M2-07](M2-combat/M2-07-hostility-alert-death.md) | Hostility, alert and death | todo | feature | M | M2-06 |
 | [M2-08](M2-combat/M2-08-act-options-controller.md) | The bodies view and the creature controller | todo | feature | M | M2-07 |
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
@@ -77,6 +77,11 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M2-06.F1](followups/M2-06.F1-strike-sever-weakness.md) | Should Strike and Sever differ on a weakness the way these placeholders do? | proposed | question | unplanned | M2-06 |
+| [M2-06.F2](followups/M2-06.F2-crawls-tag.md) | A crawls tag, so Stand freezes only the crawlers | proposed | feature | M2 | M2-06 |
+| [M2-06.F3](followups/M2-06.F3-relic-innate-to-grafts.md) | Relic as innate to grafts | proposed | seam | M2 | M2-06 |
+| [M2-06.F4](followups/M2-06.F4-disabled-option-is-information.md) | A disabled option is information: Name and Keepsake on the wrong body | proposed | question | unplanned | M2-06 |
+| [M2-06.F5](followups/M2-06.F5-option-labels-name-the-choice.md) | Option labels show a chosen record's ID, not its name | proposed | bug | M2 | M2-06 |
 | [M2-13.F1](followups/M2-13.F1-cue-schema-tests.md) | Test CUE constraints against the real schema | done | test | unplanned | M2-13 |
 | [M2-01.F1](followups/M2-01.F1-render-fact-values.md) | Render a fact's value as text in the log | done | seam | unplanned | M2-01 |
 | [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | obsolete | seam | M1 | M1-15 |

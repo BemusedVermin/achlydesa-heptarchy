@@ -12,24 +12,45 @@ _fallInjury: {
 	do: [{do: "damage", params: {parts: "target:legs", amount: "cells - 1"}}]
 }
 
+// What a person knows: the seven forms, and the types innate to a body. The design gives everyone
+// Cut and Name, and the Reaper Press (the thrukk grip). Relic is innate to grafts, which an offer
+// can't see yet.
+_forms: [
+	"action.step", "action.strike", "action.sweep", "action.sever", "action.pin", "action.stand",
+	"action.give", "action.graft",
+]
+_innateTypes: ["type.cut", "type.name", "type.press"]
+
 templates: {
 	"template.person.reaper": {
 		name: "text.template.person.reaper"
 		appearance: {glyph: "@", color: "red"}
 		actor: controller: "player"
-		actions:   ["action.step"]
+		actions:   _forms
 		body:      "body.human"
 		protected: true
-		triggers:  [_fallInjury]
+		tags: ["graftable"]
+		lists: types: _innateTypes
+		triggers: [_fallInjury]
 	}
 	"template.person.salken": {
 		name: "text.template.person.salken"
 		appearance: {glyph: "@", color: "cyan"}
 		actor: controller: "follow"
-		actions:   ["action.step"]
+		actions:   _forms
 		body:      "body.human"
 		protected: true
-		triggers:  [_fallInjury]
+		tags: ["graftable"]
+		lists: types: _innateTypes
+		triggers: [_fallInjury]
+	}
+	// A human body with no controller of its own, for tests to swing at.
+	"template.test.dummy": {
+		name: "text.template.test.dummy"
+		appearance: {glyph: "d", color: "white"}
+		actor: controller: "idle"
+		body: "body.human"
+		tags: ["graftable"]
 	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
@@ -44,3 +65,5 @@ templates: {
 		]
 	}
 }
+
+text: "text.template.test.dummy": "Dummy"

@@ -1,7 +1,7 @@
 ---
 id: M2-06
 title: The seven forms as actions, with types and timing
-status: todo
+status: done
 milestone: M2
 kind: content
 depends_on: [M2-13]
@@ -84,20 +84,20 @@ An immune part isn't refused; the swing lands and does nothing. A refusal in the
 
 ## Acceptance criteria
 
-- [ ] Each form starts and lands on an adjacent dummy with the expected events, occupying the right channels: Strike one arm, Sweep and Graft two.
-- [ ] Sweep isn't offered while only one arm is free.
-- [ ] Strike loaded with Soak on a clay part severs it on landing and spends one lake water at the start. With no lake water, Soak isn't offered.
-- [ ] Soak adds 2 ticks to the recovery of every form it's loaded into.
-- [ ] The dummy stepping out of reach before a Strike lands makes it miss, and the lake water is still spent.
-- [ ] Sweep with Soak on a dummy with a clay arm takes 2 from the arm and 1 from every other part, and the party learns each part's material.
-- [ ] Relic on old matter lands and does nothing: no `PartDamaged`.
-- [ ] Name with no name bound to the target shows as disabled, with its refusal text.
-- [ ] A Press landing on a body that's winding up cancels that swing.
-- [ ] Stand adds `status.standing`, delays the other bodies' channels, and leaves the stander's channels free.
-- [ ] Graft is offered only on graftable allies and only with a piece in the pack; landing attaches the piece and spends it.
-- [ ] In a one-cell soop, the member behind the front one has no attack options against the creature beyond it.
-- [ ] No Go outside `_test.go` files changes: `git diff --stat master -- '*.go' ':!*_test.go'` is empty.
-- [ ] `go tool task check` passes.
+- [x] Each form starts and lands on an adjacent dummy with the expected events, occupying the right channels: Strike one arm, Sweep and Graft two.
+- [x] Sweep isn't offered while only one arm is free.
+- [x] Strike loaded with Soak on a clay part severs it on landing and spends one lake water at the start. With no lake water, Soak isn't offered.
+- [x] Soak adds 2 ticks to the recovery of every form it's loaded into.
+- [x] The dummy stepping out of reach before a Strike lands makes it miss, and the lake water is still spent.
+- [x] Sweep with Soak on a dummy with a clay arm takes 2 from the arm and 1 from every other part, and the party learns each part's material.
+- [x] Relic on old matter lands and does nothing: no `PartDamaged`.
+- [x] Name with no name bound to the target shows as disabled, with its refusal text.
+- [x] A Press landing on a body that's winding up cancels that swing.
+- [x] Stand adds `status.standing`, delays the other bodies' channels, and leaves the stander's channels free.
+- [x] Graft is offered only on graftable allies and only with a piece in the pack; landing attaches the piece and spends it.
+- [x] In a one-cell soop, the member behind the front one has no attack options against the creature beyond it.
+- [x] No Go outside `_test.go` files changes: `git diff --stat master -- '*.go' ':!*_test.go'` is empty.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -105,3 +105,22 @@ An immune part isn't refused; the swing lands and does nothing. A refusal in the
 - Any engine change; file it against M2-13 instead.
 
 ## Notes
+
+Implemented as specified; no Go outside `_test.go` files changed.
+
+**Deviations and assumptions**
+
+- Both person templates know Cut, Name and Press (`lists.types`); the spec's "the Reaper Press" was read as "each person template". Relic is left out (follow-up M2-06.F3).
+- The `innate` tag is gone from types and from `vocabulary.tags.types`; `choices.type` reads `source.template.lists.types`.
+- Human parts were 8/6/10/12 (head/arm/legs/torso); they are now 3/3/3/5 in `bodies.cue`, as specified. The legs at 3 mean a fall of four cells or more now takes the legs off (the fall trigger deals `cells - 1`); that is placeholder tuning for M7.
+- A form whose own `requires` is false (Graft onto a body that isn't `graftable`) is not listed at all, rather than listed disabled. A choice record's `requires` (Name, Keepsake) lists the option disabled with the refusal.
+- `template.test.dummy` has the `idle` controller: a body needs an actor to be a target, and `idle` is the built-in "no controller of its own". It is `graftable`.
+- Stand has no guard against standing twice; the spec doesn't give one.
+- Added texts: `text.status.standing`, the seven form names, `text.template.test.dummy`, and one refusal text each for Name and Keepsake.
+- The forms are now on the sample party, so a body is ready while its legs recover (its arms are free). Tests that walk the party (`explore`, `save`, `tui`) now give the sample party the step only; `combat`'s older fixture pins the previous integrity numbers; `actions`' fixture gives its fighter innate types; `content`'s `TestSampleActions` no longer expects the party to know only the step.
+
+**Files touched outside the Deliverables list**: `content/data/vocabulary.cue` (the `innate` tag goes), tests in `internal/content`, `internal/core/actions`, `internal/core/combat`, `internal/core/explore`, `internal/core/save` and `internal/frontend/tui` as above.
+
+**Tests**: `internal/core/combat/forms_test.go` runs every acceptance criterion against the real `content/data`. Its soop test uses range 1: the member behind is two cells from the creature.
+
+**Follow-ups filed**: M2-06.F1 (question: Strike and Sever on a weakness), M2-06.F2 (crawls tag for Stand), M2-06.F3 (Relic innate to grafts), M2-06.F4 (question: a disabled option is information), M2-06.F5 (option labels show a type's ID, not its name).

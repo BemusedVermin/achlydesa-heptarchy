@@ -5,34 +5,35 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 parts: [string]:  content.#PartTemplate
 bodies: [string]: content.#BodyPlan
 
-// Placeholder numbers, for tuning.
+// Placeholder numbers, for tuning. Lethal from the start: an ordinary Strike (3) takes off an arm or a
+// head in one hit and a torso (5) in two.
 parts: {
 	"part.human_head": {
 		name:      "text.part.head"
 		slot:      "head"
 		material:  "material.flesh"
-		integrity: 8
+		integrity: 3
 		grants: [{kind: "targeting", value: 1}]
 	}
 	"part.human_arm": {
 		name:      "text.part.arm"
 		slot:      "arm"
 		material:  "material.flesh"
-		integrity: 6
+		integrity: 3
 		grants: [{kind: "action", value: 1}]
 	}
 	"part.human_legs": {
 		name:      "text.part.legs"
 		slot:      "legs"
 		material:  "material.flesh"
-		integrity: 10
+		integrity: 3
 		grants: [{kind: "speed", value: 2}]
 	}
 	"part.human_torso": {
 		name:      "text.part.torso"
 		slot:      "torso"
 		material:  "material.flesh"
-		integrity: 12
+		integrity: 5
 		vital:     true
 		grants: []
 	}
