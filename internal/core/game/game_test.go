@@ -17,10 +17,15 @@ type unknownCommand struct{}
 
 func (unknownCommand) CommandKind() string { return "test.unknown" }
 
-// config spawns one player-controlled actor, standing in for the start scenario of M1-10.
+// config spawns one player-controlled actor, in place of the start scenario.
 func config(t *testing.T, seed uint64) game.Config {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
+	bundle, err := content.LoadBundle(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bundle.Start = content.Start{} // this test spawns its own actor
+	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
 	}

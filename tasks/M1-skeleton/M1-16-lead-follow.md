@@ -1,6 +1,6 @@
 ---
 id: M1-16
-title: Lead and follow
+title: Lead and follow, and switching control
 status: todo
 milestone: M1
 kind: feature
@@ -9,11 +9,11 @@ discovered_by: null
 size: M
 ---
 
-# M1-16 · Lead and follow
+# M1-16 · Lead and follow, and switching control
 
 ## Goal
 
-Exploring with four people feels like moving one. While no hostile is in sight, the player moves the leader and the rest trail behind in single file, which also works in one-cell soops. When the party is on alert, every member's turn comes to the player. M2 sets the alert; this task makes both modes work.
+Exploring with four people feels like moving one. In follow mode, the player moves the leader and the rest trail behind in single file, which also works in one-cell soops. In individual mode, every member's decisions come to the player. The player can switch between the two at any time. An alert also switches the party to individual control automatically, and back when it ends, unless the player chose the mode. M2 sets the alert; this task makes both modes and the switching work.
 
 ## Context
 
@@ -29,14 +29,23 @@ Exploring with four people feels like moving one. While no hostile is in sight, 
 
 ## Spec
 
-- **Party state:** `Party{ Slots int; Leader api.UID; Alert bool }`. `Alert` is set by M2-07's danger check; until then it's always false.
+- **Party state:** `Party{ Slots int; Leader api.UID; Alert bool; Control string; ControlBy string; AlertSeen bool }`.
+  - `Control` is `follow` or `individual`, and starts as `follow`.
+  - `ControlBy` records who set it last: `player` or `alert`.
+  - `Alert` is set by M2-07's danger check; until then it's always false.
+  - `AlertSeen` is the last `Alert` value `party_control` acted on.
 - **Party order** is the member order from the party template. The leader is first. Each follower follows the member just before it in that order.
 - **Trail:** `comp.Trail{ Last api.Cell }` on every member: the cell it left on its most recent step.
 - **The `follow` controller:** if the member ahead of it is within one step, step into that member's `Trail.Last` (with `actions.Start` and `action.step`). Otherwise path toward it with `hexmap.Path` (at most 200 nodes) and take the first step. Never step into an occupied cell. A follower that can't move waits until the next entry (`wait/event`).
 - **Occupancy:** one body per cell. In the `step` primitive, stepping into another party member's cell swaps the two (the swapped member's `Trail` is updated too). Stepping into any other occupied cell is refused with `text.explore.occupied`; M2 turns that into an attack option.
-- **`explore.party_control`,** a `PerTurn` system (it runs after every timeline entry): when `Alert` is false, the leader's controller is `player` and the others' are `follow`; when true, all members' are `player`. Publish nothing when nothing changed.
-- **One keypress, one step:** while `Alert` is false, a keypress steps the leader, its stepping channels go busy, and the followers trail on their own decisions as their legs free up. While it's true, every member's decisions come to the player, in timeline order.
-- **Changing leader:** `Lead{ Party, Member api.UID }`, kind `explore.lead`, allowed only when `Alert` is false. The chosen member moves to the front of the party order. It publishes `LeaderChanged` (loggable). Options `lead/<uid>`, labelled "Lead with <name>", for every other member.
+- **Switching control by hand:** `Control{ Party api.UID; Mode string }`, kind `explore.control`, sets `Control` to `follow` or `individual` and `ControlBy` to `player`. It's allowed at any time, alert or not, so a player can pull the party back into single file to retreat. It publishes `ControlChanged` (loggable). While a party member is deciding, one option is offered: `control/individual` ("Control each member") in follow mode, or `control/follow` ("Lead and follow") in individual mode.
+- **Switching control by alert:** content `party.individual_on_alert` (a bool, default true) turns the automatic switch on or off.
+  - When `Alert` turns on and `Control` is `follow`: switch to `individual`, with `ControlBy` set to `alert`.
+  - When `Alert` turns off and `ControlBy` is `alert`: switch back to `follow`.
+  - A mode the player chose is never overridden when an alert ends. While an alert is on, the player can still switch back to follow, and it stays that way until the next alert starts.
+- **`explore.party_control`,** a `PerTurn` system (it runs after every timeline entry). It applies the alert rules above whenever `Alert` differs from `AlertSeen`, then sets controllers from `Control`. In follow mode the leader's controller is `player` and the others' are `follow`; in individual mode all members' are `player`. Publish nothing when nothing changed.
+- **One keypress, one step:** in follow mode, a keypress steps the leader, its stepping channels go busy, and the followers trail on their own decisions as their legs free up. In individual mode, every member's decisions come to the player, in timeline order.
+- **Changing leader:** `Lead{ Party, Member api.UID }`, kind `explore.lead`, allowed at any time; it matters in follow mode. The chosen member moves to the front of the party order. It publishes `LeaderChanged` (loggable). Options `lead/<uid>`, labelled "Lead with <name>", for every other member.
 - **Start placement:** the leader spawns on the start mark. Each other member takes the nearest free standable cell in breadth-first order over `Step`, with ties by cell order.
 
 ## Acceptance criteria
@@ -44,8 +53,11 @@ Exploring with four people feels like moving one. While no hostile is in sight, 
 - [ ] In the hall, one leader step is one keypress, and the follower steps into the cell the leader left, in the same `Apply`.
 - [ ] Down the descent's one-cell soop, the follower trails single file and is never in an occupied cell.
 - [ ] Stepping into the follower swaps them.
-- [ ] With `Alert` forced on in a test, each member's decisions stop for the player, in timeline order.
-- [ ] `explore.lead` changes the leader, the party order and the controllers; it's rejected while `Alert` is on.
+- [ ] `explore.control` to `individual` while calm gives each member's decisions to the player, in timeline order; switching back to `follow` resumes trailing.
+- [ ] With `Alert` forced on in follow mode, the party switches to individual control; when it's forced off again, it switches back to follow.
+- [ ] A player who chose individual mode before an alert stays in it after the alert ends; a player who switched to follow during an alert stays in follow until the next alert.
+- [ ] With `party.individual_on_alert` false, an alert changes nothing.
+- [ ] `explore.lead` changes the leader, the party order and the controllers, in either mode.
 - [ ] Replaying 300 random options gives the same hash as playing them.
 - [ ] `go tool task check` passes.
 

@@ -56,6 +56,9 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// The fixtures place bodies by hand, so they start with no maps and no start party; a body that
+	// is not on a map steps in place.
+	bundle.Maps, bundle.Start = nil, content.Start{}
 	known := o.actions
 	if known == nil {
 		known = []api.ContentID{

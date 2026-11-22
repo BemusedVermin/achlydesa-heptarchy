@@ -53,3 +53,10 @@ text: {
 	"text.actions.too_quick":          "That action would take no time."
 	"text.actions.broken":             "That action cannot be worked out: {{.error}}"
 }
+
+text: {
+	"text.map.test_hall":    "The test hall"
+	"text.map.test_descent": "The test descent"
+	"text.explore.broken":   "The map could not be read: {{.error}}"
+	"text.explore.fell":     "A fall of {{.cells}} cells."
+}

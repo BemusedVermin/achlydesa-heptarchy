@@ -1,0 +1,92 @@
+package api
+
+import "strconv"
+
+// Event kinds of exploring. Stepping has no command of its own: it is the content action
+// "action.step", started with [Do].
+const (
+	MovedKind = "explore.moved"
+	FellKind  = "explore.fell"
+)
+
+// The kinds of a [Moved] event.
+const (
+	MoveLevel = "level"
+	MoveUp    = "up"
+	MoveDown  = "down"
+	MoveDrop  = "drop"
+)
+
+// Moved reports that a body stepped from one cell to another.
+type Moved struct {
+	Actor UID    `json:"actor"`
+	Map   MapID  `json:"map"`
+	From  Cell   `json:"from"`
+	To    Cell   `json:"to"`
+	Kind  string `json:"kind"` // one of MoveLevel, MoveUp, MoveDown, MoveDrop
+}
+
+// EventKind implements [Event].
+func (Moved) EventKind() string { return MovedKind }
+
+// Fell reports that a body dropped off a ledge.
+type Fell struct {
+	Actor UID `json:"actor"`
+	Cells int `json:"cells"`
+}
+
+// EventKind implements [Event].
+func (Fell) EventKind() string { return FellKind }
+
+// LogText implements [Loggable].
+func (f Fell) LogText() Text {
+	return Text{ID: "text.explore.fell", Args: map[string]string{"cells": strconv.Itoa(f.Cells)}}
+}
+
+// MapView is the plan view of the map the party is on: at most one drawn cell per hex, with no
+// layers in it. Frontends draw what is here and shade by Below; they never learn a depth.
+type MapView struct {
+	Map      MapID        `json:"map"`
+	Name     string       `json:"name"`
+	Cells    []CellView   `json:"cells"`    // sorted by R, then Q
+	Entities []EntityView `json:"entities"` // sorted by UID
+}
+
+// CellView is one drawn hex.
+type CellView struct {
+	Hex     Hex    `json:"hex"`
+	Glyph   string `json:"glyph"`
+	Color   string `json:"color,omitempty"`
+	Visible bool   `json:"visible"` // false for a remembered cell
+	// Below is the drawn cell's depth minus the party's: positive is lower, negative is higher.
+	Below int `json:"below"`
+}
+
+// EntityView is one visible entity on the map.
+type EntityView struct {
+	UID   UID    `json:"uid"`
+	Hex   Hex    `json:"hex"`
+	Glyph string `json:"glyph"`
+	Color string `json:"color,omitempty"`
+	Below int    `json:"below"` // as for [CellView]
+}
+
+// PartyView is the party the player commands.
+type PartyView struct {
+	UID UID   `json:"uid"`
+	Map MapID `json:"map"`
+	// Hex is where to center the map: the current actor if it is a member, else the leader. It is a
+	// hex, never a depth.
+	Hex     Hex          `json:"hex"`
+	Members []MemberView `json:"members"` // in party order
+}
+
+// MemberView is one member of the party.
+type MemberView struct {
+	UID     UID    `json:"uid"`
+	Name    string `json:"name"`
+	Glyph   string `json:"glyph"`
+	Color   string `json:"color,omitempty"`
+	Leader  bool   `json:"leader"`
+	Current bool   `json:"current"`
+}

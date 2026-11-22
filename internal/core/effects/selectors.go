@@ -208,7 +208,7 @@ func bodiesInSight(ctx *Context) ([]ecs.Entity, error) {
 		return nil, nil
 	}
 	radius := w.Content.Party().SightRadius
-	cells, err := m.Visible(from.At, radius, radius)
+	cells, err := m.Visible(from.At, radius, w.Content.Party().SightDepth)
 	if err != nil {
 		return nil, fmt.Errorf("effects: sight: %w", err)
 	}

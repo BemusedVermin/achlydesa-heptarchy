@@ -17,6 +17,7 @@ type Registry struct {
 	hash      string
 	moveCosts map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
 	stepTicks *vm.Program                          // compiled timeline.step_ticks formula
+	climbCost *vm.Program                          // compiled party.climb_cost formula, nil when empty
 	templates map[api.ContentID]*template.Template // parsed text, by text ID
 	actions   map[api.ContentID]compiledAction     // compiled action formulas
 }

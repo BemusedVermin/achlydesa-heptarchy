@@ -10,6 +10,8 @@ type View struct {
 	Log      []LogLine     `json:"log"`
 	Clock    *ClockView    `json:"clock,omitempty"`
 	Timeline *TimelineView `json:"timeline,omitempty"`
+	Map      *MapView      `json:"map,omitempty"`
+	Party    *PartyView    `json:"party,omitempty"`
 }
 
 // Option is one thing the player can do right now. Frontends render Label and

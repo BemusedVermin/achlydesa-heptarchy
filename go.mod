@@ -7,6 +7,7 @@ require (
 	cuelang.org/go v0.17.1
 	github.com/expr-lang/expr v1.17.8
 	github.com/fzipp/astar v0.3.0
+	github.com/gravitton/geometry v1.20.0
 	github.com/gravitton/hexagon v1.9.0
 	github.com/mlange-42/ark v0.8.3
 	pgregory.net/rapid v1.3.0
@@ -84,7 +85,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.22 // indirect
 	github.com/googleapis/gax-go/v2 v2.26.2 // indirect
-	github.com/gravitton/geometry v1.20.0 // indirect
 	github.com/hashicorp/aws-sdk-go-base/v2 v2.0.0-beta.74 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-getter v1.8.9 // indirect

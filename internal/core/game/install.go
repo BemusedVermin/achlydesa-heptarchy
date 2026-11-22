@@ -4,6 +4,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -16,6 +17,7 @@ func installAll(w *sim.World, clk *clock.Clock) error {
 		func() error { return timeline.Install(w, clk) },
 		func() error { return effects.Install(w) },
 		func() error { return actions.Install(w) },
+		func() error { return explore.Install(w) },
 	}
 	for _, step := range steps {
 		if err := step(); err != nil {

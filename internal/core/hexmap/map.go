@@ -126,3 +126,6 @@ func (m *Map) Standable(c api.Cell) (bool, error) {
 	}
 	return m.solid(m.topo.Below(c))
 }
+
+// Topology returns how the map's cells connect, for callers that need neighbors.
+func (m *Map) Topology() Topology { return m.topo }

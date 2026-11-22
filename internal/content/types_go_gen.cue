@@ -19,6 +19,8 @@ import (
 	party:    #PartyConfig    @go(Party)
 	timeline: #TimelineConfig @go(Timeline)
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
+	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
+	start: #Start @go(Start)
 }
 
 // Material is a substance things are made of.
@@ -69,6 +71,50 @@ import (
 #PartyConfig: {
 	slots:        int @go(Slots)
 	sight_radius: int @go(SightRadius)
+
+	// SightDepth is how many cells up and down the party sees; 6 to start.
+	sight_depth: int @go(SightDepth)
+
+	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules: 1, 1 and 8 to start.
+	max_step_up:   int @go(MaxStepUp)
+	max_step_down: int @go(MaxStepDown)
+	max_drop:      int @go(MaxDrop)
+
+	// ClimbCost is an Expr with SpeedEnv: ticks added to each step up, on top of the timeline's
+	// step_ticks. Climbing costs more than descending on purpose. Empty means no extra cost.
+	climb_cost?: string @go(ClimbCost)
+}
+
+// MapDef is a hand-made map: a few authored layers embedded in endless fill.
+#MapDef: {
+	name: api.#ContentID @go(Name)
+
+	// Fill is the terrain of every cell not authored, forever in every direction.
+	fill: api.#ContentID @go(Fill)
+
+	// Open is the terrain of a marked cell, usually air.
+	open: api.#ContentID @go(Open)
+	layers: [...#LayerDef] @go(Layers,[]LayerDef)
+
+	// Legend maps one character to a terrain ID.
+	legend: {[string]: api.#ContentID} @go(Legend,map[string]api.ContentID)
+
+	// Marks maps one character to a mark name, such as "@": "party_start".
+	marks: {[string]: string} @go(Marks,map[string]string)
+}
+
+// LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per
+// cell; a space leaves the fill.
+#LayerDef: {
+	depth: int @go(Depth)
+	rows: [...string] @go(Rows,[]string)
+}
+
+// Start is the scenario a new game begins with: a party placed at a mark on a map.
+#Start: {
+	map:           api.#ContentID @go(Map)
+	party:         api.#ContentID @go(Party)
+	party_at_mark: string         @go(PartyAtMark)
 }
 
 // TimelineConfig holds the numbers of the shared timeline.

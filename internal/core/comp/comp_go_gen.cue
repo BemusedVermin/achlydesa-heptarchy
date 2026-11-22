@@ -67,3 +67,6 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	dir:         api.#Dir @go(Dir)
 	choices?: {[string]: string} @go(Choices,map[string]string)
 }
+
+// Controlled marks the party the player commands.
+#Controlled: {}
