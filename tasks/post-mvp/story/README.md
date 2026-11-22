@@ -1,10 +1,10 @@
-# M8 · Story
+# Story (post-MVP)
 
-**Status:** outline. **Post-MVP:** this comes after everything else. Break it into task files only once the MVP (M1 to M7) is done.
+**Status:** outline, post-MVP. Break it into task files only once the MVP (M1 to M7) is done. Task IDs: `PM-STORY-01` and on.
 
 **Goal:** the main story, the characters' arcs and emergent stories all run on one scene system. Authored scenes have fixed casts; emergent scenes are cast from whoever in the simulation fits. Casting, strain and threads keep characters consistent, and a director paces heavy and soft scenes. Everything a writer touches is content.
 
-**Design sources:** `docs/game-design.md` → "Story" (How the story runs, Story beats, Emergent stories), "Simulation → The cast model" (traits and strain), "People with needs". Tech design → "Designing for pivots" (Stories), "Core packages" (`story`).
+**Design sources:** `docs/post-mvp.md` → "Story" (How the story runs, Story beats, Emergent stories, The cast model after the MVP, In the engine). `docs/game-design.md` → "Story" for the canon it serves, "People with needs" for requests.
 
 **Prior art the design draws on:** storylets and quality-based narrative (Failbetter, Emily Short), most-specific line matching (Valve's dynamic dialogue, Elan Ruskin, GDC 2012), story roles cast by personality (Wildermyth), social practices (Versu), stress from acting against one's traits (Crusader Kings III), beats and a drama manager (Façade), pacing (RimWorld's storytellers), curated emergent narrative and story sifting (James Ryan; Max Kreminski's Felt and Winnow), and memory-driven rivals (Shadow of Mordor's Nemesis system).
 

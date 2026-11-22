@@ -39,7 +39,6 @@ The game will change once it's played, so every place the game design already ex
 | Rules | Content records carry generic tags, numbers and lists. Named formulas (`rules`) and content-defined choices read them, and code names no content record, tag or rule | Reworking what weakness means, partial resistances, types that only work on pinned parts, new kinds of item or grant, all in CUE |
 | Triggers | A `Triggers` component from content: on an event, if an Expr condition holds, apply effects | Graft autonomy, curdle modes, exotic recruit abilities and material reactions, all as data |
 | Behaviors | Agent behaviors are registered primitives that content composes and scores with Expr considerations; monsters, people, recruits and candidates share one path | Simulating candidates later, new creature families as pure data |
-| Stories | Authored and emergent stories are one kind of content: scenes with roles, unlocked by world state and cast from whoever fits. A director picks one scene per slot, and threads make sure what happens gets followed up | New arcs, new kinds of emergent story, different pacing, all as data |
 | Knowledge | One fact store per knower (subject, claim, source, confidence); the piece, rumors, clues and dreams all write facts | New clue sources, false positives, NPCs who know things, the journal as a view over facts |
 | Identity | Every individual gets a stable `UID`; content IDs are namespaced strings (`material.violet`); components hold IDs, never pointers into content | Persistent nemeses and deserters, rumors about the dead, hot reload, saves that survive content edits |
 | Saves | A save header carries a save version and a content hash; migration functions run in order | Changing components without breaking old saves |
@@ -125,7 +124,6 @@ achlydesa-heptarchy/
 │   │   ├── cast/           # wounds, relationships, wish generator
 │   │   ├── rumor/          # rumor spread and drift (writes facts)
 │   │   ├── investigation/  # clues into facts about parts and weaknesses
-│   │   ├── story/          # chronicle, casting, threads, director, scenes
 │   │   └── save/           # versioned snapshots and migrations
 │   ├── content/            # Go content structs, generated *_go_gen.cue schemas, loader, Expr compile, hot reload
 │   └── frontend/
@@ -133,7 +131,7 @@ achlydesa-heptarchy/
 │       └── gui/            # Ebitengine, later
 ├── content/
 │   └── data/               # templates, materials, forms, maps, text...
-├── docs/                   # game design and this technical design
+├── docs/                   # game design, this technical design, post-MVP plans
 ├── tasks/                  # task specs for agents (start at tasks/README.md)
 ├── Taskfile.yml            # dev commands: go tool task check, run, schema...
 └── .golangci.yml           # depguard rules: core is pure, layers hold
@@ -141,7 +139,7 @@ achlydesa-heptarchy/
 
 - **One API boundary.** Frontends and the harness talk only to `core/game`: they send commands and receive events plus a read-only view.
 - **No package reaches sideways into another's internals.** Packages communicate through components and Ark events.
-- **Two layers.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `timeline`, `hexmap`, `knowledge`, `inventory`, `effects`, `actions`) can be imported by anyone. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`, and `story` from M8) import only foundation packages, never each other; `game` and `save` sit on top. depguard enforces it.
+- **Two layers.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `timeline`, `hexmap`, `knowledge`, `inventory`, `effects`, `actions`) can be imported by anyone. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; `game` and `save` sit on top. depguard enforces it.
 
 ## Core packages
 
@@ -152,7 +150,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `game` | The public API: `Apply(cmd) []Event`, `View() Snapshot`, new game, load, save. Routes each command to the handler its package registered, and assembles the view from each package's section | `sim` and everything below |
 | `api` | Plain-data commands, events and view types: the boundary that frontends, the harness and replay logs share | The standard library only |
 | `sim` | The Ark world, the event bus, the system scheduler (cadence plus run-after ordering), and the command, event and view registries | Ark |
-| `comp` | Plain component structs and relations: `Pos{Map, Cell}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Traits`, `Strain`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
+| `comp` | Plain component structs and relations: `Pos{Map, Cell}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
 | `anatomy` | Queries over bodies and parts: attached parts, functioning parts, grants, party members | `comp` |
 | `clock` | Ticks, day phases and the calendar read from content; per-phase and per-day systems as the timeline crosses boundaries; timers for generic NPC replacement and export scheduling | The `sim` scheduler |
 | `timeline` | The shared timeline: channels (a body and each of its parts) and when they're free, decisions, actions that land later, controllers (player, follow, behaviors), and playing time forward until the player is needed | Ark resources, `clock` |
@@ -170,7 +168,6 @@ Each package owns one part of the rules and leans on a library for everything el
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
 | `rumor` | Facts carried between people and towns, drifting with each retelling | `knowledge`, `text/template` for the words |
 | `investigation` | Turning clues (people, places, bodies, dreams) into facts about parts and weaknesses | `knowledge` |
-| `story` | The chronicle (significant events and their causes), story patterns, casting, strain, threads, the director and the scene runner. Scenes without the party resolve through the characters' own choices and leave events that `rumor` spreads | `knowledge`, Expr, `rng` |
 | `save` | Whole-world snapshots with a version header, and the migration chain | ark-serde, plus RNG states |
 
 ## Content pipeline
@@ -188,7 +185,7 @@ Content goes from Go structs to CUE schemas to validated data, and almost none o
 What stays as code versus data:
 
 - **Code:** effect primitives and the machinery that runs them (selectors, timing, actions), the needs scorer, seat rules, procgen algorithms. Code names no content record, tag or rule, only its own message text; where it needs a record, a config key says which.
-- **Data:** materials, forms as compositions of primitives, the rules that tie them together (what makes a part weak, which types a body may load, what a loaded type does to a form), traits, scenes and their lines, story patterns and threads, part and creature templates, needs and their curves, towns and gates, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
+- **Data:** materials, forms as compositions of primitives, the rules that tie them together (what makes a part weak, which types a body may load, what a loaded type does to a form), part and creature templates, needs and their curves, towns and gates, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
 
 ## Simulation loop and determinism
 
@@ -278,7 +275,6 @@ The custom code is the game's rules, plus thin glue to the libraries above. Noth
 - **The wish generator:** a pipeline over content tables.
 - **Procgen for the deep:** hex cave generation from noise and cellular rules, stitching to town gates, and the party's pocket on reseed.
 - **Rumor spread and drift.**
-- **The story machinery:** the chronicle, story sifting, casting, threads, the director and the scene runner.
 - **The engine spine:** the system scheduler, the command, event and view registries, the trigger runner, the fact store, the action timeline and the action machinery.
 - **Glue:** content decode and registry, the RNG stream registry, the Ark component set, the `core/game` API.
 - **The Bubble Tea screens.**
@@ -294,7 +290,8 @@ Each step ends with something playable or measurable.
 5. **Procgen:** the generated deep around fixed towns, exports reseeding it, the pocket, the guarantees as property tests.
 6. **Emergence:** rumors, grudges and memory, dreams.
 7. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
-8. **Story, after the MVP:** scenes, casting, strain, threads, story patterns and the director, carrying the authored spine and emergent stories alike. Nothing before it depends on it.
+
+After the MVP: the story system, with its engine plan, is in `docs/post-mvp.md`, and its work is tracked under `tasks/post-mvp/`. Nothing in the MVP depends on it.
 
 Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks/INDEX.md` tracks their status.
 
