@@ -97,6 +97,12 @@ type Seen struct {
 	ByMap map[api.MapID][]api.Cell `json:"by_map"`
 }
 
+// Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge
+// package's Learn, About and Best rather than changing the slice.
+type Knowledge struct {
+	Facts []api.Fact `json:"facts"`
+}
+
 // Grant is something a part gives its body: the ability to act, to aim, or speed.
 type Grant struct {
 	Kind  string `json:"kind"`            // "action" | "targeting" | "speed"
@@ -151,6 +157,7 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Landing](world)
 	ecs.ComponentID[Controlled](world)
 	ecs.ComponentID[Seen](world)
+	ecs.ComponentID[Knowledge](world)
 	ecs.ComponentID[Body](world)
 	ecs.ComponentID[Part](world)
 	ecs.ComponentID[PartOf](world)

@@ -1,0 +1,222 @@
+package knowledge_test
+
+import (
+	"bytes"
+	"slices"
+	"testing"
+
+	"github.com/mlange-42/ark/ecs"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+)
+
+const contentDir = "../../../content/data"
+
+func newKnower(w *sim.World) ecs.Entity {
+	return ecs.NewMap1[comp.Identity](w.ECS).NewEntity(&comp.Identity{UID: w.NewUID()})
+}
+
+func TestLearnTwiceKeepsOneFactWithTheNewerValue(t *testing.T) {
+	w := sim.NewWorld(1)
+	knower := newKnower(w)
+	fact := api.Fact{
+		Subject:    7,
+		Claim:      "claim.material",
+		Source:     "source.sweep",
+		Value:      "material.clay",
+		Confidence: 0.5,
+	}
+	knowledge.Learn(w, knower, fact)
+	w.Now = 40
+	fact.Value = "material.flesh"
+	knowledge.Learn(w, knower, fact)
+
+	got := knowledge.About(w, knower, 7)
+	if len(got) != 1 || got[0].Value != "material.flesh" || got[0].Tick != 40 {
+		t.Errorf("About = %+v, want one fact: flesh at tick 40", got)
+	}
+}
+
+func TestAboutIsSortedAndFiltersBySubject(t *testing.T) {
+	w := sim.NewWorld(1)
+	knower := newKnower(w)
+	for _, f := range []api.Fact{
+		{Subject: 9, Claim: "claim.name", Source: "source.rumor"},
+		{Subject: 3, Claim: "claim.name", Source: "source.sweep"},
+		{Subject: 3, Claim: "claim.material", Source: "source.sweep"},
+		{Subject: 3, Claim: "claim.material", Source: "source.rumor"},
+	} {
+		knowledge.Learn(w, knower, f)
+	}
+	got := knowledge.About(w, knower, 3)
+	var keys []string
+	for _, f := range got {
+		keys = append(keys, string(f.Claim)+"/"+string(f.Source))
+	}
+	want := []string{"claim.material/source.rumor", "claim.material/source.sweep", "claim.name/source.sweep"}
+	if !slices.Equal(keys, want) {
+		t.Errorf("About keys = %v, want %v", keys, want)
+	}
+	if got := knowledge.About(w, knower, 4); len(got) != 0 {
+		t.Errorf("About(unknown subject) = %v, want none", got)
+	}
+}
+
+func TestBestTieBreaks(t *testing.T) {
+	tests := []struct {
+		name  string
+		facts []api.Fact // learned in order; the tick is the index times 10
+		want  api.ContentID
+	}{
+		{
+			"confidence first",
+			[]api.Fact{
+				{
+					Source:     "source.a",
+					Confidence: 0.9,
+				},
+				{Source: "source.b", Confidence: 0.4},
+				{Source: "source.c", Confidence: 0.6},
+			},
+			"source.a",
+		},
+		{"newer tick on equal confidence", []api.Fact{
+			{Source: "source.a", Confidence: 0.5}, {Source: "source.b", Confidence: 0.5},
+		}, "source.b"},
+		{"source ID on equal confidence and tick", []api.Fact{
+			{Source: "source.b", Confidence: 0.5}, {Source: "source.a", Confidence: 0.5},
+		}, "source.a"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			w := sim.NewWorld(1)
+			knower := newKnower(w)
+			for i, f := range test.facts {
+				f.Subject, f.Claim = 1, "claim.material"
+				w.Now = int64(i * 10)
+				if test.name == "source ID on equal confidence and tick" {
+					w.Now = 5
+				}
+				knowledge.Learn(w, knower, f)
+			}
+			best, ok := knowledge.Best(w, knower, 1, "claim.material")
+			if !ok || best.Source != test.want {
+				t.Errorf("Best = %+v, %v; want source %s", best, ok, test.want)
+			}
+		})
+	}
+	w := sim.NewWorld(1)
+	if _, ok := knowledge.Best(w, newKnower(w), 1, "claim.material"); ok {
+		t.Error("Best with no facts reported one")
+	}
+}
+
+func TestLearnAddsKnowledgeAndPublishesEvents(t *testing.T) {
+	w := sim.NewWorld(1)
+	var learned []api.Event
+	w.Bus.SubscribeAll("test", func(_ *sim.World, e api.Event) { learned = append(learned, e) })
+	member := newKnower(w)
+	stranger := newKnower(w)
+	party := ecs.NewMap1[comp.Controlled](w.ECS).NewEntity(&comp.Controlled{})
+	ecs.NewMap[comp.MemberOf](w.ECS).Add(member, &comp.MemberOf{}, party)
+
+	fact := api.Fact{Subject: 2, Claim: "claim.material", Value: "material.clay", Source: "source.sweep"}
+	knowledge.Learn(w, member, fact)
+	knowledge.Learn(w, stranger, fact)
+	if _, err := w.Bus.Drain(w); err != nil {
+		t.Fatal(err)
+	}
+	var noticed, learnedCount int
+	for _, e := range learned {
+		switch e.(type) {
+		case api.FactNoticed:
+			noticed++
+		case api.FactLearned:
+			learnedCount++
+		}
+	}
+	if learnedCount != 2 || noticed != 1 {
+		t.Errorf("events = %v, want 2 FactLearned and 1 FactNoticed (the party member's only)", learned)
+	}
+}
+
+func TestSaveAndLoadKeepEveryFact(t *testing.T) {
+	bundle, err := content.LoadBundle(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bundle.Start = content.Start{}
+	reg, err := content.New(bundle)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var world *sim.World
+	var knower ecs.Entity
+	cfg := game.Config{
+		Seed: 1, Content: reg,
+		Install: func(w *sim.World, _ *clock.Clock) error { world = w; return nil },
+		Spawn: func(w *sim.World, _ *clock.Clock) error {
+			var err error
+			knower, err = w.Spawn("template.person.reaper", nil)
+			return err
+		},
+	}
+	g, err := game.New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	subject := world.UIDOf(knower)
+	world.Now = 12
+	knowledge.Learn(
+		world,
+		knower,
+		api.Fact{
+			Subject:    subject,
+			Claim:      "claim.material",
+			Value:      "material.clay",
+			Source:     "source.sweep",
+			Confidence: 0.8,
+		},
+	)
+	knowledge.Learn(
+		world,
+		knower,
+		api.Fact{
+			Subject:    99,
+			Claim:      "claim.name",
+			Value:      "text.template.person.salken",
+			Source:     "source.rumor",
+			Confidence: 0.3,
+		},
+	)
+	want := slices.Concat(knowledge.About(world, knower, subject), knowledge.About(world, knower, 99))
+
+	var buf bytes.Buffer
+	if err := g.Save(&buf); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := game.Load(cfg, &buf); err != nil {
+		t.Fatal(err)
+	}
+	// Install ran again in Load, so world is now the loaded game's world.
+	var found ecs.Entity
+	query := ecs.NewFilter1[comp.Knowledge](world.ECS).Query()
+	count := 0
+	for query.Next() {
+		found = query.Entity()
+		count++
+	}
+	if count != 1 {
+		t.Fatalf("%d entities with Knowledge after load, want 1", count)
+	}
+	got := slices.Concat(knowledge.About(world, found, subject), knowledge.About(world, found, 99))
+	if !slices.Equal(got, want) {
+		t.Errorf("facts after load = %+v, want %+v", got, want)
+	}
+}

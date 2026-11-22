@@ -37,7 +37,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| [M2-01](M2-combat/M2-01-knowledge.md) | knowledge: the fact store | todo | seam | S | M1-11, M1-13 |
+| [M2-01](M2-combat/M2-01-knowledge.md) | knowledge: the fact store | done | seam | S | M1-11, M1-13 |
 | [M2-02](M2-combat/M2-02-bodies-parts.md) | Bodies and parts as entities, as channels | done | feature | M | M1-11, M1-13 |
 | [M2-03](M2-combat/M2-03-materials-types-items.md) | Materials, types, items and the party's pack | todo | feature | S | M2-02 |
 | [M2-04](M2-combat/M2-04-effects.md) | Combat effect primitives | todo | feature | M | M2-01, M2-03 |
@@ -48,7 +48,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
 | [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
-| [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | todo | feature | S | M1-11, M1-13 |
+| [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | done | feature | S | M1-11, M1-13 |
 
 ## Later milestones (outlines)
 
@@ -68,6 +68,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M2-01.F1](followups/M2-01.F1-render-fact-values.md) | Render a fact's value as text in the log | todo | seam | unplanned | M2-01 |
 | [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | obsolete | seam | M1 | M1-15 |
 | [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | unplanned | M1-14 |
 | [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | obsolete | seam | M1 | M1-17 |
@@ -85,3 +86,4 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-16.F2](followups/M1-16.F2-party-view-control.md) | Show the party's control mode and alert in the view | obsolete | feature | M1 | M1-16 |
 | [M1-12.F1](followups/M1-12.F1-load-with-spawning-extra.md) | Let Load run a Config.Extra that spawns | done | debt | M1 | M1-12 |
 | [M1-11.F1](followups/M1-11.F1-wasd-alternating-diagonals.md) | WASD: up and down zigzag diagonally | done | feature | M1 | M1-11 |
+| [M2-12.F1](followups/M2-12.F1-swap-content-caches.md) | Hot reload does not refresh content cached at game start | done | seam | unplanned | M2-12 |

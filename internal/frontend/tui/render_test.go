@@ -42,6 +42,27 @@ func newApp(t *testing.T) *tui.App {
 	return app
 }
 
+func TestContentMsgSwapsOrLogsTheError(t *testing.T) {
+	app := newApp(t)
+	reg, err := content.Load(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	app.Update(tui.ContentMsg{Registry: reg})
+	last := app.State.Log[len(app.State.Log)-1].Text
+	if !strings.Contains(last, "reloaded") {
+		t.Errorf("last log line = %q, want the reload warning", last)
+	}
+	app.Update(tui.ContentMsg{Err: os.ErrInvalid})
+	last = app.State.Log[len(app.State.Log)-1].Text
+	if !strings.Contains(last, "reload failed") {
+		t.Errorf("last log line = %q, want the failure", last)
+	}
+	if app.Err() != nil {
+		t.Errorf("a failed reload must not end the game: %v", app.Err())
+	}
+}
+
 // press sends a key to the app as the terminal would.
 func press(app *tui.App, text string) {
 	code := []rune(text)[0]

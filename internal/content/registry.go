@@ -31,6 +31,18 @@ func (r *Registry) Material(id api.ContentID) (Material, bool) {
 	return material, ok
 }
 
+// Claim returns the claim with the given ID.
+func (r *Registry) Claim(id api.ContentID) (Claim, bool) {
+	claim, ok := r.bundle.Claims[string(id)]
+	return claim, ok
+}
+
+// Source returns the fact source with the given ID.
+func (r *Registry) Source(id api.ContentID) (Source, bool) {
+	source, ok := r.bundle.Sources[string(id)]
+	return source, ok
+}
+
 // Terrain returns the terrain with the given ID.
 func (r *Registry) Terrain(id api.ContentID) (Terrain, bool) {
 	terrain, ok := r.bundle.Terrains[string(id)]

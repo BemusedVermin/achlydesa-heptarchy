@@ -99,6 +99,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkIDs()...)
 	problems = append(problems, registry.compileText()...)
 	problems = append(problems, registry.checkTextRefs()...)
+	problems = append(problems, registry.checkKnowledge()...)
 	problems = append(problems, registry.checkCalendar()...)
 	problems = append(problems, registry.checkTemplates()...)
 	problems = append(problems, registry.checkBodies()...)
@@ -179,10 +180,39 @@ func (r *Registry) checkIDs() []error {
 			problems = append(problems, err)
 		}
 	}
+	for _, key := range sortedKeys(r.bundle.Claims) {
+		if err := checkID("claims", key, "claim"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Sources) {
+		if err := checkID("sources", key, "source"); err != nil {
+			problems = append(problems, err)
+		}
+	}
 	for _, key := range sortedKeys(r.bundle.Bodies) {
 		if err := checkID("bodies", key, "body"); err != nil {
 			problems = append(problems, err)
 		}
+	}
+	return problems
+}
+
+// checkKnowledge checks that claims and sources name existing text, and that every claim has the
+// text that reports it in the log.
+func (r *Registry) checkKnowledge() []error {
+	var problems []error
+	check := func(path string, ref api.ContentID) {
+		if _, ok := r.bundle.Text[string(ref)]; !ok {
+			problems = append(problems, fmt.Errorf("%s: text reference %q does not exist", path, ref))
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Claims) {
+		check(fmt.Sprintf("claims[%q].name", key), r.bundle.Claims[key].Name)
+		check(fmt.Sprintf("claims[%q] log text", key), api.KnowledgeTextID(api.ContentID(key)))
+	}
+	for _, key := range sortedKeys(r.bundle.Sources) {
+		check(fmt.Sprintf("sources[%q].name", key), r.bundle.Sources[key].Name)
 	}
 	return problems
 }

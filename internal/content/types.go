@@ -17,9 +17,22 @@ type Bundle struct {
 	Actions   map[string]ActionDef `json:"actions"`
 	Maps      map[string]MapDef    `json:"maps"`
 	Start     Start                `json:"start"`
+	Claims    map[string]Claim     `json:"claims"`
+	Sources   map[string]Source    `json:"sources"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
+}
+
+// Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
+// "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
+type Claim struct {
+	Name api.ContentID `json:"name"` // a text ID
+}
+
+// Source is where a fact came from, such as "source.sweep".
+type Source struct {
+	Name api.ContentID `json:"name"` // a text ID
 }
 
 // Material is a substance things are made of.
