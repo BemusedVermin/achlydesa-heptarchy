@@ -119,7 +119,9 @@ func spawnParty(w *World, e ecs.Entity, t content.Template) error {
 	if t.Party == nil {
 		return nil
 	}
-	w.maps.party.Add(e, &comp.Party{Slots: w.Content.Party().Slots})
+	w.maps.party.Add(e, &comp.Party{
+		Slots: w.Content.Party().Slots, Control: api.ControlFollow, ControlBy: api.ControlByPlayer,
+	})
 	return nil
 }
 
@@ -140,8 +142,12 @@ func spawnPartyMembers(w *World, e ecs.Entity, t content.Template) error {
 		w.maps.memberOf.Add(member, &comp.MemberOf{}, e)
 		members = append(members, member)
 	}
+	party := w.maps.party.Get(e)
+	for _, member := range members {
+		party.Order = append(party.Order, w.UIDOf(member))
+	}
 	if len(members) > 0 {
-		w.maps.party.Get(e).Leader = w.UIDOf(members[0])
+		party.Leader = party.Order[0]
 	}
 	return nil
 }

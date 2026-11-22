@@ -5,9 +5,71 @@ import "strconv"
 // Event kinds of exploring. Stepping has no command of its own: it is the content action
 // "action.step", started with [Do].
 const (
-	MovedKind = "explore.moved"
-	FellKind  = "explore.fell"
+	MovedKind          = "explore.moved"
+	FellKind           = "explore.fell"
+	ControlKind        = "explore.control"
+	LeadKind           = "explore.lead"
+	ControlChangedKind = "explore.control_changed"
+	LeaderChangedKind  = "explore.leader_changed"
 )
+
+// The modes of party control, and who may have set one.
+const (
+	ControlFollow     = "follow"     // the leader is played; the rest trail in single file
+	ControlIndividual = "individual" // every member's decisions come to the player
+	ControlByPlayer   = "player"
+	ControlByAlert    = "alert"
+)
+
+// Control sets how the party is controlled: a player's choice, which an alert does not override
+// when it ends. It is allowed at any time.
+type Control struct {
+	Party UID    `json:"party"`
+	Mode  string `json:"mode"` // ControlFollow or ControlIndividual
+}
+
+// CommandKind implements [Command].
+func (Control) CommandKind() string { return ControlKind }
+
+// Lead makes a member the leader, at the front of the party order. It is allowed at any time.
+type Lead struct {
+	Party  UID `json:"party"`
+	Member UID `json:"member"`
+}
+
+// CommandKind implements [Command].
+func (Lead) CommandKind() string { return LeadKind }
+
+// ControlChanged reports that the party's control mode changed.
+type ControlChanged struct {
+	Party UID    `json:"party"`
+	Mode  string `json:"mode"` // ControlFollow or ControlIndividual
+	By    string `json:"by"`   // ControlByPlayer or ControlByAlert
+}
+
+// EventKind implements [Event].
+func (ControlChanged) EventKind() string { return ControlChangedKind }
+
+// LogText implements [Loggable].
+func (c ControlChanged) LogText() Text {
+	return Text{ID: ContentID("text.explore.control_changed." + c.Mode)}
+}
+
+// LeaderChanged reports that another member leads the party.
+type LeaderChanged struct {
+	Party  UID `json:"party"`
+	Leader UID `json:"leader"`
+	// Name is the leader's rendered name, for the log.
+	Name string `json:"name"`
+}
+
+// EventKind implements [Event].
+func (LeaderChanged) EventKind() string { return LeaderChangedKind }
+
+// LogText implements [Loggable].
+func (l LeaderChanged) LogText() Text {
+	return Text{ID: "text.explore.leader_changed", Args: map[string]string{"name": l.Name}}
+}
 
 // The kinds of a [Moved] event.
 const (

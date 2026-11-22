@@ -1,7 +1,7 @@
 ---
 id: M1-16
 title: Lead and follow, and switching control
-status: todo
+status: done
 milestone: M1
 kind: feature
 depends_on: [M1-10]
@@ -50,19 +50,31 @@ Exploring with four people feels like moving one. In follow mode, the player mov
 
 ## Acceptance criteria
 
-- [ ] In the hall, one leader step is one keypress, and the follower steps into the cell the leader left, in the same `Apply`.
-- [ ] Down the descent's one-cell soop, the follower trails single file and is never in an occupied cell.
-- [ ] Stepping into the follower swaps them.
-- [ ] `explore.control` to `individual` while calm gives each member's decisions to the player, in timeline order; switching back to `follow` resumes trailing.
-- [ ] With `Alert` forced on in follow mode, the party switches to individual control; when it's forced off again, it switches back to follow.
-- [ ] A player who chose individual mode before an alert stays in it after the alert ends; a player who switched to follow during an alert stays in follow until the next alert.
-- [ ] With `party.individual_on_alert` false, an alert changes nothing.
-- [ ] `explore.lead` changes the leader, the party order and the controllers, in either mode.
-- [ ] Replaying 300 random options gives the same hash as playing them.
-- [ ] `go tool task check` passes.
+- [x] In the hall, one leader step is one keypress, and the follower steps into the cell the leader left, in the same `Apply`.
+- [x] Down the descent's one-cell soop, the follower trails single file and is never in an occupied cell.
+- [x] Stepping into the follower swaps them.
+- [x] `explore.control` to `individual` while calm gives each member's decisions to the player, in timeline order; switching back to `follow` resumes trailing.
+- [x] With `Alert` forced on in follow mode, the party switches to individual control; when it's forced off again, it switches back to follow.
+- [x] A player who chose individual mode before an alert stays in it after the alert ends; a player who switched to follow during an alert stays in follow until the next alert.
+- [x] With `party.individual_on_alert` false, an alert changes nothing.
+- [x] `explore.lead` changes the leader, the party order and the controllers, in either mode.
+- [x] Replaying 300 random options gives the same hash as playing them.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - What sets `Alert` (M2-07). Formations wider than single file: file a follow-up if open chambers make the conga line look silly.
 
 ## Notes
+
+- **Party order is stored.** `comp.Party` gains `Order []api.UID` (not in the spec's struct), filled at spawn from the template and rewritten by `explore.lead`. "Moves to the front" needs the order of the rest to survive more than one lead change, which deriving it from UIDs would not give with three or more members. `membersOf` sorts by it, so the party view's member order is party order.
+- **Constants.** The control modes and `ControlBy` values are `api.ControlFollow`, `ControlIndividual`, `ControlByPlayer` and `ControlByAlert`. `ControlChanged` carries `By`; `LeaderChanged` carries the leader's rendered name for the log.
+- **`party.individual_on_alert`** is a plain bool on `PartyConfig`, set to `true` in `party.cue`. A bundle built without it gets `false`, so "default true" lives in the sample content, not in Go.
+- **The `follow` rule.** A member steps into the trail cell of the member ahead when that cell is one step away and not the ahead member's own cell. If it is not reachable but the member ahead is adjacent, it waits. Otherwise it paths toward the member ahead (200 nodes) and takes the first step. A destination with any body in it is never stepped into; it waits.
+- **Swaps** happen only between members of the same party, and only for a level, up or down step on the same map. A swap across a drop or a link is refused as occupied (see M1-16.F1). The swapped member gets a `Moved` event, a reversed kind, its sight recorded and its `Trail` set.
+- **Applying controllers at once.** `explore.control` and `explore.lead` set controllers straight away as well as in the `party_control` system, because `timeline.Run` returns before its per-turn systems when the current body is the player's. When that switch takes the player's current body away from the player, it goes back on the timeline with the new `timeline.Reschedule`; otherwise deciding would have left it with no entry.
+- **Alert** is only seen by `party_control` after the next timeline entry, so tests force `Alert` and then apply any command.
+- **Placement** is now breadth-first over `Step` (was hex rings), ties by depth, then R, then Q.
+- **Files touched outside the list:** `internal/core/timeline/timeline.go` (`Reschedule`); `internal/core/sim/spawn.go` (party `Order`, `Control`); `internal/core/api/explore.go` also holds the commands and events; `internal/content/types.go` and `content/data/party.cue`, `text.cue`; regenerated `*_go_gen.cue`.
+- **Existing tests changed.** `TestAStepUpCostsMoreThanTheSameStepDown` now counts busy ticks from the tick of the step, because followers now act inside the same `Apply` and time has moved on when it returns. `TestDefaultVisibilityIsTheParty` registers an idle `follow` controller, since the sample party's follower uses it.
+- **Follow-ups filed:** M1-16.F1 (followers and swaps across map links), M1-16.F2 (control mode and alert in `PartyView`). I did not file a follow-up for the conga line in open chambers; the criteria do not exercise one, so there was nothing to judge by.

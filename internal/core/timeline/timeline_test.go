@@ -93,6 +93,11 @@ func newFixture(t tester, seed uint64) *fixture {
 	return fx
 }
 
+// idleController decides nothing, so the loop makes its body wait.
+type idleController struct{}
+
+func (idleController) Decide(*sim.World, ecs.Entity) error { return nil }
+
 type recorder struct{ fx *fixture }
 
 func (r recorder) Decide(w *sim.World, body ecs.Entity) error {
@@ -473,6 +478,10 @@ func TestDefaultVisibilityIsTheParty(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := timeline.Install(w, clk); err != nil {
+		t.Fatal(err)
+	}
+	// The sample party's followers use the controller explore registers.
+	if err := timeline.RegisterController(w, "follow", idleController{}); err != nil {
 		t.Fatal(err)
 	}
 	if err := w.Systems.Freeze(); err != nil {

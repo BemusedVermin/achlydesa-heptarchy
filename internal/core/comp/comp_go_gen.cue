@@ -29,6 +29,28 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Party: {
 	slots:  int      @go(Slots)
 	leader: api.#UID @go(Leader)
+
+	// Order is the party order: the leader first, then the rest. Each follower follows the member
+	// just before it. Spawning fills it from the party template.
+	order: [...api.#UID] @go(Order,[]api.UID)
+
+	// Alert is set by the danger check (M2-07) and is always false until then.
+	alert: bool @go(Alert)
+
+	// Control is api.ControlFollow or api.ControlIndividual.
+	control: string @go(Control)
+
+	// ControlBy is who set Control last: api.ControlByPlayer or api.ControlByAlert.
+	control_by: string @go(ControlBy)
+
+	// AlertSeen is the last Alert value the party_control system acted on.
+	alert_seen: bool @go(AlertSeen)
+}
+
+// Trail is the cell a party member left on its most recent step, which the member behind it steps
+// into.
+#Trail: {
+	last: api.#Cell @go(Last)
 }
 
 // MemberOf is the Ark relation from a party member to its party entity.

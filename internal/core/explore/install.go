@@ -25,6 +25,8 @@ func Install(w *sim.World) error {
 	for _, register := range []func(*api.Codec) error{
 		api.RegisterEvent[api.Moved],
 		api.RegisterEvent[api.Fell],
+		api.RegisterEvent[api.ControlChanged],
+		api.RegisterEvent[api.LeaderChanged],
 	} {
 		if err := register(w.Codec); err != nil {
 			return err
@@ -36,6 +38,9 @@ func Install(w *sim.World) error {
 	}
 	effects.SetMaps(w, w.Maps.Get)
 	timeline.SetVisible(w, visibleBody)
+	if err := installControl(w); err != nil {
+		return err
+	}
 	if err := w.Views.Register(sim.ViewBuilder{Name: "explore.party", Build: buildParty}); err != nil {
 		return err
 	}
@@ -67,14 +72,75 @@ func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
 	if ctx.Dir == nil {
 		return false, bump()
 	}
-	_, can, err := m.Step(pos.At, *ctx.Dir, stateOf(ctx.World).rules)
+	step, can, err := m.Step(pos.At, *ctx.Dir, stateOf(ctx.World).rules)
 	if err != nil {
 		return false, api.Text{ID: "text.explore.broken", Args: map[string]string{"error": err.Error()}}
 	}
 	if !can {
 		return false, bump()
 	}
+	if _, occupied, swappable := occupant(ctx.World, ctx.Source, pos, step); occupied && !swappable {
+		return false, api.Text{ID: "text.explore.occupied"}
+	}
 	return true, api.Text{}
+}
+
+// occupant finds the body in the cell a step leads to. A step into a cell of another member of the
+// same party swaps the two, unless the step is a drop or leaves the map, which cannot be reversed;
+// stepping into anyone else's cell is refused. M2 turns that refusal into an attack option.
+func occupant(
+	w *sim.World,
+	source ecs.Entity,
+	pos *comp.Pos,
+	step hexmap.Step,
+) (other ecs.Entity, occupied, swappable bool) {
+	dest := pos.Map
+	if step.To.Map != 0 {
+		dest = step.To.Map
+	}
+	other, occupied = bodyAt(w, dest, step.To.Cell, source)
+	if !occupied {
+		return ecs.Entity{}, false, false
+	}
+	party, member := partyOf(w, source)
+	otherParty, otherMember := partyOf(w, other)
+	swappable = member && otherMember && party == otherParty && step.Kind != hexmap.StepDrop && dest == pos.Map
+	return other, true, swappable
+}
+
+// setTrail records the cell a party member just left, if it keeps a trail.
+func setTrail(w *sim.World, e ecs.Entity, cell api.Cell) {
+	if trails := ecs.NewMap[comp.Trail](w.ECS); trails.Has(e) {
+		trails.Get(e).Last = cell
+	}
+}
+
+// reverse is the kind of step that undoes a step of this kind.
+func reverse(kind string) string {
+	switch kind {
+	case api.MoveUp:
+		return api.MoveDown
+	case api.MoveDown:
+		return api.MoveUp
+	}
+	return kind
+}
+
+// swapWith moves other into the cell the source just left, and publishes the move. The source has
+// already moved to dest.
+func swapWith(w *sim.World, other ecs.Entity, from, dest api.Cell, kind string) error {
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	pos := positions.Get(other)
+	pos.At = from
+	setTrail(w, other, dest)
+	w.Bus.Publish(api.Moved{Actor: w.UIDOf(other), Map: pos.Map, From: dest, To: from, Kind: reverse(kind)})
+	party, _ := partyOf(w, other)
+	cells, err := sightOf(w, *pos)
+	if err != nil {
+		return err
+	}
+	markSeen(w, party, pos.Map, cells)
+	return nil
 }
 
 var moveKinds = map[hexmap.StepKind]string{
@@ -103,6 +169,10 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 	case !can:
 		return errors.New("explore: step is blocked")
 	}
+	other, occupied, swappable := occupant(w, ctx.Source, pos, step)
+	if occupied && !swappable {
+		return errors.New("explore: step is blocked by a body")
+	}
 	from := pos.At
 	if step.To.Map != 0 {
 		pos.Map = step.To.Map
@@ -111,8 +181,14 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 		}
 	}
 	pos.At = step.To.Cell
+	setTrail(w, ctx.Source, from)
 	actor := w.UIDOf(ctx.Source)
 	w.Bus.Publish(api.Moved{Actor: actor, Map: pos.Map, From: from, To: pos.At, Kind: moveKinds[step.Kind]})
+	if occupied {
+		if err := swapWith(w, other, from, pos.At, moveKinds[step.Kind]); err != nil {
+			return err
+		}
+	}
 	if step.Kind == hexmap.StepDrop {
 		w.Bus.Publish(api.Fell{Actor: actor, Cells: step.Fall})
 	}

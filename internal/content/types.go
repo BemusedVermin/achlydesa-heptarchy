@@ -76,6 +76,9 @@ type PartyConfig struct {
 	// ClimbCost is an Expr with SpeedEnv: ticks added to each step up, on top of the timeline's
 	// step_ticks. Climbing costs more than descending on purpose. Empty means no extra cost.
 	ClimbCost string `json:"climb_cost,omitempty"`
+	// IndividualOnAlert says whether an alert switches the party to individual control, and back
+	// when it ends. True to start.
+	IndividualOnAlert bool `json:"individual_on_alert"`
 }
 
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.

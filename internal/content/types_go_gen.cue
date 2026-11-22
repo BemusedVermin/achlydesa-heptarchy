@@ -83,6 +83,10 @@ import (
 	// ClimbCost is an Expr with SpeedEnv: ticks added to each step up, on top of the timeline's
 	// step_ticks. Climbing costs more than descending on purpose. Empty means no extra cost.
 	climb_cost?: string @go(ClimbCost)
+
+	// IndividualOnAlert says whether an alert switches the party to individual control, and back
+	// when it ends. True to start.
+	individual_on_alert: bool @go(IndividualOnAlert)
 }
 
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.
