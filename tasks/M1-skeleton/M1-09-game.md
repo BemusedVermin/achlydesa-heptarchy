@@ -1,7 +1,7 @@
 ---
 id: M1-09
 title: "game: the public API"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-17]
@@ -70,12 +70,12 @@ Errors from handlers or systems are returned and leave the game unusable; say so
 
 Until M1-10 adds the start scenario, tests use a test-only package in the install list that spawns one player-controlled actor.
 
-- [ ] `New` gives a view at day 1, dawn, with the test actor current.
-- [ ] `Apply(timeline.Wait{Actor, Until: "ticks", Ticks: 60})` returns a `PhaseStarted` event, the view's log shows its rendered line, and the actor is current again afterwards.
-- [ ] `Replay` of a 50-command history (random waits from a test stream) gives the same `Hash` as the original game.
-- [ ] Two games with the same seed and commands give the same hash; a different seed doesn't need to differ yet.
-- [ ] An unknown command kind returns an error.
-- [ ] `go tool task check` passes.
+- [x] `New` gives a view at day 1, dawn, with the test actor current.
+- [x] `Apply(timeline.Wait{Actor, Until: "ticks", Ticks: 60})` returns a `PhaseStarted` event, the view's log shows its rendered line, and the actor is current again afterwards.
+- [x] `Replay` of a 50-command history (random waits from a test stream) gives the same `Hash` as the original game.
+- [x] Two games with the same seed and commands give the same hash; a different seed doesn't need to differ yet.
+- [x] An unknown command kind returns an error.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -84,3 +84,12 @@ Until M1-10 adds the start scenario, tests use a test-only package in the instal
 - The frontend still uses `internal/prototype` until M1-11.
 
 ## Notes
+
+- **Test actor:** instead of a test-only package in the install list, `Config` has an optional `Extra func(w, clk) error` hook that runs after the standard installs and before the scheduler freezes. Tests use it to spawn `template.person.reaper`; the harness (M1-13) can use it too. This keeps the install list free of test code.
+- **Events:** `timeline.Run` drains the bus itself (on every `Ready`), so `Apply` can't just return one final `Drain`. A `SubscribeAll` subscriber collects every delivered event, and `Apply` returns what it collected, in delivery order.
+- **`sim.Bus.SubscribeAll`** added (a method, since `Subscribe` is generic over the event type). All-event subscribers run after the kind's own subscribers. Tested in `sim/bus_test.go`.
+- **"Freezes the view builders":** `sim.Views` has no freeze, so only the scheduler is frozen.
+- **Unknown command kind:** `Apply` checks the kind up front, returns an error and leaves the game usable. Errors from handlers, `timeline.Run` or the bus make the game unusable, as the spec says.
+- `game.tick` sets `View.Tick` although `Views.Build` already does; kept because the spec names it.
+- Files touched outside the list: `internal/core/sim/bus.go`, `bus_test.go`.
+- Follow-ups filed: none.

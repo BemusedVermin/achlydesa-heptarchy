@@ -20,7 +20,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-08](M1-skeleton/M1-08-clock.md) | clock: ticks, phases and days | done | feature | S | M1-04, M1-06 |
 | [M1-15](M1-skeleton/M1-15-turns.md) | turns: one shared timeline for every body | done | seam | M | M1-04, M1-07, M1-08 |
 | [M1-17](M1-skeleton/M1-17-action-timing.md) | timeline: part-level action timing | done | seam | L | M1-15 |
-| [M1-09](M1-skeleton/M1-09-game.md) | game: the public API | todo | seam | M | M1-17 |
+| [M1-09](M1-skeleton/M1-09-game.md) | game: the public API | done | seam | M | M1-17 |
 | [M1-14](M1-skeleton/M1-14-sight-pathing.md) | hexmap: sight lines and pathing in 3D | done | feature | M | M1-05 |
 | [M1-18](M1-skeleton/M1-18-pending-actions.md) | timeline: actions that land later | done | seam | M | M1-17 |
 | [M1-19](M1-skeleton/M1-19-effects-core.md) | effects: the effect core, selectors and timing primitives | todo | seam | M | M1-06, M1-18 |

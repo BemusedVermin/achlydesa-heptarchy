@@ -23,6 +23,7 @@ type Bus struct {
 	mu          sync.Mutex
 	draining    bool
 	subscribers map[string][]subscriber
+	all         []subscriber
 	queue       []api.Event
 }
 
@@ -46,6 +47,14 @@ func Subscribe[E api.Event](b *Bus, name string, fn func(w *World, e E)) {
 			}
 		},
 	})
+}
+
+// SubscribeAll registers fn for every event. It runs after the subscribers of the event's own
+// kind, in the order the all-event subscribers subscribed. Games use it to build the message log.
+func (b *Bus) SubscribeAll(name string, fn func(w *World, e api.Event)) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.all = append(b.all, subscriber{name: name, fn: fn})
 }
 
 // Publish queues e for the next Drain.
@@ -90,11 +99,15 @@ func (b *Bus) Drain(w *World) ([]api.Event, error) {
 		}
 		e := b.queue[0]
 		b.queue = b.queue[1:]
-		subs := b.subscribers[e.EventKind()] // append-only, so this snapshot stays valid
+		subs := b.subscribers[e.EventKind()] // append-only, so these snapshots stay valid
+		all := b.all
 		b.mu.Unlock()
 
 		delivered = append(delivered, e)
 		for _, sub := range subs {
+			sub.fn(w, e)
+		}
+		for _, sub := range all {
 			sub.fn(w, e)
 		}
 	}

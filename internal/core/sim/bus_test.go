@@ -1,8 +1,11 @@
 package sim
 
 import (
+	"slices"
 	"strings"
 	"testing"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
 type pingEvent struct{ N int }
@@ -74,5 +77,21 @@ func TestBusRunawayCascadeErrors(t *testing.T) {
 	// The queue is cleared, so the world is usable afterwards.
 	if _, err := w.Bus.Drain(w); err != nil {
 		t.Errorf("Drain() after a failed drain: %v", err)
+	}
+}
+
+func TestSubscribeAllSeesEveryEventAfterItsOwnSubscribers(t *testing.T) {
+	w := NewWorld(1)
+	var order []string
+	Subscribe(w.Bus, "kind", func(_ *World, _ pingEvent) { order = append(order, "kind") })
+	w.Bus.SubscribeAll("all", func(_ *World, e api.Event) { order = append(order, "all:"+e.EventKind()) })
+	w.Bus.Publish(pingEvent{})
+	w.Bus.Publish(pongEvent{})
+	if _, err := w.Bus.Drain(w); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"kind", "all:test.ping", "all:test.pong"}
+	if !slices.Equal(order, want) {
+		t.Errorf("order = %v, want %v", order, want)
 	}
 }
