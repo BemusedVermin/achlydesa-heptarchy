@@ -63,3 +63,10 @@ func (r *Registry) MoveCost(terrain api.ContentID, env MoveEnv) (int64, error) {
 	}
 	return cost, nil
 }
+
+// Calendar returns the calendar. Phases is a copy.
+func (r *Registry) Calendar() Calendar {
+	cal := r.bundle.Calendar
+	cal.Phases = append([]Phase(nil), cal.Phases...)
+	return cal
+}

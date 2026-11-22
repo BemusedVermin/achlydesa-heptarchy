@@ -1,0 +1,31 @@
+package clock
+
+import (
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+)
+
+// Install registers the clock's events and its view builder. reg renders phase
+// names for the view.
+func Install(w *sim.World, c *Clock, reg *content.Registry) error {
+	if err := api.RegisterEvent[api.PhaseStarted](w.Codec); err != nil {
+		return err
+	}
+	if err := api.RegisterEvent[api.DayStarted](w.Codec); err != nil {
+		return err
+	}
+	return w.Views.Register(sim.ViewBuilder{
+		Name: "clock",
+		Build: func(w *sim.World, v *api.View) error {
+			phase := c.calendar.Phases[c.Phase(w.Now)]
+			v.Clock = &api.ClockView{
+				Day:           c.Day(w.Now),
+				Phase:         reg.Render(api.Text{ID: phase.Name}),
+				TickInPhase:   w.Now % c.calendar.TicksPerPhase,
+				TicksPerPhase: c.calendar.TicksPerPhase,
+			}
+			return nil
+		},
+	})
+}

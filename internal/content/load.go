@@ -60,6 +60,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkIDs()...)
 	problems = append(problems, registry.compileText()...)
 	problems = append(problems, registry.checkTextRefs()...)
+	problems = append(problems, registry.checkCalendar()...)
 	problems = append(problems, registry.compileFormulas()...)
 	if err := errors.Join(problems...); err != nil {
 		return nil, fmt.Errorf("content: invalid: %w", err)
@@ -139,6 +140,35 @@ func (r *Registry) checkTextRefs() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Terrains) {
 		check(fmt.Sprintf("terrains[%q].name", key), r.bundle.Terrains[key].Name)
+	}
+	return problems
+}
+
+func (r *Registry) checkCalendar() []error {
+	var problems []error
+	cal := r.bundle.Calendar
+	if cal.TicksPerPhase < 1 {
+		problems = append(
+			problems,
+			fmt.Errorf("calendar.ticks_per_phase: must be at least 1, got %d", cal.TicksPerPhase),
+		)
+	}
+	if len(cal.Phases) == 0 {
+		problems = append(problems, errors.New("calendar.phases: need at least one phase"))
+	}
+	seen := map[api.ContentID]bool{}
+	for i, phase := range cal.Phases {
+		path := fmt.Sprintf("calendar.phases[%d]", i)
+		if err := checkID(path, string(phase.ID), "phase"); err != nil {
+			problems = append(problems, err)
+		}
+		if seen[phase.ID] {
+			problems = append(problems, fmt.Errorf("%s: duplicate phase %q", path, phase.ID))
+		}
+		seen[phase.ID] = true
+		if _, ok := r.bundle.Text[string(phase.Name)]; !ok {
+			problems = append(problems, fmt.Errorf("%s.name: text reference %q does not exist", path, phase.Name))
+		}
 	}
 	return problems
 }

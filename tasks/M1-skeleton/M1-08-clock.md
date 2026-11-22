@@ -1,7 +1,7 @@
 ---
 id: M1-08
 title: "clock: ticks, phases and days"
-status: todo
+status: review
 milestone: M1
 kind: feature
 depends_on: [M1-04, M1-06]
@@ -76,14 +76,20 @@ func Install(w *sim.World, c *Clock) error // registers the Clock view builder
 
 ## Acceptance criteria
 
-- [ ] Advancing 59 ticks from 0 crosses nothing. Advancing 1 more crosses one phase and runs PerPhase systems once.
-- [ ] Advancing 240 ticks from 0 crosses four phases and one day, with PerDay systems running once, after the fourth PerPhase run.
-- [ ] Advancing 1,000 ticks at once runs exactly the boundaries that 1,000 single-tick advances run, in the same order (recorded with test systems).
-- [ ] The Clock view shows day 1 and dawn at tick 0, and day 2 and dawn at tick 240.
-- [ ] `go tool task check` passes.
+- [x] Advancing 59 ticks from 0 crosses nothing. Advancing 1 more crosses one phase and runs PerPhase systems once.
+- [x] Advancing 240 ticks from 0 crosses four phases and one day, with PerDay systems running once, after the fourth PerPhase run.
+- [x] Advancing 1,000 ticks at once runs exactly the boundaries that 1,000 single-tick advances run, in the same order (recorded with test systems).
+- [x] The Clock view shows day 1 and dawn at tick 0, and day 2 and dawn at tick 240.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Seats, exports and the flock's schedules (later milestones register PerDay systems).
 
 ## Notes
+
+- `clock.Install` takes a third argument, `reg *content.Registry`, so the view can render the phase's display name (the spec's two-argument form has no way to resolve text).
+- `Advance` rejects negative ticks with an error.
+- Per-phase log text is one text per phase, `text.clock.phase.<name>` (the log text ID is built from the phase ID), because a template argument can't itself be rendered text.
+- Files touched outside the list: `internal/content/registry.go` (`Calendar()` accessor), `internal/content/load.go` (calendar validation: ticks at least 1, at least one phase, `phase.` IDs, no duplicates, name text exists), `internal/content/load_test.go`, `internal/core/api/view.go` (`Clock` field), `content/data/text.cue`.
+- Follow-ups filed: none.

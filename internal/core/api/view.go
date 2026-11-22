@@ -5,9 +5,10 @@ package api
 // add a section each as a pointer field: Clock (M1-08), Map and Party (M1-10),
 // Combat (M2).
 type View struct {
-	Tick    int64     `json:"tick"`
-	Options []Option  `json:"options"`
-	Log     []LogLine `json:"log"`
+	Tick    int64      `json:"tick"`
+	Options []Option   `json:"options"`
+	Log     []LogLine  `json:"log"`
+	Clock   *ClockView `json:"clock,omitempty"`
 }
 
 // Option is one thing the player can do right now. Frontends render Label and
