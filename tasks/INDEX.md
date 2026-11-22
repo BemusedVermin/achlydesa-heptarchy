@@ -68,7 +68,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M2-01.F1](followups/M2-01.F1-render-fact-values.md) | Render a fact's value as text in the log | proposed | seam | unplanned | M2-01 |
+| [M2-01.F1](followups/M2-01.F1-render-fact-values.md) | Render a fact's value as text in the log | todo | seam | unplanned | M2-01 |
 | [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | obsolete | seam | M1 | M1-15 |
 | [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | unplanned | M1-14 |
 | [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | obsolete | seam | M1 | M1-17 |
