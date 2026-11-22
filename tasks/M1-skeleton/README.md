@@ -4,7 +4,7 @@
 
 **Exit criteria:**
 
-- `go run ./cmd/heptarchy play --seed 1` walks a hand-made 3D map loaded from `content/data`: down a slope, off a ledge, past a soop crossing underneath, all in one seamless plan view with the clock and a message log on screen. The party moves as a leader with a follower trailing single file, one keypress per turn, on the same timeline every other body will use.
+- `go run ./cmd/heptarchy play --seed 1` walks a hand-made 3D map loaded from `content/data`: down a slope, off a ledge, past a soop crossing underneath, all in one seamless plan view with the clock and a message log on screen. The party moves as a leader with a follower trailing single file, one keypress per step, on the same timeline every other body will use; a strip across the top shows what happens on each upcoming tick.
 - A recorded command log replays to the same hash in `go run ./cmd/harness replay`.
 - Save, load and continue gives the same hash as never saving.
 - Every lint guard is on: core purity, layers, randomness only through `rng`, no `time.Now` in the core.
@@ -23,20 +23,24 @@
 | [M1-07](M1-07-templates-spawn.md) | Templates as component bags, and spawning | M1-04, M1-05, M1-06 |
 | [M1-08](M1-08-clock.md) | clock: ticks, phases and days | M1-04, M1-06 |
 | [M1-15](M1-15-turns.md) | turns: one shared timeline for every body | M1-04, M1-07, M1-08 |
-| [M1-09](M1-09-game.md) | game: the public API | M1-15 |
-| [M1-10](M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | M1-09, M1-14 |
+| [M1-17](M1-17-action-timing.md) | timeline: part-level action timing | M1-15 |
+| [M1-18](M1-18-pending-actions.md) | timeline: actions that land later | M1-17 |
+| [M1-19](M1-19-effects-core.md) | effects: the effect core, selectors and timing primitives | M1-06, M1-18 |
+| [M1-20](M1-20-actions.md) | actions: content-defined actions | M1-07, M1-14, M1-19 |
+| [M1-09](M1-09-game.md) | game: the public API | M1-17 |
+| [M1-10](M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | M1-09, M1-14, M1-20 |
 | [M1-16](M1-16-lead-follow.md) | Lead and follow | M1-10 |
 | [M1-11](M1-11-tui.md) | Terminal frontend on the new API, with a CLI | M1-16 |
 | [M1-12](M1-12-save.md) | save: versioned snapshots and migrations | M1-16 |
 | [M1-13](M1-13-harness.md) | harness: seeded runs and replays | M1-12 |
 
-M1-02, M1-03, M1-05 and M1-06 can run in parallel once M1-01 is done. M1-14, M1-15 and M1-16 are listed where they fall in the dependency order; their numbers are just the next free ones.
+M1-02, M1-03, M1-05 and M1-06 can run in parallel once M1-01 is done. M1-14 to M1-20 are listed where they fall in the dependency order; their numbers are just the next free ones.
 
 ## Shared conventions for M1 and later
 
 - **Module path:** `github.com/BemusedVermin/achlydesa-heptarchy`, written `$MOD` below.
 - **Content IDs:** lowercase, dotted, kind first: `material.clay`, `terrain.air`, `text.explore.bump`, `template.party.main`, `map.test.hall`. Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+)+$`.
-- **Command and event kinds:** `<package>.<verb>` in lowercase: `explore.step`, `explore.moved`, `turns.wait`.
+- **Command and event kinds:** `<package>.<verb>` in lowercase: `explore.step`, `explore.moved`, `timeline.wait`.
 - **Depth** grows downward from 0 at the salk's surface, one cell per step. It never appears in the view: the core projects it away.
 - **UIDs** start at 1, are never reused, and 0 means "none".
 - **Ticks** are `int64`, counted from the start of the game.

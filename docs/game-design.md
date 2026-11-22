@@ -102,7 +102,7 @@ The deep is generated around the fixed towns and populated by monsters and peopl
 
 ### The hex grid
 
-Exploring and fighting both happen on the hex grid, on the same turns; moves are picked from menus.
+Exploring and fighting both happen on the hex grid, on the same clock; moves are picked from menus.
 
 - **Why hexes suit the deep:** six even directions make organic caves and tunnels rather than corridors and rooms, and distances are uniform for creature movement.
 - **ASCII handles it:** each hex is one glyph, two columns wide, with alternate rows offset by one column. Terminal cells are about twice as tall as they are wide, so the hexes come out roughly even.
@@ -355,22 +355,40 @@ Every combatant is a body made of parts, and parts give actions. Hitting a part'
 
 ### Fighting on the map
 
-Fights happen on the same hex map and the same turns as exploring, like a roguelike. There's no separate combat screen.
+Fights happen on the same hex map and on the same clock as exploring, like a roguelike. There's no separate combat screen.
 
-- **One timeline.** Every body, in the party or not, acts when its next turn comes up. Legs set how often that is.
-- **A turn** is one step plus one use of each working arm, in either order. The head aims.
-- **Lead and follow.** With no hostile in sight, the player moves a leader and the rest trail in single file. Once a hostile is in sight, each member's turn comes to the player.
-- **Moves come from menus.** The player positions a member on the grid, then picks the form, type and target from a menu.
+- **One timeline.** Every body, in the party or not, acts on one shared clock of ticks.
+- **Parts act on their own time.** A step keeps the body busy for a time its legs set, and a swing keeps one arm busy. A body decides whenever one of its parts is free, so more arms means more swings in the air at once, and a swing can start while the legs recover from a step.
+- **Some actions need more than one part.** A Sweep takes both arms and a Graft takes two hands, and some effects hit several parts or stop everything a body is doing.
+- **Lead and follow.** With no hostile in sight, the player moves a leader and the rest trail in single file. Once a hostile is in sight, each member's decisions come to the player.
+- **Moves come from menus.** The player positions a member on the grid, then picks the action, type and target from a menu.
 - **Position matters.** A move reaches only what's in sight and in range. In a soop one cell wide only the front member can fight, and ledges and slopes give height.
-- **Fleeing is walking away.** A body with fewer legs falls behind.
+- **The timeline strip.** Like the turn-order bars in many RPGs, a strip shows the upcoming ticks: an icon on each tick where something happens, +N when several things share one, and selecting a tick lists who acts and what lands.
+- **Fleeing is walking away.** A body with slower legs falls behind.
 
-### Bodies and turns
+### Timing
 
-- **Arms (or arm-equivalents)** each give one action per turn. The **head** handles targeting. The **legs** decide how often the body gets a turn.
+- **Wind-up and recovery.** Every move takes time to land and time to recover from. The form, the type (lake water is heavy), the part's material and grafts all change both.
+- **Dodging.** A swing is aimed when it starts. If its target is out of reach or out of sight when it lands, it misses, so stepping away in time is the answer to a slow, heavy blow.
+- **Hit-and-run.** Against something slower, swing, let it land, and step away while its own swing is still winding up. Against something faster, read its wind-ups on the timeline and choose your moment.
+- **Staggering.** Some hits cancel the swings a body has in progress. Cutting off the arm that's winding up cancels that swing for good.
+
+### Lethality
+
+Combat is meant to be lethal and short. If you go in without a plan, you lose.
+
+- **Few hits.** A part comes off in one to three ordinary hits, and in one on its weakness.
+- **Blind parties lose.** Without knowing what a body is made of and carrying the types that sever it, the party wears parts down while the enemy takes theirs off.
+- **The plan is the core loop.** Learn materials, fetch the right consumables, pick the ground (a soop mouth, a ledge), and time the approach.
+- **Winning still costs.** Injuries persist and healing takes days, so even a won fight spends time on the seat clock.
+
+### Bodies and timing
+
+- **Arms (or arm-equivalents)** each act on their own time: each can be winding up or recovering from its own swing. The **head** handles targeting. The **legs** decide how fast the body steps.
 - **Strange bodies have strange parts.** An archon's form reflects what it wants, so its parts are organs of its wish.
 - **Each part is made of a material** with its own weakness. Hit the weakness and the part comes off in one blow; hit it any other way and you wear it down.
-- **Severing manipulates turns:** cut an arm and the enemy loses that action on its next turn; cut the legs and its turns come less often; cut the head and it attacks at random.
-- **The same rules apply to the party.** A lost arm means one fewer action per turn, and injuries persist between fights.
+- **Severing manipulates timing:** cut an arm mid-swing and that swing never lands; cut the legs and every step takes longer; cut the head and it attacks at random.
+- **The same rules apply to the party.** A lost arm means one fewer swing in the air at once, and injuries persist between fights.
 - **Pre-entropy things don't know how to die.** A part severed from one sometimes crawls off and fights as its own combatant, so cutting can multiply enemies.
 
 ### Moves = form × type
@@ -402,9 +420,9 @@ Press, Violet and Lees are phrased so the mechanic works whether or not the doct
 | Strike | Hits one part at full force |
 | Sweep | Hits every part of one body lightly, and reveals what each part is made of |
 | Sever | Weak in general, but removes the part outright on a weakness |
-| Pin | Locks a part so its action is lost on its next turn. No damage, which is the safe answer to old things whose severed parts crawl off |
-| Stand | Everyone crawling, on both sides, freezes and the stander acts again. While standing they take double damage, and allies lose turns too |
-| Give | A character gives up one action so another character gets an extra one |
+| Pin | Locks a part so it can't act for a while, canceling any swing it was winding up. No damage, which is the safe answer to old things whose severed parts crawl off |
+| Stand | Everyone crawling, on both sides, is pushed back on the timeline, and the stander's parts are all ready at once. While standing they take double damage, and allies are delayed too |
+| Give | A character spends one arm's time so an ally can act at once |
 | Graft | Attaches a piece of Serilmen, or reattaches a severed part, mid-fight. Graftable characters only |
 
 Example moves: lake water with Sweep douses every clay part on a body. A daylight jar with Sweep blinds every eye. A candidate's name with Pin stops the part that still remembers being him.

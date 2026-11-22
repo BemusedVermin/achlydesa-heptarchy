@@ -51,15 +51,23 @@ type Screen interface {
 
 | Keys | Option ID |
 | --- | --- |
-| `q`, `e`, `a`, `d`, `z`, `c` | `step.nw`, `step.ne`, `step.w`, `step.e`, `step.sw`, `step.se` |
-| `.` | `wait` |
-| `space` | `end` |
+| `q`, `e`, `a`, `d`, `z`, `c` | `step/nw`, `step/ne`, `step/w`, `step/e`, `step/sw`, `step/se` |
+| `.` | `wait/event` |
+| `,` | `wait/phase` |
 | `tab` | the next `lead/<uid>` option, cycling |
 | `esc`, `ctrl+c` | quit |
 
 When a key's option isn't in the view, nothing happens; when it's disabled, the status line shows its reason. A help line (`bubbles/help`) lists the bindings whose options are present.
 
-**Map screen layout** (Lip Gloss): the map pane on the left. On the right: the clock (day, phase, a bar for ticks in the phase), the party (members in order, the leader marked, the current actor highlighted), the turn order (`TurnsView.Upcoming`, by glyph and name), and the last lines of the log. The help line runs along the bottom. Leave room on the right for M2-10's action panel.
+**Map screen layout** (Lip Gloss): the map pane on the left. On the right: the clock (day, phase, a bar for ticks in the phase), the party (members in order, the leader marked, the current actor highlighted), and the last lines of the log. The help line runs along the bottom. Leave room on the right for M2-10's action panel.
+
+**The timeline strip** runs along the top of the screen, like the turn-order bars in many RPGs. It's built from `TimelineView`:
+
+- One column per tick from `Now` to `Now + WindowTicks`, with the current tick at the left edge.
+- A tick with one entry shows its icon: the actor's glyph in its color for a `ready` entry, or a mark such as `!` in the attacker's color for a `lands` entry (from M1-18).
+- A tick with several entries shows the first icon and `+N` for the rest.
+- Select a tick with the mouse (Bubble Tea v2 mouse events) or with `[` and `]` and `enter`. A popup then lists every entry on that tick by its label, such as "Clay-thing's Strike lands on the Reaper (left arm)". `esc` closes it.
+- Render it with a pure, golden-tested function like `RenderMap`.
 
 **Rendering** (pure functions, golden-tested):
 
@@ -74,7 +82,7 @@ func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string
 
 ## Acceptance criteria
 
-- [ ] `go run ./cmd/heptarchy play --seed 1` shows the hall, walks the leader with the six keys while the follower trails, bumps with the log line, `.` waits to the next phase, and `tab` changes the leader.
+- [ ] `go run ./cmd/heptarchy play --seed 1` shows the hall, walks the leader with the six keys while the follower trails, shows the reason when a direction is blocked, `.` waits until something happens, `,` waits to the next phase, and `tab` changes the leader. The timeline strip shows the party's upcoming decisions, and selecting a tick lists them.
 - [ ] `--record run.jsonl` writes a log that `game.Replay` reproduces to the same hash (test via a helper, not the TTY).
 - [ ] Golden tests for `RenderMap`: the start view, after walking away (dimmed memory), halfway down the descent's slope (shading changes smoothly), and a pane smaller than the map. Regenerate with `go test ./internal/frontend/tui -update`.
 - [ ] Pressing the key for a disabled move shows its reason in the status line and sends nothing.

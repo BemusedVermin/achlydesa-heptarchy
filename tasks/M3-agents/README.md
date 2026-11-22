@@ -9,7 +9,7 @@
 ## Planned tasks
 
 - **Needs and behaviors as content.** Needs with Expr curves; a behavior primitive registry (move toward, flee, consume, carry, guard, wander, rest, work, trade, follow a schedule, engage); considerations scored with Expr (utility scoring).
-- **Need-driven controllers.** Full agents near the party act on their own turns through `turns` controllers that pick behaviors by need, path with `hexmap.Path`, and replace M2's `hunt` controller for creatures that have needs.
+- **Need-driven controllers.** Full agents near the party act on their own decisions through `timeline` controllers that pick behaviors by need, path with `hexmap.Path`, and replace M2's `hunt` controller for creatures that have needs.
 - **Monster families.** The design's sketches as content: moving clay gathering at bodies, remnants retreating from decay, soul-feeders hunting the living, the archon's creatures guarding believers.
 - **Level of detail.** Region and town aggregates per family; per-phase drift; promotion when the party arrives and demotion when it leaves, keeping anyone with `Individual` (named, holding a grudge, a deserter) as a full entity.
 - **People.** Residents with needs (water, food, rest, safety, belonging, faith and duty, grief), roles and customs as constraints, towns as maps with schedules.

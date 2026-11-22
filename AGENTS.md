@@ -26,7 +26,7 @@ Module path: `github.com/BemusedVermin/achlydesa-heptarchy`. The owner works in 
 ## Rules that never bend
 
 1. **The core is pure.** `internal/core` imports no UI package (Bubble Tea, Bubbles, Lip Gloss, Ebitengine).
-2. **Layers hold.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `turns`, `hexmap`, `knowledge`, `inventory`, `effects`) may be imported anywhere in the core. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; they talk through components and events. `game` and `save` sit on top.
+2. **Layers hold.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `timeline`, `hexmap`, `knowledge`, `inventory`, `effects`, `actions`) may be imported anywhere in the core. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; they talk through components and events. `game` and `save` sit on top.
 3. **Determinism.** Randomness comes only from `internal/core/rng` named streams. Never call `time.Now` in the core. Never let map iteration order or thread timing decide an outcome: sort by `comp.UID` or content ID first.
    - **One writer.** Only one goroutine at a time changes the world: the ECS, `World.Now` and the RNG streams.
    - **Parallel, then in order.** Work may run on other goroutines only as a pure computation: it reads its inputs and returns a result without touching the world. The world's goroutine then applies the results in a fixed order (by chunk key, region ID or seed). Procgen chunks, harness games run side by side, and off-screen region updates all fit this pattern.

@@ -1,6 +1,6 @@
 ---
 id: M2-11
-title: Sample content, golden encounters and properties
+title: Sample content, lethality targets and golden encounters
 status: todo
 milestone: M2
 kind: test
@@ -9,15 +9,15 @@ discovered_by: null
 size: M
 ---
 
-# M2-11 · Sample content, golden encounters and properties
+# M2-11 · Sample content, lethality targets and golden encounters
 
 ## Goal
 
-A small, complete content set that exercises every form, type and primitive, plus the tests that pin combat's behavior down so M3 and later can change things without silently breaking combat.
+A small, complete content set that exercises every form, type and primitive, tuned so that combat is lethal and a blind party loses, plus the tests that pin combat's behavior down so later work can change rules without silently breaking them.
 
 ## Context
 
-- Game design: "Combat", "Party → Protagonists in combat", "Technical plan → MVP definition" (minimal content).
+- Game design: "Combat" (especially "Lethality"), "Party → Protagonists in combat", "Technical plan → MVP definition" (minimal content).
 - Tech design: "Harness and testing → Tests".
 
 ## Deliverables
@@ -25,7 +25,7 @@ A small, complete content set that exercises every form, type and primitive, plu
 - `content/data/`: the protagonists (the Reaper: Press, Pin, Stand; the elevated salken: Relic, Sever, Graft, graftable), three enemy templates (a moving-clay thing, a pre-entropy remnant, a flesh creature with bone and eye parts), and their spawns on `map.test.hall`.
 - `internal/core/combat/testdata/encounters/*.jsonl`: scripted encounters with golden event logs.
 - `internal/core/combat/golden_test.go`, `property_test.go`
-- `internal/harness`: a `first` policy that always picks the first offered option, and CSV columns for combat (turns on alert, parts severed, deaths).
+- `internal/harness`: two policies and CSV columns for combat (ticks on alert, landings, misses, parts severed, deaths, outcome). `blind` takes the first offered option, never Sweeps first, and carries only the starting pack. `informed` knows every material and loads matching types into the right forms.
 
 ## Spec
 
@@ -33,26 +33,29 @@ A small, complete content set that exercises every form, type and primitive, plu
 
 1. Soak plus Strike severing clay.
 2. A Sweep revealing materials, then a targeted Sever.
-3. Pin and Stand in one turn, with Stand's freeze delaying the others.
+3. Pin locking an arm that's winding up, which cancels its swing, then Stand freezing everyone in sight.
 4. Give and Graft between members.
 5. A crawling part outliving its body.
-6. Outpacing a creature whose legs were severed, until the alert ends.
+6. A dodge: stepping out of reach before a swing lands.
+7. Outpacing a creature whose legs were severed, until the alert ends.
 
-**Properties** (`rapid`, over random legal option choices for up to 60 turns):
+**Properties** (`rapid`, over random legal option choices for up to 300 ticks):
 
 - No part has `PartOf` two bodies.
-- A body's actions in a turn never exceed its functioning, unlocked action parts plus extras.
+- No channel starts an action while it's busy.
 - Only bodies in reach are ever hit.
+- Every pending action lands, misses or is canceled exactly once.
 - No two bodies ever share a cell.
 - A severed part never acts for its former body.
-- Dead bodies never take turns.
+- Dead bodies never decide.
 - Replaying the same choices gives the same hash.
 - Every option offered resolves without `Rejected`.
 
 ## Acceptance criteria
 
-- [ ] Six golden encounters pass, and each covers what its name says (checked by reading the golden logs).
-- [ ] The six properties hold over 200 cases each.
+- [ ] Seven golden encounters pass, and each covers what its name says (checked by reading the golden logs).
+- [ ] The properties hold over 200 cases each.
+- [ ] **Lethality:** over 100 seeds each, a `blind` party loses at least 60% of fights against the hall's creature and an `informed` party wins at least 80%, and the median fight lasts under 60 ticks. Record the measured numbers in Notes. If they miss, tune content, not code, and say what changed. These targets are placeholders for M7.
 - [ ] `harness run --seeds 50 --steps 500` completes with the combat columns filled, and no run hits a bus cascade error.
 - [ ] `go tool task check` passes.
 

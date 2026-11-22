@@ -29,12 +29,13 @@ The game will change once it's played, so every place the game design already ex
 | Entity templates | Content defines templates as bags of optional components, not one Go type per kind; one spawn function builds any of them | A person who becomes a monster, a creature that trades, a recruit who becomes a candidate, with no new content types |
 | Parts as entities | Each part is its own entity, tied to its body by an Ark relation, `PartOf` | Severed parts that crawl off and fight, a hand that latches onto an ally, moving clay taking a part, grafting and reattaching |
 | System scheduler | Each system registers with a cadence (per turn, per phase, per day, or on an event) and the systems it runs after; the order is sorted once, deterministically | The flock, dreams and export effects slot in without touching the tick loop |
-| Time | Every body acts on one shared timeline of ticks, its next turn coming after a delay its legs set; phases per day, ticks per phase and costs are content | Exploration and fights on the same turns, lead-and-follow travel, speed as a stat, freezes and extra turns as effects, retuning the calendar |
+| Time | Every body acts on one shared timeline of ticks, and the body and each of its parts is a channel with its own busy-until tick; phases per day, ticks per phase and costs are content | Exploration and fights on one clock, multi-limb actions, wind-ups, dodging, hit-and-run, staggering, retuning the calendar |
 | Commands and events | Plain serializable structs with a stable kind name, kept with the view types in the api package; each package registers handlers for its own commands | New verbs without growing `core/game`, JSON replay logs now, protobuf later |
 | Choices come from the core | The view lists what the player can do right now (moves, targets, routes) in the order to show it; frontends only render the list | Grafts shaping what's offered, recruits refusing orders, an interface that is quietly the Demiurge's |
 | View sections | Each package contributes its own section of the view (map, party, combat, journal) | New screens and a second frontend, without one giant snapshot struct |
-| Combat sides | Sides are allegiances to factions with content-defined hostility. There's no fight entity or combat mode: a fight is hostile bodies taking turns near each other, so anyone joins or leaves by walking in or out | Grafts acting on their own, recruits fleeing, monsters fighting each other, crawling parts, fights spilling into towns |
+| Combat sides | Sides are allegiances to factions with content-defined hostility. There's no fight entity or combat mode: a fight is hostile bodies acting near each other, so anyone joins or leaves by walking in or out | Grafts acting on their own, recruits fleeing, monsters fighting each other, crawling parts, fights spilling into towns |
 | Effects anywhere | Effect primitives act on entities through a generic context, not on combat state | Consumables used while exploring, seat prices, dreams with effects, traps |
+| Actions | Every action, a step included, is content: which channels it occupies (by tag and count), wind-up and recovery formulas, target and range, and effects on start and on landing. Code adds only primitives and small validator and modifier hooks | Two-handed and lunging moves, new forms, effects that hit several limbs or stop a whole body, alternative combat rules tried in CUE |
 | Triggers | A `Triggers` component from content: on an event, if an Expr condition holds, apply effects | Graft autonomy, curdle modes, exotic recruit abilities and material reactions, all as data |
 | Behaviors | Agent behaviors are registered primitives that content composes and scores with Expr considerations; monsters, people, recruits and candidates share one path | Simulating candidates later, new creature families as pure data |
 | Knowledge | One fact store per knower (subject, claim, source, confidence); the piece, rumors, clues and dreams all write facts | New clue sources, false positives, NPCs who know things, the journal as a view over facts |
@@ -107,12 +108,13 @@ achlydesa-heptarchy/
 │   │   ├── comp/           # Ark component structs and relations
 │   │   ├── anatomy/        # body and part queries
 │   │   ├── clock/          # ticks, day phases, calendar from content
-│   │   ├── turns/          # the shared timeline, turn budgets, controllers
+│   │   ├── timeline/       # channels, decisions, actions that land later
 │   │   ├── rng/            # named math/rand/v2 streams
 │   │   ├── hexmap/         # 3D hex cells in chunks, topology, sight, A*
 │   │   ├── knowledge/      # fact store per knower
 │   │   ├── inventory/      # packs of item stacks
-│   │   ├── effects/        # effect primitive registry and triggers
+│   │   ├── effects/        # effect core, selectors, timing primitives, triggers
+│   │   ├── actions/        # content-defined actions and the do command
 │   │   ├── explore/        # party movement, plan-view projection
 │   │   ├── procgen/        # stage pipeline, reseeding, guarantees
 │   │   ├── combat/         # hostility, alert, moves with reach, death
@@ -136,7 +138,7 @@ achlydesa-heptarchy/
 
 - **One API boundary.** Frontends and the harness talk only to `core/game`: they send commands and receive events plus a read-only view.
 - **No package reaches sideways into another's internals.** Packages communicate through components and Ark events.
-- **Two layers.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `turns`, `hexmap`, `knowledge`, `inventory`, `effects`) can be imported by anyone. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; `game` and `save` sit on top. depguard enforces it.
+- **Two layers.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `timeline`, `hexmap`, `knowledge`, `inventory`, `effects`, `actions`) can be imported by anyone. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; `game` and `save` sit on top. depguard enforces it.
 
 ## Core packages
 
@@ -150,15 +152,16 @@ Each package owns one part of the rules and leans on a library for everything el
 | `comp` | Plain component structs and relations: `Pos{Map, Cell}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
 | `anatomy` | Queries over bodies and parts: attached parts, functioning parts, grants, party members | `comp` |
 | `clock` | Ticks, day phases and the calendar read from content; per-phase and per-day systems as the timeline crosses boundaries; timers for generic NPC replacement and export scheduling | The `sim` scheduler |
-| `turns` | The shared timeline: every actor's next turn, turn budgets (one step, each arm once), controllers (player, follow, behaviors), and playing turns forward until the player is needed | Ark resources, `clock` |
+| `timeline` | The shared timeline: channels (a body and each of its parts) and when they're free, decisions, actions that land later, controllers (player, follow, behaviors), and playing time forward until the player is needed | Ark resources, `clock` |
 | `rng` | One named PCG stream per subsystem, seeded from the world seed (plus the export count for procgen) | `math/rand/v2` |
 | `hexmap` | Maps keyed by map ID: 3D hex cells in chunks (maps can be infinite), the topology, stepping rules, 3D sight and pathing | gravitton/hexagon, fzipp/astar |
 | `knowledge` | Facts per knower: subject, claim, source, confidence. The journal is a view over the party's facts | Components only |
 | `inventory` | Packs of item stacks: add, take, count | Components only |
-| `effects` | The registry of effect primitives (`damage`, `sever`, `lock_part`, `add_status`, `transfer_action`, `attach_part`, `reveal`, ...), usable by any system, and the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
+| `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
+| `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, validator and modifier hooks, the generic do command and its options | `timeline`, `effects` |
 | `explore` | Maps from content, stepping, lead and follow, remembered cells and the plan-view projection; gates between maps later | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
-| `combat` | Hostility between factions, the party's alert, moves with reach (forms × types) through parts' actions, death, graft autonomy | `effects`, Expr for content formulas |
+| `combat` | Hostility between factions, the party's alert, types (the choice, validator and modifier that make forms × types), combat primitives, the creature controller, death, graft autonomy | `effects`, Expr for content formulas |
 | `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; full agents on screen, region aggregates off screen | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
@@ -191,9 +194,9 @@ One goroutine changes the world, in a fixed order, so the same seed and the same
 
 Systems register with the scheduler in `sim`, each declaring a cadence and what it runs after, so this is the default schedule rather than a hard-coded loop. Exploration and fights share it: every body, in the party or not, acts on one timeline.
 
-1. The body with the earliest next turn acts, ties broken by UID, and the clock jumps to that tick.
-2. Its controller takes the turn: the player for party members (only the leader while no hostile is in sight), a follow controller for the rest of the party, and behaviors for everyone else. A turn is one step plus one use of each working arm; legs set the delay until the next turn, and terrain and climbing add to it.
-3. After each turn, per-turn systems run: locks and statuses tick down, and the party's alert updates.
+1. The earliest entry on the timeline happens next, and the clock jumps to its tick: an attack landing, or a body deciding. At the same tick, landings go first, then decisions by UID.
+2. A deciding body's controller picks actions: the player for party members (only the leader while no hostile is in sight), a follow controller for the rest of the party, and behaviors for everyone else. Each action occupies the channels it needs (a step the body, a swing one or more arms) for its wind-up and recovery; legs, terrain and climbing set how long a step takes.
+3. After every entry, per-turn systems run: statuses expire and the party's alert updates.
 4. At each day-phase boundary the clock crosses, the off-screen tick runs: region populations drift, town residents follow their routines, generic NPCs are replaced on their timers.
 5. Once a day: seats advance, the export schedule is checked, rumors move between towns.
 6. Ark events fire after each step (a death, a severed part, a passed seat), and subscribers update wounds, grudges and readings.
@@ -227,7 +230,7 @@ Frontends only draw the core's read-only view and send it commands, so a second 
 - **Bubbles components for the plumbing:** `list` for menus, `table` for the party and inventories, `viewport` for logs and the investigation journal, `textinput` for naming, `help` and `key` for bindings.
 - **Lip Gloss for layout and color.** The map, combat panel and message log are panes joined with Lip Gloss.
 - **The hex map** is drawn from the hex library's double-width coordinates: one glyph every two columns, alternate rows offset by one. Depth shows only as shading relative to the party, never as a layer.
-- **Combat** happens on the map screen: a side panel shows the current member's parts, a menu picks form, type and target, and a look mode shows any visible body's parts. There's no combat screen.
+- **Combat** happens on the map screen: a side panel shows the deciding member's parts and what each is doing, a menu picks the action, type and target, and a look mode shows any visible body's parts. A timeline strip along the top shows upcoming ticks, an icon per tick with something on it and +N when several share one; selecting a tick lists who acts and what lands. There's no combat screen.
 
 ### The graphics frontend (later)
 
@@ -265,13 +268,13 @@ The custom code is the game's rules, plus thin glue to the libraries above. Noth
 
 ### What we write
 
-- **Effect primitives and combat resolution:** parts as actions, sever rules, forms × types, graft autonomy.
+- **Effect primitives and combat resolution:** channels and timing, actions defined in content, sever rules, types, graft autonomy.
 - **The needs scorer:** a small utility-scoring loop; the curves themselves are Expr formulas in content.
 - **Seat rules:** the state machine, passing, wound scoring, the piece's readings.
 - **The wish generator:** a pipeline over content tables.
 - **Procgen for the deep:** hex cave generation from noise and cellular rules, stitching to town gates, and the party's pocket on reseed.
 - **Rumor spread and drift.**
-- **The engine spine:** the system scheduler, the command, event and view registries, the trigger runner, the fact store and the turn timeline.
+- **The engine spine:** the system scheduler, the command, event and view registries, the trigger runner, the fact store, the action timeline and the action machinery.
 - **Glue:** content decode and registry, the RNG stream registry, the Ark component set, the `core/game` API.
 - **The Bubble Tea screens.**
 
@@ -296,7 +299,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 - [ ] The deep is infinite, so: how big is the level-of-detail radius, and what's the chunk memory budget? Together they set the off-screen tick budget.
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
-- [x] Combat: decided, on the hex map and the same turns as exploring, with moves picked from menus.
+- [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.
 
 ### Sources
 

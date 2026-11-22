@@ -4,7 +4,7 @@ title: "game: the public API"
 status: todo
 milestone: M1
 kind: seam
-depends_on: [M1-15]
+depends_on: [M1-17]
 discovered_by: null
 size: M
 ---
@@ -48,17 +48,17 @@ func Replay(cfg Config, cmds []api.Command) (*Game, error)
 3. Freezes the scheduler and the view builders.
 4. Drains the bus once, so setup events reach the log.
 
-For now the list is `clock` and `turns`. M1-10 adds `explore`.
+For now the list is `clock` and `timeline`. M1-10 adds `explore`.
 
 **`Apply`:**
 
-1. Dispatches the command and gets its cost. Commands act on the current actor's turn (M1-15); a command for anyone else is rejected by its handler.
-2. If the command wasn't rejected, adds the cost to the current actor's `Extra` with `turns.AddExtra`.
-3. Calls `turns.Run`, which returns at once if the player's turn is still open, or plays the timeline forward (other actors' turns, clock boundaries) until a player-controlled actor's turn begins.
+1. Dispatches the command and gets its cost. Commands act for the body currently deciding (M1-17); a command for anyone else is rejected by its handler.
+2. Handlers that take time occupy channels themselves; actions do this through M1-20. `game` ignores the returned cost, which stays in the handler signature only for compatibility.
+3. Calls `timeline.Run`, which returns at once if the player's body can still act at this tick, or plays the timeline forward (other bodies' decisions, landings, clock boundaries) until a player-controlled body decides.
 4. Drains the bus and appends the command to the history.
 5. Returns the events in delivery order.
 
-`New` also calls `turns.Run` once at the end, so a new game opens on the first player turn. `game.Current()` returns the current actor's UID.
+`New` also calls `timeline.Run` once at the end, so a new game opens on the first player decision. `game.Current()` returns the deciding body's UID.
 
 Errors from handlers or systems are returned and leave the game unusable; say so in the doc comment.
 
@@ -71,7 +71,7 @@ Errors from handlers or systems are returned and leave the game unusable; say so
 Until M1-10 adds the start scenario, tests use a test-only package in the install list that spawns one player-controlled actor.
 
 - [ ] `New` gives a view at day 1, dawn, with the test actor current.
-- [ ] `Apply(turns.Wait{Actor, Ticks: 60})` returns a `PhaseStarted` event, the view's log shows its rendered line, and the actor is current again afterwards.
+- [ ] `Apply(timeline.Wait{Actor, Until: "ticks", Ticks: 60})` returns a `PhaseStarted` event, the view's log shows its rendered line, and the actor is current again afterwards.
 - [ ] `Replay` of a 50-command history (random waits from a test stream) gives the same `Hash` as the original game.
 - [ ] Two games with the same seed and commands give the same hash; a different seed doesn't need to differ yet.
 - [ ] An unknown command kind returns an error.

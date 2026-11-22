@@ -34,7 +34,7 @@ Fights emerge from the map instead of starting as a mode. This task covers three
 
 ## Spec
 
-**Content:** `CombatConfig{ CalmTurns int; SightRadius, SightDepth int; CorpseGlyph string; CorpseColor string }` under `combat`. `MapDef` gains `Spawns map[string]api.ContentID`: a mark character to a template, spawned at start in row order, with `Pos` and the template's `Turn`.
+**Content:** `CombatConfig{ CalmTicks int64; SightRadius, SightDepth int; CorpseGlyph string; CorpseColor string }` under `combat`. `MapDef` gains `Spawns map[string]api.ContentID`: a mark character to a template, spawned at start in row order, with `Pos` and the template's `Turn`.
 
 **Hostility:**
 
@@ -45,23 +45,24 @@ func Hostile(w *sim.World, a, b ecs.Entity) bool
 
 **Alert:** a `PerTurn` system, `combat.alert`, for the controlled party.
 
-- If any living hostile body is visible (`hexmap.Visible` with the combat sight radius and depth) from any living member: reset `Calm.Turns` to 0. If `Party.Alert` was false, set it and publish `AlertStarted` (loggable, naming the first hostile seen by UID).
-- Otherwise, after each of the leader's turns, increment `Calm.Turns`. When it reaches `CalmTurns`, clear `Alert` and publish `AlertEnded` (loggable).
-- M1-16's `party_control` already switches controllers on `Alert`. Register `combat.alert` before it (`After`), so the switch takes effect on the same turn.
+- If any living hostile body is visible (`hexmap.Visible` with the combat sight radius and depth) from any living member: set `Calm.Since` to now. If `Party.Alert` was false, set it and publish `AlertStarted` (loggable, naming the first hostile seen by UID).
+- Otherwise, once `CalmTicks` have passed since `Calm.Since`, clear `Alert` and publish `AlertEnded` (loggable).
+- Register M1-19's hostility hook with `Hostile`, so the `allies` and `enemies` selectors work.
+- M1-16's `party_control` already switches controllers on `Alert`. Register `combat.alert` before it (`After`), so the switch takes effect at once.
 
 **Death:** a subscriber to `PartDamaged` and `PartSevered` checks the README's death rule for the affected body.
 
-- **Dies:** publish `BodyDied`, add `Dead{Tick}`, remove its `Turn` so it leaves the timeline, and set its `Appearance` to the corpse glyph and color.
-- **Protected:** it becomes `Downed` instead; `BodyDowned` is published, and its budget becomes zero actions and zero steps until something revives it (later milestones).
+- **Dies:** publish `BodyDied`, add `Dead{Tick}`, remove its `Actor` so it leaves the timeline, cancel its pending actions, and set its `Appearance` to the corpse glyph and color.
+- **Protected:** it becomes `Downed` instead; `BodyDowned` is published, and it leaves the timeline the same way until something revives it (later milestones).
 - **Party wipe:** when every member of the controlled party is dead or downed, publish `PartyLost` (loggable). `game.Apply` rejects every later command with `text.game.lost`. File a `question` follow-up on what a party wipe means for the story.
 
 ## Acceptance criteria
 
-- [ ] Walking the leader into sight of the hall's creature sets `Alert`, publishes `AlertStarted`, and gives every member's turn to the player.
+- [ ] Walking the leader into sight of the hall's creature sets `Alert`, publishes `AlertStarted`, and gives every member's decisions to the player.
 - [ ] On `map.test.descent`, standing in the hall directly over the creature in the soop below never sets `Alert`: there's no sight through rock.
-- [ ] After `CalmTurns` leader turns with no hostile visible, `AlertEnded` fires and lead and follow resume.
+- [ ] After `CalmTicks` with no hostile visible, `AlertEnded` fires and lead and follow resume.
 - [ ] `Hostile` is symmetric when only one faction lists the other (table test).
-- [ ] Applying damage directly (through effects) until a vital part is gone kills the body: the corpse stays on the map with its corpse glyph and takes no more turns.
+- [ ] Applying damage directly (through effects) until a vital part is gone kills the body: the corpse stays on the map with its corpse glyph and never decides again.
 - [ ] A protected member is downed instead of killed; downing every member publishes `PartyLost`, and the next command is rejected.
 - [ ] `go tool task check` passes.
 
