@@ -87,3 +87,9 @@ func floorDivInt(a, b int) int {
 	}
 	return q
 }
+
+// Distance is the number of hex steps between two cells of a layer, ignoring depth.
+func Distance(a, b api.Hex) int {
+	dq, dr := a.Q-b.Q, a.R-b.R
+	return (absInt(dq) + absInt(dr) + absInt(dq+dr)) / 2
+}

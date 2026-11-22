@@ -1,7 +1,7 @@
 ---
 id: M1-20
 title: "actions: content-defined actions"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-07, M1-14, M1-19]
@@ -124,14 +124,14 @@ Until M1-10 lands, test with a test primitive.
 
 ## Acceptance criteria
 
-- [ ] A test action needing two `arm` channels is startable only when both are free, occupies both, and offers one option per pair when three arms are free.
-- [ ] An action with windup 3 lands 3 ticks later; moving its target out of range before then makes it publish `ActionMissed`.
-- [ ] Locking one of its used channels before landing cancels it (through M1-19's `lock`).
-- [ ] A `Check` that fails makes the option disabled with that check's reason.
-- [ ] The usable hook keeps a body with a free but useless channel from stopping to decide.
-- [ ] `actions.do` from an option always validates; a hand-built `Do` with a busy channel is rejected with a reason.
-- [ ] Replaying 200 random options gives the same hash as playing them.
-- [ ] `go tool task check` passes.
+- [x] A test action needing two `arm` channels is startable only when both are free, occupies both, and offers one option per pair when three arms are free.
+- [x] An action with windup 3 lands 3 ticks later; moving its target out of range before then makes it publish `ActionMissed`.
+- [x] Locking one of its used channels before landing cancels it (through M1-19's `lock`).
+- [x] A `Check` that fails makes the option disabled with that check's reason.
+- [x] The usable hook keeps a body with a free but useless channel from stopping to decide.
+- [x] `actions.do` from an option always validates; a hand-built `Do` with a busy channel is rejected with a reason.
+- [x] Replaying 200 random options gives the same hash as playing them.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -140,3 +140,25 @@ Until M1-10 lands, test with a test primitive.
 ## Notes
 
 This is L. If it runs long, split options and the usable hook into a follow-up and land `Validate`, `Start` and landing first.
+
+**Implementer's notes**
+
+- **Placeholder `step`.** The sample `action.step` names an effect `step`, and `game.New` rejects content naming unregistered primitives, so `actions.Install` registers a `step` that moves nobody (`install.go`, `registerPlaceholderStep`). A step still takes its time and its options appear. M1-10 should delete the placeholder when it registers the real one (the bump text `text.explore.bump` is its `Check`).
+- **`ActionEnv.StepTicks`.** The spec's `recovery: step_ticks` needs a `step_ticks` name in `ActionEnv`, so it gained `StepTicks` (the existing `timeline.step_ticks` formula at the actor's speed).
+- **Content field tags.** `choices`, `on_start`, `on_land`, `tags`, `range` and `sight` are `omitempty`, so a simple action doesn't have to write them out in CUE. Content checks add: `action.` IDs, a text `name`, a unique lower-case `key`, a known `target`, at least one `uses` requirement with a valid tag, `windup` and `recovery` present, and every formula compiling against `ActionEnv`. `game.New` also calls `actions.ValidateContent` (every `choices` entry needs a registered provider). Template `actions` must name real actions.
+- **One pending per action.** A multi-channel action is one pending entity whose `Part` is its first channel; the new `comp.Landing` lists all of them. `effects.windingUp` now also matches a `Landing` that lists the channel, so `lock` and `interrupt` on any used channel cancel the action.
+- **Usable hook** ignores busyness: a channel is usable when some action could use it were it free (otherwise a busy arm would look useless and the body would wake too early). Landing windup-0 actions publishes no `ActionStarted`, as specced; a miss at landing publishes `ActionMissed` with a `Line` for the log and a `Reason`.
+- **Option IDs** include the channel UIDs only when the action has more than one way to pick channels (`step/nw`, but `grab/<arm>/<arm>` with three arms). `Do` always carries the chosen channels.
+- **Cell targets.** `target: "cell"` loads but nothing is offered: no cell travels in the intent. Filed as M1-20.F2.
+- **Limits.** At most 32 channel sets per action (`MaxChannelSets`) and 500 options (`MaxOptions`). The sample stays far below both, so no follow-up for the cap.
+- **Files touched outside the list:**
+  - `content`: `Load` split into `LoadBundle` and `New` (tests adjust a bundle), `actions.go`, `bundle.go`, `env.go`.
+  - `comp`: `Landing`.
+  - `hexmap`: `Distance`.
+  - `timeline`: `Speed` and `CurrentPlayer`.
+  - `effects`: `Hostile`, `hexmap.Distance` instead of its own copy, and `windingUp`.
+  - `game`: install and `ValidateContent`.
+  - Sample content: `actions.cue`, `templates.cue`, `text.cue`.
+  - Regenerated schemas.
+  - AGENTS.md and the tech design already list `effects` and `actions` as foundation packages, so they are unchanged.
+- **Follow-ups filed:** M1-20.F1 (effect checks draw from the RNG while building views), M1-20.F2 (cell targets). `TestGameNewRejectsActionsContentCannotRun` now covers the unknown-primitive path end to end, so the owner may fold M1-19.F1 into this; its missing-parameter and malformed-selector cases are still open.
