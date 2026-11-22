@@ -25,6 +25,12 @@ func Install(w *sim.World, clk *clock.Clock) error {
 	if err := api.RegisterEvent[api.Ready](w.Codec); err != nil {
 		return err
 	}
+	if err := api.RegisterEvent[api.ActionLanded](w.Codec); err != nil {
+		return err
+	}
+	if err := api.RegisterEvent[api.ActionCanceled](w.Codec); err != nil {
+		return err
+	}
 	err := sim.Handle(w, func(w *sim.World, cmd api.Wait) (int64, error) {
 		return handleWait(w, clk, cmd)
 	})
@@ -154,7 +160,21 @@ func (st *state) visibleEntries(w *sim.World) []api.TimelineEntry {
 // buildView fills the timeline section and, on a player's decision, the wait options.
 func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 	st := stateOf(w)
-	view := &api.TimelineView{Now: w.Now, Entries: st.visibleEntries(w)}
+	entries := append(st.visibleEntries(w), st.landsEntries(w)...)
+	slices.SortStableFunc(entries, func(a, b api.TimelineEntry) int {
+		if a.Tick != b.Tick {
+			return cmpInt(a.Tick, b.Tick)
+		}
+		// Landings come before decisions at the same tick.
+		switch {
+		case a.Kind == "lands" && b.Kind != "lands":
+			return -1
+		case a.Kind != "lands" && b.Kind == "lands":
+			return 1
+		}
+		return 0
+	})
+	view := &api.TimelineView{Now: w.Now, Entries: entries}
 	v.Timeline = view
 	body, ok := Current(w)
 	if !ok {

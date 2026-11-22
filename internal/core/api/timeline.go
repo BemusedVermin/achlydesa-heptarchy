@@ -42,10 +42,39 @@ type TimelineView struct {
 // TimelineEntry is one thing on the timeline.
 type TimelineEntry struct {
 	Tick   int64  `json:"tick"`
-	Kind   string `json:"kind"` // "ready" now; "lands" from M1-18
+	Kind   string `json:"kind"` // "ready" or "lands"
 	Actor  UID    `json:"actor"`
 	Glyph  string `json:"glyph"`
 	Color  string `json:"color"`
 	Target UID    `json:"target"` // for "lands"
 	Label  string `json:"label"`  // rendered, e.g. "The Reaper is ready"
 }
+
+// Kinds of the events for pending actions.
+const (
+	ActionLandedKind   = "timeline.action_landed"
+	ActionCanceledKind = "timeline.action_canceled"
+)
+
+// ActionLanded reports that a pending action has landed and been resolved.
+type ActionLanded struct {
+	Kind   string `json:"kind"` // the resolver's name
+	Actor  UID    `json:"actor"`
+	Target UID    `json:"target"`
+	Tick   int64  `json:"tick"`
+}
+
+// EventKind implements [Event].
+func (ActionLanded) EventKind() string { return ActionLandedKind }
+
+// ActionCanceled reports that a pending action was removed before it landed.
+type ActionCanceled struct {
+	Kind   string `json:"kind"`
+	Actor  UID    `json:"actor"`
+	Target UID    `json:"target"`
+	Tick   int64  `json:"tick"`
+	Reason Text   `json:"reason"`
+}
+
+// EventKind implements [Event].
+func (ActionCanceled) EventKind() string { return ActionCanceledKind }
