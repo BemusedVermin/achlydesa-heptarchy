@@ -204,3 +204,37 @@ func TestRejectedCommandIsAnEventNotAnError(t *testing.T) {
 		t.Errorf("events = %v, want one Rejected", events)
 	}
 }
+
+func TestSwapContentRefreshesTheCalendarAndTimeline(t *testing.T) {
+	g, err := game.New(config(t, 1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	bundle, err := content.LoadBundle(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bundle.Start = content.Start{}
+	first := bundle.Calendar.Phases[0]
+	bundle.Calendar.Phases[0].ID = "phase.renamed"
+	bundle.Calendar.Phases[0].Name = "text.phase.dusk"
+	bundle.Calendar.Phases[0].Ticks = first.Ticks + 7
+	bundle.Timeline.WindowTicks++
+	reg, err := content.New(bundle)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := g.SwapContent(reg); err != nil {
+		t.Fatal(err)
+	}
+	view, err := g.View()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if view.Clock == nil || view.Clock.Phase != "dusk" {
+		t.Errorf("clock = %+v, want the swapped calendar's first phase (dusk)", view.Clock)
+	}
+	if view.Timeline == nil || view.Timeline.Window != bundle.Timeline.WindowTicks {
+		t.Errorf("timeline = %+v, want window %d", view.Timeline, bundle.Timeline.WindowTicks)
+	}
+}

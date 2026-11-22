@@ -19,13 +19,23 @@ type Clock struct {
 
 // New returns a clock for cal, which must be valid (content.Load checks it).
 func New(cal content.Calendar) *Clock {
-	cal.Phases = append([]content.Phase(nil), cal.Phases...)
-	clk := &Clock{calendar: cal, starts: make([]int64, len(cal.Phases))}
-	for i, phase := range cal.Phases {
-		clk.starts[i] = clk.dayTicks
-		clk.dayTicks += phase.Ticks
-	}
+	clk := &Clock{}
+	clk.Reset(cal)
 	return clk
+}
+
+// Reset replaces the calendar in place, so everything holding this clock sees the new one. cal
+// must be valid. Ticks keep their meaning (the tick is still sim.World.Now), but a new day length
+// moves where days and phases fall.
+func (c *Clock) Reset(cal content.Calendar) {
+	cal.Phases = append([]content.Phase(nil), cal.Phases...)
+	c.calendar = cal
+	c.starts = make([]int64, len(cal.Phases))
+	c.dayTicks = 0
+	for i, phase := range cal.Phases {
+		c.starts[i] = c.dayTicks
+		c.dayTicks += phase.Ticks
+	}
 }
 
 // Day is the day number at tick now, counting from 1.

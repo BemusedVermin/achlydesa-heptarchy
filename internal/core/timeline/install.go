@@ -15,6 +15,10 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
+// Reload re-reads the timeline settings from the world's content. game.SwapContent calls it after
+// the content changes.
+func Reload(w *sim.World) { stateOf(w).cfg = w.Content.Timeline() }
+
 // Install registers the Ready event, the wait command, the Actor spawner and the view builder.
 // The world's content must be set. clk gives the phase boundaries that waiting skips to.
 func Install(w *sim.World, clk *clock.Clock) error {

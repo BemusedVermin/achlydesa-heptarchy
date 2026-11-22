@@ -53,6 +53,8 @@ func (g *Game) SwapContent(reg *content.Registry) error {
 		g.world.Content = old
 		return fmt.Errorf("game: swap content: %w", err)
 	}
+	g.clock.Reset(reg.Calendar())
+	timeline.Reload(g.world)
 	g.Note("content reloaded: a replay from before this point will not match")
 	return nil
 }
