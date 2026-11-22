@@ -29,6 +29,7 @@ Bodies are made of part entities joined by a relation, built from content body p
 - `internal/core/comp/body.go`: the components and relations.
 - `internal/core/sim/` or a new foundation file `internal/core/comp/bodyquery.go`: body queries (see Spec for where).
 - Spawners `body` and `protected`, the timeline's channel and speed hooks, with tests.
+- From M1-17.F1: `internal/core/timeline` gains an exported `Reschedule(w *sim.World, body ecs.Entity)` that recomputes the body's decision tick and requeues it (a no-op for a body with no `comp.Actor`). Call it when parts are lost or attached. Test: `SetUsable` starts rejecting the only busy channel, and `Reschedule` brings the decision forward.
 
 ## Spec
 

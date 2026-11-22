@@ -27,6 +27,7 @@ The primitives combat content composes, on top of M1-19's registry and selectors
 - `internal/core/comp/comp.go`: `Statuses`.
 - `internal/core/combat/effects.go` (registered by `combat.Install`), tests.
 - `internal/core/api/combat.go`: the events these publish.
+- From M1-19.F1: extend `Registry.EffectSites` for each place content now holds effects, and add a `game` test (fixture under `testdata/`; the sample content stays valid) where `game.New` fails on a deliberately bad action effect. Acceptance: an unknown primitive, a missing parameter and a malformed selector each fail, and the error lists each with its path.
 
 ## Spec
 

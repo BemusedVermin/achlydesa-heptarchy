@@ -30,6 +30,7 @@ Fights emerge from the map instead of starting as a mode. This task covers three
 - `internal/core/api/combat.go`: `AlertStarted`, `AlertEnded`, `BodyDied`, `BodyDowned`, `PartyLost`.
 - `internal/core/combat/hostility.go`, `alert.go`, `death.go`, `install.go`, tests.
 - `internal/core/explore`: spawn map marks' templates at start.
+- From M1-16.F2: `internal/core/api/explore.go`: `PartyView` gains `Control string` (`follow` or `individual`) and `Alert bool`; `internal/core/explore/project.go` fills them. Test: the view shows the mode before and after `explore.control`, and the alert when forced.
 - `internal/core/game`: stop accepting commands after `PartyLost`.
 
 ## Spec

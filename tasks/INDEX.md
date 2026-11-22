@@ -69,16 +69,16 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
 | [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | obsolete | seam | M1 | M1-15 |
-| [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | M1 | M1-14 |
-| [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | proposed | seam | M1 | M1-17 |
-| [M1-18.F1](followups/M1-18.F1-pending-save-roundtrip.md) | Round-trip pending actions through a real save | proposed | test | M1 | M1-18 |
-| [M1-19.F1](followups/M1-19.F1-effect-validation-end-to-end.md) | Test that game.New rejects bad effects in real content | proposed | test | M1 | M1-19 |
-| [M1-20.F1](followups/M1-20.F1-check-draws-roll.md) | Effect checks must not draw from the RNG | proposed | bug | M1 | M1-20 |
+| [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | unplanned | M1-14 |
+| [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | obsolete | seam | M1 | M1-17 |
+| [M1-18.F1](followups/M1-18.F1-pending-save-roundtrip.md) | Round-trip pending actions through a real save | obsolete | test | M1 | M1-18 |
+| [M1-19.F1](followups/M1-19.F1-effect-validation-end-to-end.md) | Test that game.New rejects bad effects in real content | obsolete | test | M1 | M1-19 |
+| [M1-20.F1](followups/M1-20.F1-check-draws-roll.md) | Effect checks must not draw from the RNG | todo | bug | M1 | M1-20 |
 | [M1-20.F2](followups/M1-20.F2-cell-targets.md) | Cell-targeted actions | proposed | seam | unplanned | M1-20 |
-| [M1-10.F1](followups/M1-10.F1-slope-floor-in-plan-view.md) | Plan view: a slope's ceiling beats its floor | proposed | question | M1 | M1-10 |
-| [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | proposed | feature | M2 | M1-10 |
-| [M1-10.F3](followups/M1-10.F3-sight-vs-prototype.md) | Sight differs from the prototype at pillar edges | proposed | debt | M1 | M1-10 |
-| [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | M1 | M1-16 |
-| [M1-16.F2](followups/M1-16.F2-party-view-control.md) | Show the party's control mode and alert in the view | proposed | feature | M1 | M1-16 |
-| [M1-12.F1](followups/M1-12.F1-load-with-spawning-extra.md) | Let Load run a Config.Extra that spawns | proposed | debt | M1 | M1-12 |
-| [M1-11.F1](followups/M1-11.F1-wasd-alternating-diagonals.md) | WASD: up and down zigzag diagonally | proposed | feature | M1 | M1-11 |
+| [M1-10.F1](followups/M1-10.F1-slope-floor-in-plan-view.md) | Plan view: a slope's ceiling beats its floor | todo | question | M1 | M1-10 |
+| [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | todo | feature | M2 | M1-10 |
+| [M1-10.F3](followups/M1-10.F3-sight-vs-prototype.md) | Sight differs from the prototype at pillar edges | obsolete | debt | M1 | M1-10 |
+| [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | unplanned | M1-16 |
+| [M1-16.F2](followups/M1-16.F2-party-view-control.md) | Show the party's control mode and alert in the view | obsolete | feature | M1 | M1-16 |
+| [M1-12.F1](followups/M1-12.F1-load-with-spawning-extra.md) | Let Load run a Config.Extra that spawns | todo | debt | M1 | M1-12 |
+| [M1-11.F1](followups/M1-11.F1-wasd-alternating-diagonals.md) | WASD: up and down zigzag diagonally | todo | feature | M1 | M1-11 |
