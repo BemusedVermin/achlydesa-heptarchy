@@ -18,7 +18,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-06](M1-skeleton/M1-06-content.md) | content: CUE loader, IDs, text, formulas | done | seam | M | M1-03 |
 | [M1-07](M1-skeleton/M1-07-templates-spawn.md) | Templates as component bags, and spawning | done | seam | M | M1-04, M1-05, M1-06 |
 | [M1-08](M1-skeleton/M1-08-clock.md) | clock: ticks, phases and days | done | feature | S | M1-04, M1-06 |
-| [M1-15](M1-skeleton/M1-15-turns.md) | turns: one shared timeline for every body | todo | seam | M | M1-04, M1-07, M1-08 |
+| [M1-15](M1-skeleton/M1-15-turns.md) | turns: one shared timeline for every body | done | seam | M | M1-04, M1-07, M1-08 |
 | [M1-09](M1-skeleton/M1-09-game.md) | game: the public API | todo | seam | M | M1-15 |
 | [M1-14](M1-skeleton/M1-14-sight-pathing.md) | hexmap: sight lines and pathing in 3D | todo | feature | M | M1-05 |
 | [M1-10](M1-skeleton/M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | todo | feature | L | M1-09, M1-14 |
@@ -64,3 +64,4 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | proposed | seam | M1 | M1-15 |

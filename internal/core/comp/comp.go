@@ -35,3 +35,13 @@ type Party struct {
 type MemberOf struct {
 	ecs.RelationMarker `json:"-"`
 }
+
+// Turn puts an entity on the timeline.
+type Turn struct {
+	Next        int64  `json:"next"`         // tick of its next turn
+	Controller  string `json:"controller"`   // a registered controller name
+	Stepped     bool   `json:"stepped"`      // used its step this turn
+	ActionsUsed int    `json:"actions_used"` // arm uses this turn
+	Extra       int64  `json:"extra"`        // ticks added to the delay after this turn (terrain, climbing, waiting)
+	Open        bool   `json:"open"`         // the turn has started and not ended
+}
