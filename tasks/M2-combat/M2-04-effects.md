@@ -1,7 +1,7 @@
 ---
 id: M2-04
 title: Combat effect primitives
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M2-01, M2-03]
@@ -60,15 +60,34 @@ They're computed from the context once per `Apply`.
 
 ## Acceptance criteria
 
-- [ ] One table test per primitive, including a no-op case (a `sever` whose `when` is false).
-- [ ] `damage` with `parts: "target:arm"` hits every arm of the target; past zero it severs, publishing both events in order.
-- [ ] Severing an arm mid-wind-up cancels its pending swing; `ActionCanceled` names it.
-- [ ] `reveal` writes one fact per attached part, and `knowledge.Best` returns each part's material.
-- [ ] `consume` disables an action whose item the pack lacks, with a reason.
-- [ ] `go tool task check` passes.
+- [x] One table test per primitive, including a no-op case (a `sever` whose `when` is false).
+- [x] `damage` with `parts: "target:arm"` hits every arm of the target; past zero it severs, publishing both events in order.
+- [x] Severing an arm mid-wind-up cancels its pending swing; `ActionCanceled` names it.
+- [x] `reveal` writes one fact per attached part, and `knowledge.Best` returns each part's material.
+- [x] `consume` disables an action whose item the pack lacks, with a reason.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - The forms that use these (M2-06), triggers (M2-05), and death (M2-07).
 
 ## Notes
+
+**Assumptions and deviations**
+
+- `parts` takes M1-19's channel selector (`target:arm`, `target_part`, ...); the body's own channel in a selection is skipped, since it is not a part.
+- `sever`'s `when` is optional (absent means always). `attach_part`'s `item` is required for `from: pack` and refused for `from: severed`; `reveal` takes an optional `source` (default `source.sweep`) and, for now, only reads `claim.material`.
+- `Locked` is "the part is busy", because `comp.Busy` does not record why. Filed as M2-04.F2.
+- A part from `attach_part` (either source) gets a new marker, `comp.Graft`; that is what `graft` reads. Reattaching one's own severed part also marks it, since the part cannot say where it came from.
+- `attach_part from: pack` needs to know what a piece becomes, so `content.Item` gains an optional `part` (a part template ID; only a `piece` may have one, checked at load).
+- A severed part keeps its integrity and gets the body's `Pos`; `attach_part from: severed` takes the lowest-UID severed part at the target's position and removes that `Pos`.
+- `spawn_from_part` makes a new body entity (`comp.Body`, `Actor`, `Allegiance`) at the part's position and attaches the part to it. The target part is used when it is severed, otherwise the severed part at the target's position. No `Appearance` yet; M2-09 owns what a crawler looks like.
+- The packs `consume`, `attach_part` and `reveal` use belong to the source's party when the source is a member, otherwise to the source. A bound item (`consume`) is bound to the target's UID.
+- Apply for `attach_part`, `consume` and `spawn_from_part` is a quiet no-op when there is nothing to use (a Check says why first); a missing status, item or faction ID is an error. `env` is computed once per effect reference and kept for its formulas; `roll` is still drawn fresh each time.
+- `EffectSites` needed no extension: actions are still the only place content holds effects (statuses hold formulas read through `statuses`, not effects). The `game` test uses `internal/core/game/testdata/bad_actions.json`.
+
+**Files outside the Deliverables**
+
+`internal/content/{types.go,types_check.go,load.go}` (statuses, `Item.Part`, checks), `content/data/statuses.cue` (schema constraint and three text lines), `internal/core/comp/comp.go` (`Graft`, `Allegiance` beside `Statuses`; `Allegiance` is the one M2-07 expects), `internal/core/effects/{effects.go,timing.go}` (env, exported `WindingUp`), `internal/core/game/install.go`, generated `*_go_gen.cue`.
+
+**Follow-ups filed:** [M2-04.F1](../followups/M2-04.F1-validate-content-ids-in-effects.md), [M2-04.F2](../followups/M2-04.F2-lock-reason-on-busy.md).

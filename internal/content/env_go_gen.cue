@@ -14,13 +14,22 @@ package content
 	Speed: int
 }
 
-// EffectEnv is everything an effect formula can see. Later tasks add fields deliberately (M2-04
-// adds weak, immune, integrity, height, statuses...).
+// EffectEnv is everything an effect formula can see. Later tasks add fields deliberately.
 #EffectEnv: {
 	Now:       int64
 	Roll:      float64
 	Distance:  int
 	WindingUp: bool
+
+	// The rest describe the target part and body. They are false, 0 or empty when there is none.
+	Weak:         bool
+	Immune:       bool
+	Integrity:    int
+	MaxIntegrity: int
+	Height:       int
+	Statuses: [...string] @go(,[]string)
+	Locked: bool
+	Graft:  bool
 }
 
 // ActionEnv is what an action's formulas see. Grow it deliberately.

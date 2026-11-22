@@ -1,0 +1,20 @@
+{
+  "action.bad_primitive": {
+    "name": "text.action.step", "key": "bad_primitive",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "no_such_primitive", "params": {}}]
+  },
+  "action.bad_parameter": {
+    "name": "text.action.step", "key": "bad_parameter",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_start": [{"do": "lock", "params": {"channels": "self:body"}}]
+  },
+  "action.bad_selector": {
+    "name": "text.action.step", "key": "bad_selector",
+    "uses": [{"tag": "body", "count": 1}], "target": "self",
+    "windup": "0", "recovery": "1",
+    "on_land": [{"do": "damage", "params": {"parts": "bogus", "amount": "1"}}]
+  }
+}

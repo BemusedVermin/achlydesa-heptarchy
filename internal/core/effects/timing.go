@@ -62,6 +62,10 @@ func windingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
 	return out
 }
 
+// WindingUp lists the pending actions that use the channel, for primitives elsewhere that take a
+// channel away, such as a severed arm.
+func WindingUp(w *sim.World, c timeline.Channel) []ecs.Entity { return windingUp(w, c) }
+
 func ticksParam(p Params) (int64, error) {
 	ticks, err := p.Int("ticks")
 	if err != nil {

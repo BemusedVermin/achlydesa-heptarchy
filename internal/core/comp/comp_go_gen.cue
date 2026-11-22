@@ -134,3 +134,23 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Downed marks a protected body that has fallen.
 #Downed: {}
+
+// StatusEntry is one status a body is under, and the tick it ends.
+#StatusEntry: {
+	status: api.#ContentID @go(Status)
+	until:  int64          @go(Until)
+}
+
+// Statuses is the statuses a body is under, sorted by status ID with none twice. Use the combat
+// package's helpers rather than changing the slice.
+#Statuses: {
+	active: [...#StatusEntry] @go(Active,[]StatusEntry)
+}
+
+// Graft marks a part grown or fitted onto a body that it was not made with.
+#Graft: {}
+
+// Allegiance is the side a body fights for.
+#Allegiance: {
+	faction: api.#ContentID @go(Faction)
+}

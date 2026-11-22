@@ -212,6 +212,11 @@ func (r *Registry) checkIDs() []error {
 			problems = append(problems, err)
 		}
 	}
+	for _, key := range sortedKeys(r.bundle.Statuses) {
+		if err := checkID("statuses", key, "status"); err != nil {
+			problems = append(problems, err)
+		}
+	}
 	return problems
 }
 

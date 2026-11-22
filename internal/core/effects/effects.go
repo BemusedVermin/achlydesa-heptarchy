@@ -294,6 +294,8 @@ type params struct {
 	// checking is set while a Check runs. A check must not change the world, so a formula that reads
 	// roll is an error there rather than a draw from the stream.
 	checking bool
+	// base is the formula environment before roll, worked out the first time a formula runs.
+	base *content.EffectEnv
 }
 
 func (p *params) Has(name string) bool {
@@ -343,25 +345,63 @@ func (p *params) eval(name, as string, option expr.Option) (any, error) {
 	return out, nil
 }
 
-// env builds the formula environment from the context, drawing a fresh roll only when asked.
+// env builds the formula environment from the context, drawing a fresh roll only when asked. The
+// rest of it is worked out the first time and kept for the effect's other formulas.
 func (p *params) env(withRoll bool) content.EffectEnv {
-	w := p.ctx.World
-	env := content.EffectEnv{Now: w.Now}
+	if p.base == nil {
+		base := baseEnv(p.ctx)
+		p.base = &base
+	}
+	env := *p.base
 	if withRoll {
-		env.Roll = w.RNG.Get(rollStream).Float64()
-	}
-	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if alive(w, p.ctx.Source) && alive(w, p.ctx.Target) &&
-		positions.Has(p.ctx.Source) && positions.Has(p.ctx.Target) {
-		a, b := positions.Get(p.ctx.Source), positions.Get(p.ctx.Target)
-		if a.Map == b.Map {
-			env.Distance = hexmap.Distance(a.At.Hex, b.At.Hex)
-		}
-	}
-	if alive(w, p.ctx.Target) {
-		env.WindingUp = len(timeline.PendingOf(w, w.UIDOf(p.ctx.Target))) > 0
+		env.Roll = p.ctx.World.RNG.Get(rollStream).Float64()
 	}
 	return env
+}
+
+// baseEnv works out everything in the formula environment except roll.
+func baseEnv(ctx *Context) content.EffectEnv {
+	w := ctx.World
+	env := content.EffectEnv{Now: w.Now}
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	if alive(w, ctx.Source) && alive(w, ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
+		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)
+		if a.Map == b.Map {
+			env.Distance = hexmap.Distance(a.At.Hex, b.At.Hex)
+			env.Height = b.At.Depth - a.At.Depth
+		}
+	}
+	if alive(w, ctx.Target) {
+		env.WindingUp = len(timeline.PendingOf(w, w.UIDOf(ctx.Target))) > 0
+		if statuses := ecs.NewMap[comp.Statuses](w.ECS); statuses.Has(ctx.Target) {
+			for _, entry := range statuses.Get(ctx.Target).Active {
+				env.Statuses = append(env.Statuses, string(entry.Status))
+			}
+		}
+	}
+	if alive(w, ctx.TargetPart) {
+		partEnv(ctx, &env)
+	}
+	return env
+}
+
+// partEnv fills in what describes the target part.
+func partEnv(ctx *Context, env *content.EffectEnv) {
+	w := ctx.World
+	parts := ecs.NewMap[comp.Part](w.ECS)
+	if !parts.Has(ctx.TargetPart) {
+		return
+	}
+	part := parts.Get(ctx.TargetPart)
+	env.Integrity, env.MaxIntegrity = part.Integrity, part.MaxIntegrity
+	env.Graft = ecs.NewMap[comp.Graft](w.ECS).Has(ctx.TargetPart)
+	env.Locked = !timeline.Free(w, timeline.Channel{Entity: ctx.TargetPart, Body: ctx.Target})
+	if kind := ctx.Choices["type"]; kind != "" {
+		if material, ok := w.Content.Material(part.Material); ok {
+			env.Weak = slices.Contains(material.WeakTo, api.ContentID(kind))
+			env.Immune = slices.Contains(material.ImmuneTo, api.ContentID(kind))
+		}
+	}
 }
 
 func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }

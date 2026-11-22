@@ -141,6 +141,26 @@ type Dead struct {
 // Downed marks a protected body that has fallen.
 type Downed struct{}
 
+// StatusEntry is one status a body is under, and the tick it ends.
+type StatusEntry struct {
+	Status api.ContentID `json:"status"` // a status ID
+	Until  int64         `json:"until"`  // the tick it expires; it is gone from then on
+}
+
+// Statuses is the statuses a body is under, sorted by status ID with none twice. Use the combat
+// package's helpers rather than changing the slice.
+type Statuses struct {
+	Active []StatusEntry `json:"active"`
+}
+
+// Graft marks a part grown or fitted onto a body that it was not made with.
+type Graft struct{}
+
+// Allegiance is the side a body fights for.
+type Allegiance struct {
+	Faction api.ContentID `json:"faction"` // a faction ID
+}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -165,4 +185,7 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Dead](world)
 	ecs.ComponentID[Downed](world)
 	ecs.ComponentID[Inventory](world)
+	ecs.ComponentID[Statuses](world)
+	ecs.ComponentID[Graft](world)
+	ecs.ComponentID[Allegiance](world)
 }

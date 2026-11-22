@@ -27,6 +27,14 @@ type Bundle struct {
 	Types    map[string]DamageType `json:"types"`
 	Items    map[string]Item       `json:"items"`
 	Factions map[string]Faction    `json:"factions"`
+	// Statuses are the conditions a body can be under for a while ("status." IDs).
+	Statuses map[string]Status `json:"statuses"`
+}
+
+// Status is a condition a body is under until a tick, such as Stand's braced stance. Code knows
+// nothing of any one status: formulas read the ones a body has through the statuses variable.
+type Status struct {
+	Name api.ContentID `json:"name"` // a text ID
 }
 
 // Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
@@ -74,6 +82,8 @@ type Item struct {
 	Name  api.ContentID `json:"name"`  // a text ID
 	Kind  string        `json:"kind"`  // one of ItemKinds
 	Bound bool          `json:"bound"` // tied to one person, e.g. a name or a keepsake
+	// Part is the part template ("part." ID) a piece becomes when grafted on; only a piece has one.
+	Part *api.ContentID `json:"part,omitempty"`
 }
 
 // ItemKinds lists the kinds an item may have.
