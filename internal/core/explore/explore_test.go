@@ -189,8 +189,14 @@ func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
 		center := fx.pos(leader).At.Hex
 		for q := start.At.Hex.Q + 6; q <= start.At.Hex.Q+10; q++ { // the opening and the four slope hexes
 			h := api.Hex{Q: q, R: start.At.Hex.R}
-			if _, drawn := cellAt(view.Map, h); !drawn {
+			c, drawn := cellAt(view.Map, h)
+			if !drawn {
 				t.Errorf("after %d steps down: no cell drawn at slope hex %v", depth, h)
+				continue
+			}
+			// The opening is at depth 0 and slope hex k at depth k, so Below rises by one per hex.
+			if want := q - start.At.Hex.Q - 6 - depth; c.Visible && (c.Glyph != "." || c.Below != want) {
+				t.Errorf("after %d steps down: hex %v = %+v, want a floor glyph at Below %d", depth, h, c, want)
 			}
 		}
 		if c, _ := cellAt(view.Map, center); c.Below != 0 || c.Glyph != "." {

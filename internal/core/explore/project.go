@@ -79,6 +79,7 @@ type drawn struct {
 	depth int
 	glyph string
 	color string
+	wall  bool
 }
 
 // buildMap fills the plan view: for each hex, at most one cell, the candidate nearest the focus
@@ -102,6 +103,7 @@ func buildMap(w *sim.World, v *api.View) error {
 		return err
 	}
 	visible := sight[here.Map]
+	floorDepth := w.Content.Party().PlanFloorDepth
 	visibleColumns, seenColumns := column{}, column{}
 	for cell := range visible {
 		visibleColumns.add(cell)
@@ -125,10 +127,10 @@ func buildMap(w *sim.World, v *api.View) error {
 		view.Name = w.Content.Render(api.Text{ID: def.Name})
 	}
 	for _, h := range hexes {
-		best, found, err := nearest(w, m, h, visibleColumns[h], here.At.Depth)
+		best, found, err := nearest(w, m, h, visibleColumns[h], here.At.Depth, floorDepth)
 		isVisible := found
 		if err == nil && !found {
-			best, found, err = nearest(w, m, h, seenColumns[h], here.At.Depth)
+			best, found, err = nearest(w, m, h, seenColumns[h], here.At.Depth, floorDepth)
 		}
 		if err != nil {
 			return err
@@ -146,10 +148,12 @@ func buildMap(w *sim.World, v *api.View) error {
 }
 
 // nearest picks, among the candidate cells at these depths of one hex, the one nearest the focus
-// depth, the shallower on a tie.
-func nearest(w *sim.World, m *hexmap.Map, h api.Hex, depths []int, focus int) (drawn, bool, error) {
-	var best drawn
-	found := false
+// depth, the shallower on a tie. Walls count only when no standable cell of the hex lies within
+// floorDepth of the focus depth, so a slope reads as a floor getting lower rather than as the walls
+// of the ceiling above its next step.
+func nearest(w *sim.World, m *hexmap.Map, h api.Hex, depths []int, focus, floorDepth int) (drawn, bool, error) {
+	candidates := make([]drawn, 0, len(depths))
+	floorNear := false
 	for _, depth := range depths {
 		candidate, ok, err := classify(w, m, api.Cell{Hex: h, Depth: depth})
 		if err != nil {
@@ -158,6 +162,18 @@ func nearest(w *sim.World, m *hexmap.Map, h api.Hex, depths []int, focus int) (d
 		if !ok {
 			continue
 		}
+		candidates = append(candidates, candidate)
+		if !candidate.wall && abs(depth-focus) <= floorDepth {
+			floorNear = true
+		}
+	}
+	var best drawn
+	found := false
+	for _, candidate := range candidates {
+		if candidate.wall && floorNear {
+			continue
+		}
+		depth := candidate.depth
 		distance, bestDistance := abs(depth-focus), abs(best.depth-focus)
 		if !found || distance < bestDistance || (distance == bestDistance && depth < best.depth) {
 			best, found = candidate, true
@@ -186,7 +202,7 @@ func classify(w *sim.World, m *hexmap.Map, cell api.Cell) (drawn, bool, error) {
 			}
 			if !beside.Solid {
 				def := terrainOf(w.Content, terrain.ID)
-				return drawn{depth: cell.Depth, glyph: glyphOr(def.WallGlyph), color: def.Color}, true, nil
+				return drawn{depth: cell.Depth, glyph: glyphOr(def.WallGlyph), color: def.Color, wall: true}, true, nil
 			}
 		}
 		return drawn{}, false, nil

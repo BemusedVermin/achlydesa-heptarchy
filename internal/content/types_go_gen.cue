@@ -75,6 +75,10 @@ import (
 	// SightDepth is how many cells up and down the party sees; 6 to start.
 	sight_depth: int @go(SightDepth)
 
+	// PlanFloorDepth is how many cells above or below the focus a standable cell hides the walls of
+	// the same plan-view hex; 4 to start. It lets a slope read as a floor getting lower.
+	plan_floor_depth: int @go(PlanFloorDepth)
+
 	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules: 1, 1 and 8 to start.
 	max_step_up:   int @go(MaxStepUp)
 	max_step_down: int @go(MaxStepDown)
