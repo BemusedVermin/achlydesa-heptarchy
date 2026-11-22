@@ -27,11 +27,13 @@ type playOptions struct {
 	seed    uint64
 	content string
 	record  string
+	dev     bool
 }
 
 func (o *playOptions) addFlags(cmd *cobra.Command) {
 	cmd.Flags().Uint64Var(&o.seed, "seed", 1, "world seed")
 	cmd.Flags().StringVar(&o.content, "content", defaultContent, "content directory")
+	cmd.Flags().BoolVar(&o.dev, "dev", false, "reload the content when its files change")
 	cmd.Flags().StringVar(&o.record, "record", "", "write the command history to this replay log when the game exits")
 }
 
@@ -79,7 +81,17 @@ func play(opts *playOptions) error {
 	if err != nil {
 		return err
 	}
-	if _, err := tea.NewProgram(app).Run(); err != nil {
+	program := tea.NewProgram(app)
+	if opts.dev {
+		stop, err := content.Watch(opts.content, func(reg *content.Registry, err error) {
+			program.Send(tui.ContentMsg{Registry: reg, Err: err})
+		})
+		if err != nil {
+			return err
+		}
+		defer stop()
+	}
+	if _, err := program.Run(); err != nil {
 		return err
 	}
 	if opts.record != "" {

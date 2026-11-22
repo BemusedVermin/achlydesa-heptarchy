@@ -48,7 +48,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
 | [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
-| [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | todo | feature | S | M1-11, M1-13 |
+| [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | done | feature | S | M1-11, M1-13 |
 
 ## Later milestones (outlines)
 
@@ -84,3 +84,4 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-16.F2](followups/M1-16.F2-party-view-control.md) | Show the party's control mode and alert in the view | obsolete | feature | M1 | M1-16 |
 | [M1-12.F1](followups/M1-12.F1-load-with-spawning-extra.md) | Let Load run a Config.Extra that spawns | done | debt | M1 | M1-12 |
 | [M1-11.F1](followups/M1-11.F1-wasd-alternating-diagonals.md) | WASD: up and down zigzag diagonally | done | feature | M1 | M1-11 |
+| [M2-12.F1](followups/M2-12.F1-swap-content-caches.md) | Hot reload does not refresh content cached at game start | proposed | seam | unplanned | M2-12 |

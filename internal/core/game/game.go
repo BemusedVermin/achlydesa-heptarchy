@@ -30,6 +30,42 @@ type Config struct {
 	Spawn func(w *sim.World, clk *clock.Clock) error
 }
 
+// SwapContent replaces the game's content with reg, for hot reload in dev builds. It runs the
+// content checks build does (effect primitives and references, action choice providers) against
+// the new registry first; on failure it returns the error and keeps the old content. Call it only
+// between commands, from the goroutine that owns the game.
+//
+// Entities keep the components they were spawned with, because components hold content IDs and
+// values, not pointers into the registry; only later spawns and lookups use the new templates and
+// numbers. The swap is not recorded in [Game.History], so a replay that began before it will not
+// reproduce the game, and a warning line in the message log says so.
+func (g *Game) SwapContent(reg *content.Registry) error {
+	if reg == nil {
+		return errors.New("game: swap content: no content")
+	}
+	old := g.world.Content
+	g.world.Content = reg
+	if err := effects.ValidateContent(g.world); err != nil {
+		g.world.Content = old
+		return fmt.Errorf("game: swap content: %w", err)
+	}
+	if err := actions.ValidateContent(g.world); err != nil {
+		g.world.Content = old
+		return fmt.Errorf("game: swap content: %w", err)
+	}
+	g.Note("content reloaded: a replay from before this point will not match")
+	return nil
+}
+
+// Note adds a line of text straight to the message log, for the frontend to report something that
+// is not a game event, such as a failed reload.
+func (g *Game) Note(text string) {
+	g.log = append(g.log, api.LogLine{Tick: g.world.Now, Text: text})
+	if len(g.log) > LogLines {
+		g.log = g.log[len(g.log)-LogLines:]
+	}
+}
+
 // Game is one running game. It is not safe for concurrent use.
 type Game struct {
 	world   *sim.World
