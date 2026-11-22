@@ -426,3 +426,10 @@ func Release(w *sim.World, c Channel) error {
 	st.schedule(w, body)
 	return nil
 }
+
+// Speed is the body's speed, as the world's speed hook gives it.
+func Speed(w *sim.World, body ecs.Entity) int { return stateOf(w).speed(w, body) }
+
+// CurrentPlayer returns the body deciding now when it is the player-controlled body with the UID.
+// Commands from the player use it to reject anyone else.
+func CurrentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) { return currentPlayer(w, uid) }

@@ -43,9 +43,11 @@ func uidsOf(w *sim.World, channels []timeline.Channel) []api.UID {
 	return uids
 }
 
-// windingUp lists the pending actions that use the channel.
+// windingUp lists the pending actions that use the channel: those that name it as their part, and
+// actions from content, which may occupy several channels at once.
 func windingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
 	pendings := ecs.NewMap[comp.Pending](w.ECS)
+	landings := ecs.NewMap[comp.Landing](w.ECS)
 	uid := w.UIDOf(c.Entity)
 	body := c.Body
 	if body.IsZero() {
@@ -53,7 +55,7 @@ func windingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
 	}
 	var out []ecs.Entity
 	for _, e := range timeline.PendingOf(w, w.UIDOf(body)) {
-		if pendings.Get(e).Part == uid {
+		if pendings.Get(e).Part == uid || (landings.Has(e) && slices.Contains(landings.Get(e).Channels, uid)) {
 			out = append(out, e)
 		}
 	}

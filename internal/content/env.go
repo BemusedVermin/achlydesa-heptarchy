@@ -18,3 +18,12 @@ type EffectEnv struct {
 	Distance  int     `expr:"distance"`   // hexes from source to target, or 0
 	WindingUp bool    `expr:"winding_up"` // the target body has a pending action
 }
+
+// ActionEnv is what an action's formulas see. Grow it deliberately.
+type ActionEnv struct {
+	Speed     int               `expr:"speed"`
+	StepTicks int64             `expr:"step_ticks"` // the base ticks a step takes at this speed (timeline.step_ticks)
+	Distance  int               `expr:"distance"`   // hexes from the actor to its target, or 0
+	Used      int               `expr:"used"`       // how many channels it occupies
+	Choice    map[string]string `expr:"choice"`     // the choices made, by provider name
+}

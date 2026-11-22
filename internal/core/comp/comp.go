@@ -58,3 +58,14 @@ type Pending struct {
 	Lands   int64   `json:"lands"`   // the tick it lands
 	Seq     uint64  `json:"seq"`     // scheduling order, for ties
 }
+
+// Landing is what an action from content needs to land, on the same entity as its Pending. It
+// names every channel the action occupies, so a lock on any of them cancels it.
+type Landing struct {
+	Action     api.ContentID     `json:"action"`
+	Channels   []api.UID         `json:"channels"`    // the channels it occupies, in UID order
+	TargetPart api.UID           `json:"target_part"` // the part aimed at, or 0
+	HasDir     bool              `json:"has_dir"`     // whether Dir is set
+	Dir        api.Dir           `json:"dir"`
+	Choices    map[string]string `json:"choices,omitempty"`
+}

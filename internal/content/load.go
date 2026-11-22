@@ -27,26 +27,34 @@ var idPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$`)
 // Load reads the CUE package in dir (normally content/data), validates it and builds the registry.
 // Every problem found is reported, each naming its path.
 func Load(dir string) (*Registry, error) {
+	bundle, err := loadBundle(dir)
+	if err != nil {
+		return nil, err
+	}
+	return newRegistry(bundle)
+}
+
+func loadBundle(dir string) (Bundle, error) {
 	abs, err := filepath.Abs(dir)
 	if err != nil {
-		return nil, fmt.Errorf("content: resolve %q: %w", dir, err)
+		return Bundle{}, fmt.Errorf("content: resolve %q: %w", dir, err)
 	}
 	instances := load.Instances([]string{"."}, &load.Config{Dir: abs})
 	if len(instances) != 1 {
-		return nil, fmt.Errorf("content: expected one CUE package in %q, found %d", dir, len(instances))
+		return Bundle{}, fmt.Errorf("content: expected one CUE package in %q, found %d", dir, len(instances))
 	}
 	if instances[0].Err != nil {
-		return nil, fmt.Errorf("content: load %q: %w", dir, instances[0].Err)
+		return Bundle{}, fmt.Errorf("content: load %q: %w", dir, instances[0].Err)
 	}
 	value := cuecontext.New().BuildInstance(instances[0])
 	if err := value.Validate(cue.Concrete(true)); err != nil {
-		return nil, fmt.Errorf("content: validate %q: %w", dir, err)
+		return Bundle{}, fmt.Errorf("content: validate %q: %w", dir, err)
 	}
 	var bundle Bundle
 	if err := value.Decode(&bundle); err != nil {
-		return nil, fmt.Errorf("content: decode %q: %w", dir, err)
+		return Bundle{}, fmt.Errorf("content: decode %q: %w", dir, err)
 	}
-	return newRegistry(bundle)
+	return bundle, nil
 }
 
 // newRegistry validates a decoded bundle, compiles its formulas and templates, and hashes it.
@@ -55,6 +63,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		bundle:    bundle,
 		moveCosts: map[api.ContentID]*vm.Program{},
 		templates: map[api.ContentID]*template.Template{},
+		actions:   map[api.ContentID]compiledAction{},
 	}
 	var problems []error
 	problems = append(problems, registry.checkIDs()...)
@@ -62,6 +71,8 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTextRefs()...)
 	problems = append(problems, registry.checkCalendar()...)
 	problems = append(problems, registry.checkTemplates()...)
+	problems = append(problems, registry.checkActions()...)
+	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.compileFormulas()...)
 	problems = append(problems, registry.compileTimeline()...)
@@ -117,6 +128,11 @@ func (r *Registry) checkIDs() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Templates) {
 		if err := checkID("templates", key, "template"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Actions) {
+		if err := checkID("actions", key, "action"); err != nil {
 			problems = append(problems, err)
 		}
 	}

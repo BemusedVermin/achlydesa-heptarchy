@@ -56,3 +56,14 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	lands:   int64    @go(Lands)
 	seq:     uint64   @go(Seq)
 }
+
+// Landing is what an action from content needs to land, on the same entity as its Pending. It
+// names every channel the action occupies, so a lock on any of them cancels it.
+#Landing: {
+	action: api.#ContentID @go(Action)
+	channels: [...api.#UID] @go(Channels,[]api.UID)
+	target_part: api.#UID @go(TargetPart)
+	has_dir:     bool     @go(HasDir)
+	dir:         api.#Dir @go(Dir)
+	choices?: {[string]: string} @go(Choices,map[string]string)
+}

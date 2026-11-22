@@ -22,3 +22,12 @@ package content
 	Distance:  int
 	WindingUp: bool
 }
+
+// ActionEnv is what an action's formulas see. Grow it deliberately.
+#ActionEnv: {
+	Speed:     int
+	StepTicks: int64
+	Distance:  int
+	Used:      int
+	Choice: {[string]: string} @go(,map[string]string)
+}

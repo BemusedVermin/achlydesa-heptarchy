@@ -18,6 +18,7 @@ type Registry struct {
 	moveCosts map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
 	stepTicks *vm.Program                          // compiled timeline.step_ticks formula
 	templates map[api.ContentID]*template.Template // parsed text, by text ID
+	actions   map[api.ContentID]compiledAction     // compiled action formulas
 }
 
 // Hash is a hex SHA-256 of the whole bundle; equal content gives an equal hash.
@@ -102,7 +103,3 @@ type EffectSite struct {
 	Path string      `json:"path"`
 	Refs []EffectRef `json:"refs"`
 }
-
-// EffectSites lists every place in content that holds effects, so game.New can check them against
-// the registered primitives. Nothing in content holds effects yet; M1-20 adds actions.
-func (r *Registry) EffectSites() []EffectSite { return nil }

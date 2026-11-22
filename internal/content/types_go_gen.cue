@@ -18,6 +18,7 @@ import (
 	templates: {[string]: #Template} @go(Templates,map[string]Template)
 	party:    #PartyConfig    @go(Party)
 	timeline: #TimelineConfig @go(Timeline)
+	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
 }
 
 // Material is a substance things are made of.
@@ -54,6 +55,9 @@ import (
 	appearance?: null | comp.#Appearance @go(Appearance,*comp.Appearance)
 	party?:      null | #PartyDef        @go(Party,*PartyDef)
 	actor?:      null | #ActorDef        @go(Actor,*ActorDef)
+
+	// Actions lists the actions a body of this template knows, as "action." IDs.
+	actions?: [...api.#ContentID] @go(Actions,[]api.ContentID)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -84,4 +88,41 @@ import (
 #EffectRef: {
 	do: string @go(Do)
 	params: {[string]: string} @go(Params,map[string]string)
+}
+
+#TargetNone:      "none"
+#TargetSelf:      "self"
+#TargetDirection: "direction"
+#TargetBody:      "body"
+#TargetPart:      "part"
+#TargetAlly:      "ally"
+#TargetCell:      "cell"
+
+// ActionDef is something a body does over time: a step, a swing, a graft taking both hands. It says
+// which channels it occupies, how long it winds up and recovers, what it targets, and which effects
+// apply when it starts and when it lands. Formulas are Expr sources over ActionEnv.
+#ActionDef: {
+	name: api.#ContentID @go(Name)
+	key:  string         @go(Key)
+	uses: [...#Requirement] @go(Uses,[]Requirement)
+	target: string @go(Target)
+	range?: int    @go(Range)
+	sight?: bool   @go(Sight)
+	choices?: [...string] @go(Choices,[]string)
+	requires?: string @go(Requires)
+	windup:    string @go(Windup)
+	recovery:  string @go(Recovery)
+	on_start?: [...#EffectRef] @go(OnStart,[]EffectRef)
+	on_land?: [...#EffectRef] @go(OnLand,[]EffectRef)
+
+	// Connects is an Expr bool evaluated when the action lands. Empty means "the target is still in
+	// range (and in sight, if required)".
+	connects?: string @go(Connects)
+	tags?: [...string] @go(Tags,[]string)
+}
+
+// Requirement is one set of channels an action occupies.
+#Requirement: {
+	tag:   string @go(Tag)
+	count: int    @go(Count)
 }

@@ -307,7 +307,7 @@ func (p *params) env() content.EffectEnv {
 		positions.Has(p.ctx.Source) && positions.Has(p.ctx.Target) {
 		a, b := positions.Get(p.ctx.Source), positions.Get(p.ctx.Target)
 		if a.Map == b.Map {
-			env.Distance = hexDistance(a.At.Hex, b.At.Hex)
+			env.Distance = hexmap.Distance(a.At.Hex, b.At.Hex)
 		}
 	}
 	if alive(w, p.ctx.Target) {
@@ -317,18 +317,6 @@ func (p *params) env() content.EffectEnv {
 }
 
 func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
-
-func hexDistance(a, b api.Hex) int {
-	dq, dr := a.Q-b.Q, a.R-b.R
-	return (abs(dq) + abs(dr) + abs(dq+dr)) / 2
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
 
 func (p *params) Int(name string) (int, error) {
 	out, err := p.eval(name, "int", expr.AsInt64())
@@ -379,3 +367,6 @@ func (p *params) Channels(name string) ([]timeline.Channel, error) {
 	}
 	return sel.Resolve(p.ctx)
 }
+
+// Hostile reports whether a is hostile to b, as the world's hostility hook says.
+func Hostile(w *sim.World, a, b ecs.Entity) bool { return stateOf(w).hostile(w, a, b) }
