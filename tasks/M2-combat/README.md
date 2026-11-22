@@ -20,13 +20,14 @@
 | [M2-03](M2-03-materials-types-items.md) | Materials, types, items and the party's pack | M2-02 |
 | [M2-04](M2-04-effects.md) | Combat effect primitives | M2-01, M2-03 |
 | [M2-05](M2-05-triggers.md) | Triggers: content reacting to events | M2-04 |
-| [M2-06](M2-06-forms-moves.md) | The seven forms as actions, with types and timing | M2-04 |
+| [M2-06](M2-06-forms-moves.md) | The seven forms as actions, with types and timing | M2-13 |
 | [M2-07](M2-07-hostility-alert-death.md) | Hostility, alert and death | M2-06 |
 | [M2-08](M2-08-act-options-controller.md) | The bodies view and the creature controller | M2-07 |
 | [M2-09](M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | M2-05, M2-08 |
 | [M2-10](M2-10-action-menu.md) | Action menu and look mode on the map screen | M2-08 |
 | [M2-11](M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | M2-09 |
 | [M2-12](M2-12-hot-reload.md) | Content hot reload in dev builds | M1 (M1-11, M1-13) |
+| [M2-13](M2-13-rules-as-content.md) | Rules as content: records, rules and choices in CUE | M2-05, M2-12 |
 
 M2-01, M2-02 and M2-12 can start in parallel.
 
@@ -40,13 +41,15 @@ Every M2 task builds on this. The source is `docs/game-design.md` → "Combat"; 
 
 - `grant:action` for arms;
 - `grant:targeting` for a head (without one, a body's targets are picked at random);
-- `grant:speed` for legs (summed into the speed that sets step time).
+- `grant:speed` for legs (the `timeline.speed` formula turns the total into the speed that sets step time).
 
 **Actions are content (M1-20).** Each says which channels it occupies, by tag and count, plus its wind-up and recovery formulas, its target and range, and its effects on start and on landing. Some examples, all provisional:
 
 - Strike uses one arm, Sweep both, and Graft two arms (one holds the piece).
 - A step occupies the body channel, so a body can swing while its legs recover; that's hit-and-run.
 - Effects pick their targets with selectors, from one part up to every channel of every body in sight (M1-19).
+
+**Rules are content (M2-13).** Code names no content records, tags, list keys or rules, apart from its own message text and the channel tags the engine makes itself (`body`, `part`, a part's slot and `grant:<kind>`). Whenever something is decided by a rule (whether a part is weak, which types a body may load, what a loaded type does to a form, how fast a body moves, whether it aims), the rule is a named formula or a record in CUE. Code names only where to find it: a config key such as `party.follow_action` or `combat.aims`. A task that finds itself writing such a rule in Go files a follow-up instead.
 
 **Timing.**
 

@@ -42,13 +42,14 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-03](M2-combat/M2-03-materials-types-items.md) | Materials, types, items and the party's pack | done | feature | S | M2-02 |
 | [M2-04](M2-combat/M2-04-effects.md) | Combat effect primitives | done | feature | M | M2-01, M2-03 |
 | [M2-05](M2-combat/M2-05-triggers.md) | Triggers: content reacting to events | done | seam | S | M2-04 |
-| [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | todo | content | M | M2-04 |
+| [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | done | feature | S | M1-11, M1-13 |
+| [M2-13](M2-combat/M2-13-rules-as-content.md) | Rules as content: records, rules and choices in CUE | todo | seam | L | M2-05, M2-12 |
+| [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | todo | content | M | M2-13 |
 | [M2-07](M2-combat/M2-07-hostility-alert-death.md) | Hostility, alert and death | todo | feature | M | M2-06 |
 | [M2-08](M2-combat/M2-08-act-options-controller.md) | The bodies view and the creature controller | todo | feature | M | M2-07 |
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
 | [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
-| [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | done | feature | S | M1-11, M1-13 |
 
 ## Later milestones (outlines)
 
