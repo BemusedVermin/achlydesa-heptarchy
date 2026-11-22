@@ -40,7 +40,7 @@ func main() {
 // run runs a subcommand and returns the exit status.
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) != 1 {
-		fmt.Fprintln(stderr, errUsage)
+		warn(stderr, errUsage)
 		return exitFailed
 	}
 	switch args[0] {
@@ -55,7 +55,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		}
 		if err != nil {
 			// The check itself passed; failing to record it only means the next push runs it again.
-			fmt.Fprintln(stderr, "agentkit mark-checked: couldn't record the passing commit:", err)
+			warn(stderr, "agentkit mark-checked: couldn't record the passing commit:", err)
 		}
 		return exitOK
 	case "ready":
@@ -65,15 +65,24 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			report, err = runReady(dir)
 		}
 		if err != nil {
-			fmt.Fprintln(stderr, "agentkit ready:", err)
+			warn(stderr, "agentkit ready:", err)
 			return exitFailed
 		}
-		fmt.Fprint(stdout, report)
+		if _, err := io.WriteString(stdout, report); err != nil {
+			warn(stderr, "agentkit ready:", err)
+			return exitFailed
+		}
 		return exitOK
 	default:
-		fmt.Fprintln(stderr, errUsage)
+		warn(stderr, errUsage)
 		return exitFailed
 	}
+}
+
+// warn writes a diagnostic line to standard error. If that write fails there is nowhere left to
+// report it, so the error is dropped on purpose.
+func warn(stderr io.Writer, parts ...any) {
+	_, _ = fmt.Fprintln(stderr, parts...)
 }
 
 // hookOutput is a PreToolUse hook's decision, in the JSON shape Claude Code reads from standard
@@ -91,7 +100,7 @@ type hookOutput struct {
 func hook(stdin io.Reader, stdout, stderr io.Writer, decide func(hookInput) string) int {
 	var input hookInput
 	if err := json.NewDecoder(stdin).Decode(&input); err != nil {
-		fmt.Fprintln(stderr, "agentkit: reading the hook input:", err)
+		warn(stderr, "agentkit: reading the hook input:", err)
 		return exitFailed
 	}
 	refusal := decide(input)
@@ -104,7 +113,7 @@ func hook(stdin io.Reader, stdout, stderr io.Writer, decide func(hookInput) stri
 	output.HookSpecificOutput.PermissionDecisionReason = "Refused by the agent guardrails (internal/tools/agentkit): " +
 		refusal
 	if err := json.NewEncoder(stdout).Encode(output); err != nil {
-		fmt.Fprintln(stderr, "agentkit: writing the hook decision:", err)
+		warn(stderr, "agentkit: writing the hook decision:", err)
 		return exitFailed
 	}
 	return exitOK
