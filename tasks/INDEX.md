@@ -2,7 +2,7 @@
 
 The tracker. Each task file's front matter is the source of truth; update this table in the same change. Workflow: [README.md](README.md). Agent rules: [../AGENTS.md](../AGENTS.md).
 
-Status values: `proposed`, `todo`, `in-progress`, `blocked`, `review`, `done`. Rows are in dependency order.
+Status values: `proposed`, `todo`, `in-progress`, `blocked`, `done`. Rows are in dependency order.
 
 ## M1 · Skeleton
 
