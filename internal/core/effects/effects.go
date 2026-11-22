@@ -1,0 +1,381 @@
+package effects
+
+import (
+	"errors"
+	"fmt"
+	"slices"
+	"sort"
+
+	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
+	"github.com/mlange-42/ark/ecs"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
+)
+
+// rollStream is the RNG stream effect formulas draw their roll from.
+const rollStream = "effects"
+
+// Context is what an effect acts on. It assumes nothing about combat.
+type Context struct {
+	World      *sim.World
+	Source     ecs.Entity         // the acting body, or zero
+	Used       []timeline.Channel // the channels the action occupies, or none
+	Target     ecs.Entity         // the target body, or zero
+	TargetPart ecs.Entity         // the target part, or zero
+	Dir        *api.Dir           // for direction-targeted actions
+	Choices    map[string]string  // the action's chosen values, e.g. "type": "type.soak" (M1-20)
+}
+
+// Kind says how a primitive reads one of its parameters. The zero value is an Expr.
+type Kind uint8
+
+// The kinds of parameter.
+const (
+	KindExpr     Kind = iota // an Expr compiled against content.EffectEnv: Int, Float or Bool
+	KindText                 // a literal string, read with String
+	KindBodies               // a body selector, read with Bodies
+	KindChannels             // a channel selector, read with Channels
+)
+
+// Primitive is one named effect.
+type Primitive struct {
+	Name string
+	// Params names the required parameters. Optional names the ones that may be left out.
+	Params   []string
+	Optional []string
+	// Kinds says how each parameter is read; a parameter not listed is an Expr.
+	Kinds map[string]Kind
+	// Verify, when set, checks a reference's raw parameters at content load, for rules that span
+	// several parameters (such as "give exactly one of these").
+	Verify func(raw map[string]string) error
+	Apply  func(ctx *Context, p Params) error
+	// Check, when set, says whether the effect could apply right now, and why not.
+	// Actions call it before starting and again when landing (M1-20).
+	Check func(ctx *Context, p Params) (ok bool, reason api.Text)
+}
+
+// Params gives a primitive its parameters, evaluated against the context.
+type Params interface {
+	// Has reports whether the reference gave the parameter.
+	Has(name string) bool
+	Int(name string) (int, error)
+	Float(name string) (float64, error)
+	Bool(name string) (bool, error)
+	String(name string) (string, error)
+	Bodies(name string) ([]ecs.Entity, error)         // a body selector, sorted by UID
+	Channels(name string) ([]timeline.Channel, error) // a channel selector, sorted by UID
+}
+
+// programKey identifies one compiled formula.
+type programKey struct {
+	src string
+	as  string // "int", "float" or "bool"
+}
+
+// state is the registry and hooks effects keep in the world.
+type state struct {
+	primitives map[string]Primitive
+	programs   map[programKey]*vm.Program
+	hostile    func(w *sim.World, a, b ecs.Entity) bool
+	maps       func(id api.MapID) *hexmap.Map
+}
+
+func stateOf(w *sim.World) *state {
+	res := ecs.NewResource[state](w.ECS)
+	if res.Has() {
+		return res.Get()
+	}
+	st := &state{
+		primitives: map[string]Primitive{},
+		programs:   map[programKey]*vm.Program{},
+		hostile:    func(*sim.World, ecs.Entity, ecs.Entity) bool { return false },
+	}
+	res.Add(st)
+	return st
+}
+
+// Install registers the timing primitives and their events.
+func Install(w *sim.World) error {
+	stateOf(w)
+	for _, register := range []func(*api.Codec) error{
+		api.RegisterEvent[api.ChannelsLocked],
+		api.RegisterEvent[api.ActionsInterrupted],
+		api.RegisterEvent[api.ChannelsDelayed],
+		api.RegisterEvent[api.ChannelsReadied],
+	} {
+		if err := register(w.Codec); err != nil {
+			return err
+		}
+	}
+	return registerTiming(w)
+}
+
+// Register makes p available to content by name. Names are unique.
+func Register(w *sim.World, p Primitive) error {
+	if p.Name == "" || p.Apply == nil {
+		return errors.New("effects: a primitive needs a name and an Apply function")
+	}
+	st := stateOf(w)
+	if _, dup := st.primitives[p.Name]; dup {
+		return fmt.Errorf("effects: primitive %q already registered", p.Name)
+	}
+	seen := map[string]bool{}
+	for _, name := range slices.Concat(p.Params, p.Optional) {
+		if seen[name] {
+			return fmt.Errorf("effects: primitive %q lists parameter %q twice", p.Name, name)
+		}
+		seen[name] = true
+	}
+	for name := range p.Kinds {
+		if !seen[name] {
+			return fmt.Errorf("effects: primitive %q gives a kind to unknown parameter %q", p.Name, name)
+		}
+	}
+	st.primitives[p.Name] = p
+	return nil
+}
+
+// SetHostile replaces the test for whether a is hostile to b. The default is that nobody is hostile;
+// M2-07 sets it from factions.
+func SetHostile(w *sim.World, fn func(w *sim.World, a, b ecs.Entity) bool) { stateOf(w).hostile = fn }
+
+// SetMaps says where to find a map by ID, for working out what a body sees. Without it nobody sees
+// anybody; M1-10 sets it from explore.
+func SetMaps(w *sim.World, lookup func(id api.MapID) *hexmap.Map) { stateOf(w).maps = lookup }
+
+// Apply runs each effect in order and stops at the first error.
+func Apply(ctx *Context, refs []content.EffectRef) error {
+	st := stateOf(ctx.World)
+	for i, ref := range refs {
+		prim, ok := st.primitives[ref.Do]
+		if !ok {
+			return fmt.Errorf("effects: effect %d: unknown primitive %q", i, ref.Do)
+		}
+		if err := prim.Apply(ctx, &params{ctx: ctx, st: st, prim: prim, raw: ref.Params}); err != nil {
+			return fmt.Errorf("effects: effect %d (%s): %w", i, ref.Do, err)
+		}
+	}
+	return nil
+}
+
+// Check asks each effect whether it could apply right now and returns the first reason it could not.
+func Check(ctx *Context, refs []content.EffectRef) (bool, api.Text) {
+	st := stateOf(ctx.World)
+	for _, ref := range refs {
+		prim, ok := st.primitives[ref.Do]
+		if !ok || prim.Check == nil {
+			continue
+		}
+		if ok, reason := prim.Check(ctx, &params{ctx: ctx, st: st, prim: prim, raw: ref.Params}); !ok {
+			return false, reason
+		}
+	}
+	return true, api.Text{}
+}
+
+// Validate checks effect references against the registered primitives: unknown primitives, unknown
+// or missing parameters, formulas that do not compile and malformed selectors. Every problem is
+// reported, each naming path.
+func Validate(w *sim.World, path string, refs []content.EffectRef) error {
+	st := stateOf(w)
+	var problems []error
+	for i, ref := range refs {
+		at := fmt.Sprintf("%s[%d]", path, i)
+		prim, ok := st.primitives[ref.Do]
+		if !ok {
+			problems = append(problems, fmt.Errorf("%s: unknown primitive %q", at, ref.Do))
+			continue
+		}
+		problems = append(problems, validateRef(at, prim, ref)...)
+	}
+	return errors.Join(problems...)
+}
+
+func validateRef(at string, prim Primitive, ref content.EffectRef) []error {
+	var problems []error
+	known := slices.Concat(prim.Params, prim.Optional)
+	for _, name := range prim.Params {
+		if _, ok := ref.Params[name]; !ok {
+			problems = append(problems, fmt.Errorf("%s (%s): missing parameter %q", at, ref.Do, name))
+		}
+	}
+	names := make([]string, 0, len(ref.Params))
+	for name := range ref.Params {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		if !slices.Contains(known, name) {
+			problems = append(problems, fmt.Errorf("%s (%s): unknown parameter %q", at, ref.Do, name))
+			continue
+		}
+		src := ref.Params[name]
+		var err error
+		switch prim.Kinds[name] {
+		case KindBodies:
+			_, err = ParseBodies(src)
+		case KindChannels:
+			_, err = ParseChannels(src)
+		case KindExpr:
+			_, err = expr.Compile(src, expr.Env(content.EffectEnv{}))
+		case KindText:
+		}
+		if err != nil {
+			problems = append(problems, fmt.Errorf("%s (%s).%s: %w", at, ref.Do, name, err))
+		}
+	}
+	if prim.Verify != nil && len(problems) == 0 {
+		if err := prim.Verify(ref.Params); err != nil {
+			problems = append(problems, fmt.Errorf("%s (%s): %w", at, ref.Do, err))
+		}
+	}
+	return problems
+}
+
+// ValidateContent checks every effect site in the world's content.
+func ValidateContent(w *sim.World) error {
+	var problems []error
+	for _, site := range w.Content.EffectSites() {
+		if err := Validate(w, site.Path, site.Refs); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	if err := errors.Join(problems...); err != nil {
+		return fmt.Errorf("effects: content names effects that do not exist or are malformed: %w", err)
+	}
+	return nil
+}
+
+// params is Params for one effect reference.
+type params struct {
+	ctx  *Context
+	st   *state
+	prim Primitive
+	raw  map[string]string
+}
+
+func (p *params) Has(name string) bool {
+	_, ok := p.raw[name]
+	return ok
+}
+
+func (p *params) source(name string, want Kind) (string, error) {
+	if got := p.prim.Kinds[name]; got != want {
+		return "", fmt.Errorf("parameter %q is not read that way", name)
+	}
+	src, ok := p.raw[name]
+	if !ok {
+		return "", fmt.Errorf("missing parameter %q", name)
+	}
+	return src, nil
+}
+
+// eval compiles (once) and runs an Expr parameter. Each run draws a fresh roll.
+func (p *params) eval(name, as string, option expr.Option) (any, error) {
+	src, err := p.source(name, KindExpr)
+	if err != nil {
+		return nil, err
+	}
+	key := programKey{src: src, as: as}
+	program, ok := p.st.programs[key]
+	if !ok {
+		program, err = expr.Compile(src, expr.Env(content.EffectEnv{}), option)
+		if err != nil {
+			return nil, fmt.Errorf("parameter %q: %w", name, err)
+		}
+		p.st.programs[key] = program
+	}
+	out, err := expr.Run(program, p.env())
+	if err != nil {
+		return nil, fmt.Errorf("parameter %q: %w", name, err)
+	}
+	return out, nil
+}
+
+// env builds the formula environment from the context, drawing a fresh roll.
+func (p *params) env() content.EffectEnv {
+	w := p.ctx.World
+	env := content.EffectEnv{Now: w.Now, Roll: w.RNG.Get(rollStream).Float64()}
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	if alive(w, p.ctx.Source) && alive(w, p.ctx.Target) &&
+		positions.Has(p.ctx.Source) && positions.Has(p.ctx.Target) {
+		a, b := positions.Get(p.ctx.Source), positions.Get(p.ctx.Target)
+		if a.Map == b.Map {
+			env.Distance = hexDistance(a.At.Hex, b.At.Hex)
+		}
+	}
+	if alive(w, p.ctx.Target) {
+		env.WindingUp = len(timeline.PendingOf(w, w.UIDOf(p.ctx.Target))) > 0
+	}
+	return env
+}
+
+func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
+
+func hexDistance(a, b api.Hex) int {
+	dq, dr := a.Q-b.Q, a.R-b.R
+	return (abs(dq) + abs(dr) + abs(dq+dr)) / 2
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+func (p *params) Int(name string) (int, error) {
+	out, err := p.eval(name, "int", expr.AsInt64())
+	if err != nil {
+		return 0, err
+	}
+	return int(out.(int64)), nil
+}
+
+func (p *params) Float(name string) (float64, error) {
+	out, err := p.eval(name, "float", expr.AsFloat64())
+	if err != nil {
+		return 0, err
+	}
+	return out.(float64), nil
+}
+
+func (p *params) Bool(name string) (bool, error) {
+	out, err := p.eval(name, "bool", expr.AsBool())
+	if err != nil {
+		return false, err
+	}
+	return out.(bool), nil
+}
+
+func (p *params) String(name string) (string, error) { return p.source(name, KindText) }
+
+func (p *params) Bodies(name string) ([]ecs.Entity, error) {
+	src, err := p.source(name, KindBodies)
+	if err != nil {
+		return nil, err
+	}
+	sel, err := ParseBodies(src)
+	if err != nil {
+		return nil, fmt.Errorf("parameter %q: %w", name, err)
+	}
+	return sel.Resolve(p.ctx)
+}
+
+func (p *params) Channels(name string) ([]timeline.Channel, error) {
+	src, err := p.source(name, KindChannels)
+	if err != nil {
+		return nil, err
+	}
+	sel, err := ParseChannels(src)
+	if err != nil {
+		return nil, fmt.Errorf("parameter %q: %w", name, err)
+	}
+	return sel.Resolve(p.ctx)
+}

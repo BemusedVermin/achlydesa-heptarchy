@@ -216,3 +216,23 @@ func pendingTicks(fx *fixture, body ecs.Entity) []int64 {
 	}
 	return ticks
 }
+
+func TestReleaseFreesABusyChannelAtOnce(t *testing.T) {
+	fx, player, _ := pendingFixture(t)
+	channel := fx.bodyChannel(player)
+	if err := timeline.Occupy(fx.w, channel, 8); err != nil {
+		t.Fatal(err)
+	}
+	if err := timeline.Release(fx.w, channel); err != nil {
+		t.Fatal(err)
+	}
+	if !timeline.Free(fx.w, channel) {
+		t.Error("the channel should be free after Release")
+	}
+	if body, ok := timeline.Current(fx.w); !ok || body != player {
+		t.Error("the freed body should be deciding again at once")
+	}
+	if err := timeline.Release(fx.w, channel); err != nil {
+		t.Errorf("releasing a free channel = %v, want nothing to do", err)
+	}
+}

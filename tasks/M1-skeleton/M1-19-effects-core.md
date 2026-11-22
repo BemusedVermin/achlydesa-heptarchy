@@ -1,7 +1,7 @@
 ---
 id: M1-19
 title: "effects: the effect core, selectors and timing primitives"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-06, M1-18]
@@ -106,16 +106,24 @@ Each publishes an event (`ChannelsLocked`, `ActionsInterrupted`, `ChannelsDelaye
 
 ## Acceptance criteria
 
-- [ ] Each selector form resolves correctly in a table test, including `target:all` and a tag that matches nothing (an empty list, not an error).
-- [ ] `lock(channels: "target:all")` on a body with two pending swings cancels both and delays its next decision by the lock.
-- [ ] `interrupt` with `when: winding_up` does nothing to a body that's idle.
-- [ ] `delay` on `others:all` pushes back every visible body's channels but not the source's.
-- [ ] `ready` with `count: 1` frees only the lowest-UID busy channel.
-- [ ] Content naming an unregistered primitive, a missing parameter or a malformed selector fails `game.New` with a clear list.
-- [ ] `go tool task check` passes.
+- [x] Each selector form resolves correctly in a table test, including `target:all` and a tag that matches nothing (an empty list, not an error).
+- [x] `lock(channels: "target:all")` on a body with two pending swings cancels both and delays its next decision by the lock.
+- [x] `interrupt` with `when: winding_up` does nothing to a body that's idle.
+- [x] `delay` on `others:all` pushes back every visible body's channels but not the source's.
+- [x] `ready` with `count: 1` frees only the lowest-UID busy channel.
+- [x] Content naming an unregistered primitive, a missing parameter or a malformed selector fails `game.New` with a clear list. (Tested through `effects.Validate`, which `game.New` calls; nothing in content holds effects yet, so the end-to-end test is M1-19.F1.)
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Damage, severing, statuses, items and knowledge (M2-04). Actions that use these (M1-20). Triggers (M2-05).
 
 ## Notes
+
+- **Primitive gained fields.** `Primitive` has `Optional`, `Kinds` and `Verify` beyond the spec. Load-time validation needs to know which parameters are selectors, text or Expr, and `interrupt` takes one of `bodies` or `channels`. `Kinds` defaults to Expr. `Params` also gained `Has(name)` for optional parameters.
+- **Validation lives in `effects.Validate` / `ValidateContent`.** `game.New` runs it after `Extra` and before the scheduler freezes. `content.Registry.EffectSites()` returns nothing until M1-20 puts effects in actions; that is where the end-to-end test waits (M1-19.F1).
+- **Sight.** The core has no map registry yet, so `effects.SetMaps` supplies one (M1-10 will). Without it nobody sees anybody. Sight radius is `party.sight_radius` and the depth range equals the radius; content doesn't say otherwise yet. `allies` excludes the source, `everyone` includes it. Hostility defaults to nobody (`effects.SetHostile`).
+- **Rolls.** Every Expr evaluation draws one fresh `roll` from the "effects" stream. `winding_up` and `distance` are about the target body.
+- **`lock`** cancels pending actions whose `Part` is the channel, then extends it. `interrupt` evaluates `when` once, against the target.
+- **Files outside the list:** `internal/core/api/effects.go` (the four events), `internal/core/timeline/timeline.go` (`Release`, so `ready` can free a channel) and its test, `internal/content/registry.go` (`EffectSite`), `game/game.go` and `install.go`, `content/data/text.cue` (`text.effects.interrupted`), regenerated schemas (this also picked up schema output for earlier tasks that had not been regenerated).
+- **Follow-ups filed:** M1-19.F1.

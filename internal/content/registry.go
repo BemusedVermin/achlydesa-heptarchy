@@ -96,3 +96,13 @@ func (r *Registry) StepTicks(env SpeedEnv) (int64, error) {
 	}
 	return ticks, nil
 }
+
+// EffectSite is a place in content that holds effects, named by its path for error messages.
+type EffectSite struct {
+	Path string      `json:"path"`
+	Refs []EffectRef `json:"refs"`
+}
+
+// EffectSites lists every place in content that holds effects, so game.New can check them against
+// the registered primitives. Nothing in content holds effects yet; M1-20 adds actions.
+func (r *Registry) EffectSites() []EffectSite { return nil }

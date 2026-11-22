@@ -23,7 +23,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-09](M1-skeleton/M1-09-game.md) | game: the public API | done | seam | M | M1-17 |
 | [M1-14](M1-skeleton/M1-14-sight-pathing.md) | hexmap: sight lines and pathing in 3D | done | feature | M | M1-05 |
 | [M1-18](M1-skeleton/M1-18-pending-actions.md) | timeline: actions that land later | done | seam | M | M1-17 |
-| [M1-19](M1-skeleton/M1-19-effects-core.md) | effects: the effect core, selectors and timing primitives | todo | seam | M | M1-06, M1-18 |
+| [M1-19](M1-skeleton/M1-19-effects-core.md) | effects: the effect core, selectors and timing primitives | done | seam | M | M1-06, M1-18 |
 | [M1-20](M1-skeleton/M1-20-actions.md) | actions: content-defined actions | todo | seam | L | M1-07, M1-14, M1-19 |
 | [M1-10](M1-skeleton/M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | todo | feature | L | M1-09, M1-14, M1-20 |
 | [M1-16](M1-skeleton/M1-16-lead-follow.md) | Lead and follow | todo | feature | M | M1-10 |
@@ -72,3 +72,4 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | M1 | M1-14 |
 | [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | proposed | seam | M1 | M1-17 |
 | [M1-18.F1](followups/M1-18.F1-pending-save-roundtrip.md) | Round-trip pending actions through a real save | proposed | test | M1 | M1-18 |
+| [M1-19.F1](followups/M1-19.F1-effect-validation-end-to-end.md) | Test that game.New rejects bad effects in real content | proposed | test | M1 | M1-19 |

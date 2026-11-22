@@ -75,3 +75,10 @@ type TimelineConfig struct {
 type ActorDef struct {
 	Controller string `json:"controller"` // "player", "follow", "idle", ...
 }
+
+// EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for
+// parameters the primitive declares as selectors or text, literal strings.
+type EffectRef struct {
+	Do     string            `json:"do"`
+	Params map[string]string `json:"params"`
+}
