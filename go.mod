@@ -6,6 +6,7 @@ require (
 	charm.land/bubbletea/v2 v2.1.2
 	cuelang.org/go v0.17.1
 	github.com/expr-lang/expr v1.17.8
+	github.com/fzipp/astar v0.3.0
 	github.com/gravitton/hexagon v1.9.0
 	github.com/mlange-42/ark v0.8.3
 	pgregory.net/rapid v1.3.0
