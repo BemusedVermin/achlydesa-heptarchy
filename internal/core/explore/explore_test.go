@@ -515,3 +515,38 @@ func TestBlockedStepsAreDisabledWithTheBumpReason(t *testing.T) {
 		t.Error("no option is enabled")
 	}
 }
+
+// legsIntegrity is the integrity of every legs part in the world, added up.
+func (fx *fixture) legsIntegrity() int {
+	total := 0
+	query := ecs.NewFilter1[comp.Part](fx.w.ECS).Query()
+	for query.Next() {
+		if part := query.Get(); part.Slot == "legs" {
+			total += part.Integrity
+		}
+	}
+	return total
+}
+
+func TestAThreeCellDropInjuresTheLegsAndAOneCellStepDownDoesNot(t *testing.T) {
+	fx := newFixture(t, "map.test.descent", nil)
+	leader := fx.view().Party.Members[0].UID
+	for range 7 {
+		fx.stepLeader("e")
+	}
+	before := fx.legsIntegrity()
+	fx.stepLeader("ne") // the three-cell drop
+	if got := fx.legsIntegrity(); got != before-2 {
+		t.Errorf("legs integrity after a three-cell drop = %d, want %d", got, before-2)
+	}
+
+	// A fall of one cell is a step down, and the trigger's condition leaves it alone.
+	before = fx.legsIntegrity()
+	fx.w.Bus.Publish(api.Fell{Actor: leader, Cells: 1})
+	if _, err := fx.w.Bus.Drain(fx.w); err != nil {
+		t.Fatal(err)
+	}
+	if got := fx.legsIntegrity(); got != before {
+		t.Errorf("legs integrity after a one-cell fall = %d, want %d", got, before)
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strconv"
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/ast"
@@ -376,6 +377,7 @@ func (p *params) env(withRoll bool) content.EffectEnv {
 func baseEnv(ctx *Context) content.EffectEnv {
 	w := ctx.World
 	env := content.EffectEnv{Now: w.Now, Type: ctx.Choices["type"]}
+	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"]) // absent or malformed means no fall
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if alive(w, ctx.Source) && alive(w, ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)
