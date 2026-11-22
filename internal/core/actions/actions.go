@@ -12,6 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -64,6 +65,8 @@ type plan struct {
 	recovery int64
 	onStart  []content.EffectRef
 	onLand   []content.EffectRef
+	// refusal is why a chosen record's requires formula says the plan may not start, or empty.
+	refusal api.Text
 }
 
 func (p *plan) intent() Intent {
@@ -89,6 +92,7 @@ type evaluator struct {
 	positions  *ecs.Map[comp.Pos]
 	actors     *ecs.Map[comp.Actor]
 	sight      map[ecs.Entity]map[ecs.Entity]bool
+	pack       map[ecs.Entity]map[string]int // each actor's whole pack, for choice offers
 }
 
 func newEvaluator(w *sim.World) *evaluator {
@@ -238,8 +242,11 @@ func (ev *evaluator) checkChoices(in Intent, def content.ActionDef) api.Text {
 	}
 	for _, name := range def.Choices {
 		value, ok := in.Choices[name]
-		provider, registered := ev.st.providers[name]
-		if !ok || !registered || !slices.Contains(provider(ev.w, in.Actor), value) {
+		if !ok {
+			return why("bad_choice")
+		}
+		values, err := ev.choiceValues(name, in.Actor)
+		if err != nil || !slices.Contains(values, value) {
 			return why("bad_choice")
 		}
 	}
@@ -256,15 +263,48 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	if choices == nil {
 		choices = map[string]string{}
 	}
+	var sourcePart ecs.Entity
+	for _, c := range p.channels {
+		if !c.Body.IsZero() && c.Entity != c.Body {
+			sourcePart = c.Entity
+			break
+		}
+	}
 	return content.ActionEnv{
 		Speed: timeline.Speed(ev.w, p.actor), StepTicks: stepTicks,
 		Distance: ev.distance(p.actor, p.target), Used: len(p.channels), Choice: choices,
+		Source: effects.SideOf(ev.w, p.actor, sourcePart), Target: effects.SideOf(ev.w, p.target, p.part),
+		Chosen: effects.ChosenRecords(ev.w, choices), Pack: inventory.Usable(ev.w, p.actor, p.target),
 	}, nil
 }
 
-// modify runs the modifier hooks in registration order and folds them into the plan.
-func (ev *evaluator) modify(p *plan) {
+// modify folds the mods of the chosen records, in the order of the action's choices, and then the
+// modifier hooks, in registration order, into the plan.
+func (ev *evaluator) modify(p *plan) error {
 	p.onStart, p.onLand = slices.Clone(p.def.OnStart), slices.Clone(p.def.OnLand)
+	reg := ev.w.Content
+	for _, name := range p.def.Choices {
+		id := api.ContentID(p.choices[name])
+		mods, ok := reg.Mods(id)
+		if !ok {
+			continue
+		}
+		windup, recovery, err := reg.ModsTicks(id, p.env)
+		if err != nil {
+			return err
+		}
+		p.windup += windup
+		p.recovery += recovery
+		p.onStart = append(p.onStart, mods.OnStart...)
+		p.onLand = append(p.onLand, mods.OnLand...)
+		holds, refusal, err := reg.ModsRequires(id, p.env)
+		if err != nil {
+			return err
+		}
+		if !holds && p.refusal.ID == "" {
+			p.refusal = api.Text{ID: refusal}
+		}
+	}
 	for _, hook := range ev.st.modifiers {
 		m := hook(ev.w, p.intent())
 		p.windup += m.Windup
@@ -272,6 +312,7 @@ func (ev *evaluator) modify(p *plan) {
 		p.onStart = append(p.onStart, m.OnStart...)
 		p.onLand = append(p.onLand, m.OnLand...)
 	}
+	return nil
 }
 
 // evaluate works an intent out. A nil plan means it is structurally invalid, with the reason. A plan
@@ -312,7 +353,9 @@ func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, err
 	if p.recovery, err = w.Content.ActionRecovery(in.Action, p.env); err != nil {
 		return nil, api.Text{}, err
 	}
-	ev.modify(&p)
+	if err := ev.modify(&p); err != nil {
+		return nil, api.Text{}, err
+	}
 	if p.windup < 0 || p.recovery < 0 {
 		return nil, api.Text{}, fmt.Errorf("actions: %s: wind-up %d and recovery %d must not be negative",
 			in.Action, p.windup, p.recovery)
@@ -325,6 +368,9 @@ func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, err
 
 // verdict asks the hooks and the effects whether the plan may start now.
 func (ev *evaluator) verdict(p *plan) api.Text {
+	if p.refusal.ID != "" {
+		return p.refusal
+	}
 	for _, validate := range ev.st.validators {
 		if ok, reason := validate(ev.w, p.intent()); !ok {
 			return reason
@@ -504,7 +550,9 @@ func (ev *evaluator) landingPlan(pending ecs.Entity) (*plan, api.Text, error) {
 	if p.env, err = ev.env(p); err != nil {
 		return nil, api.Text{}, err
 	}
-	ev.modify(p)
+	if err := ev.modify(p); err != nil {
+		return nil, api.Text{}, err
+	}
 	return p, api.Text{}, nil
 }
 

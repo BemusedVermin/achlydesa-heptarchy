@@ -385,7 +385,7 @@ func TestASlowerBodysStepsTakeLonger(t *testing.T) {
 			b.Timeline.StepTicks = "speed >= 2 ? 10 : 25"
 			// Bodies take their speed from their legs.
 			legs := b.Parts["part.human_legs"]
-			legs.Grants = []comp.Grant{{Kind: content.GrantSpeed, Value: int(speed)}}
+			legs.Grants = []comp.Grant{{Kind: "speed", Value: int(speed)}}
 			b.Parts["part.human_legs"] = legs
 		})
 		before := fx.view().Tick

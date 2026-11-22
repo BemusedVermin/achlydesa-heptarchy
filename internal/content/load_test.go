@@ -34,9 +34,14 @@ text: {
 	"text.terrain.wall":  "wall"
 	"text.hello":         "Hello, {{.who}}!"
 	"text.phase.dawn":    "dawn"
+	"text.action.step":   "step"
 }
-party: {slots: 4, sight_radius: 6}
-timeline: {step_ticks: "speed >= 2 ? 10 : 20", default_speed: 2, window_ticks: 30}
+actions: "action.step": {
+	name: "text.action.step", key: "step", uses: [{tag: "body", count: 1}]
+	target: "direction", windup: "0", recovery: "step_ticks"
+}
+party: {slots: 4, sight_radius: 6, follow_action: "action.step"}
+timeline: {step_ticks: "speed >= 2 ? 10 : 20", speed: "grant.speed", default_speed: 2, window_ticks: 30}
 calendar: {
 	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]
 }

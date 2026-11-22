@@ -5,7 +5,6 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -52,27 +51,22 @@ func Functioning(w *sim.World, part ecs.Entity) bool {
 	return !body.IsZero() && w.ECS.Alive(body) && parts.Get(part).Integrity > 0
 }
 
-// Grants totals what the body's functioning parts grant of one kind: for "speed" the sum of the
-// values, for "action" and "targeting" the number of parts that grant it.
-func Grants(w *sim.World, body ecs.Entity, kind string) int {
+// Grants totals the values of the body's functioning parts' grants of one kind.
+func Grants(w *sim.World, body ecs.Entity, kind string) int { return GrantTotals(w, body)[kind] }
+
+// GrantTotals totals the values of the body's functioning parts' grants, by kind.
+func GrantTotals(w *sim.World, body ecs.Entity) map[string]int {
 	parts := ecs.NewMap[comp.Part](w.ECS)
-	total := 0
+	totals := map[string]int{}
 	for _, part := range Parts(w, body) {
 		if !Functioning(w, part) {
 			continue
 		}
 		for _, grant := range parts.Get(part).Grants {
-			if grant.Kind != kind {
-				continue
-			}
-			if kind == content.GrantSpeed {
-				total += grant.Value
-			} else {
-				total++
-			}
+			totals[grant.Kind] += grant.Value
 		}
 	}
-	return total
+	return totals
 }
 
 // Members lists the members of a party, sorted by UID. Party order is in comp.Party.Order.

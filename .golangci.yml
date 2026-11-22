@@ -77,8 +77,16 @@ linters:
         - pattern: '^time\.(Now|Since)$'
           pkg: '^time$'
           msg: "the core must not read the wall clock (AGENTS.md rule 3)"
+        - pattern: '^expr\.(Compile|Eval)$'
+          pkg: '^github.com/expr-lang/expr$'
+          msg: "compile formulas through content.Registry.Compile, the one place that inlines rules (M2-13)"
   exclusions:
     rules:
       - linters:
           - forbidigo
+        text: "wall clock"
         path-except: internal/core/
+      - linters:
+          - forbidigo
+        text: "content.Registry.Compile"
+        path: internal/content/compile\.go

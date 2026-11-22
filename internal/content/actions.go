@@ -132,7 +132,7 @@ func (r *Registry) checkActions() []error {
 			keys[def.Key] = id
 		}
 		problems = append(problems, checkActionShape(path, def)...)
-		compiled, errs := compileAction(path, def)
+		compiled, errs := r.compileAction(path, def)
 		problems = append(problems, errs...)
 		if len(errs) == 0 {
 			r.actions[api.ContentID(id)] = compiled
@@ -176,7 +176,7 @@ func checkActionShape(path string, def ActionDef) []error {
 	return problems
 }
 
-func compileAction(path string, def ActionDef) (compiledAction, []error) {
+func (r *Registry) compileAction(path string, def ActionDef) (compiledAction, []error) {
 	var problems []error
 	compile := func(field, src string, required bool, option expr.Option) *vm.Program {
 		if src == "" {
@@ -185,7 +185,7 @@ func compileAction(path string, def ActionDef) (compiledAction, []error) {
 			}
 			return nil
 		}
-		program, err := expr.Compile(src, expr.Env(ActionEnv{}), option)
+		program, err := r.Compile(src, ActionEnv{}, option)
 		if err != nil {
 			problems = append(problems, fmt.Errorf("%s.%s: %w", path, field, err))
 			return nil
@@ -227,10 +227,27 @@ func (r *Registry) EffectSites() []EffectSite {
 			sites = append(sites, EffectSite{Path: fmt.Sprintf("actions[%q].on_land", id), Refs: def.OnLand})
 		}
 	}
+	for _, id := range sortedKeys(r.bundle.Types) {
+		sites = append(sites, modSites(fmt.Sprintf("types[%q]", id), r.bundle.Types[id].Mods)...)
+	}
+	for _, id := range sortedKeys(r.bundle.Items) {
+		sites = append(sites, modSites(fmt.Sprintf("items[%q]", id), r.bundle.Items[id].Mods)...)
+	}
 	for _, site := range r.TriggerSites() {
 		if len(site.Trigger.Do) > 0 {
 			sites = append(sites, EffectSite{Path: site.Path + ".do", Refs: site.Trigger.Do})
 		}
+	}
+	return sites
+}
+
+func modSites(path string, mods Mods) []EffectSite {
+	var sites []EffectSite
+	if len(mods.OnStart) > 0 {
+		sites = append(sites, EffectSite{Path: path + ".on_start", Refs: mods.OnStart})
+	}
+	if len(mods.OnLand) > 0 {
+		sites = append(sites, EffectSite{Path: path + ".on_land", Refs: mods.OnLand})
 	}
 	return sites
 }

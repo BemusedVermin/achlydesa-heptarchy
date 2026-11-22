@@ -26,6 +26,7 @@ var here = comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
 
 // rig is a game with the sample party, a crawler standing at here, and a piece in the pack.
 type rig struct {
+	g       *game.Game
 	w       *sim.World
 	party   ecs.Entity
 	reaper  ecs.Entity // the first member
@@ -33,7 +34,10 @@ type rig struct {
 	events  []api.Event
 }
 
-func newRig(t *testing.T) *rig {
+func newRig(t *testing.T) *rig { return newRigWith(t, nil) }
+
+// newRigWith is newRig with the bundle adjusted first.
+func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	t.Helper()
 	bundle, err := content.LoadBundle(sampleDir)
 	if err != nil {
@@ -41,17 +45,20 @@ func newRig(t *testing.T) *rig {
 	}
 	bundle.Start = content.Start{}
 	armPart := api.ContentID("part.human_arm")
-	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Kind: "piece", Part: &armPart}
+	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Part: &armPart}
 	bundle.Statuses = map[string]content.Status{"status.braced": {Name: "text.status.braced"}}
 	bundle.Text["text.item.test_arm"] = "spare arm"
 	bundle.Text["text.status.braced"] = "braced"
 	bundle.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.crawler"))}
+	if mutate != nil {
+		mutate(&bundle)
+	}
 	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
 	r := &rig{}
-	_, err = game.New(game.Config{
+	r.g, err = game.New(game.Config{
 		Seed: 1, Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {
 			r.w = w
@@ -309,7 +316,7 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 	ctx.Choices = map[string]string{"type": "type.soak"} // the clay core is weak to soak
 	ecs.NewMap[comp.Pos](r.w.ECS).Get(r.reaper).At.Depth = 1
 	// 1 (braced) + 2 (weak) + 4 (height: 3 - 1 is 2, doubled) = 7, only if every field reads right.
-	formula := `("status.braced" in statuses ? 1 : 0) + (weak ? 2 : 0) + (immune ? 100 : 0) + ` +
+	formula := `("status.braced" in statuses ? 1 : 0) + (rule.weak ? 2 : 0) + (rule.immune ? 100 : 0) + ` +
 		`(locked ? 100 : 0) + (graft ? 100 : 0) + height * 2 + (integrity == max_integrity ? 0 : 100)`
 	r.apply(t, ctx, do("damage", "parts", "target_part", "amount", formula))
 	if got := r.integrity(core); got != 8-7 {
@@ -376,7 +383,9 @@ func TestAttachPartFromSevered(t *testing.T) {
 
 func TestRevealWritesAFactPerPart(t *testing.T) {
 	r := newRig(t)
-	r.apply(t, r.ctx(r.crawler), do("reveal", "claim", "claim.material"))
+	r.apply(t, r.ctx(r.crawler), do(
+		"reveal", "claim", "claim.material", "value", "= target.material.id", "source", "source.sweep",
+	))
 	for _, part := range anatomy.Parts(r.w, r.crawler) {
 		fact, ok := knowledge.Best(r.w, r.party, r.w.UIDOf(part), "claim.material")
 		want := ecs.NewMap[comp.Part](r.w.ECS).Get(part).Material

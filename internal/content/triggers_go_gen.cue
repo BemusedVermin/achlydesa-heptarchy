@@ -18,5 +18,5 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	Owner:   string
 	OwnerID: api.#ContentID
 	Path:    string
-	Trigger: #Trigger
+	#Trigger
 }

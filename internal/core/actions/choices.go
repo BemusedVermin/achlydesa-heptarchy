@@ -9,6 +9,8 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -23,8 +25,9 @@ const directionChoice = "direction"
 // dirNames names the six directions, by api.Dir value.
 var dirNames = [api.DirCount]string{"e", "ne", "nw", "w", "sw", "se"}
 
-// ChoiceProvider offers the values a choice may take for an actor, in a stable order. M2-06
-// registers "type": the types a body can load.
+// ChoiceProvider offers the values a choice may take for an actor, in a stable order. Only choices
+// that are not records need one, such as the directions; the rest are content choices (see
+// content.ChoiceDef).
 type ChoiceProvider func(w *sim.World, actor ecs.Entity) []string
 
 // RegisterChoice makes a choice provider available to actions by name. Names are unique.
@@ -38,6 +41,39 @@ func RegisterChoice(w *sim.World, name string, p ChoiceProvider) error {
 	}
 	st.providers[name] = p
 	return nil
+}
+
+// choiceValues lists the values the actor may pick for a choice, in order: the Go provider's, or
+// else the records the content choice offers, in ID order.
+func (ev *evaluator) choiceValues(name string, actor ecs.Entity) ([]string, error) {
+	if provider, ok := ev.st.providers[name]; ok {
+		return provider(ev.w, actor), nil
+	}
+	reg := ev.w.Content
+	if _, ok := reg.Choice(name); !ok {
+		return nil, nil
+	}
+	if ev.pack == nil {
+		ev.pack = map[ecs.Entity]map[string]int{}
+	}
+	pack, ok := ev.pack[actor]
+	if !ok {
+		pack = inventory.Usable(ev.w, actor, ecs.Entity{})
+		ev.pack[actor] = pack
+	}
+	source := effects.SideOf(ev.w, actor, ecs.Entity{})
+	values := []string{}
+	for _, id := range reg.ChoiceRecords(name) {
+		record, _ := reg.Record(id)
+		offered, err := reg.Offered(name, content.OfferEnv{Record: record, Source: source, Pack: pack})
+		if err != nil {
+			return nil, err
+		}
+		if offered {
+			values = append(values, string(id))
+		}
+	}
+	return values, nil
 }
 
 func directionValues(*sim.World, ecs.Entity) []string { return dirNames[:] }

@@ -3,13 +3,13 @@ package effects
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/expr-lang/expr"
-	"github.com/expr-lang/expr/ast"
-	"github.com/expr-lang/expr/parser"
 	"github.com/expr-lang/expr/vm"
 	"github.com/mlange-42/ark/ecs"
 
@@ -17,6 +17,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -32,7 +33,7 @@ type Context struct {
 	Target     ecs.Entity         // the target body, or zero
 	TargetPart ecs.Entity         // the target part, or zero
 	Dir        *api.Dir           // for direction-targeted actions
-	Choices    map[string]string  // the action's chosen values, e.g. "type": "type.soak" (M1-20)
+	Choices    map[string]string  // the action's chosen values, e.g. "type": "type.soak"
 }
 
 // Kind says how a primitive reads one of its parameters. The zero value is an Expr.
@@ -41,7 +42,7 @@ type Kind uint8
 // The kinds of parameter.
 const (
 	KindExpr     Kind = iota // an Expr compiled against content.EffectEnv: Int, Float or Bool
-	KindText                 // a literal string, read with String
+	KindText                 // a literal string, or a formula when it starts with "=", read with String
 	KindBodies               // a body selector, read with Bodies
 	KindChannels             // a channel selector, read with Channels
 )
@@ -73,9 +74,24 @@ type Params interface {
 	Int(name string) (int, error)
 	Float(name string) (float64, error)
 	Bool(name string) (bool, error)
-	String(name string) (string, error)
+	String(name string) (string, error)               // a literal, or the result of a text formula ("= <formula>")
 	Bodies(name string) ([]ecs.Entity, error)         // a body selector, sorted by UID
 	Channels(name string) ([]timeline.Channel, error) // a channel selector, sorted by UID
+	// For returns the same parameters evaluated for one channel: its body is the target and, when
+	// the channel is a part, so is the part. A primitive that acts on a channel selector reads its
+	// other parameters through it, once per selected part.
+	For(c timeline.Channel) Params
+}
+
+// formulaPrefix starts a text parameter that is a formula rather than a literal.
+const formulaPrefix = "="
+
+// IsFormula reports whether a text parameter's value is a formula.
+func IsFormula(value string) bool { return strings.HasPrefix(value, formulaPrefix) }
+
+// formulaSource is the formula of a text parameter that is one.
+func formulaSource(value string) string {
+	return strings.TrimSpace(strings.TrimPrefix(value, formulaPrefix))
 }
 
 // programKey identifies one compiled formula.
@@ -90,32 +106,16 @@ type program struct {
 	usesRoll bool
 }
 
-// usesRoll reports whether the formula src names the roll variable.
-func usesRoll(src string) (bool, error) {
-	tree, err := parser.Parse(src)
-	if err != nil {
-		return false, err
-	}
-	finder := &rollFinder{}
-	ast.Walk(&tree.Node, finder)
-	return finder.found, nil
-}
-
-type rollFinder struct{ found bool }
-
-func (f *rollFinder) Visit(node *ast.Node) {
-	if id, ok := (*node).(*ast.IdentifierNode); ok && id.Value == "roll" {
-		f.found = true
-	}
-}
-
 // state is the registry and hooks effects keep in the world.
 type state struct {
 	primitives map[string]Primitive
 	programs   map[programKey]*program
-	hostile    func(w *sim.World, a, b ecs.Entity) bool
-	maps       func(id api.MapID) *hexmap.Map
-	triggers   *triggerIndex
+	// programsFor is the hash of the content the programs were compiled against: with rules
+	// inlined, one source can compile to something else after the content changes.
+	programsFor string
+	hostile     func(w *sim.World, a, b ecs.Entity) bool
+	maps        func(id api.MapID) *hexmap.Map
+	triggers    *triggerIndex
 }
 
 func stateOf(w *sim.World) *state {
@@ -258,14 +258,11 @@ func validateRef(at string, reg *content.Registry, prim Primitive, ref content.E
 		case KindChannels:
 			_, err = ParseChannels(src)
 		case KindExpr:
-			_, err = expr.Compile(src, expr.Env(content.EffectEnv{}))
-			if err == nil && prim.Check != nil {
-				var reads bool
-				if reads, err = usesRoll(src); err == nil && reads {
-					err = errors.New("a primitive with a Check cannot read roll: checks must not draw from the RNG")
-				}
-			}
+			err = validateFormula(reg, prim, src, nil)
 		case KindText:
+			if IsFormula(src) {
+				err = validateFormula(reg, prim, formulaSource(src), expr.AsKind(reflect.String))
+			}
 		}
 		if err != nil {
 			problems = append(problems, fmt.Errorf("%s (%s).%s: %w", at, ref.Do, name, err))
@@ -277,11 +274,42 @@ func validateRef(at string, reg *content.Registry, prim Primitive, ref content.E
 		}
 	}
 	if prim.VerifyContent != nil && reg != nil && len(problems) == 0 {
-		if err := prim.VerifyContent(reg, ref.Params); err != nil {
+		literals := make(map[string]string, len(ref.Params))
+		for name, value := range ref.Params {
+			if prim.Kinds[name] != KindText || !IsFormula(value) {
+				literals[name] = value
+			}
+		}
+		if err := prim.VerifyContent(reg, literals); err != nil {
 			problems = append(problems, fmt.Errorf("%s (%s): %w", at, ref.Do, err))
 		}
 	}
 	return problems
+}
+
+// validateFormula compiles a parameter's formula and refuses a read of roll where the primitive has a Check.
+func validateFormula(reg *content.Registry, prim Primitive, src string, option expr.Option) error {
+	if reg == nil {
+		return nil
+	}
+	options := []expr.Option{}
+	if option != nil {
+		options = append(options, option)
+	}
+	if _, err := reg.Compile(src, content.EffectEnv{}, options...); err != nil {
+		return err
+	}
+	if prim.Check == nil {
+		return nil
+	}
+	reads, err := reg.ReadsVariable(src, "roll")
+	if err != nil {
+		return err
+	}
+	if reads {
+		return errors.New("a primitive with a Check cannot read roll: checks must not draw from the RNG")
+	}
+	return nil
 }
 
 // ValidateContent checks every effect site in the world's content.
@@ -335,14 +363,23 @@ func (p *params) eval(name, as string, option expr.Option) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	return p.run(name, src, as, option)
+}
+
+// run compiles (once per content) and runs a formula for the parameter called name.
+func (p *params) run(name, src, as string, option expr.Option) (any, error) {
+	reg := p.ctx.World.Content
+	if hash := reg.Hash(); p.st.programsFor != hash {
+		p.st.programs, p.st.programsFor = map[programKey]*program{}, hash
+	}
 	key := programKey{src: src, as: as}
 	prog, ok := p.st.programs[key]
 	if !ok {
-		compiled, err := expr.Compile(src, expr.Env(content.EffectEnv{}), option)
+		compiled, err := reg.Compile(src, content.EffectEnv{}, option)
 		if err != nil {
 			return nil, fmt.Errorf("parameter %q: %w", name, err)
 		}
-		reads, err := usesRoll(src)
+		reads, err := reg.ReadsVariable(src, "roll")
 		if err != nil {
 			return nil, fmt.Errorf("parameter %q: %w", name, err)
 		}
@@ -376,8 +413,11 @@ func (p *params) env(withRoll bool) content.EffectEnv {
 // baseEnv works out everything in the formula environment except roll.
 func baseEnv(ctx *Context) content.EffectEnv {
 	w := ctx.World
-	env := content.EffectEnv{Now: w.Now, Type: ctx.Choices["type"]}
+	env := content.EffectEnv{Now: w.Now, Chosen: ChosenRecords(w, ctx.Choices)}
 	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"]) // absent or malformed means no fall
+	env.Source = SideOf(w, ctx.Source, firstPart(ctx.Used))
+	env.Target = SideOf(w, ctx.Target, ctx.TargetPart)
+	env.Pack = inventory.Usable(w, ctx.Source, ctx.Target)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if alive(w, ctx.Source) && alive(w, ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)
@@ -411,12 +451,6 @@ func partEnv(ctx *Context, env *content.EffectEnv) {
 	env.Integrity, env.MaxIntegrity = part.Integrity, part.MaxIntegrity
 	env.Graft = ecs.NewMap[comp.Graft](w.ECS).Has(ctx.TargetPart)
 	env.Locked = timeline.Locked(w, timeline.Channel{Entity: ctx.TargetPart, Body: ctx.Target})
-	if kind := ctx.Choices["type"]; kind != "" {
-		if material, ok := w.Content.Material(part.Material); ok {
-			env.Weak = slices.Contains(material.WeakTo, api.ContentID(kind))
-			env.Immune = slices.Contains(material.ImmuneTo, api.ContentID(kind))
-		}
-	}
 }
 
 func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
@@ -445,7 +479,31 @@ func (p *params) Bool(name string) (bool, error) {
 	return out.(bool), nil
 }
 
-func (p *params) String(name string) (string, error) { return p.source(name, KindText) }
+func (p *params) String(name string) (string, error) {
+	src, err := p.source(name, KindText)
+	if err != nil {
+		return "", err
+	}
+	if !IsFormula(src) {
+		return src, nil
+	}
+	out, err := p.run(name, formulaSource(src), "string", expr.AsKind(reflect.String))
+	if err != nil {
+		return "", err
+	}
+	return out.(string), nil
+}
+
+// For implements [Params].
+func (p *params) For(c timeline.Channel) Params {
+	ctx := *p.ctx
+	if !c.Body.IsZero() && c.Entity != c.Body {
+		ctx.Target, ctx.TargetPart = c.Body, c.Entity
+	} else {
+		ctx.Target, ctx.TargetPart = c.Entity, ecs.Entity{}
+	}
+	return &params{ctx: &ctx, st: p.st, prim: p.prim, raw: p.raw, checking: p.checking}
+}
 
 func (p *params) Bodies(name string) ([]ecs.Entity, error) {
 	src, err := p.source(name, KindBodies)

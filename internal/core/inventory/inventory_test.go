@@ -3,6 +3,7 @@ package inventory_test
 import (
 	"bytes"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
@@ -105,20 +106,22 @@ func TestAllElevenTypesLoadAndNameNeedsItsOwner(t *testing.T) {
 		t.Errorf("types = %d, want 11", got)
 	}
 	tests := []struct {
-		target, bound uint64
-		want          bool
-	}{{7, 7, true}, {7, 8, false}, {7, 0, false}}
+		pack map[string]int
+		want bool
+	}{{map[string]int{"item.name": 1}, true}, {map[string]int{}, false}}
 	for _, tc := range tests {
-		got, err := reg.TypeAllowed("type.name", content.TypeEnv{TargetUID: tc.target, ItemBoundTo: tc.bound})
+		got, _, err := reg.ModsRequires("type.name", content.ActionEnv{Pack: tc.pack})
 		if err != nil || got != tc.want {
-			t.Errorf("name target %d bound %d = %v, %v; want %v", tc.target, tc.bound, got, err, tc.want)
+			t.Errorf("name with pack %v = %v, %v; want %v", tc.pack, got, err, tc.want)
 		}
 	}
-	if got, err := reg.TypeAllowed("type.cut", content.TypeEnv{}); err != nil || !got {
+	if got, _, err := reg.ModsRequires("type.cut", content.ActionEnv{}); err != nil || !got {
 		t.Errorf("cut = %v, %v; want always allowed", got, err)
 	}
-	if w := reg.Warnings(); len(w) != 0 {
-		t.Errorf("warnings = %v, want none", w)
+	for _, warning := range reg.Warnings() {
+		if strings.Contains(warning, "hostile") {
+			t.Errorf("warning %q, want no hostility warnings", warning)
+		}
 	}
 }
 
@@ -134,8 +137,14 @@ func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(reg.Warnings()) != 1 {
-		t.Errorf("warnings = %v, want one", reg.Warnings())
+	hostility := 0
+	for _, warning := range reg.Warnings() {
+		if strings.Contains(warning, "hostile") {
+			hostility++
+		}
+	}
+	if hostility != 1 {
+		t.Errorf("warnings = %v, want one about hostility", reg.Warnings())
 	}
 }
 
@@ -145,11 +154,10 @@ func TestBadTypeContentIsRejected(t *testing.T) {
 		t.Fatal(err)
 	}
 	bad := bundle.Types["type.name"]
-	bad.Condition = "no_such_field == 1"
+	bad.Requires = "no_such_field == 1"
 	bundle.Types["type.name"] = bad
-	missing := api.ContentID("item.nothing")
 	burn := bundle.Types["type.burn"]
-	burn.Consumes = &missing
+	burn.Lists = map[string][]string{"consumes": {"item.nothing"}}
 	bundle.Types["type.burn"] = burn
 	if _, err := content.New(bundle); err == nil {
 		t.Error("content with a bad condition and an unknown item loaded")

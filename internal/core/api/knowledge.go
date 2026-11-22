@@ -11,9 +11,9 @@ const (
 // Fact is one thing a knower holds to be true about a subject.
 type Fact struct {
 	Subject    UID       `json:"subject"`    // who or what the fact is about
-	Claim      ContentID `json:"claim"`      // "claim.material", "claim.name", ...
+	Claim      ContentID `json:"claim"`      // a claim ID
 	Value      string    `json:"value"`      // e.g. "material.clay"
-	Source     ContentID `json:"source"`     // "source.sweep", "source.rumor", ...
+	Source     ContentID `json:"source"`     // a source ID
 	Confidence float64   `json:"confidence"` // 0..1
 	Tick       int64     `json:"tick"`
 }
@@ -49,7 +49,8 @@ func (n FactNoticed) LogText() Text {
 }
 
 // KnowledgeTextID is the text ID that reports a fact of the given claim: "text.knowledge." plus the
-// claim without its "claim." prefix, so "text.knowledge.material" for "claim.material".
+// claim without its "claim." prefix.
+// claim without its "claim." prefix, so the text for the material claim.
 func KnowledgeTextID(claim ContentID) ContentID {
 	return ContentID("text.knowledge." + strings.TrimPrefix(string(claim), "claim."))
 }

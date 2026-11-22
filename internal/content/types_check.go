@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
@@ -40,26 +41,6 @@ func (r *Registry) Faction(id api.ContentID) (Faction, bool) {
 // Warnings lists problems that don't make the content invalid, such as one-sided hostility.
 func (r *Registry) Warnings() []string { return append([]string(nil), r.warnings...) }
 
-// TypeAllowed runs the type's condition against env. A type with no condition is always allowed.
-func (r *Registry) TypeAllowed(id api.ContentID, env TypeEnv) (bool, error) {
-	if _, ok := r.bundle.Types[string(id)]; !ok {
-		return false, fmt.Errorf("content: unknown type %q", id)
-	}
-	program, ok := r.types[id]
-	if !ok {
-		return true, nil
-	}
-	out, err := expr.Run(program, env)
-	if err != nil {
-		return false, fmt.Errorf("content: type %q condition: %w", id, err)
-	}
-	allowed, ok := out.(bool)
-	if !ok {
-		return false, fmt.Errorf("content: type %q condition returned %T, not a bool", id, out)
-	}
-	return allowed, nil
-}
-
 func sortedIDs[V any](m map[string]V) []api.ContentID {
 	keys := sortedKeys(m)
 	ids := make([]api.ContentID, len(keys))
@@ -79,67 +60,24 @@ func (r *Registry) checkTypes() []error {
 		}
 	}
 	for _, key := range sortedKeys(r.bundle.Materials) {
-		material := r.bundle.Materials[key]
-		lists := []struct {
-			field string
-			ids   []api.ContentID
-		}{{"weak_to", material.WeakTo}, {"immune_to", material.ImmuneTo}}
-		for _, list := range lists {
-			for i, id := range list.ids {
-				if _, ok := r.bundle.Types[string(id)]; !ok {
-					problems = append(
-						problems,
-						fmt.Errorf("materials[%q].%s[%d]: unknown type %q", key, list.field, i, id),
-					)
-				}
-			}
-		}
-		for _, id := range material.WeakTo {
-			if slices.Contains(material.ImmuneTo, id) {
-				problems = append(problems, fmt.Errorf("materials[%q]: %q is both a weakness and an immunity", key, id))
-			}
-		}
+		text(fmt.Sprintf("materials[%q].name", key), r.bundle.Materials[key].Name)
 	}
 	for _, key := range sortedKeys(r.bundle.Types) {
 		def := r.bundle.Types[key]
 		path := fmt.Sprintf("types[%q]", key)
 		text(path+".name", def.Name)
-		if def.Consumes != nil {
-			if _, ok := r.bundle.Items[string(*def.Consumes)]; !ok {
-				problems = append(problems, fmt.Errorf("%s.consumes: unknown item %q", path, *def.Consumes))
-			}
-		}
-		if def.Condition == "" {
-			continue
-		}
-		program, err := expr.Compile(def.Condition, expr.Env(TypeEnv{}), expr.AsBool())
-		if err != nil {
-			problems = append(problems, fmt.Errorf("%s.condition: %w", path, err))
-			continue
-		}
-		r.types[api.ContentID(key)] = program
+		problems = append(problems, r.compileMods(path, api.ContentID(key), def.Mods)...)
 	}
 	for _, key := range sortedKeys(r.bundle.Items) {
 		def := r.bundle.Items[key]
 		path := fmt.Sprintf("items[%q]", key)
 		text(path+".name", def.Name)
 		if def.Part != nil {
-			if def.Kind != "piece" {
-				problems = append(
-					problems,
-					fmt.Errorf("%s.part: only a piece becomes a part, not a %s", path, def.Kind),
-				)
-			}
 			if _, ok := r.bundle.Parts[string(*def.Part)]; !ok {
 				problems = append(problems, fmt.Errorf("%s.part: unknown part %q", path, *def.Part))
 			}
 		}
-		if !slices.Contains(ItemKinds, def.Kind) {
-			problems = append(
-				problems,
-				fmt.Errorf("%s.kind: unknown kind %q (want one of %v)", path, def.Kind, ItemKinds),
-			)
-		}
+		problems = append(problems, r.compileMods(path, api.ContentID(key), def.Mods)...)
 	}
 	for _, key := range sortedKeys(r.bundle.Statuses) {
 		text(fmt.Sprintf("statuses[%q].name", key), r.bundle.Statuses[key].Name)
@@ -173,4 +111,107 @@ func (r *Registry) checkTypes() []error {
 		}
 	}
 	return problems
+}
+
+// compiledMods holds a record's mod formulas, compiled against ActionEnv. Nil means none.
+type compiledMods struct {
+	requires, windup, recovery *vm.Program
+}
+
+// compileMods compiles the formulas of a record's mods and checks its refusal text.
+func (r *Registry) compileMods(path string, id api.ContentID, mods Mods) []error {
+	var problems []error
+	compile := func(field, src string, option expr.Option) *vm.Program {
+		if src == "" {
+			return nil
+		}
+		program, err := r.Compile(src, ActionEnv{}, option)
+		if err != nil {
+			problems = append(problems, fmt.Errorf("%s.%s: %w", path, field, err))
+		}
+		return program
+	}
+	compiled := compiledMods{
+		requires: compile("requires", mods.Requires, expr.AsBool()),
+		windup:   compile("windup", mods.Windup, expr.AsInt64()),
+		recovery: compile("recovery", mods.Recovery, expr.AsInt64()),
+	}
+	if mods.Refusal != "" {
+		if _, ok := r.bundle.Text[string(mods.Refusal)]; !ok {
+			problems = append(problems, fmt.Errorf("%s.refusal: text reference %q does not exist", path, mods.Refusal))
+		}
+	}
+	r.mods[id] = compiled
+	return problems
+}
+
+// refusalText is the reason a mod refuses an action when it names none.
+var refusalText api.ContentID = "text.actions.requires"
+
+// Mods returns what the type or item changes about an action it is chosen for.
+func (r *Registry) Mods(id api.ContentID) (Mods, bool) {
+	if def, ok := r.bundle.Types[string(id)]; ok {
+		return def.Mods, true
+	}
+	if def, ok := r.bundle.Items[string(id)]; ok {
+		return def.Mods, true
+	}
+	return Mods{}, false
+}
+
+func (r *Registry) runMod(id api.ContentID, name string, program *vm.Program, env ActionEnv) (any, error) {
+	out, err := expr.Run(program, env)
+	if err != nil {
+		return nil, fmt.Errorf("content: %q mods %s: %w", id, name, err)
+	}
+	return out, nil
+}
+
+// ModsRequires evaluates the record's requires formula. When it is false, refusal is the text ID of
+// the reason. A record with no formula always passes.
+func (r *Registry) ModsRequires(id api.ContentID, env ActionEnv) (ok bool, refusal api.ContentID, err error) {
+	program := r.mods[id].requires
+	if program == nil {
+		return true, "", nil
+	}
+	out, err := r.runMod(id, "requires", program, env)
+	if err != nil {
+		return false, "", err
+	}
+	holds, isBool := out.(bool)
+	if !isBool {
+		return false, "", fmt.Errorf("content: %q mods requires returned %T, not a boolean", id, out)
+	}
+	if holds {
+		return true, "", nil
+	}
+	mods, _ := r.Mods(id)
+	if mods.Refusal == "" {
+		return false, refusalText, nil
+	}
+	return false, mods.Refusal, nil
+}
+
+// ModsTicks evaluates the ticks the record adds to an action's wind-up and recovery.
+func (r *Registry) ModsTicks(id api.ContentID, env ActionEnv) (windup, recovery int64, err error) {
+	compiled := r.mods[id]
+	for _, field := range []struct {
+		name    string
+		program *vm.Program
+		into    *int64
+	}{{"windup", compiled.windup, &windup}, {"recovery", compiled.recovery, &recovery}} {
+		if field.program == nil {
+			continue
+		}
+		out, err := r.runMod(id, field.name, field.program, env)
+		if err != nil {
+			return 0, 0, err
+		}
+		ticks, ok := out.(int64)
+		if !ok {
+			return 0, 0, fmt.Errorf("content: %q mods %s returned %T, not an integer", id, field.name, out)
+		}
+		*field.into = ticks
+	}
+	return windup, recovery, nil
 }

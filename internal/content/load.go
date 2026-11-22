@@ -94,10 +94,15 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		moveCosts: map[api.ContentID]*vm.Program{},
 		templates: map[api.ContentID]*template.Template{},
 		actions:   map[api.ContentID]compiledAction{},
-		types:     map[api.ContentID]*vm.Program{},
+		offers:    map[string]*vm.Program{},
+		mods:      map[api.ContentID]compiledMods{},
+		rulesUsed: map[string]bool{},
 	}
 	var problems []error
 	problems = append(problems, registry.checkIDs()...)
+	registry.buildRecords()
+	problems = append(problems, registry.checkRules()...)
+	problems = append(problems, registry.checkVocabulary()...)
 	problems = append(problems, registry.compileText()...)
 	problems = append(problems, registry.checkTextRefs()...)
 	problems = append(problems, registry.checkKnowledge()...)
@@ -106,6 +111,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkBodies()...)
 	problems = append(problems, registry.checkActions()...)
 	problems = append(problems, registry.checkTypes()...)
+	problems = append(problems, registry.checkChoices()...)
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkTriggers()...)
 	problems = append(problems, registry.checkParty()...)
@@ -116,6 +122,8 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	if err := errors.Join(problems...); err != nil {
 		return nil, fmt.Errorf("content: invalid: %w", err)
 	}
+	registry.warnUnusedRules()
+	registry.rulesUsed = nil
 	encoded, err := json.Marshal(bundle)
 	if err != nil {
 		return nil, fmt.Errorf("content: hash: %w", err)
@@ -262,9 +270,8 @@ func (r *Registry) checkBodies() []error {
 			problems = append(problems, fmt.Errorf("%s.integrity: must be at least 1, got %d", path, part.Integrity))
 		}
 		for i, grant := range part.Grants {
-			if !slices.Contains(GrantKinds, grant.Kind) {
-				problems = append(problems, fmt.Errorf(
-					"%s.grants[%d].kind: unknown kind %q (want one of %v)", path, i, grant.Kind, GrantKinds))
+			if grant.Kind == "" {
+				problems = append(problems, fmt.Errorf("%s.grants[%d].kind: required", path, i))
 			}
 		}
 	}
@@ -369,7 +376,7 @@ func (r *Registry) compileFormulas() []error {
 			}
 			continue
 		}
-		program, err := expr.Compile(terrain.MoveCost, expr.Env(MoveEnv{}), expr.AsInt64())
+		program, err := r.Compile(terrain.MoveCost, MoveEnv{}, expr.AsInt64())
 		if err != nil {
 			problems = append(problems, fmt.Errorf("%s: %w", path, err))
 			continue
@@ -392,11 +399,17 @@ func (r *Registry) compileTimeline() []error {
 	if cfg.WindowTicks < 1 {
 		problems = append(problems, fmt.Errorf("timeline.window_ticks: must be at least 1, got %d", cfg.WindowTicks))
 	}
-	program, err := expr.Compile(cfg.StepTicks, expr.Env(SpeedEnv{}), expr.AsInt64())
+	program, err := r.Compile(cfg.StepTicks, SpeedEnv{}, expr.AsInt64())
 	if err != nil {
-		return append(problems, fmt.Errorf("timeline.step_ticks: %w", err))
+		problems = append(problems, fmt.Errorf("timeline.step_ticks: %w", err))
+	} else {
+		r.stepTicks = program
 	}
-	r.stepTicks = program
+	if speed, err := r.Compile(cfg.Speed, GrantEnv{}, expr.AsInt64()); err != nil {
+		problems = append(problems, fmt.Errorf("timeline.speed: %w", err))
+	} else {
+		r.speed = speed
+	}
 	return problems
 }
 
@@ -444,8 +457,15 @@ func (r *Registry) checkParty() []error {
 			problems = append(problems, fmt.Errorf("party.%s: must not be negative, got %d", name, value))
 		}
 	}
+	follow, ok := r.bundle.Actions[string(cfg.FollowAction)]
+	switch {
+	case !ok:
+		problems = append(problems, fmt.Errorf("party.follow_action: unknown action %q", cfg.FollowAction))
+	case follow.Target != TargetDirection:
+		problems = append(problems, fmt.Errorf("party.follow_action: %q must target a direction", cfg.FollowAction))
+	}
 	if cfg.ClimbCost != "" {
-		program, err := expr.Compile(cfg.ClimbCost, expr.Env(SpeedEnv{}), expr.AsInt64())
+		program, err := r.Compile(cfg.ClimbCost, SpeedEnv{}, expr.AsInt64())
 		if err != nil {
 			return append(problems, fmt.Errorf("party.climb_cost: %w", err))
 		}

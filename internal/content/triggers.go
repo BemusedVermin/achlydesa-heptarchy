@@ -82,7 +82,7 @@ func (r *Registry) checkTriggers() []error {
 			)
 		}
 		if trigger.If != "" {
-			if _, err := expr.Compile(trigger.If, expr.Env(EffectEnv{}), expr.AsBool()); err != nil {
+			if _, err := r.Compile(trigger.If, EffectEnv{}, expr.AsBool()); err != nil {
 				problems = append(problems, fmt.Errorf("%s.if: %w", site.Path, err))
 			}
 		}

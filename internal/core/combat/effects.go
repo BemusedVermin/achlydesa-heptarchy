@@ -3,12 +3,12 @@ package combat
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
@@ -20,11 +20,9 @@ import (
 
 // Text IDs of the reasons and cancelations this package gives.
 const (
-	severedReason     api.ContentID = "text.combat.severed"
-	packShortReason   api.ContentID = "text.combat.pack_short"
-	nothingToAttach   api.ContentID = "text.combat.no_severed_part"
-	defaultRevealFrom api.ContentID = "source.sweep"
-	materialClaim     api.ContentID = "claim.material"
+	severedReason   api.ContentID = "text.combat.severed"
+	packShortReason api.ContentID = "text.combat.pack_short"
+	nothingToAttach api.ContentID = "text.combat.no_severed_part"
 )
 
 // expireSystem is the name of the per-turn system that removes expired statuses.
@@ -68,9 +66,12 @@ func primitives() []effects.Primitive {
 		},
 		{Name: "raise_max_integrity", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyRaiseMaxIntegrity},
 		{
-			Name: "reveal", Params: []string{"claim"}, Optional: []string{"source"},
-			Kinds:  map[string]effects.Kind{"claim": effects.KindText, "source": effects.KindText},
-			Verify: verifyReveal, Apply: applyReveal,
+			Name: "reveal", Params: []string{"claim", "value", "source"}, Optional: []string{"parts"},
+			Kinds: map[string]effects.Kind{
+				"claim": effects.KindText, "value": effects.KindText, "source": effects.KindText,
+				"parts": effects.KindChannels,
+			},
+			VerifyContent: verifyRevealContent, Apply: applyReveal,
 		},
 		{
 			Name: "consume", Params: []string{"item"}, Kinds: map[string]effects.Kind{"item": effects.KindText},
@@ -124,16 +125,6 @@ func applyDamage(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
-	amount, err := p.Int("amount")
-	if err != nil {
-		return err
-	}
-	if amount < 0 {
-		return fmt.Errorf("amount must not be negative, got %d", amount)
-	}
-	if amount == 0 {
-		return nil
-	}
 	w := ctx.World
 	parts := ecs.NewMap[comp.Part](w.ECS)
 	for _, c := range channels {
@@ -141,12 +132,22 @@ func applyDamage(ctx *effects.Context, p effects.Params) error {
 		if body.IsZero() || !parts.Has(c.Entity) || parts.Get(c.Entity).Integrity <= 0 {
 			continue
 		}
+		amount, err := p.For(c).Int("amount")
+		if err != nil {
+			return err
+		}
+		if amount < 0 {
+			return fmt.Errorf("amount must not be negative, got %d", amount)
+		}
+		if amount == 0 {
+			continue
+		}
 		part := parts.Get(c.Entity)
 		lost := min(amount, part.Integrity)
 		part.Integrity -= lost
 		w.Bus.Publish(api.PartDamaged{
 			Body: w.UIDOf(body), Part: w.UIDOf(c.Entity), Amount: lost, Integrity: part.Integrity,
-			Type: api.ContentID(ctx.Choices["type"]), Source: w.UIDOf(ctx.Source), Tick: w.Now,
+			Chosen: maps.Clone(ctx.Choices), Source: w.UIDOf(ctx.Source), Tick: w.Now,
 		})
 		if part.Integrity == 0 {
 			sever(w, ctx.Source, c.Entity, api.SeveredWorn)
@@ -162,41 +163,43 @@ func applyRaiseMaxIntegrity(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
-	amount, err := p.Int("amount")
-	if err != nil {
-		return err
-	}
-	if amount < 0 {
-		return fmt.Errorf("amount must not be negative, got %d", amount)
-	}
 	parts := ecs.NewMap[comp.Part](ctx.World.ECS)
 	for _, c := range channels {
-		if ctx.World.ECS.Alive(c.Entity) && parts.Has(c.Entity) {
-			parts.Get(c.Entity).MaxIntegrity += amount
+		if !ctx.World.ECS.Alive(c.Entity) || !parts.Has(c.Entity) {
+			continue
 		}
+		amount, err := p.For(c).Int("amount")
+		if err != nil {
+			return err
+		}
+		if amount < 0 {
+			return fmt.Errorf("amount must not be negative, got %d", amount)
+		}
+		parts.Get(c.Entity).MaxIntegrity += amount
 	}
 	return nil
 }
 
 func applySever(ctx *effects.Context, p effects.Params) error {
-	if p.Has("when") {
-		holds, err := p.Bool("when")
-		if err != nil {
-			return err
-		}
-		if !holds {
-			return nil
-		}
-	}
 	channels, err := p.Channels("parts")
 	if err != nil {
 		return err
 	}
 	parts := ecs.NewMap[comp.Part](ctx.World.ECS)
 	for _, c := range channels {
-		if parts.Has(c.Entity) {
-			sever(ctx.World, ctx.Source, c.Entity, api.SeveredCut)
+		if !parts.Has(c.Entity) {
+			continue
 		}
+		if p.Has("when") {
+			holds, err := p.For(c).Bool("when")
+			if err != nil {
+				return err
+			}
+			if !holds {
+				continue
+			}
+		}
+		sever(ctx.World, ctx.Source, c.Entity, api.SeveredCut)
 	}
 	return nil
 }
@@ -216,7 +219,7 @@ func applyAddStatus(ctx *effects.Context, p effects.Params) error {
 	}
 	w := ctx.World
 	if _, ok := w.Content.Status(api.ContentID(status)); !ok {
-		return fmt.Errorf("unknown status %q", status)
+		return fmt.Errorf(`parameter "status": unknown status %q`, status)
 	}
 	if ticks < 1 {
 		return fmt.Errorf("ticks must be at least 1, got %d", ticks)
@@ -281,6 +284,9 @@ func expireStatuses(w *sim.World) error {
 
 func verifyAttach(raw map[string]string) error {
 	_, hasItem := raw["item"]
+	if effects.IsFormula(raw["from"]) {
+		return nil
+	}
 	switch raw["from"] {
 	case api.AttachedFromPack:
 		if !hasItem {
@@ -294,18 +300,6 @@ func verifyAttach(raw map[string]string) error {
 		return fmt.Errorf("from must be %q or %q, got %q", api.AttachedFromPack, api.AttachedFromSevered, raw["from"])
 	}
 	return nil
-}
-
-// holderOf is who keeps the source's pack: its party when it is a member, otherwise itself.
-func holderOf(w *sim.World, source ecs.Entity) ecs.Entity {
-	if source.IsZero() || !w.ECS.Alive(source) {
-		return ecs.Entity{}
-	}
-	members := ecs.NewMap[comp.MemberOf](w.ECS)
-	if members.Has(source) {
-		return members.GetRelation(source)
-	}
-	return source
 }
 
 // severedNear is the severed part with the lowest UID lying where the body stands, or zero.
@@ -397,7 +391,7 @@ func takePiece(ctx *effects.Context, item api.ContentID) (ecs.Entity, error) {
 	if !ok {
 		return ecs.Entity{}, fmt.Errorf("item %q becomes unknown part %q", item, *def.Part)
 	}
-	if !inventory.Take(w, holderOf(w, ctx.Source), item, 0, 1) {
+	if !inventory.Take(w, inventory.HolderOf(w, ctx.Source), item, 0, 1) {
 		return ecs.Entity{}, fmt.Errorf("the pack has no %q", item)
 	}
 	part := w.NewIdentified(*def.Part)
@@ -409,16 +403,23 @@ func takePiece(ctx *effects.Context, item api.ContentID) (ecs.Entity, error) {
 	return part, nil
 }
 
-func verifyReveal(raw map[string]string) error {
-	if raw["claim"] != string(materialClaim) {
-		return fmt.Errorf("can only reveal %q, got %q", materialClaim, raw["claim"])
+func verifyRevealContent(reg *content.Registry, raw map[string]string) error {
+	if claim, ok := raw["claim"]; ok {
+		if _, found := reg.Claim(api.ContentID(claim)); !found {
+			return fmt.Errorf("unknown claim %q", claim)
+		}
+	}
+	if source, ok := raw["source"]; ok {
+		if _, found := reg.Source(api.ContentID(source)); !found {
+			return fmt.Errorf("unknown source %q", source)
+		}
 	}
 	return nil
 }
 
 func applyReveal(ctx *effects.Context, p effects.Params) error {
 	w := ctx.World
-	knower := holderOf(w, ctx.Source)
+	knower := inventory.HolderOf(w, ctx.Source)
 	if knower.IsZero() || !w.ECS.Alive(ctx.Target) {
 		return nil
 	}
@@ -426,16 +427,39 @@ func applyReveal(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
-	source := string(defaultRevealFrom)
-	if p.Has("source") {
-		if source, err = p.String("source"); err != nil {
-			return err
+	source, err := p.String("source")
+	if err != nil {
+		return err
+	}
+	if _, ok := w.Content.Claim(api.ContentID(claim)); !ok {
+		return fmt.Errorf(`parameter "claim": unknown claim %q`, claim)
+	}
+	if _, ok := w.Content.Source(api.ContentID(source)); !ok {
+		return fmt.Errorf(`parameter "source": unknown source %q`, source)
+	}
+	var channels []timeline.Channel
+	if p.Has("parts") {
+		channels, err = p.Channels("parts")
+	} else {
+		var all effects.ChannelSelector
+		if all, err = effects.ParseChannels("target:all"); err == nil {
+			channels, err = all.Resolve(ctx)
 		}
 	}
+	if err != nil {
+		return err
+	}
 	parts := ecs.NewMap[comp.Part](w.ECS)
-	for _, part := range anatomy.Parts(w, ctx.Target) {
+	for _, c := range channels {
+		if !parts.Has(c.Entity) {
+			continue
+		}
+		value, err := p.For(c).String("value")
+		if err != nil {
+			return err
+		}
 		knowledge.Learn(w, knower, api.Fact{
-			Subject: w.UIDOf(part), Claim: api.ContentID(claim), Value: string(parts.Get(part).Material),
+			Subject: w.UIDOf(c.Entity), Claim: api.ContentID(claim), Value: value,
 			Source: api.ContentID(source), Confidence: 1,
 		})
 	}
@@ -453,7 +477,7 @@ func boundTo(ctx *effects.Context, item api.ContentID) api.UID {
 // packHas says whether the source's pack holds the item, and gives the reason when it does not.
 func packHas(ctx *effects.Context, item api.ContentID) (bool, api.Text) {
 	w := ctx.World
-	if inventory.Count(w, holderOf(w, ctx.Source), item, boundTo(ctx, item)) > 0 {
+	if inventory.Count(w, inventory.HolderOf(w, ctx.Source), item, boundTo(ctx, item)) > 0 {
 		return true, api.Text{}
 	}
 	args := map[string]string{"item": string(item)}
@@ -475,9 +499,9 @@ func applyConsume(ctx *effects.Context, p effects.Params) error {
 	}
 	id := api.ContentID(item)
 	if _, ok := ctx.World.Content.Item(id); !ok {
-		return fmt.Errorf("unknown item %q", item)
+		return fmt.Errorf(`parameter "item": unknown item %q`, item)
 	}
-	inventory.Take(ctx.World, holderOf(ctx.World, ctx.Source), id, boundTo(ctx, id), 1)
+	inventory.Take(ctx.World, inventory.HolderOf(ctx.World, ctx.Source), id, boundTo(ctx, id), 1)
 	return nil
 }
 
@@ -492,7 +516,7 @@ func applySpawnFromPart(ctx *effects.Context, p effects.Params) error {
 	}
 	w := ctx.World
 	if _, ok := w.Content.Faction(api.ContentID(faction)); !ok {
-		return fmt.Errorf("unknown faction %q", faction)
+		return fmt.Errorf(`parameter "faction": unknown faction %q`, faction)
 	}
 	part := severedPart(ctx)
 	if part.IsZero() {
@@ -527,6 +551,9 @@ func severedPart(ctx *effects.Context) ecs.Entity {
 }
 
 func verifyAddStatusContent(reg *content.Registry, raw map[string]string) error {
+	if _, ok := raw["status"]; !ok {
+		return nil
+	}
 	if _, ok := reg.Status(api.ContentID(raw["status"])); !ok {
 		return fmt.Errorf("unknown status %q", raw["status"])
 	}
@@ -549,6 +576,9 @@ func verifyAttachContent(reg *content.Registry, raw map[string]string) error {
 }
 
 func verifyConsumeContent(reg *content.Registry, raw map[string]string) error {
+	if _, ok := raw["item"]; !ok {
+		return nil
+	}
 	if _, ok := reg.Item(api.ContentID(raw["item"])); !ok {
 		return fmt.Errorf("unknown item %q", raw["item"])
 	}
@@ -556,6 +586,9 @@ func verifyConsumeContent(reg *content.Registry, raw map[string]string) error {
 }
 
 func verifySpawnContent(reg *content.Registry, raw map[string]string) error {
+	if _, ok := raw["faction"]; !ok {
+		return nil
+	}
 	if _, ok := reg.Faction(api.ContentID(raw["faction"])); !ok {
 		return fmt.Errorf("unknown faction %q", raw["faction"])
 	}

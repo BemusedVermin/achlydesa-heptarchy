@@ -2,8 +2,8 @@ package api
 
 import "strconv"
 
-// Event kinds of exploring. Stepping has no command of its own: it is the content action
-// "action.step", started with [Do].
+// Event kinds of exploring. Stepping has no command of its own: it is a content action, started
+// with [Do].
 const (
 	MovedKind          = "explore.moved"
 	FellKind           = "explore.fell"

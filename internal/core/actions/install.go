@@ -72,16 +72,26 @@ func Install(w *sim.World) error {
 	return nil
 }
 
-// ValidateContent checks what the loader cannot know: that every choice an action asks for has a
-// provider. It reports every problem. game.New calls it after the packages are installed.
+// ValidateContent checks what the loader cannot know: that every choice an action asks for is served,
+// by a Go provider or a content choice, and that no content choice shadows a provider. It reports
+// every problem. game.New calls it after the packages are installed.
 func ValidateContent(w *sim.World) error {
 	st := stateOf(w)
 	var problems []error
+	for _, name := range w.Content.ChoiceNames() {
+		if _, ok := st.providers[name]; ok {
+			problems = append(problems, fmt.Errorf("choices[%q]: shadows the choice provider of the same name", name))
+		}
+	}
 	for _, id := range w.Content.ActionIDs() {
 		def, _ := w.Content.Action(id)
 		for i, name := range def.Choices {
-			if _, ok := st.providers[name]; !ok {
-				problems = append(problems, fmt.Errorf("actions[%q].choices[%d]: no choice provider %q", id, i, name))
+			_, provided := st.providers[name]
+			if _, served := w.Content.Choice(name); !provided && !served {
+				problems = append(
+					problems,
+					fmt.Errorf("actions[%q].choices[%d]: nothing serves choice %q", id, i, name),
+				)
 			}
 		}
 	}

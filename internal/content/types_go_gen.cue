@@ -36,16 +36,63 @@ import (
 
 	// Statuses are the conditions a body can be under for a while ("status." IDs).
 	statuses: {[string]: #Status} @go(Statuses,map[string]Status)
+
+	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
+	rules?: {[string]: string} @go(Rules,map[string]string)
+
+	// Choices are the choices actions may ask for, served from a collection of records.
+	choices?: {[string]: #ChoiceDef} @go(Choices,map[string]ChoiceDef)
+
+	// Vocabulary closes the sets of tags, grant kinds and list values content may use.
+	vocabulary?: #Vocabulary @go(Vocabulary)
+}
+
+// Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
+// formulas do.
+#Data: {
+	tags?: [...string] @go(Tags,[]string)
+	props?: {[string]: float64} @go(Props,map[string]float64)
+	lists?: {[string]: [...string]} @go(Lists,map[string][]string)
+}
+
+// Vocabulary lets content declare which tags, grant kinds and list values are allowed.
+#Vocabulary: {
+	// Tags maps a collection ("items", "types", ...) to the tags its records may carry.
+	tags?: {[string]: [...string]} @go(Tags,map[string][]string)
+
+	// Grants lists the grant kinds parts may give. Empty allows any.
+	grants?: [...string] @go(Grants,[]string)
+
+	// Lists maps "<collection>.<key>" to the collection its values must name: "materials.<list>": "types".
+	lists?: {[string]: string} @go(Lists,map[string]string)
+}
+
+// ChoiceDef is a choice an action can ask for, served from a collection of records.
+#ChoiceDef: {
+	from:   string @go(From)
+	offer?: string @go(Offer)
+}
+
+// Mods are what a record changes about an action it's chosen for: a type loaded into a form, a
+// piece held for a graft. Formulas are Expr over ActionEnv.
+#Mods: {
+	requires?: string         @go(Requires)
+	refusal?:  api.#ContentID @go(Refusal)
+	windup?:   string         @go(Windup)
+	recovery?: string         @go(Recovery)
+	on_start?: [...#EffectRef] @go(OnStart,[]EffectRef)
+	on_land?: [...#EffectRef] @go(OnLand,[]EffectRef)
 }
 
 // Status is a condition a body is under until a tick, such as Stand's braced stance. Code knows
 // nothing of any one status: formulas read the ones a body has through the statuses variable.
 #Status: {
+	#Data
 	name: api.#ContentID @go(Name)
 	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
 }
 
-// Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
+// Claim is a kind of fact a knower can hold, such as a material claim. Each claim needs the text
 // "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
 #Claim: {
 	name: api.#ContentID @go(Name)
@@ -58,38 +105,36 @@ import (
 #ValueMaterial: "material"
 #ValueText:     "text"
 
-// Source is where a fact came from, such as "source.sweep".
+// Source is where a fact came from, such as a sweep.
 #Source: {
 	name: api.#ContentID @go(Name)
 }
 
 // Material is a substance things are made of.
 #Material: {
+	#Data
 	name: api.#ContentID @go(Name)
-	weak_to: [...api.#ContentID] @go(WeakTo,[]api.ContentID)
-	immune_to: [...api.#ContentID] @go(ImmuneTo,[]api.ContentID)
-	tags: [...string] @go(Tags,[]string)
 
 	// Triggers run for parts made of the material.
 	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
 }
 
 // DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
-// only that it may need an item and may have a condition.
+// what it needs and what it does are its data and mods.
 #DamageType: {
-	name:       api.#ContentID        @go(Name)
-	innate:     bool                  @go(Innate)
-	consumes?:  null | api.#ContentID @go(Consumes,*api.ContentID)
-	condition?: string                @go(Condition)
+	#Data
+	#Mods
+	name: api.#ContentID @go(Name)
 }
 
 // Item is something the pack carries.
 #Item: {
+	#Data
+	#Mods
 	name:  api.#ContentID @go(Name)
-	kind:  string         @go(Kind)
 	bound: bool           @go(Bound)
 
-	// Part is the part template ("part." ID) a piece becomes when grafted on; only a piece has one.
+	// Part is the part template ("part." ID) an item becomes when grafted on; only such an item has one.
 	part?: null | api.#ContentID @go(Part,*api.ContentID)
 
 	// Triggers run for holders of the item.
@@ -98,6 +143,7 @@ import (
 
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
 #Faction: {
+	#Data
 	name: api.#ContentID @go(Name)
 	hostile_to: [...api.#ContentID] @go(HostileTo,[]api.ContentID)
 }
@@ -134,6 +180,7 @@ import (
 
 // Template is a bag of optional components. A nil field means "no such component".
 #Template: {
+	#Data
 	appearance?: null | comp.#Appearance @go(Appearance,*comp.Appearance)
 	party?:      null | #PartyDef        @go(Party,*PartyDef)
 	actor?:      null | #ActorDef        @go(Actor,*ActorDef)
@@ -201,6 +248,9 @@ import (
 	// IndividualOnAlert says whether an alert switches the party to individual control, and back
 	// when it ends. True to start.
 	individual_on_alert: bool @go(IndividualOnAlert)
+
+	// FollowAction is the action ("action." ID) a follower steps with; it targets a direction.
+	follow_action: api.#ContentID @go(FollowAction)
 }
 
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.
@@ -237,7 +287,10 @@ import (
 
 // TimelineConfig holds the numbers of the shared timeline.
 #TimelineConfig: {
-	step_ticks:    string @go(StepTicks)
+	step_ticks: string @go(StepTicks)
+
+	// Speed is an Expr over GrantEnv: a body's speed, from the grants of its functioning parts.
+	speed:         string @go(Speed)
 	default_speed: int    @go(DefaultSpeed)
 	window_ticks:  int64  @go(WindowTicks)
 }
@@ -285,12 +338,9 @@ import (
 	tags?: [...string] @go(Tags,[]string)
 }
 
-#GrantAction:    "action"
-#GrantTargeting: "targeting"
-#GrantSpeed:     "speed"
-
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.
 #PartTemplate: {
+	#Data
 	name:      api.#ContentID @go(Name)
 	slot:      string         @go(Slot)
 	material:  api.#ContentID @go(Material)

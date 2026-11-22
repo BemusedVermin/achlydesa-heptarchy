@@ -28,6 +28,10 @@ type opts struct {
 	arms    int             // the fighter's arms; defaults to 3
 	dummyQ  int             // where the dummy stands; defaults to 1, next to the fighter
 	hooks   bool            // register a "type" choice with a validator and a modifier
+	// contentChoices keeps the sample's "type" choice from content instead of a Go provider.
+	contentChoices bool
+	// install runs with the world before the game starts, to register primitives.
+	install func(w *sim.World) error
 	mutate  func(*content.Bundle)
 }
 
@@ -59,6 +63,10 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 	// The fixtures place bodies by hand, so they start with no maps and no start party; a body that
 	// is not on a map steps in place.
 	bundle.Maps, bundle.Start = nil, content.Start{}
+	// The fixture serves "type" from Go, so the sample's content choice of that name would shadow it.
+	if !o.contentChoices {
+		delete(bundle.Choices, "type")
+	}
 	known := o.actions
 	if known == nil {
 		known = []api.ContentID{
@@ -154,6 +162,14 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 		})
 		if err != nil {
 			return err
+		}
+		if o.install != nil {
+			if err := o.install(w); err != nil {
+				return err
+			}
+		}
+		if o.contentChoices {
+			return nil
 		}
 		err = actions.RegisterChoice(w, "type", func(*sim.World, ecs.Entity) []string {
 			return []string{"type.a", "type.b"}
@@ -571,7 +587,7 @@ func TestGameNewRejectsActionsContentCannotRun(t *testing.T) {
 				def.Choices = []string{"nothing"}
 				b.Actions["action.step"] = def
 			},
-			want: `no choice provider "nothing"`,
+			want: `nothing serves choice "nothing"`,
 		},
 	}
 	for _, tc := range tests {

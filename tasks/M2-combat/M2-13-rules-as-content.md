@@ -1,7 +1,7 @@
 ---
 id: M2-13
 title: "Rules as content: records, rules and choices in CUE"
-status: todo
+status: done
 milestone: M2
 kind: seam
 depends_on: [M2-05, M2-12]
@@ -244,22 +244,22 @@ A landing rebuilds the plan, so it runs the mods again to get its landing effect
 
 ## Acceptance criteria
 
-- [ ] Content is migrated with behavior unchanged: the existing tests pass with only fixture updates (`weak`, `immune` and `type` in test formulas become `rule.weak`, `rule.immune` and `chosen.type.id`).
-- [ ] Changing a fixture's `weak` rule to `chosen.type.id in target.material.lists.weak_to || "brittle" in target.part.tags` changes which parts a formula sees as weak, with no Go change.
-- [ ] A formula naming an unknown rule, and two rules that use each other, fail at load with errors naming the formula's path.
-- [ ] A rule that reads `roll`, used in a parameter of a primitive that has a Check, is rejected at load.
-- [ ] Hot reload: after `SwapContent` with a changed rule, a formula already evaluated before the swap computes the new result.
-- [ ] Missing data reads as empty: with no type chosen, `chosen.type.props.nope == 0` and `"x" in target.material.lists.nope` is false, with no error.
-- [ ] The `type` choice comes from `choices.cue`: a body whose party carries one lake water is offered Soak, and isn't once it's spent. Innate types are always offered. Values are in ID order.
-- [ ] Mods: a test type with `windup: "2"`, `recovery: "1"`, a `consume` on start and an effect on landing changes a test action's timing by exactly that, spends the item at the start, and applies its landing effect after the action's own. A false `requires` shows the option disabled, with the type's refusal text.
-- [ ] Text formulas: `consume(item: "= chosen.type.lists.consumes[0]")` spends lake water when Soak is chosen. A formula that names an unknown item fails when applied, with an error naming the parameter.
-- [ ] Per part: `damage(parts: "target:all", amount: "rule.weak ? 2 : 1")` with Soak on a body with one clay arm takes 2 from the clay arm and 1 from every other part.
-- [ ] `reveal` with `value: "= target.material.id"` teaches each part's own material, including a body plan's override (a clay arm on a flesh body).
-- [ ] Vocabulary: an item with an undeclared tag, a part with an undeclared grant kind, and a material whose `weak_to` names a non-type each fail at load. With nothing declared, all three load.
-- [ ] Changing `timeline.speed` changes a body's step ticks with no Go change.
-- [ ] A follower steps with whatever action `party.follow_action` names.
-- [ ] Outside `_test.go` files and generated schemas, nothing under `internal/` names `weak_to`, `immune_to`, `claim.material`, `source.sweep`, `action.step` or `Choices["type"]` (check with `grep -rn`).
-- [ ] `go tool task check` passes.
+- [x] Content is migrated with behavior unchanged: the existing tests pass with only fixture updates (`weak`, `immune` and `type` in test formulas become `rule.weak`, `rule.immune` and `chosen.type.id`).
+- [x] Changing a fixture's `weak` rule to `chosen.type.id in target.material.lists.weak_to || "brittle" in target.part.tags` changes which parts a formula sees as weak, with no Go change.
+- [x] A formula naming an unknown rule, and two rules that use each other, fail at load with errors naming the formula's path.
+- [x] A rule that reads `roll`, used in a parameter of a primitive that has a Check, is rejected at load.
+- [x] Hot reload: after `SwapContent` with a changed rule, a formula already evaluated before the swap computes the new result.
+- [x] Missing data reads as empty: with no type chosen, `chosen.type.props.nope == 0` and `"x" in target.material.lists.nope` is false, with no error.
+- [x] The `type` choice comes from `choices.cue`: a body whose party carries one lake water is offered Soak, and isn't once it's spent. Innate types are always offered. Values are in ID order.
+- [x] Mods: a test type with `windup: "2"`, `recovery: "1"`, a `consume` on start and an effect on landing changes a test action's timing by exactly that, spends the item at the start, and applies its landing effect after the action's own. A false `requires` shows the option disabled, with the type's refusal text.
+- [x] Text formulas: `consume(item: "= chosen.type.lists.consumes[0]")` spends lake water when Soak is chosen. A formula that names an unknown item fails when applied, with an error naming the parameter.
+- [x] Per part: `damage(parts: "target:all", amount: "rule.weak ? 2 : 1")` with Soak on a body with one clay arm takes 2 from the clay arm and 1 from every other part.
+- [x] `reveal` with `value: "= target.material.id"` teaches each part's own material, including a body plan's override (a clay arm on a flesh body).
+- [x] Vocabulary: an item with an undeclared tag, a part with an undeclared grant kind, and a material whose `weak_to` names a non-type each fail at load. With nothing declared, all three load.
+- [x] Changing `timeline.speed` changes a body's step ticks with no Go change.
+- [x] A follower steps with whatever action `party.follow_action` names.
+- [x] Outside `_test.go` files and generated schemas, nothing under `internal/` names `weak_to`, `immune_to`, `claim.material`, `source.sweep`, `action.step` or `Choices["type"]` (check with `grep -rn`).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -269,3 +269,26 @@ A landing rebuilds the plan, so it runs the mods again to get its landing effect
 - Exposing records to formulas other than the ones listed (move costs, step ticks): add them when content needs them.
 
 ## Notes
+
+Implemented as specified except where listed here.
+
+**Deviations**
+
+- `PartDamaged.Choices` is a method (the `api.Chosen` interface), so the field cannot share the name. The field is `Chosen map[string]string` with the JSON key `choices`.
+- `Data` and `Mods` are embedded with no JSON tag and decode correctly. `cue get go` writes an embedded struct as a field (`Data: #Data`), so `internal/tools/cuefix` now rewrites those lines into CUE embeddings after generating.
+- `Bundle.Rules`, `Choices` and `Vocabulary` are `omitempty`, so a bundle written for tests needs none of them. `#Consumable` in `types.cue` ends in `...` so a type can add its own fields.
+- `ReadsVariable(src, name)` on the registry gives the roll check the formula with its rules inlined; it replaces `usesRoll` in `effects`.
+- The effects cache is cleared when the registry's `Hash()` changes, rather than keyed by it: the same effect.
+- `VerifyContent` gets the literal parameters only (formula-valued text parameters are left out), so the content verifiers in `combat` now accept a missing value. `Verify` still sees every parameter; `verifyAttach` skips a formula `from`.
+- `anatomy.Grants(w, body, kind)` stays and now sums values for every kind; `anatomy.GrantTotals` gives all kinds for the speed formula.
+- `reveal` takes `claim`, `value` and `source` (all required) and optional `parts`; unknown claim or source fails when applied, naming the parameter, and at load for literals.
+- Errors for an unknown item, status, faction, claim or source from a text formula name the parameter, e.g. `parameter "item": unknown item ...`.
+- The CUE overlap constraint for weak/immune (`_overlap` in `materials.cue`) was checked by hand with an overlapping fixture; there is no Go test, since the temp-dir loader has no `cue.mod` (follow-up M2-13.F1).
+- The sample rules `weak` and `immune` are used by no formula in the sample content yet (M2-06 uses them), so `Registry.Warnings()` lists them as unused. Tests that counted warnings now count hostility warnings only.
+- `item.name` (bound, tagged `name`) and `text.item.name` were added for `type.name`'s requires, as specified.
+
+**Files touched outside the Deliverables list**: `internal/tools/cuefix/main.go`, `internal/core/explore/explore_test.go`'s fixtures (grant kind), test fixtures in `actions`, `combat`, `effects` and `inventory`, doc comments in `api/explore.go`, `api/knowledge.go`, and generated `*_go_gen.cue` files.
+
+**Tests added**: `content/rules_test.go`, `actions/content_choices_test.go`, `combat/rules_test.go`, `explore/rules_test.go`, `inventory/usable_test.go`.
+
+**Follow-ups filed**: M2-13.F1 (test CUE constraints against the real schema).

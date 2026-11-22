@@ -29,16 +29,58 @@ type Bundle struct {
 	Factions map[string]Faction    `json:"factions"`
 	// Statuses are the conditions a body can be under for a while ("status." IDs).
 	Statuses map[string]Status `json:"statuses"`
+	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
+	Rules map[string]string `json:"rules,omitempty"`
+	// Choices are the choices actions may ask for, served from a collection of records.
+	Choices map[string]ChoiceDef `json:"choices,omitempty"`
+	// Vocabulary closes the sets of tags, grant kinds and list values content may use.
+	Vocabulary Vocabulary `json:"vocabulary,omitempty"`
+}
+
+// Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
+// formulas do.
+type Data struct {
+	Tags  []string            `json:"tags,omitempty"`  // free words: "innate", "piece", "clay", ...
+	Props map[string]float64  `json:"props,omitempty"` // named numbers: "weight": 2
+	Lists map[string][]string `json:"lists,omitempty"` // named lists, usually of IDs: a list of weaknesses, say
+}
+
+// Vocabulary lets content declare which tags, grant kinds and list values are allowed.
+type Vocabulary struct {
+	// Tags maps a collection ("items", "types", ...) to the tags its records may carry.
+	Tags map[string][]string `json:"tags,omitempty"`
+	// Grants lists the grant kinds parts may give. Empty allows any.
+	Grants []string `json:"grants,omitempty"`
+	// Lists maps "<collection>.<key>" to the collection its values must name: "materials.<list>": "types".
+	Lists map[string]string `json:"lists,omitempty"`
+}
+
+// ChoiceDef is a choice an action can ask for, served from a collection of records.
+type ChoiceDef struct {
+	From  string `json:"from"`            // a collection: "types", "items", ...
+	Offer string `json:"offer,omitempty"` // Expr bool over OfferEnv; empty offers every record
+}
+
+// Mods are what a record changes about an action it's chosen for: a type loaded into a form, a
+// piece held for a graft. Formulas are Expr over ActionEnv.
+type Mods struct {
+	Requires string        `json:"requires,omitempty"` // false refuses the action, with Refusal as the reason
+	Refusal  api.ContentID `json:"refusal,omitempty"`  // a text ID; empty means text.actions.requires
+	Windup   string        `json:"windup,omitempty"`   // ticks added to the wind-up
+	Recovery string        `json:"recovery,omitempty"` // ticks added to the recovery
+	OnStart  []EffectRef   `json:"on_start,omitempty"`
+	OnLand   []EffectRef   `json:"on_land,omitempty"`
 }
 
 // Status is a condition a body is under until a tick, such as Stand's braced stance. Code knows
 // nothing of any one status: formulas read the ones a body has through the statuses variable.
 type Status struct {
+	Data
 	Name     api.ContentID `json:"name"`               // a text ID
 	Triggers []Trigger     `json:"triggers,omitempty"` // run for bodies carrying the status
 }
 
-// Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
+// Claim is a kind of fact a knower can hold, such as a material claim. Each claim needs the text
 // "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
 type Claim struct {
 	Name api.ContentID `json:"name"` // a text ID
@@ -56,46 +98,42 @@ const (
 // ValueKinds lists the non-empty value kinds a claim may name.
 var ValueKinds = []string{ValueMaterial, ValueText}
 
-// Source is where a fact came from, such as "source.sweep".
+// Source is where a fact came from, such as a sweep.
 type Source struct {
 	Name api.ContentID `json:"name"` // a text ID
 }
 
 // Material is a substance things are made of.
 type Material struct {
-	Name     api.ContentID   `json:"name"`      // a text ID
-	WeakTo   []api.ContentID `json:"weak_to"`   // type IDs
-	ImmuneTo []api.ContentID `json:"immune_to"` // type IDs
-	Tags     []string        `json:"tags"`      // e.g. "old_matter", "clay"
+	Data
+	Name api.ContentID `json:"name"` // a text ID
 	// Triggers run for parts made of the material.
 	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
 // DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
-// only that it may need an item and may have a condition.
+// what it needs and what it does are its data and mods.
 type DamageType struct {
-	Name      api.ContentID  `json:"name"`                // a text ID
-	Innate    bool           `json:"innate"`              // always available, needing no item
-	Consumes  *api.ContentID `json:"consumes,omitempty"`  // item ID used up per move
-	Condition string         `json:"condition,omitempty"` // Expr bool over TypeEnv; empty means always
+	Data
+	Mods
+	Name api.ContentID `json:"name"` // a text ID
 }
 
 // Item is something the pack carries.
 type Item struct {
+	Data
+	Mods
 	Name  api.ContentID `json:"name"`  // a text ID
-	Kind  string        `json:"kind"`  // one of ItemKinds
 	Bound bool          `json:"bound"` // tied to one person, e.g. a name or a keepsake
-	// Part is the part template ("part." ID) a piece becomes when grafted on; only a piece has one.
+	// Part is the part template ("part." ID) an item becomes when grafted on; only such an item has one.
 	Part *api.ContentID `json:"part,omitempty"`
 	// Triggers run for holders of the item.
 	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
-// ItemKinds lists the kinds an item may have.
-var ItemKinds = []string{"consumable", "piece", "keepsake", "name"}
-
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
 type Faction struct {
+	Data
 	Name      api.ContentID   `json:"name"`       // a text ID
 	HostileTo []api.ContentID `json:"hostile_to"` // faction IDs
 }
@@ -132,6 +170,7 @@ type Phase struct {
 
 // Template is a bag of optional components. A nil field means "no such component".
 type Template struct {
+	Data
 	Appearance *comp.Appearance `json:"appearance,omitempty"`
 	Party      *PartyDef        `json:"party,omitempty"`
 	Actor      *ActorDef        `json:"actor,omitempty"`
@@ -195,6 +234,8 @@ type PartyConfig struct {
 	// IndividualOnAlert says whether an alert switches the party to individual control, and back
 	// when it ends. True to start.
 	IndividualOnAlert bool `json:"individual_on_alert"`
+	// FollowAction is the action ("action." ID) a follower steps with; it targets a direction.
+	FollowAction api.ContentID `json:"follow_action"`
 }
 
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.
@@ -227,7 +268,9 @@ type Start struct {
 
 // TimelineConfig holds the numbers of the shared timeline.
 type TimelineConfig struct {
-	StepTicks    string `json:"step_ticks"`    // Expr with SpeedEnv: base ticks a step keeps its channels busy
+	StepTicks string `json:"step_ticks"` // Expr with SpeedEnv: base ticks a step keeps its channels busy
+	// Speed is an Expr over GrantEnv: a body's speed, from the grants of its functioning parts.
+	Speed        string `json:"speed"`
 	DefaultSpeed int    `json:"default_speed"` // for entities whose speed nothing else provides
 	WindowTicks  int64  `json:"window_ticks"`  // how far ahead the timeline view looks
 }
@@ -282,18 +325,9 @@ type ActionDef struct {
 	Tags     []string `json:"tags,omitempty"` // free tags for rules and content: "attack", "movement", ...
 }
 
-// Grant kinds a part may give its body.
-const (
-	GrantAction    = "action"    // the part can carry out actions, such as an arm
-	GrantTargeting = "targeting" // the part aims the body's attacks, such as a head
-	GrantSpeed     = "speed"     // the part adds Value to the body's speed, such as legs
-)
-
-// GrantKinds lists the grant kinds a part may name.
-var GrantKinds = []string{GrantAction, GrantTargeting, GrantSpeed}
-
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.
 type PartTemplate struct {
+	Data
 	Name      api.ContentID `json:"name"`     // a text ID
 	Slot      string        `json:"slot"`     // "head", "arm", "legs", ...: free text, for display and grafting
 	Material  api.ContentID `json:"material"` // a material ID

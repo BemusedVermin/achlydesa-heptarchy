@@ -20,8 +20,13 @@ type Registry struct {
 	climbCost *vm.Program                          // compiled party.climb_cost formula, nil when empty
 	templates map[api.ContentID]*template.Template // parsed text, by text ID
 	actions   map[api.ContentID]compiledAction     // compiled action formulas
-	types     map[api.ContentID]*vm.Program        // compiled type conditions; absent when a type has none
+	speed     *vm.Program                          // compiled timeline.speed formula
+	records   map[api.ContentID]Record             // the formula view of every record
+	offers    map[string]*vm.Program               // compiled choice offers; absent when a choice has none
+	mods      map[api.ContentID]compiledMods       // compiled mods of types and items
 	warnings  []string
+	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.
+	rulesUsed map[string]bool
 }
 
 // Hash is a hex SHA-256 of the whole bundle; equal content gives an equal hash.
@@ -141,6 +146,19 @@ func (r *Registry) StepTicks(env SpeedEnv) (int64, error) {
 		return 0, fmt.Errorf("content: timeline.step_ticks returned %T, not an integer", out)
 	}
 	return ticks, nil
+}
+
+// Speed is a body's speed, from the totals of its functioning parts' grants.
+func (r *Registry) Speed(env GrantEnv) (int, error) {
+	out, err := expr.Run(r.speed, env)
+	if err != nil {
+		return 0, fmt.Errorf("content: timeline.speed: %w", err)
+	}
+	speed, ok := out.(int64)
+	if !ok {
+		return 0, fmt.Errorf("content: timeline.speed returned %T, not an integer", out)
+	}
+	return int(speed), nil
 }
 
 // EffectSite is a place in content that holds effects, named by its path for error messages.
