@@ -131,7 +131,7 @@ achlydesa-heptarchy/
 │       └── gui/            # Ebitengine, later
 ├── content/
 │   └── data/               # templates, materials, forms, maps, text...
-├── docs/                   # game design and this technical design
+├── docs/                   # game design, this technical design, story system
 ├── tasks/                  # task specs for agents (start at tasks/README.md)
 ├── Taskfile.yml            # dev commands: go tool task check, run, schema...
 └── .golangci.yml           # depguard rules: core is pure, layers hold
@@ -290,6 +290,8 @@ Each step ends with something playable or measurable.
 5. **Procgen:** the generated deep around fixed towns, exports reseeding it, the pocket, the guarantees as property tests.
 6. **Emergence:** rumors, grudges and memory, dreams.
 7. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
+
+After the MVP: post-MVP milestones live under `tasks/post-mvp/`, each with its own design doc. The first is the story system (`docs/story.md`). Nothing in the MVP depends on them.
 
 Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks/INDEX.md` tracks their status.
 

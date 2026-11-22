@@ -20,7 +20,7 @@ The game takes place on the clay plain and in the deep beneath its crawlspaces, 
 
 ### Existing canon the game leans on
 
-- **The plain:** pastel peach clay, dundies, the salk (surface), crawlspaces linked by soops, ibben (freemen) and salken (slaves), the test at ten, the Osten, the thrukk, Reapers, standing at attention indoors, and the lunn.
+- **The plain:** pastel peach clay, dundies, the salk (surface), crawlspaces linked by soops, ibben (freemen) and salken (slaves), the test at ten, the Osten, the thrukk, Reapers, standing at attention indoors, the lunn, and the Skadders (who preach fewer births).
 - **Theology:** soul is divisible and passed down, never newly made. Suffering erodes it, death by hibblejaunt annihilates it, and a life without suffering earns the immortal body of yore. In this game the doctrine's truth stays ambiguous.
 - **Hibblejaunts:** sacred, synthetic animals from beyond the rift that fight each other constantly. Never fought by people.
 - **Pieces of Serilmen:** buried ancient technology, believed to be the parts of a dismembered god. A slave who finds one is elevated and must leave the fields.
@@ -47,6 +47,8 @@ The game takes place on the clay plain and in the deep beneath its crawlspaces, 
 | Early ascension | Looks like slow dying: fever, wasting, weeks of not quite going. |
 | Serilmen's truth | The pieces are the refugees who died holding the door shut behind the crossing. The defectors (Salumen) opened it. Reassembled, Serilmen can reach the direction nothing on the plain can travel. |
 | Graft will | Grafted pieces want to be reassembled. They sometimes act on their own and quietly shape the options offered. |
+| Fatherless children | A child with no father's household goes to the fields at birth. |
+| Reapers' standing | Reapers don't marry. When a Reaper stands in a room, what happens there is lawful. |
 
 ## World and towns
 
@@ -160,7 +162,7 @@ What falls out of it:
 
 - **Candidates leave a trail.** When a seat passes, the offer finds the most wounded person and draws them below. Noticing who slips out of town at night is investigation.
 - **Rumors travel and drift.** News moves only when people carry it, between towns and through the deep, and it distorts with each retelling. Drifted rumors are where many false positives come from.
-- **Quests come from unmet needs.** A resident who can't meet a need asks the party: find a missing son, bring water, carry a body to the thrukk. There is no authored quest list.
+- **Quests come from unmet needs.** A resident who can't meet a need asks the party: find a missing son, bring water, carry a body to the thrukk. There is no quest list. After the MVP, a request becomes a story like any other (see the Story tab).
 - **Towns can empty.** If water fails or monsters keep coming, people migrate to other towns, and a town can be abandoned.
 - **Traders cross the deep.** When a trader dies on the way, the next town runs short.
 - **Plot armor is allowed.** Authored characters can be flagged as protected in their data; everyone else can die, and the seat simulation adapts.
@@ -218,12 +220,12 @@ Neither protagonist can ever become a candidate.
 
 The salken's piece drags them across the salk to a crawlspace, and they enter through the lunn, the way the dead are carried in. The ibben assume they are dying and call the Reaper.
 
-He arrives to reap the salken. The piece turns hard toward his other patient, a woman due to be reaped tomorrow, and the salken says plainly that she isn't dying. If the player spares her, she goes into the deep that night. If the player reaps her, her husband starts wasting within days and goes down himself. Either way the duo follow, and the choice only changed who.
+He arrives to reap the salken. The piece turns hard toward his other patient, a woman due to be reaped tomorrow, and the salken says plainly that she isn't dying. Her husband has already promised to marry her sister once she's gone, and the sister is in the room. If the player spares her, she goes into the deep that night, and the husband declares her dead and marries the sister anyway. If the player reaps her, he marries the sister within the week, starts wasting within days and goes down himself. Either way the duo follow, and the choice only changed who.
 
 ### Act I: The first god
 
 1. The opening above, ending with the first descent into the deep.
-2. The fixed companions join, including one who loves a candidate, though nobody knows it yet.
+2. The fixed companions join, including one who lost the woman he loved at an Osten and is looking for her. Nobody knows yet that she's a candidate.
 3. A seat further along than anyone knew completes on schedule. A god walks out onto the salk and some crawlspaces start to worship it. It came from a seat the Reaper passed.
 
 ### Act II: The hunt
@@ -231,7 +233,7 @@ He arrives to reap the salken. The piece turns hard toward his other patient, a 
 1. The loop: read the piece, investigate, crawl, kill. Each kill sets a seat back, so it seems to work, and new candidates seem like fresh discoveries.
 2. Export days begin and the deep shifts overnight. Scraps of lore hint at a far side.
 3. The grafts start pulling, and the party grows stranger.
-4. Midpoint: the companion's beloved is a candidate. Killing the beloved passes the seat to the companion; sparing them leaves the companion a false positive.
+4. Midpoint: the companion's beloved, the bride taken at the Osten, is a candidate. Killing her passes the seat to the companion; sparing her leaves the companion a false positive.
 5. The reveal, in the oldest layer of the deep: seven peaks, seven seats. Every kill only handed a seat to someone new.
 
 ### Act III: The seven peaks
@@ -249,6 +251,10 @@ He arrives to reap the salken. The piece turns hard toward his other patient, a 
 - The protagonists did what every candidate did: reached for a power to fix the world while someone unseen pays.
 - The final lore implies Serilmen was always going to finish closing the door. The characters believe they chose; the player is left unsure.
 - Final image: the flock, violet with each other's blood, under an empty sky.
+
+### After the MVP
+
+How the story actually runs (scenes unlocked by world state, the director, casting, strain and threads), the draft story beats, and emergent stories are post-MVP. They live in the Story tab (`docs/story.md`).
 
 ## Candidates and seats
 
@@ -569,6 +575,7 @@ Decision: Go, with Bubble Tea for the MVP and Ebitengine later if tiles and spri
 - Every system implemented: seats, cast and seat passing, the piece, investigation, combat with all forms and primitives, grafts, the day clock, the flock and exports.
 - Minimal content: a handful of materials, forms and enemy templates, one crawlspace, one region of the deep, the two protagonists and one companion.
 - The test: read the piece, investigate, crawl, fight, kill, and watch the seat pass. If that loop is fun with one seat, seven will work.
+- Not in the MVP: the story system (scenes, casting, strain, threads, the director). It's post-MVP; see the Story tab (`docs/story.md`).
 
 ## Open questions and rejected ideas
 
@@ -585,6 +592,7 @@ The language choice and the clock's numbers block implementation; the rest is co
 - [ ] Story rework, starting with the opening.
 - [ ] Whether the slave doctrine's one-on-one challenge against a hibblejaunt appears in play.
 - [ ] Whether the interface itself is the Demiurge's: honest about what you can do, quietly shaped in what it offers.
+- [ ] The bond's ending: whether the piece steered it too, or it's the one thing the protagonists keep.
 
 * [ ] Party death: can a fixed party member die for good, or only be maimed?
 * [ ] Act I: is the "first god" the already-enshrined archon, or a second seat completing?
