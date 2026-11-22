@@ -75,7 +75,7 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 
 // Load reads a save into a game that carries on as if it had never stopped. cfg.Seed is ignored: the
 // save's seed is used. It builds the game the way New does but skips the start scenario, so
-// cfg.Extra must only install hooks and must not spawn entities. A save made with different content
+// cfg.Spawn is not run; cfg.Install is. A save made with different content
 // still loads; the warnings say so.
 func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 	snapshot, err := save.Read(r)
@@ -86,7 +86,7 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 		return nil, nil, fmt.Errorf("game: no content")
 	}
 	cfg.Seed = snapshot.Header.Seed
-	g, err := build(cfg, explore.LoadMaps)
+	g, err := build(cfg, explore.LoadMaps, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -99,7 +99,7 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 func (g *Game) restore(snapshot save.Snapshot) error {
 	w := g.world
 	if err := arkserde.Deserialize(snapshot.World, w.ECS, arkserde.Opts.SkipAllResources()); err != nil {
-		return fmt.Errorf("game: load: world (does Config.Extra spawn entities?): %w", err)
+		return fmt.Errorf("game: load: world (does Config.Install spawn entities?): %w", err)
 	}
 	if err := w.ReindexUIDs(); err != nil {
 		return fmt.Errorf("game: load: %w", err)
