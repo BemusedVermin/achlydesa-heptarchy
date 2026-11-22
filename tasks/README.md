@@ -47,12 +47,18 @@ The task file is the source of truth for status. `INDEX.md` mirrors it, so updat
 
 Take the lowest-numbered `todo` task whose `depends_on` are all `done`. Tasks in the same milestone with no dependency between them can run in parallel.
 
+`go run ./internal/tools/agentkit ready` lists the tasks that can start now. It reads the task files, not this index, and it also shows tasks that already have a `task/` branch, so two agents don't take the same one.
+
+## Running agents
+
+Claude Code is set up to run agents on tasks: `/do-task <ID>` takes one task to an open pull request, and `/run-tasks` runs several in parallel worktrees. Guardrails stop agents from committing to master, force-pushing, merging, throwing work away, or pushing before the check passes. How to use it, and what each guardrail does: [../.claude/README.md](../.claude/README.md).
+
 ## Definition of done
 
 - Every acceptance criterion is met and ticked in the task file.
 - `go tool task check` passes: formatting, `go vet`, tests, lint and content. Until M1-01 lands, run `go build ./...`, `go test ./...` and `golangci-lint run` by hand.
 - New packages have a `doc.go`; new exported identifiers have doc comments.
-- If the work changed a decision in `docs/go-technical-design.md`, the doc says so.
+- If the work changed a decision in `docs/go-technical-design.md`, a follow-up says what the doc should now say. Agents don't edit `docs/`: the owner keeps it in step with the design doc.
 - The Notes section lists assumptions, deviations, files touched outside the Deliverables, and follow-ups filed.
 
 ## Follow-ups
