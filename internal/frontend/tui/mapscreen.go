@@ -19,6 +19,8 @@ const sidePanelWidth = 34
 // panel on the right, then the status and help lines.
 type mapScreen struct {
 	selected int // offset of the selected timeline tick
+	// lastVertical is the step option the last w or s sent, or empty after any other key.
+	lastVertical string
 }
 
 func newMapScreen() *mapScreen { return &mapScreen{} }
@@ -39,6 +41,11 @@ func (s *mapScreen) Update(msg tea.Msg, app *App) (Screen, tea.Cmd) {
 }
 
 func (s *mapScreen) key(msg tea.KeyPressMsg, app *App) tea.Cmd {
+	up, down := key.Matches(msg, app.keys.up), key.Matches(msg, app.keys.down)
+	if up || down {
+		return s.vertical(app, up)
+	}
+	s.lastVertical = ""
 	switch {
 	case key.Matches(msg, app.keys.quit):
 		return tea.Quit
@@ -56,6 +63,26 @@ func (s *mapScreen) key(msg tea.KeyPressMsg, app *App) tea.Cmd {
 		}
 	}
 	return nil
+}
+
+// vertical zigzags the party up or down the screen, alternating two diagonals.
+func (s *mapScreen) vertical(app *App, up bool) tea.Cmd {
+	id, ok := VerticalOption(app.State, up, s.lastVertical)
+	if !ok {
+		return nil
+	}
+	enabled := false
+	for _, o := range app.State.Options {
+		if o.ID == id {
+			enabled = o.Enabled
+		}
+	}
+	cmd := app.Choose(id)
+	if enabled {
+		s.lastVertical = id
+	}
+	s.selectTick(app, s.selected)
+	return cmd
 }
 
 // selectTick moves the selection, keeping it inside the strip.
