@@ -21,6 +21,19 @@ import (
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
 	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
 	start: #Start @go(Start)
+	claims: {[string]: #Claim} @go(Claims,map[string]Claim)
+	sources: {[string]: #Source} @go(Sources,map[string]Source)
+}
+
+// Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
+// "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
+#Claim: {
+	name: api.#ContentID @go(Name)
+}
+
+// Source is where a fact came from, such as "source.sweep".
+#Source: {
+	name: api.#ContentID @go(Name)
 }
 
 // Material is a substance things are made of.
