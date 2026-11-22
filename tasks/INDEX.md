@@ -81,3 +81,4 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | M1 | M1-16 |
 | [M1-16.F2](followups/M1-16.F2-party-view-control.md) | Show the party's control mode and alert in the view | proposed | feature | M1 | M1-16 |
 | [M1-12.F1](followups/M1-12.F1-load-with-spawning-extra.md) | Let Load run a Config.Extra that spawns | proposed | debt | M1 | M1-12 |
+| [M1-11.F1](followups/M1-11.F1-wasd-alternating-diagonals.md) | WASD: up and down zigzag diagonally | proposed | feature | M1 | M1-11 |
