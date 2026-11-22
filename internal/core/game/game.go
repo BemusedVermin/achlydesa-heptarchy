@@ -21,9 +21,13 @@ import (
 type Config struct {
 	Seed    uint64
 	Content *content.Registry
-	// Extra, when set, runs after the standard packages are installed and before the scheduler
-	// freezes. Tests and the harness use it to add what a scenario needs, such as a spawned actor.
-	Extra func(w *sim.World, clk *clock.Clock) error
+	// Install, when set, runs after the standard packages are installed and before the scheduler
+	// freezes. Tests and the harness use it to register hooks. It runs in New and in Load, so it
+	// must not spawn entities.
+	Install func(w *sim.World, clk *clock.Clock) error
+	// Spawn, when set, runs after Install and adds the entities a scenario needs, such as a test
+	// actor. New runs it; Load skips it, because the save holds the entities.
+	Spawn func(w *sim.World, clk *clock.Clock) error
 }
 
 // Game is one running game. It is not safe for concurrent use.
@@ -44,7 +48,7 @@ func New(cfg Config) (*Game, error) {
 			return fmt.Errorf("game: start: %w", err)
 		}
 		return nil
-	})
+	}, cfg.Spawn)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +67,7 @@ func New(cfg Config) (*Game, error) {
 
 // build is the path New and Load share: an empty world with every package installed, the content
 // checked and the scheduler frozen. scenario fills the world with its first entities and maps.
-func build(cfg Config, scenario func(w *sim.World) error) (*Game, error) {
+func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World, *clock.Clock) error) (*Game, error) {
 	if cfg.Content == nil {
 		return nil, errors.New("game: no content")
 	}
@@ -78,9 +82,14 @@ func build(cfg Config, scenario func(w *sim.World) error) (*Game, error) {
 	if err := scenario(g.world); err != nil {
 		return nil, err
 	}
-	if cfg.Extra != nil {
-		if err := cfg.Extra(g.world, g.clock); err != nil {
-			return nil, fmt.Errorf("game: extra: %w", err)
+	if cfg.Install != nil {
+		if err := cfg.Install(g.world, g.clock); err != nil {
+			return nil, fmt.Errorf("game: install hook: %w", err)
+		}
+	}
+	if spawn != nil {
+		if err := spawn(g.world, g.clock); err != nil {
+			return nil, fmt.Errorf("game: spawn: %w", err)
 		}
 	}
 	if err := effects.ValidateContent(g.world); err != nil {

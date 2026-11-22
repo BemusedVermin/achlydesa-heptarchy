@@ -29,7 +29,7 @@ func config(t *testing.T, seed uint64) game.Config {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return game.Config{Seed: seed, Content: reg, Extra: func(w *sim.World, _ *clock.Clock) error {
+	return game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		_, err := w.Spawn("template.person.reaper", nil)
 		return err
 	}}

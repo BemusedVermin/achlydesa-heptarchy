@@ -108,8 +108,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 		t.Fatal(err)
 	}
 	fx := &fixture{t: t}
-	fx.cfg = game.Config{Seed: seed, Content: reg, Extra: func(w *sim.World, _ *clock.Clock) error {
-		fx.w = w
+	fx.cfg = game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		fx.arms = nil
 		at := func(q int) *comp.Pos { return &comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: q}}} }
 		var err error
@@ -127,6 +126,9 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 			ecs.NewMap[comp.Actor](w.ECS).Remove(arm) // a part is not on the timeline itself
 			fx.arms = append(fx.arms, arm)
 		}
+		return nil
+	}, Install: func(w *sim.World, _ *clock.Clock) error {
+		fx.w = w
 		timeline.SetVisible(w, func(*sim.World, ecs.Entity) bool { return true })
 		timeline.SetChannels(w, func(_ *sim.World, body ecs.Entity) []timeline.Channel {
 			channels := []timeline.Channel{{Entity: body, Tags: []string{"body"}}}

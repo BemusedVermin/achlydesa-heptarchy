@@ -45,7 +45,7 @@ func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle))
 		t.Fatal(err)
 	}
 	fx := &fixture{t: t}
-	fx.cfg = game.Config{Seed: 1, Content: reg, Extra: func(w *sim.World, _ *clock.Clock) error {
+	fx.cfg = game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
 		fx.w = w
 		return nil
 	}}
