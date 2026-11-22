@@ -1,12 +1,10 @@
-# Achlydesa: The Dreaming Heptarchy — Post-MVP
+# Achlydesa: The Dreaming Heptarchy — Story
 
-Work planned for after the MVP. Nothing in the MVP depends on anything here, and none of it starts until the MVP (milestones M1 to M7) is done. Its tasks live under `tasks/post-mvp/`.
-
-## Story
+**Post-MVP.** Nothing here is in the MVP, and nothing in the MVP depends on it. Its work is the post-MVP Story milestone, `tasks/post-mvp/story/`.
 
 The story system runs the main story, the characters' arcs and emergent stories on one set of scenes. The canon it serves (premise, protagonists, acts, ending) stays in the game design.
 
-### How the story runs
+## How the story runs
 
 The story is a set of scenes that world state unlocks, not a sequence of quest steps. The simulation decides who, where and when; scenes give those moments words, faces and choices.
 
@@ -17,7 +15,7 @@ The story is a set of scenes that world state unlocks, not a sequence of quest s
 - **The director** picks one scene per slot: spine scenes first, then open threads, then stories found in the simulation, then everyday scenes. It alternates heavy and soft, so a hard scene is followed by room to recover, and it nudges the simulation when the spine needs it, for example in who a seat's offer finds. In the fiction, the director is Serilmen.
 - **Surviving the simulation.** Anyone can die, so spine scenes cast roles, not names ("the first god" is whichever seat completes first), and every spine scene has a fallback or casts only characters with plot armor. The harness checks that the spine completes on every seed.
 
-### Story beats (draft)
+## Story beats (draft)
 
 **These specific stories are subject to change.** Every beat below is a working draft, not a commitment: any of them may be rewritten, replaced or cut as the story is reworked. What's settled is the shape around them: scenes driven by world state, heavy and soft beats alternating, and the theme they serve.
 
@@ -90,7 +88,7 @@ Heavy and soft beats alternate. Soft beats build the warmth the heavy ones break
 - **The still town.** Wounds don't fester there, and for the first time the party sleeps without keeping watch, until the town starts to rot.
 - **The partner's seed.** After calling them a false god, the salken's old field partner finds the party and gives the salken a dundie seed from their row: "Come back alive."
 
-### Emergent stories
+## Emergent stories
 
 Emergent stories use the same scenes as authored ones; the difference is casting. An authored scene has its cast fixed, and an emergent scene is cast from whoever in the simulation fits. The writing carries the weight in both, dark or light; the simulation supplies who, why and what came before.
 
@@ -109,7 +107,7 @@ Emergent stories use the same scenes as authored ones; the difference is casting
 
 An example: an Osten happens in a crawlspace the party has never visited, unscripted. If the winner is cruel, the household scenes cast him as he is and open a thread about the woman he took; weeks later the generic "ask to be reaped" scene casts her, and its lines name him and that day. If the winner is kind, that scene never casts him, because he doesn't fit. A different one plays: custom forces a kind man to keep a slave wife, he gains strain, and his thread is about what he does with it. Either way it's the same theme, and nobody acts out of character.
 
-### The cast model, after the MVP
+## The cast model, after the MVP
 
 Two fields join the cast model in the game design:
 
@@ -120,7 +118,7 @@ strain  (how far they've been forced to act against their traits)
 
 Strain counts toward the wounds that decide who a seat finds: relationship strength to the dead holder, plus accumulated losses and strain.
 
-### In the engine
+## In the engine
 
 - **A Stories seam.** Authored and emergent stories are one kind of content: scenes with roles, unlocked by world state and cast from whoever fits. A director picks one scene per slot, and threads make sure what happens gets followed up. New arcs, new kinds of emergent story and different pacing are all data.
 - **A `story` feature package.** The chronicle (significant events and their causes), story patterns, casting, strain, threads, the director and the scene runner. Scenes without the party resolve through the characters' own choices and leave events that `rumor` spreads. It uses `knowledge`, Expr and `rng`. When work starts, it's added to AGENTS.md rule 2 and the depguard lists.

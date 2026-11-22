@@ -162,7 +162,7 @@ What falls out of it:
 
 - **Candidates leave a trail.** When a seat passes, the offer finds the most wounded person and draws them below. Noticing who slips out of town at night is investigation.
 - **Rumors travel and drift.** News moves only when people carry it, between towns and through the deep, and it distorts with each retelling. Drifted rumors are where many false positives come from.
-- **Quests come from unmet needs.** A resident who can't meet a need asks the party: find a missing son, bring water, carry a body to the thrukk. There is no quest list. After the MVP, a request becomes a story like any other (see the Post-MVP tab).
+- **Quests come from unmet needs.** A resident who can't meet a need asks the party: find a missing son, bring water, carry a body to the thrukk. There is no quest list. After the MVP, a request becomes a story like any other (see the Story tab).
 - **Towns can empty.** If water fails or monsters keep coming, people migrate to other towns, and a town can be abandoned.
 - **Traders cross the deep.** When a trader dies on the way, the next town runs short.
 - **Plot armor is allowed.** Authored characters can be flagged as protected in their data; everyone else can die, and the seat simulation adapts.
@@ -254,7 +254,7 @@ He arrives to reap the salken. The piece turns hard toward his other patient, a 
 
 ### After the MVP
 
-How the story actually runs (scenes unlocked by world state, the director, casting, strain and threads), the draft story beats, and emergent stories are post-MVP. They live in the Post-MVP tab (`docs/post-mvp.md`).
+How the story actually runs (scenes unlocked by world state, the director, casting, strain and threads), the draft story beats, and emergent stories are post-MVP. They live in the Story tab (`docs/story.md`).
 
 ## Candidates and seats
 
@@ -575,7 +575,7 @@ Decision: Go, with Bubble Tea for the MVP and Ebitengine later if tiles and spri
 - Every system implemented: seats, cast and seat passing, the piece, investigation, combat with all forms and primitives, grafts, the day clock, the flock and exports.
 - Minimal content: a handful of materials, forms and enemy templates, one crawlspace, one region of the deep, the two protagonists and one companion.
 - The test: read the piece, investigate, crawl, fight, kill, and watch the seat pass. If that loop is fun with one seat, seven will work.
-- Not in the MVP: the story system (scenes, casting, strain, threads, the director). It's in the Post-MVP tab (`docs/post-mvp.md`).
+- Not in the MVP: the story system (scenes, casting, strain, threads, the director). It's post-MVP; see the Story tab (`docs/story.md`).
 
 ## Open questions and rejected ideas
 

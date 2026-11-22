@@ -1,9 +1,9 @@
-# Post-MVP
+# Post-MVP milestones
 
-Work planned for after the MVP. None of it starts until the MVP (milestones M1 to M7) is done, and nothing in the MVP may depend on it. The design for it is in `docs/post-mvp.md`.
+Milestones planned for after the MVP. None starts until the MVP (M1 to M7) is done, and nothing in the MVP may depend on them. Each has a folder here with its brief, and each brief names its own design doc.
 
-Each area has a brief here. When the MVP is done, the owner decides which areas to break into tasks. Task IDs use the area's prefix, such as `PM-STORY-01`, and `milestone: post-mvp` in the front matter.
+When the MVP is done, the owner picks which of these to break into tasks. Each milestone has an ID prefix: its tasks are numbered from it (`PM-STORY-01`) and carry it in the front matter (`milestone: PM-STORY`).
 
-| Area | Brief |
-| --- | --- |
-| Story | [story/README.md](story/README.md) |
+| Milestone | Brief | Design |
+| --- | --- | --- |
+| PM-STORY · Story | [story/README.md](story/README.md) | `docs/story.md` |

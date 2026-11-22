@@ -63,13 +63,13 @@ Each becomes task files when the milestone before it is done.
 | M6 · Emergence | [M6-emergence/README.md](M6-emergence/README.md) |
 | M7 · Tuning | [M7-tuning/README.md](M7-tuning/README.md) |
 
-## Post-MVP
+## Post-MVP milestones
 
-Work for after the MVP (M1 to M7). Nothing in the MVP depends on it, and none of it starts before the MVP is done. Design: `docs/post-mvp.md`. Briefs: [post-mvp/README.md](post-mvp/README.md).
+Milestones for after the MVP (M1 to M7). None starts before the MVP is done, and nothing in the MVP depends on them. See [post-mvp/README.md](post-mvp/README.md).
 
-| Area | Brief |
-| --- | --- |
-| Story | [post-mvp/story/README.md](post-mvp/story/README.md) |
+| Milestone | Brief | Design |
+| --- | --- | --- |
+| PM-STORY · Story | [post-mvp/story/README.md](post-mvp/story/README.md) | `docs/story.md` |
 
 ## Follow-ups
 
