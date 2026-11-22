@@ -5,7 +5,7 @@ type MoveEnv struct {
 	Encumbrance float64 `expr:"encumbrance"`
 }
 
-// TurnEnv is everything a turn_ticks formula can see.
-type TurnEnv struct {
+// SpeedEnv is everything a step_ticks formula can see.
+type SpeedEnv struct {
 	Speed int `expr:"speed"`
 }

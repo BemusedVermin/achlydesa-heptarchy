@@ -10,7 +10,7 @@ import (
 type Cadence uint8
 
 const (
-	// PerTurn systems run after every actor's turn (turns runs them).
+	// PerTurn systems run after every entry on the timeline (timeline runs them).
 	PerTurn Cadence = iota
 	// PerPhase systems run at each day-phase boundary.
 	PerPhase

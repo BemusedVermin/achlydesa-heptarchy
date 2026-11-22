@@ -13,7 +13,7 @@ type Bundle struct {
 	Calendar  Calendar            `json:"calendar"`
 	Templates map[string]Template `json:"templates"`
 	Party     PartyConfig         `json:"party"`
-	Turns     TurnsConfig         `json:"turns"`
+	Timeline  TimelineConfig      `json:"timeline"`
 }
 
 // Material is a substance things are made of.
@@ -49,7 +49,7 @@ type Phase struct {
 type Template struct {
 	Appearance *comp.Appearance `json:"appearance,omitempty"`
 	Party      *PartyDef        `json:"party,omitempty"`
-	Turn       *TurnDef         `json:"turn,omitempty"`
+	Actor      *ActorDef        `json:"actor,omitempty"`
 	// Later: Body, Combatant, Needs, Inventory, Triggers, ...
 }
 
@@ -64,13 +64,14 @@ type PartyConfig struct {
 	SightRadius int `json:"sight_radius"` // hexes; 6 to start
 }
 
-// TurnsConfig holds the numbers of the shared timeline.
-type TurnsConfig struct {
-	TurnTicks    string `json:"turn_ticks"`    // Expr with TurnEnv: ticks from one turn to the next, before extra costs
+// TimelineConfig holds the numbers of the shared timeline.
+type TimelineConfig struct {
+	StepTicks    string `json:"step_ticks"`    // Expr with SpeedEnv: base ticks a step keeps its channels busy
 	DefaultSpeed int    `json:"default_speed"` // for entities whose speed nothing else provides
+	WindowTicks  int64  `json:"window_ticks"`  // how far ahead the timeline view looks
 }
 
-// TurnDef puts a template's entities on the timeline.
-type TurnDef struct {
+// ActorDef puts a template's entities on the timeline.
+type ActorDef struct {
 	Controller string `json:"controller"` // "player", "follow", "idle", ...
 }

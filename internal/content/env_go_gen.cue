@@ -9,7 +9,7 @@ package content
 	Encumbrance: float64
 }
 
-// TurnEnv is everything a turn_ticks formula can see.
-#TurnEnv: {
+// SpeedEnv is everything a step_ticks formula can see.
+#SpeedEnv: {
 	Speed: int
 }

@@ -64,7 +64,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTemplates()...)
 	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.compileFormulas()...)
-	problems = append(problems, registry.compileTurns()...)
+	problems = append(problems, registry.compileTimeline()...)
 	if err := errors.Join(problems...); err != nil {
 		return nil, fmt.Errorf("content: invalid: %w", err)
 	}
@@ -199,26 +199,32 @@ func (r *Registry) compileFormulas() []error {
 	return problems
 }
 
-// compileTurns compiles turn_ticks and checks the timeline numbers.
-func (r *Registry) compileTurns() []error {
-	cfg := r.bundle.Turns
+// compileTimeline compiles step_ticks and checks the timeline numbers.
+func (r *Registry) compileTimeline() []error {
+	cfg := r.bundle.Timeline
 	var problems []error
 	if cfg.DefaultSpeed < 0 {
-		problems = append(problems, fmt.Errorf("turns.default_speed: must not be negative, got %d", cfg.DefaultSpeed))
+		problems = append(
+			problems,
+			fmt.Errorf("timeline.default_speed: must not be negative, got %d", cfg.DefaultSpeed),
+		)
 	}
-	program, err := expr.Compile(cfg.TurnTicks, expr.Env(TurnEnv{}), expr.AsInt64())
+	if cfg.WindowTicks < 1 {
+		problems = append(problems, fmt.Errorf("timeline.window_ticks: must be at least 1, got %d", cfg.WindowTicks))
+	}
+	program, err := expr.Compile(cfg.StepTicks, expr.Env(SpeedEnv{}), expr.AsInt64())
 	if err != nil {
-		return append(problems, fmt.Errorf("turns.turn_ticks: %w", err))
+		return append(problems, fmt.Errorf("timeline.step_ticks: %w", err))
 	}
-	r.turnTicks = program
+	r.stepTicks = program
 	return problems
 }
 
 func (r *Registry) checkTemplates() []error {
 	var problems []error
 	for _, key := range sortedKeys(r.bundle.Templates) {
-		if turn := r.bundle.Templates[key].Turn; turn != nil && turn.Controller == "" {
-			problems = append(problems, fmt.Errorf("templates[%q].turn.controller: required", key))
+		if actor := r.bundle.Templates[key].Actor; actor != nil && actor.Controller == "" {
+			problems = append(problems, fmt.Errorf("templates[%q].actor.controller: required", key))
 		}
 		def := r.bundle.Templates[key].Party
 		if def == nil {
