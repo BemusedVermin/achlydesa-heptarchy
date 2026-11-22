@@ -18,12 +18,13 @@ func Install(w *sim.World, c *Clock, reg *content.Registry) error {
 	return w.Views.Register(sim.ViewBuilder{
 		Name: "clock",
 		Build: func(w *sim.World, v *api.View) error {
-			phase := c.calendar.Phases[c.Phase(w.Now)]
+			index := c.Phase(w.Now)
+			phase := c.calendar.Phases[index]
 			v.Clock = &api.ClockView{
-				Day:           c.Day(w.Now),
-				Phase:         reg.Render(api.Text{ID: phase.Name}),
-				TickInPhase:   w.Now % c.calendar.TicksPerPhase,
-				TicksPerPhase: c.calendar.TicksPerPhase,
+				Day:         c.Day(w.Now),
+				Phase:       reg.Render(api.Text{ID: phase.Name}),
+				TickInPhase: c.TickInPhase(w.Now),
+				PhaseTicks:  c.PhaseTicks(index),
 			}
 			return nil
 		},

@@ -30,14 +30,15 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	move_cost?:   string         @go(MoveCost)
 }
 
-// Calendar says how ticks group into phases and days.
+// Calendar says how ticks group into phases and days. A day is its phases in
+// order, and lasts as many ticks as they add up to.
 #Calendar: {
-	ticks_per_phase: int64 @go(TicksPerPhase)
 	phases: [...#Phase] @go(Phases,[]Phase)
 }
 
 // Phase is one part of the day, such as dawn.
 #Phase: {
-	id:   api.#ContentID @go(ID)
-	name: api.#ContentID @go(Name)
+	id:    api.#ContentID @go(ID)
+	name:  api.#ContentID @go(Name)
+	ticks: int64          @go(Ticks)
 }

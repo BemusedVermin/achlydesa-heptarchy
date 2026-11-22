@@ -20,8 +20,8 @@ package api
 
 // ClockView is the time of day. Day counts from 1.
 #ClockView: {
-	day:             int    @go(Day)
-	phase:           string @go(Phase)
-	tick_in_phase:   int64  @go(TickInPhase)
-	ticks_per_phase: int64  @go(TicksPerPhase)
+	day:           int    @go(Day)
+	phase:         string @go(Phase)
+	tick_in_phase: int64  @go(TickInPhase)
+	phase_ticks:   int64  @go(PhaseTicks)
 }

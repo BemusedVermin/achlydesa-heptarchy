@@ -43,15 +43,15 @@ func setup(t *testing.T) (*sim.World, *clock.Clock, *[]string) {
 
 func TestAdvanceBoundaries(t *testing.T) {
 	world, clk, calls := setup(t)
-	if err := clk.Advance(world, 59); err != nil || len(*calls) != 0 || world.Now != 59 {
-		t.Fatalf("59 ticks: err=%v calls=%v now=%d", err, *calls, world.Now)
+	if err := clk.Advance(world, 19); err != nil || len(*calls) != 0 || world.Now != 19 {
+		t.Fatalf("19 ticks: err=%v calls=%v now=%d", err, *calls, world.Now)
 	}
 	if err := clk.Advance(
 		world,
 		1,
 	); err != nil || !reflect.DeepEqual(*calls, []string{"test.phase"}) ||
-		world.Now != 60 {
-		t.Fatalf("60th tick: err=%v calls=%v now=%d", err, *calls, world.Now)
+		world.Now != 20 {
+		t.Fatalf("20th tick: err=%v calls=%v now=%d", err, *calls, world.Now)
 	}
 }
 
@@ -99,7 +99,16 @@ func TestView(t *testing.T) {
 		day   int
 		phase string
 		in    int64
-	}{{0, 1, "dawn", 0}, {75, 1, "day", 15}, {239, 1, "night", 59}, {240, 2, "dawn", 0}} {
+		ticks int64
+	}{
+		{0, 1, "dawn", 0, 20},
+		{19, 1, "dawn", 19, 20},
+		{20, 1, "day", 0, 100},
+		{75, 1, "day", 55, 100},
+		{120, 1, "dusk", 0, 30},
+		{239, 1, "night", 89, 90},
+		{240, 2, "dawn", 0, 20},
+	} {
 		world.Now = tc.now
 		view, err := world.Views.Build(world)
 		if err != nil {
@@ -107,7 +116,7 @@ func TestView(t *testing.T) {
 		}
 		got := view.Clock
 		if got == nil || got.Day != tc.day || got.Phase != tc.phase || got.TickInPhase != tc.in ||
-			got.TicksPerPhase != 60 {
+			got.PhaseTicks != tc.ticks {
 			t.Errorf("tick %d: view = %+v", tc.now, got)
 		}
 	}

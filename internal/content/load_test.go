@@ -36,8 +36,7 @@ text: {
 	"text.phase.dawn":    "dawn"
 }
 calendar: {
-	ticks_per_phase: 60
-	phases: [{id: "phase.dawn", name: "text.phase.dawn"}]
+	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]
 }
 `
 
@@ -149,9 +148,9 @@ text: "text.a": "{{.who"
 			name: "bad calendar",
 			src: `
 text: "text.a": "a"
-calendar: {ticks_per_phase: 0, phases: [{id: "day.dawn", name: "text.missing"}]}
+calendar: {phases: [{id: "day.dawn", name: "text.missing", ticks: 0}]}
 `,
-			want: []string{"calendar.ticks_per_phase", "calendar.phases[0]", "text.missing"},
+			want: []string{"calendar.phases[0].ticks", "calendar.phases[0]", "text.missing"},
 		},
 		{
 			name: "all problems are reported",

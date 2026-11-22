@@ -34,22 +34,22 @@ Time is one tick counter. Phases per day and ticks per phase come from content, 
 
 ```go
 type Calendar struct {
-	TicksPerPhase int64   `json:"ticks_per_phase"`
-	Phases        []Phase `json:"phases"` // in order; at least one
+	Phases []Phase `json:"phases"` // in order; at least one
 }
 type Phase struct {
-	ID   api.ContentID `json:"id"`   // "phase.dawn"
-	Name api.ContentID `json:"name"` // a text ID
+	ID    api.ContentID `json:"id"`    // "phase.dawn"
+	Name  api.ContentID `json:"name"`  // a text ID
+	Ticks int64         `json:"ticks"` // how long the phase lasts; at least 1
 }
 ```
 
-Sample: four phases (dawn, day, dusk, night), 60 ticks each. These numbers are placeholders for tuning.
+Sample: four phases (dawn 20, day 100, dusk 30, night 90 ticks). These numbers are placeholders for tuning.
 
 **api:**
 
 - `PhaseStarted{ Day int; Phase api.ContentID }`, kind `clock.phase_started`, loggable.
 - `DayStarted{ Day int }`, kind `clock.day_started`, loggable.
-- `ClockView{ Day int; Phase string; TickInPhase, TicksPerPhase int64 }`, added to `View` as `Clock *ClockView`.
+- `ClockView{ Day int; Phase string; TickInPhase, PhaseTicks int64 }`, added to `View` as `Clock *ClockView`.
 
 Days count from 1 for display.
 

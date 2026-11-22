@@ -26,14 +26,15 @@ type Terrain struct {
 	MoveCost   string        `json:"move_cost,omitempty"` // Expr with MoveEnv: ticks to walk on top of it; required when solid
 }
 
-// Calendar says how ticks group into phases and days.
+// Calendar says how ticks group into phases and days. A day is its phases in
+// order, and lasts as many ticks as they add up to.
 type Calendar struct {
-	TicksPerPhase int64   `json:"ticks_per_phase"`
-	Phases        []Phase `json:"phases"` // in order; at least one
+	Phases []Phase `json:"phases"` // in order; at least one
 }
 
 // Phase is one part of the day, such as dawn.
 type Phase struct {
-	ID   api.ContentID `json:"id"`   // "phase.dawn"
-	Name api.ContentID `json:"name"` // a text ID
+	ID    api.ContentID `json:"id"`    // "phase.dawn"
+	Name  api.ContentID `json:"name"`  // a text ID
+	Ticks int64         `json:"ticks"` // how long the phase lasts; at least 1
 }

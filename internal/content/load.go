@@ -147,12 +147,6 @@ func (r *Registry) checkTextRefs() []error {
 func (r *Registry) checkCalendar() []error {
 	var problems []error
 	cal := r.bundle.Calendar
-	if cal.TicksPerPhase < 1 {
-		problems = append(
-			problems,
-			fmt.Errorf("calendar.ticks_per_phase: must be at least 1, got %d", cal.TicksPerPhase),
-		)
-	}
 	if len(cal.Phases) == 0 {
 		problems = append(problems, errors.New("calendar.phases: need at least one phase"))
 	}
@@ -166,6 +160,9 @@ func (r *Registry) checkCalendar() []error {
 			problems = append(problems, fmt.Errorf("%s: duplicate phase %q", path, phase.ID))
 		}
 		seen[phase.ID] = true
+		if phase.Ticks < 1 {
+			problems = append(problems, fmt.Errorf("%s.ticks: must be at least 1, got %d", path, phase.Ticks))
+		}
 		if _, ok := r.bundle.Text[string(phase.Name)]; !ok {
 			problems = append(problems, fmt.Errorf("%s.name: text reference %q does not exist", path, phase.Name))
 		}
