@@ -39,6 +39,8 @@ A small, complete content set that exercises every form, type and primitive, tun
 6. A dodge: stepping out of reach before a swing lands.
 7. Outpacing a creature whose legs were severed, until the alert ends.
 
+From M1-18.F1, also: a test in `internal/core/save` that saves mid-fight with actions in flight (include a kind-specific component on a pending entity), loads, runs on, and gets the same `TimelineView` `lands` entries and the same hash as continuing without a save.
+
 **Properties** (`rapid`, over random legal option choices for up to 300 ticks):
 
 - No part has `PartOf` two bodies.
