@@ -98,3 +98,39 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Knowledge: {
 	facts: [...api.#Fact] @go(Facts,[]api.Fact)
 }
+
+// Grant is something a part gives its body: the ability to act, to aim, or speed.
+#Grant: {
+	kind:   string @go(Kind)
+	value?: int    @go(Value)
+}
+
+// Body marks an entity as a body made of parts.
+#Body: {
+	plan: api.#ContentID @go(Plan)
+}
+
+// Part is one part of a body, an entity of its own. It belongs to a body while it has PartOf.
+#Part: {
+	template:      api.#ContentID @go(Template)
+	slot:          string         @go(Slot)
+	material:      api.#ContentID @go(Material)
+	integrity:     int            @go(Integrity)
+	max_integrity: int            @go(MaxIntegrity)
+	grants: [...#Grant] @go(Grants,[]Grant)
+	vital: bool @go(Vital)
+}
+
+// PartOf is the Ark relation from a part to the body it is attached to. Removing it severs the part.
+#PartOf: {}
+
+// Protected gives a body plot armor: when it would die it is downed instead.
+#Protected: {}
+
+// Dead marks a body that has died, at a tick.
+#Dead: {
+	tick: int64 @go(Tick)
+}
+
+// Downed marks a protected body that has fallen.
+#Downed: {}

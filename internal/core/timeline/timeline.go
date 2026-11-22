@@ -427,9 +427,10 @@ func Release(w *sim.World, c Channel) error {
 	return nil
 }
 
-// Reschedule puts a body back on the timeline at its current decision tick, keeping its channels
-// as they are. Deciding takes a body off the timeline until it acts or waits, so a body whose
-// controller changed while the player was deciding for it needs this to be decided for again.
+// Reschedule recomputes a body's decision tick and requeues it. Call it after a hook's answer
+// changes, such as when parts are lost or attached. Deciding also takes a body off the timeline
+// until it acts or waits, so a body whose controller changed while the player was deciding for it
+// needs this to be decided for again. A body with no Actor is left alone.
 func Reschedule(w *sim.World, body ecs.Entity) {
 	st := stateOf(w)
 	if w.ECS.Alive(body) && st.actors.Has(body) {

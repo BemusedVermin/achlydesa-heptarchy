@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"text/template"
@@ -101,6 +102,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkKnowledge()...)
 	problems = append(problems, registry.checkCalendar()...)
 	problems = append(problems, registry.checkTemplates()...)
+	problems = append(problems, registry.checkBodies()...)
 	problems = append(problems, registry.checkActions()...)
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkParty()...)
@@ -173,6 +175,11 @@ func (r *Registry) checkIDs() []error {
 			problems = append(problems, err)
 		}
 	}
+	for _, key := range sortedKeys(r.bundle.Parts) {
+		if err := checkID("parts", key, "part"); err != nil {
+			problems = append(problems, err)
+		}
+	}
 	for _, key := range sortedKeys(r.bundle.Claims) {
 		if err := checkID("claims", key, "claim"); err != nil {
 			problems = append(problems, err)
@@ -180,6 +187,11 @@ func (r *Registry) checkIDs() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Sources) {
 		if err := checkID("sources", key, "source"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Bodies) {
+		if err := checkID("bodies", key, "body"); err != nil {
 			problems = append(problems, err)
 		}
 	}
@@ -201,6 +213,66 @@ func (r *Registry) checkKnowledge() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Sources) {
 		check(fmt.Sprintf("sources[%q].name", key), r.bundle.Sources[key].Name)
+	}
+	return problems
+}
+
+// checkBodies checks every part template and body plan: references, integrity and grant kinds.
+func (r *Registry) checkBodies() []error {
+	var problems []error
+	for _, key := range sortedKeys(r.bundle.Parts) {
+		part := r.bundle.Parts[key]
+		path := fmt.Sprintf("parts[%q]", key)
+		if _, ok := r.bundle.Text[string(part.Name)]; !ok {
+			problems = append(problems, fmt.Errorf("%s.name: text reference %q does not exist", path, part.Name))
+		}
+		if part.Slot == "" {
+			problems = append(problems, fmt.Errorf("%s.slot: required", path))
+		}
+		if _, ok := r.bundle.Materials[string(part.Material)]; !ok {
+			problems = append(problems, fmt.Errorf("%s.material: unknown material %q", path, part.Material))
+		}
+		if part.Integrity < 1 {
+			problems = append(problems, fmt.Errorf("%s.integrity: must be at least 1, got %d", path, part.Integrity))
+		}
+		for i, grant := range part.Grants {
+			if !slices.Contains(GrantKinds, grant.Kind) {
+				problems = append(problems, fmt.Errorf(
+					"%s.grants[%d].kind: unknown kind %q (want one of %v)", path, i, grant.Kind, GrantKinds))
+			}
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Bodies) {
+		plan := r.bundle.Bodies[key]
+		path := fmt.Sprintf("bodies[%q].parts", key)
+		if len(plan.Parts) == 0 {
+			problems = append(problems, fmt.Errorf("%s: a body needs at least one part", path))
+		}
+		for i, entry := range plan.Parts {
+			if _, ok := r.bundle.Parts[string(entry.Part)]; !ok {
+				problems = append(problems, fmt.Errorf("%s[%d].part: unknown part %q", path, i, entry.Part))
+			}
+			if entry.Material == "" {
+				continue
+			}
+			if _, ok := r.bundle.Materials[string(entry.Material)]; !ok {
+				problems = append(problems, fmt.Errorf("%s[%d].material: unknown material %q", path, i, entry.Material))
+			}
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Templates) {
+		def := r.bundle.Templates[key]
+		path := fmt.Sprintf("templates[%q]", key)
+		if def.Body != nil {
+			if _, ok := r.bundle.Bodies[string(*def.Body)]; !ok {
+				problems = append(problems, fmt.Errorf("%s.body: unknown body plan %q", path, *def.Body))
+			}
+		}
+		if def.Name != nil {
+			if _, ok := r.bundle.Text[string(*def.Name)]; !ok {
+				problems = append(problems, fmt.Errorf("%s.name: text reference %q does not exist", path, *def.Name))
+			}
+		}
 	}
 	return problems
 }
