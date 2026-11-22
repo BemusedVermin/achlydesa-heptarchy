@@ -66,6 +66,36 @@ func TestPathGivesUp(t *testing.T) {
 	}
 }
 
+func TestReachableWalksTheStepRulesWithinTheLimit(t *testing.T) {
+	// Floor descends one per hex going east, so each cell east is one step down from the last.
+	m := NewMap(1, "ramp", FuncSource(func(c api.Cell) Terrain {
+		if c.Depth >= 1+max(0, c.Hex.Q) {
+			return rock
+		}
+		return air
+	}), Prisms{})
+	reached, err := m.Reachable(cell(0, 0, 0), DefaultStepRules(), 3, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := reached[cell(3, 0, 3)]; got != 3 {
+		t.Errorf("steps to the ramp's third cell = %d, want 3", got)
+	}
+	if _, far := reached[cell(4, 0, 4)]; far {
+		t.Error("a cell four steps away was reached with a limit of three")
+	}
+	if _, ok := reached[cell(0, 0, 0)]; !ok {
+		t.Error("the start is not in the reached set")
+	}
+	only, err := m.Reachable(cell(0, 0, 0), DefaultStepRules(), 3, func(c api.Cell) bool { return c.Hex.Q <= 1 })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, past := only[cell(2, 0, 2)]; past {
+		t.Error("allow did not stop the search at q=1")
+	}
+}
+
 func TestPathDeterministic(t *testing.T) {
 	m := floorWorld()
 	raise(t, m, cell(1, 0, 0), cell(1, -1, 0), cell(2, -1, 0))

@@ -77,6 +77,45 @@ func (g *walkGraph) Neighbours(n api.Cell) iter.Seq[api.Cell] {
 	}
 }
 
+// Reachable finds every cell a body can walk to from the start, using Step in six directions like Path, within
+// maxSteps steps. It returns each cell with the fewest steps that reach it; the start is included at 0. allow, if
+// not nil, limits the search to cells it accepts (the start is always kept). Routes stay on this map. The first
+// error from loading a chunk is returned.
+func (m *Map) Reachable(
+	from api.Cell,
+	rules StepRules,
+	maxSteps int,
+	allow func(api.Cell) bool,
+) (map[api.Cell]int, error) {
+	reached := map[api.Cell]int{from: 0}
+	frontier := []api.Cell{from}
+	for steps := 1; steps <= maxSteps && len(frontier) > 0; steps++ {
+		var next []api.Cell
+		for _, cell := range frontier {
+			for dir := api.Dir(0); dir < api.DirCount; dir++ {
+				step, ok, err := m.Step(cell, dir, rules)
+				if err != nil {
+					return nil, err
+				}
+				if !ok {
+					continue
+				}
+				to, local := m.local(step.To)
+				if !local {
+					continue
+				}
+				if _, seen := reached[to]; seen || (allow != nil && !allow(to)) {
+					continue
+				}
+				reached[to] = steps
+				next = append(next, to)
+			}
+		}
+		frontier = next
+	}
+	return reached, nil
+}
+
 func absInt(n int) int {
 	if n < 0 {
 		return -n

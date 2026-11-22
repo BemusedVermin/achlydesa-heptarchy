@@ -2,6 +2,7 @@ package explore
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -83,7 +84,9 @@ type drawn struct {
 }
 
 // buildMap fills the plan view: for each hex, at most one cell, the candidate nearest the focus
-// member in depth. The view holds only how far above or below the party each cell lies.
+// member in depth. Floor the party can walk to from the focus, by the party's step rules and within
+// the plan range, over cells it has seen, wins its hex outright; elsewhere the nearest candidate in
+// depth wins. The view holds only how far above or below the party each cell lies.
 func buildMap(w *sim.World, v *api.View) error {
 	party, _, focus, ok := focusOf(w)
 	if !ok {
@@ -103,13 +106,25 @@ func buildMap(w *sim.World, v *api.View) error {
 		return err
 	}
 	visible := sight[here.Map]
-	floorDepth := w.Content.Party().PlanFloorDepth
 	visibleColumns, seenColumns := column{}, column{}
+	known := make(map[api.Cell]bool, len(visible))
 	for cell := range visible {
 		visibleColumns.add(cell)
+		known[cell] = true
 	}
 	for _, cell := range seenIn(w, party, here.Map) {
 		seenColumns.add(cell)
+		known[cell] = true
+	}
+	// The party can go where it can walk, over cells it has seen or sees, within the plan range.
+	reached, err := m.Reachable(here.At, stateOf(w).rules, w.Content.Party().PlanRange,
+		func(cell api.Cell) bool { return known[cell] })
+	if err != nil {
+		return fmt.Errorf("explore: plan view reach: %w", err)
+	}
+	reachColumns := column{}
+	for cell := range reached {
+		reachColumns.add(cell)
 	}
 	hexes := make([]api.Hex, 0, len(visibleColumns)+len(seenColumns))
 	for h := range visibleColumns {
@@ -127,10 +142,15 @@ func buildMap(w *sim.World, v *api.View) error {
 		view.Name = w.Content.Render(api.Text{ID: def.Name})
 	}
 	for _, h := range hexes {
-		best, found, err := nearest(w, m, h, visibleColumns[h], here.At.Depth, floorDepth)
-		isVisible := found
+		// Floor the party can reach is drawn; nothing else in its hex competes with it.
+		best, found, err := nearest(w, m, h, reachColumns[h], here.At.Depth)
+		isVisible := found && visible[api.Cell{Hex: h, Depth: best.depth}]
 		if err == nil && !found {
-			best, found, err = nearest(w, m, h, seenColumns[h], here.At.Depth, floorDepth)
+			best, found, err = nearest(w, m, h, visibleColumns[h], here.At.Depth)
+			isVisible = found
+		}
+		if err == nil && !found {
+			best, found, err = nearest(w, m, h, seenColumns[h], here.At.Depth)
 		}
 		if err != nil {
 			return err
@@ -148,12 +168,10 @@ func buildMap(w *sim.World, v *api.View) error {
 }
 
 // nearest picks, among the candidate cells at these depths of one hex, the one nearest the focus
-// depth, the shallower on a tie. Walls count only when no standable cell of the hex lies within
-// floorDepth of the focus depth, so a slope reads as a floor getting lower rather than as the walls
-// of the ceiling above its next step.
-func nearest(w *sim.World, m *hexmap.Map, h api.Hex, depths []int, focus, floorDepth int) (drawn, bool, error) {
-	candidates := make([]drawn, 0, len(depths))
-	floorNear := false
+// depth, the shallower on a tie.
+func nearest(w *sim.World, m *hexmap.Map, h api.Hex, depths []int, focus int) (drawn, bool, error) {
+	var best drawn
+	found := false
 	for _, depth := range depths {
 		candidate, ok, err := classify(w, m, api.Cell{Hex: h, Depth: depth})
 		if err != nil {
@@ -162,18 +180,6 @@ func nearest(w *sim.World, m *hexmap.Map, h api.Hex, depths []int, focus, floorD
 		if !ok {
 			continue
 		}
-		candidates = append(candidates, candidate)
-		if !candidate.wall && abs(depth-focus) <= floorDepth {
-			floorNear = true
-		}
-	}
-	var best drawn
-	found := false
-	for _, candidate := range candidates {
-		if candidate.wall && floorNear {
-			continue
-		}
-		depth := candidate.depth
 		distance, bestDistance := abs(depth-focus), abs(best.depth-focus)
 		if !found || distance < bestDistance || (distance == bestDistance && depth < best.depth) {
 			best, found = candidate, true
