@@ -1,7 +1,7 @@
 ---
 id: M1-15
 title: "turns: one shared timeline for every body"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-04, M1-07, M1-08]
@@ -120,14 +120,14 @@ Keep a min-heap keyed by `(Next, UID)` so picking the next actor stays cheap wit
 
 ## Acceptance criteria
 
-- [ ] Two idle actors with speeds 2 and 1 (10 and 15 ticks) over 60 ticks: the faster takes 6 turns and the slower 4, interleaved by `(Next, UID)`.
-- [ ] `Extra` from one turn delays only the next turn.
-- [ ] `Run` stops at a player actor and returns it; AI controllers run without stopping; a second `Run` with the player's turn still open returns the same actor.
-- [ ] Waiting across a phase boundary runs PerPhase systems once, with `w.Now` at the boundary tick when they run.
-- [ ] `turns.end` from an actor that isn't current is rejected.
-- [ ] With no player actors, `Run` returns an error after `MaxAITurns`.
-- [ ] Two worlds with the same seed and spawns produce the same turn order over 1,000 turns.
-- [ ] `go tool task check` passes.
+- [x] Two idle actors with speeds 2 and 1 (10 and 15 ticks) over 60 ticks: the faster takes 6 turns and the slower 4, interleaved by `(Next, UID)`.
+- [x] `Extra` from one turn delays only the next turn.
+- [x] `Run` stops at a player actor and returns it; AI controllers run without stopping; a second `Run` with the player's turn still open returns the same actor.
+- [x] Waiting across a phase boundary runs PerPhase systems once, with `w.Now` at the boundary tick when they run.
+- [x] `turns.end` from an actor that isn't current is rejected.
+- [x] With no player actors, `Run` returns an error after `MaxAITurns`.
+- [x] Two worlds with the same seed and spawns produce the same turn order over 1,000 turns.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -136,3 +136,11 @@ Keep a min-heap keyed by `(Next, UID)` so picking the next actor stays cheap wit
 - Creature behavior (M2-08, M3).
 
 ## Notes
+
+- Assumptions: `Run` also drives an open non-player turn left by a failed controller, and `EndTurn` errors if `turn_ticks` gives less than 1 (a zero-tick turn would loop forever).
+- The timeline heap holds lazy entries: a slot is dropped on pop when the entity is gone, its turn is open, or `Next` changed. Spawning is the only thing that pushes besides `EndTurn`.
+- `Turn.Controller` of an unknown name fails the spawn; `player` and `idle` always exist. Followers register `follow` before spawning (M1-16).
+- Option IDs are `end` and `wait`. `Wait` from the option carries the ticks left in the current phase.
+- Content: `Bundle.Turns`, `Registry.Turns()` and `Registry.TurnTicks(TurnEnv)`; load errors for a bad `turn_ticks`, a negative `default_speed` and an empty `turn.controller`. The sample `validData` in `load_test.go` gained a `turns` block. Sample text IDs `text.turns.*` added to `text.cue`, and both party members got `turn: controller: "player"`.
+- Files touched outside the list: `internal/content/{env,load,registry}.go`, `internal/content/load_test.go`, `internal/core/api/view.go`, `content/data/{templates,text}.cue`, and the regenerated `*_go_gen.cue` schemas.
+- Follow-ups filed: M1-15.F1 (rebuild the timeline after loading a save).

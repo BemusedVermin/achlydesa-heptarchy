@@ -17,4 +17,8 @@ text: {
 	"text.clock.phase.dusk":    "Dusk falls on day {{.day}}."
 	"text.clock.phase.night":   "Night comes on day {{.day}}."
 	"text.clock.day_started":   "Day {{.day}} begins."
+	"text.turns.end":           "End turn"
+	"text.turns.wait":          "Wait until the next phase"
+	"text.turns.not_current":   "It is not that actor's turn."
+	"text.turns.bad_wait":      "Waiting takes some time."
 }

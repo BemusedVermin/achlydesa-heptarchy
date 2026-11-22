@@ -36,6 +36,7 @@ text: {
 	"text.phase.dawn":    "dawn"
 }
 party: {slots: 4, sight_radius: 6}
+turns: {turn_ticks: "speed >= 2 ? 10 : 20", default_speed: 2}
 calendar: {
 	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]
 }
@@ -59,6 +60,21 @@ func TestLoadSample(t *testing.T) {
 	}
 	if got := registry.Render(api.Text{ID: "text.explore.bump"}); got != "Packed clay. No way through." {
 		t.Errorf("Render = %q", got)
+	}
+}
+
+func TestTurnTicks(t *testing.T) {
+	registry, err := Load(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := registry.Turns().DefaultSpeed; got != 2 {
+		t.Errorf("default speed = %d, want 2", got)
+	}
+	for speed, want := range map[int]int64{0: 25, 1: 15, 2: 10, 3: 10} {
+		if got, err := registry.TurnTicks(TurnEnv{Speed: speed}); err != nil || got != want {
+			t.Errorf("TurnTicks(speed %d) = %d, %v; want %d", speed, got, err, want)
+		}
 	}
 }
 
@@ -120,6 +136,34 @@ templates: "template.party.x": party: members: []
 party: {slots: 0, sight_radius: 0}
 `,
 			want: []string{"party.slots", "party.sight_radius"},
+		},
+		{
+			name: "turn_ticks that does not compile",
+			src: `
+turns: turn_ticks: "speed +"
+`,
+			want: []string{"turns.turn_ticks"},
+		},
+		{
+			name: "turn_ticks with an unknown variable",
+			src: `
+turns: turn_ticks: "swiftness"
+`,
+			want: []string{"turns.turn_ticks", "swiftness"},
+		},
+		{
+			name: "negative default speed",
+			src: `
+turns: default_speed: -1
+`,
+			want: []string{"turns.default_speed"},
+		},
+		{
+			name: "turn without a controller",
+			src: `
+templates: "template.x": turn: controller: ""
+`,
+			want: []string{`templates["template.x"].turn.controller`},
 		},
 		{
 			name: "bad template id",

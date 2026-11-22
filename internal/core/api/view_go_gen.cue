@@ -6,13 +6,14 @@ package api
 
 // View is everything a frontend needs to draw the current state. It holds
 // display-ready strings; the core resolves text before building it. Later tasks
-// add a section each as a pointer field: Clock (M1-08), Map and Party (M1-10),
+// add a section each as a pointer field: Clock (M1-08), Turns (M1-15), Map and Party (M1-10),
 // Combat (M2).
 #View: {
 	tick: int64 @go(Tick)
 	options: [...#Option] @go(Options,[]Option)
 	log: [...#LogLine] @go(Log,[]LogLine)
 	clock?: null | #ClockView @go(Clock,*ClockView)
+	turns?: null | #TurnsView @go(Turns,*TurnsView)
 }
 
 // Option is one thing the player can do right now. Frontends render Label and

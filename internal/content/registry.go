@@ -16,6 +16,7 @@ type Registry struct {
 	bundle    Bundle
 	hash      string
 	moveCosts map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
+	turnTicks *vm.Program                          // compiled turns.turn_ticks formula
 	templates map[api.ContentID]*template.Template // parsed text, by text ID
 }
 
@@ -79,3 +80,19 @@ func (r *Registry) Template(id api.ContentID) (Template, bool) {
 
 // Party returns the numbers every party shares.
 func (r *Registry) Party() PartyConfig { return r.bundle.Party }
+
+// Turns returns the numbers of the shared timeline.
+func (r *Registry) Turns() TurnsConfig { return r.bundle.Turns }
+
+// TurnTicks is the ticks from one turn to the next for an entity with env's speed, before extra costs.
+func (r *Registry) TurnTicks(env TurnEnv) (int64, error) {
+	out, err := expr.Run(r.turnTicks, env)
+	if err != nil {
+		return 0, fmt.Errorf("content: turns.turn_ticks: %w", err)
+	}
+	ticks, ok := out.(int64)
+	if !ok {
+		return 0, fmt.Errorf("content: turns.turn_ticks returned %T, not an integer", out)
+	}
+	return ticks, nil
+}

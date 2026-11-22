@@ -64,6 +64,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTemplates()...)
 	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.compileFormulas()...)
+	problems = append(problems, registry.compileTurns()...)
 	if err := errors.Join(problems...); err != nil {
 		return nil, fmt.Errorf("content: invalid: %w", err)
 	}
@@ -198,9 +199,27 @@ func (r *Registry) compileFormulas() []error {
 	return problems
 }
 
+// compileTurns compiles turn_ticks and checks the timeline numbers.
+func (r *Registry) compileTurns() []error {
+	cfg := r.bundle.Turns
+	var problems []error
+	if cfg.DefaultSpeed < 0 {
+		problems = append(problems, fmt.Errorf("turns.default_speed: must not be negative, got %d", cfg.DefaultSpeed))
+	}
+	program, err := expr.Compile(cfg.TurnTicks, expr.Env(TurnEnv{}), expr.AsInt64())
+	if err != nil {
+		return append(problems, fmt.Errorf("turns.turn_ticks: %w", err))
+	}
+	r.turnTicks = program
+	return problems
+}
+
 func (r *Registry) checkTemplates() []error {
 	var problems []error
 	for _, key := range sortedKeys(r.bundle.Templates) {
+		if turn := r.bundle.Templates[key].Turn; turn != nil && turn.Controller == "" {
+			problems = append(problems, fmt.Errorf("templates[%q].turn.controller: required", key))
+		}
 		def := r.bundle.Templates[key].Party
 		if def == nil {
 			continue

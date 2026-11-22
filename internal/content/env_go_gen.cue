@@ -8,3 +8,8 @@ package content
 #MoveEnv: {
 	Encumbrance: float64
 }
+
+// TurnEnv is everything a turn_ticks formula can see.
+#TurnEnv: {
+	Speed: int
+}
