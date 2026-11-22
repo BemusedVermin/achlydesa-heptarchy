@@ -19,7 +19,7 @@ Guardrails run as hooks (`internal/tools/agentkit`). When one refuses a command,
    - Under **Claimed**: another agent has a branch for it. Stop and report the branch.
    - Under **Waiting**: stop and report which dependencies aren't done.
    - Status `proposed`, `done` or `obsolete`, or not listed: stop and report. Never start a proposed task.
-3. Read the task file, then every doc section it links, then the code it builds on.
+3. Read the task file, then every doc section it links, then the code it builds on. Also read the file in `.claude/rules/` for each area you'll touch (`core.md`, `content.md`, `frontend.md`, `tasks.md`). They may not have loaded on their own.
 
 ## 2. Make the task branch
 

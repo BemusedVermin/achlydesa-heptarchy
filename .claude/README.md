@@ -13,9 +13,12 @@ This folder sets up Claude Code so that agents can take tasks from `tasks/` and 
 | `skills/file-followup/` | How agents file follow-ups (used by do-task). |
 | `agents/task-implementer.md` | A Sonnet agent that does one task in its own worktree. |
 | `agents/task-reviewer.md` | A read-only Opus agent that reviews a task's diff against its spec and `AGENTS.md`. |
+| `rules/` | Detail on top of `AGENTS.md` that loads only when Claude reads or edits matching files: `core.md` (`internal/core`), `content.md` (`content/`, `internal/content`), `frontend.md` (`internal/frontend`) and `tasks.md` (`tasks/`). |
 | `../internal/tools/agentkit/` | The hooks' code (Go, with tests), plus the `ready` helper. |
 
 `settings.local.json` (your own approvals) and `worktrees/` are gitignored. Everything else here is committed, because cloud sessions and worktrees only see what's in git.
+
+The rules are guidance; `AGENTS.md` stays the full rulebook, because other coding tools read it too. A session started in a worktree (`claude --worktree ...`) loads the rules. A `/run-tasks` agent may not: a subagent in its own worktree takes its instructions from the session that started it, so the path-scoped rules may not load there. That's why `/do-task` tells agents to read the rule files for the areas they touch.
 
 ## The guardrails
 
