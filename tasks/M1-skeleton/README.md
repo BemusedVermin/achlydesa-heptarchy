@@ -29,7 +29,7 @@
 | [M1-20](M1-20-actions.md) | actions: content-defined actions | M1-07, M1-14, M1-19 |
 | [M1-09](M1-09-game.md) | game: the public API | M1-17 |
 | [M1-10](M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | M1-09, M1-14, M1-20 |
-| [M1-16](M1-16-lead-follow.md) | Lead and follow | M1-10 |
+| [M1-16](M1-16-lead-follow.md) | Lead and follow, and switching control | M1-10 |
 | [M1-11](M1-11-tui.md) | Terminal frontend on the new API, with a CLI | M1-16 |
 | [M1-12](M1-12-save.md) | save: versioned snapshots and migrations | M1-16 |
 | [M1-13](M1-13-harness.md) | harness: seeded runs and replays | M1-12 |
