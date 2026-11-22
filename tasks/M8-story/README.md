@@ -1,6 +1,6 @@
 # M8 · Story
 
-**Status:** outline. Break it into task files once M6 is done; it doesn't need M7's tuning.
+**Status:** outline. **Post-MVP:** this comes after everything else. Break it into task files only once the MVP (M1 to M7) is done.
 
 **Goal:** the main story, the characters' arcs and emergent stories all run on one scene system. Authored scenes have fixed casts; emergent scenes are cast from whoever in the simulation fits. Casting, strain and threads keep characters consistent, and a director paces heavy and soft scenes. Everything a writer touches is content.
 

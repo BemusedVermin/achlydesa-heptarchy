@@ -254,6 +254,8 @@ He arrives to reap the salken. The piece turns hard toward his other patient, a 
 
 ### How the story runs
 
+**Post-MVP.** The story system in this section, Story beats and Emergent stories is built after the MVP (milestone M8). The MVP plays the core loop without it.
+
 The story is a set of scenes that world state unlocks, not a sequence of quest steps. The simulation decides who, where and when; scenes give those moments words, faces and choices.
 
 - **Scenes** are short authored units: who is in them (roles), when they can play (a condition over world state), where they play (a slot: resting in town, arriving somewhere, after a kill, visiting a household, or a specific event), their tone (heavy or soft), their lines, the player's choices, and what they change.
@@ -676,6 +678,7 @@ Decision: Go, with Bubble Tea for the MVP and Ebitengine later if tiles and spri
 - Every system implemented: seats, cast and seat passing, the piece, investigation, combat with all forms and primitives, grafts, the day clock, the flock and exports.
 - Minimal content: a handful of materials, forms and enemy templates, one crawlspace, one region of the deep, the two protagonists and one companion.
 - The test: read the piece, investigate, crawl, fight, kill, and watch the seat pass. If that loop is fun with one seat, seven will work.
+- Not in the MVP: the story system (scenes, casting, strain, threads, the director), which comes after it.
 
 ## Open questions and rejected ideas
 

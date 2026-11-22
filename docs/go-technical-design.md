@@ -294,7 +294,7 @@ Each step ends with something playable or measurable.
 5. **Procgen:** the generated deep around fixed towns, exports reseeding it, the pocket, the guarantees as property tests.
 6. **Emergence:** rumors, grudges and memory, dreams.
 7. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
-8. **Story:** scenes, casting, strain, threads, story patterns and the director, carrying the authored spine and emergent stories alike.
+8. **Story, after the MVP:** scenes, casting, strain, threads, story patterns and the director, carrying the authored spine and emergent stories alike. Nothing before it depends on it.
 
 Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks/INDEX.md` tracks their status.
 
