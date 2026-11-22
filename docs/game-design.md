@@ -265,6 +265,8 @@ The story is a set of scenes that world state unlocks, not a sequence of quest s
 
 ### Story beats (draft)
 
+**These specific stories are subject to change.** Every beat below is a working draft, not a commitment: any of them may be rewritten, replaced or cut as the story is reworked. What's settled is the shape around them: scenes driven by world state, heavy and soft beats alternating, and the theme they serve.
+
 Heavy and soft beats alternate. Soft beats build the warmth the heavy ones break, and they give the player room to recover; without them the world is only grim. Every character here is an adult unless stated otherwise, and none of it is graphic: the weight is in what people are made to agree to.
 
 **The main story**

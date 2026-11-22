@@ -21,10 +21,12 @@
 - **The director.** One scene per slot, preferring spine scenes, then open threads, then sifted stories, then everyday scenes. Heavy and soft alternate under an intensity budget, with cooldowns per character. It stages set pieces (gathers the cast, pauses the clock) and nudges the simulation when the spine needs it, for example in who a seat's offer finds.
 - **Scenes without the party.** These resolve through the characters' own choices with no text, go into the chronicle, and leave events that `rumor` spreads.
 - **Requests.** Unmet needs open threads, and scenes put the ask to the party.
-- **Authored content.** The spine, the protagonists' arcs and the draft beats from the game design, with fallbacks or plot armor for every spine scene.
+- **Authored content.** The spine, the protagonists' arcs and the draft beats from the game design, with fallbacks or plot armor for every spine scene. The specific beats are subject to change, so no code may depend on any particular one: they're content like everything else.
 - **Harness checks.** The spine completes on every seed; no thread stays open past a tuned number of days; a measure of how varied the emergent stories are.
 
 ## Exit criteria
+
+These use today's draft beats as test cases; if a beat is rewritten or cut, swap in whatever replaces it.
 
 - The opening plays from the scene system, with both the spare and the reap branch.
 - An Osten in a town the party never visits produces a different story depending on the winner's traits, and nobody acts against type without a declared break and its thread.
