@@ -6,7 +6,7 @@ claims: [string]:  content.#Claim
 sources: [string]: content.#Source
 
 claims: {
-	"claim.material": name: "text.claim.material"
+	"claim.material": {name: "text.claim.material", value: "material"}
 	"claim.name": name:     "text.claim.name"
 }
 

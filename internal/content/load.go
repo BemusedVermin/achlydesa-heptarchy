@@ -210,6 +210,9 @@ func (r *Registry) checkKnowledge() []error {
 	for _, key := range sortedKeys(r.bundle.Claims) {
 		check(fmt.Sprintf("claims[%q].name", key), r.bundle.Claims[key].Name)
 		check(fmt.Sprintf("claims[%q] log text", key), api.KnowledgeTextID(api.ContentID(key)))
+		if kind := r.bundle.Claims[key].Value; kind != "" && !slices.Contains(ValueKinds, kind) {
+			problems = append(problems, fmt.Errorf("claims[%q].value: unknown value kind %q", key, kind))
+		}
 	}
 	for _, key := range sortedKeys(r.bundle.Sources) {
 		check(fmt.Sprintf("sources[%q].name", key), r.bundle.Sources[key].Name)

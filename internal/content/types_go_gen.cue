@@ -33,7 +33,14 @@ import (
 // "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
 #Claim: {
 	name: api.#ContentID @go(Name)
+
+	// Value says what a fact's value of this claim holds: "material" (a material ID, shown as its
+	// name), "text" (a text ID, shown rendered) or empty (a literal, shown as it is).
+	value?: string @go(Value)
 }
+
+#ValueMaterial: "material"
+#ValueText:     "text"
 
 // Source is where a fact came from, such as "source.sweep".
 #Source: {

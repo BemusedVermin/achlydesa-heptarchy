@@ -35,7 +35,11 @@ func Learn(w *sim.World, knower ecs.Entity, f api.Fact) {
 	}
 	w.Bus.Publish(api.FactLearned{Knower: w.UIDOf(knower), Fact: f})
 	if controlled(w, knower) {
-		w.Bus.Publish(api.FactNoticed{Fact: f})
+		noticed := api.FactNoticed{Fact: f}
+		if w.Content != nil {
+			noticed.Shown = w.Content.RenderValue(f.Claim, f.Value)
+		}
+		w.Bus.Publish(noticed)
 	}
 }
 
