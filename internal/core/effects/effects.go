@@ -56,7 +56,10 @@ type Primitive struct {
 	// Verify, when set, checks a reference's raw parameters at content load, for rules that span
 	// several parameters (such as "give exactly one of these").
 	Verify func(raw map[string]string) error
-	Apply  func(ctx *Context, p Params) error
+	// VerifyContent, when set, checks a reference's raw parameters against content at load, for
+	// literals such as item, status or faction IDs. It runs after Verify passes.
+	VerifyContent func(reg *content.Registry, raw map[string]string) error
+	Apply         func(ctx *Context, p Params) error
 	// Check, when set, says whether the effect could apply right now, and why not.
 	// Actions call it before starting and again when landing (M1-20).
 	Check func(ctx *Context, p Params) (ok bool, reason api.Text)
@@ -219,12 +222,12 @@ func Validate(w *sim.World, path string, refs []content.EffectRef) error {
 			problems = append(problems, fmt.Errorf("%s: unknown primitive %q", at, ref.Do))
 			continue
 		}
-		problems = append(problems, validateRef(at, prim, ref)...)
+		problems = append(problems, validateRef(at, w.Content, prim, ref)...)
 	}
 	return errors.Join(problems...)
 }
 
-func validateRef(at string, prim Primitive, ref content.EffectRef) []error {
+func validateRef(at string, reg *content.Registry, prim Primitive, ref content.EffectRef) []error {
 	var problems []error
 	known := slices.Concat(prim.Params, prim.Optional)
 	for _, name := range prim.Params {
@@ -265,6 +268,11 @@ func validateRef(at string, prim Primitive, ref content.EffectRef) []error {
 	}
 	if prim.Verify != nil && len(problems) == 0 {
 		if err := prim.Verify(ref.Params); err != nil {
+			problems = append(problems, fmt.Errorf("%s (%s): %w", at, ref.Do, err))
+		}
+	}
+	if prim.VerifyContent != nil && reg != nil && len(problems) == 0 {
+		if err := prim.VerifyContent(reg, ref.Params); err != nil {
 			problems = append(problems, fmt.Errorf("%s (%s): %w", at, ref.Do, err))
 		}
 	}
@@ -395,7 +403,7 @@ func partEnv(ctx *Context, env *content.EffectEnv) {
 	part := parts.Get(ctx.TargetPart)
 	env.Integrity, env.MaxIntegrity = part.Integrity, part.MaxIntegrity
 	env.Graft = ecs.NewMap[comp.Graft](w.ECS).Has(ctx.TargetPart)
-	env.Locked = !timeline.Free(w, timeline.Channel{Entity: ctx.TargetPart, Body: ctx.Target})
+	env.Locked = timeline.Locked(w, timeline.Channel{Entity: ctx.TargetPart, Body: ctx.Target})
 	if kind := ctx.Choices["type"]; kind != "" {
 		if material, ok := w.Content.Material(part.Material); ok {
 			env.Weak = slices.Contains(material.WeakTo, api.ContentID(kind))

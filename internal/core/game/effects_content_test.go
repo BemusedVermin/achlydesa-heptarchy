@@ -45,6 +45,10 @@ func TestNewRejectsBadActionEffects(t *testing.T) {
 		`actions["action.bad_primitive"].on_land[0]: unknown primitive "no_such_primitive"`,
 		`actions["action.bad_parameter"].on_start[0] (lock): missing parameter "ticks"`,
 		`actions["action.bad_selector"].on_land[0] (damage).parts: bad channel selector "bogus"`,
+		`actions["action.bad_status"].on_land[0] (add_status): unknown status "status.nope"`,
+		`actions["action.bad_item"].on_land[0] (consume): unknown item "item.nope"`,
+		`actions["action.bad_faction"].on_land[0] (spawn_from_part): unknown faction "faction.nope"`,
+		`actions["action.bad_piece"].on_land[0] (attach_part): item "item.coal" is not a piece`,
 	} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error does not list %q:\n%v", want, err)

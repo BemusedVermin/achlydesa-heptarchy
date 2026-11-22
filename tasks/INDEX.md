@@ -80,8 +80,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | todo | feature | M2 | M1-10 |
 | [M1-10.F1.F1](followups/M1-10.F1.F1-plan-view-reachability.md) | Plan view: draw by reachability within a limit | done | feature | M1 | M1-10.F1 |
 | [M2-02.F1](followups/M2-02.F1-despawn-body-parts.md) | Despawning a body must remove its parts | proposed | bug | M2 | M2-02 |
-| [M2-04.F1](followups/M2-04.F1-validate-content-ids-in-effects.md) | Check content IDs named by effect parameters at load | proposed | seam | M2 | M2-04 |
-| [M2-04.F2](followups/M2-04.F2-lock-reason-on-busy.md) | Tell a lock from ordinary busy time | proposed | seam | M2 | M2-04 |
+| [M2-04.F1](followups/M2-04.F1-validate-content-ids-in-effects.md) | Check content IDs named by effect parameters at load | done | seam | M2 | M2-04 |
+| [M2-04.F2](followups/M2-04.F2-lock-reason-on-busy.md) | Tell a lock from ordinary busy time | done | seam | M2 | M2-04 |
 | [M1-10.F1.F1.F1](followups/M1-10.F1.F1.F1-cache-plan-reachability.md) | Plan view: do not recompute reachability on every view build | proposed | debt | unplanned | M1-10.F1.F1 |
 | [M1-10.F3](followups/M1-10.F3-sight-vs-prototype.md) | Sight differs from the prototype at pillar edges | obsolete | debt | M1 | M1-10 |
 | [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | unplanned | M1-16 |

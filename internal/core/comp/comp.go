@@ -56,6 +56,8 @@ type MemberOf struct {
 // Busy marks a channel (a body or one of its parts) busy until a tick. No component means free.
 type Busy struct {
 	Until int64 `json:"until"`
+	// Locked is true when a lock effect, not the channel's own action, is holding it busy.
+	Locked bool `json:"locked,omitempty"`
 }
 
 // Actor puts a body on the timeline.

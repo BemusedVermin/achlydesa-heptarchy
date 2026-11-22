@@ -91,7 +91,7 @@ func applyLock(ctx *Context, p Params) error {
 		for _, pending := range windingUp(w, c) {
 			timeline.Cancel(w, pending, interrupted)
 		}
-		if err := timeline.Extend(w, c, ticks); err != nil {
+		if err := timeline.Lock(w, c, ticks); err != nil {
 			return err
 		}
 	}

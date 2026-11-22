@@ -236,3 +236,43 @@ func TestReleaseFreesABusyChannelAtOnce(t *testing.T) {
 		t.Errorf("releasing a free channel = %v, want nothing to do", err)
 	}
 }
+
+func TestLockedTellsALockFromOwnRecovery(t *testing.T) {
+	fx, player, _ := pendingFixture(t)
+	channel := fx.bodyChannel(player)
+	if timeline.Locked(fx.w, channel) {
+		t.Error("a free channel is not locked")
+	}
+	if err := timeline.Occupy(fx.w, channel, 4); err != nil {
+		t.Fatal(err)
+	}
+	if timeline.Locked(fx.w, channel) {
+		t.Error("recovery from its own action is not a lock")
+	}
+	if err := timeline.Extend(fx.w, channel, 2); err != nil || timeline.Locked(fx.w, channel) {
+		t.Errorf("Extend must not lock (err %v)", err)
+	}
+	if err := timeline.Lock(fx.w, channel, 3); err != nil {
+		t.Fatal(err)
+	}
+	if !timeline.Locked(fx.w, channel) {
+		t.Error("the channel should be locked after Lock")
+	}
+	if err := timeline.Extend(fx.w, channel, 1); err != nil || !timeline.Locked(fx.w, channel) {
+		t.Errorf("an active lock survives Extend (err %v)", err)
+	}
+	if err := timeline.Release(fx.w, channel); err != nil || timeline.Locked(fx.w, channel) {
+		t.Errorf("Release should end the lock (err %v)", err)
+	}
+	// A lock that has run out does not mark the next busy time.
+	if err := timeline.Lock(fx.w, channel, 2); err != nil {
+		t.Fatal(err)
+	}
+	fx.w.Now += 5
+	if timeline.Locked(fx.w, channel) {
+		t.Error("an ended lock is not a lock")
+	}
+	if err := timeline.Occupy(fx.w, channel, 2); err != nil || timeline.Locked(fx.w, channel) {
+		t.Errorf("busy time after a lock ended must not read as locked (err %v)", err)
+	}
+}

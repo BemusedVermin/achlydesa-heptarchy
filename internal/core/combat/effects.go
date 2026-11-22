@@ -7,6 +7,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -57,13 +58,13 @@ func primitives() []effects.Primitive {
 		{Name: "sever", Params: []string{"parts"}, Optional: []string{"when"}, Kinds: parts, Apply: applySever},
 		{
 			Name: "add_status", Params: []string{"bodies", "status", "ticks"},
-			Kinds: map[string]effects.Kind{"bodies": effects.KindBodies, "status": effects.KindText},
-			Apply: applyAddStatus,
+			Kinds:         map[string]effects.Kind{"bodies": effects.KindBodies, "status": effects.KindText},
+			VerifyContent: verifyAddStatusContent, Apply: applyAddStatus,
 		},
 		{
 			Name: "attach_part", Params: []string{"from"}, Optional: []string{"item"},
 			Kinds:  map[string]effects.Kind{"from": effects.KindText, "item": effects.KindText},
-			Verify: verifyAttach, Apply: applyAttach, Check: checkAttach,
+			Verify: verifyAttach, VerifyContent: verifyAttachContent, Apply: applyAttach, Check: checkAttach,
 		},
 		{
 			Name: "reveal", Params: []string{"claim"}, Optional: []string{"source"},
@@ -72,12 +73,12 @@ func primitives() []effects.Primitive {
 		},
 		{
 			Name: "consume", Params: []string{"item"}, Kinds: map[string]effects.Kind{"item": effects.KindText},
-			Apply: applyConsume, Check: checkConsume,
+			VerifyContent: verifyConsumeContent, Apply: applyConsume, Check: checkConsume,
 		},
 		{
 			Name: "spawn_from_part", Params: []string{"faction", "controller"},
-			Kinds: map[string]effects.Kind{"faction": effects.KindText, "controller": effects.KindText},
-			Apply: applySpawnFromPart,
+			Kinds:         map[string]effects.Kind{"faction": effects.KindText, "controller": effects.KindText},
+			VerifyContent: verifySpawnContent, Apply: applySpawnFromPart,
 		},
 	}
 }
@@ -480,4 +481,40 @@ func severedPart(ctx *effects.Context) ecs.Entity {
 		return part
 	}
 	return severedNear(w, ctx.Target)
+}
+
+func verifyAddStatusContent(reg *content.Registry, raw map[string]string) error {
+	if _, ok := reg.Status(api.ContentID(raw["status"])); !ok {
+		return fmt.Errorf("unknown status %q", raw["status"])
+	}
+	return nil
+}
+
+func verifyAttachContent(reg *content.Registry, raw map[string]string) error {
+	id, ok := raw["item"]
+	if !ok {
+		return nil
+	}
+	item, found := reg.Item(api.ContentID(id))
+	if !found {
+		return fmt.Errorf("unknown item %q", id)
+	}
+	if item.Part == nil {
+		return fmt.Errorf("item %q is not a piece that becomes a part", id)
+	}
+	return nil
+}
+
+func verifyConsumeContent(reg *content.Registry, raw map[string]string) error {
+	if _, ok := reg.Item(api.ContentID(raw["item"])); !ok {
+		return fmt.Errorf("unknown item %q", raw["item"])
+	}
+	return nil
+}
+
+func verifySpawnContent(reg *content.Registry, raw map[string]string) error {
+	if _, ok := reg.Faction(api.ContentID(raw["faction"])); !ok {
+		return fmt.Errorf("unknown faction %q", raw["faction"])
+	}
+	return nil
 }
