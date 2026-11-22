@@ -1,7 +1,7 @@
 ---
 id: M2-05
 title: "Triggers: content reacting to events"
-status: todo
+status: done
 milestone: M2
 kind: seam
 depends_on: [M2-04]
@@ -56,15 +56,31 @@ type Subjected interface{ Subjects() map[string]api.UID }
 
 ## Acceptance criteria
 
-- [ ] A template trigger on `combat.part_severed` with role `target` fires only for that body's severed parts.
-- [ ] A material trigger (`material.clay`, on being hit by `type.burn`, raise max integrity) fires for clay parts only. This is the Burn-hardens-clay catch as data.
-- [ ] Two entities with triggers on the same event fire in UID order.
-- [ ] A self-refiring trigger produces an error, not a hang.
-- [ ] An unknown event kind in content fails `game.New`.
-- [ ] `go tool task check` passes.
+- [x] A template trigger on `combat.part_severed` with role `target` fires only for that body's severed parts.
+- [x] A material trigger (`material.clay`, on being hit by `type.burn`, raise max integrity) fires for clay parts only. This is the Burn-hardens-clay catch as data.
+- [x] Two entities with triggers on the same event fire in UID order.
+- [x] A self-refiring trigger produces an error, not a hang.
+- [x] An unknown event kind in content fails `game.New`.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - The graft and crawling content itself (M2-09).
 
 ## Notes
+
+**Assumptions and deviations**
+
+- One bus subscriber (`SubscribeAll`) runs every trigger instead of one subscription per event kind: a typed `sim.Subscribe` needs the event's Go type, which content cannot name. It looks the kind up in an index of content's triggers (rebuilt when content is swapped), so hot reload keeps working.
+- Bus subscribers cannot return errors, so `sim.Bus.Fail(err)` records one; the drain in progress stops and returns it. A failing trigger effect surfaces that way. A self-refiring trigger ends in the bus's cascade error.
+- A trigger fires for the event's subject carrying it: the subject in its `role` (or any subject for `any`). Template triggers are found through `comp.Triggers.IDs` (trigger IDs like `template.x#0`); material triggers through the part's material; status triggers through the body's `Statuses`; item triggers through the entity's `Inventory`. Matches fire in carrier UID order, then in content order.
+- The effect `Context` is the event's `source`, `target` and `part` subjects. Events that carry choices implement the new `api.Chosen`; `PartDamaged` gained `Type` (from the action's chosen type) so `type == "type.burn"` works in `if`. `EffectEnv` gained `type`.
+- Combat events name no source yet, so `source` triggers never match them (M2-05.F1).
+- Content load checks roles, that `if` compiles and that `do` is non-empty; `game.New` (and `SwapContent`) check that `on` is a registered event kind and that `do` effects are valid (trigger `do` lists are effect sites).
+- The Burn-hardens-clay test registers its own `raise_max_integrity` primitive; no such primitive exists in combat yet (M2-05.F1).
+
+**Files outside the Deliverables**
+
+`internal/content/{triggers.go,env.go,load.go,actions.go}`, `internal/core/api/{combat.go,codec.go}` (`Codec.HasEvent`), `internal/core/sim/bus.go` (`Fail`), `internal/core/combat/effects.go` (`Type` on `PartDamaged`), `internal/core/effects/effects.go`, generated `*_go_gen.cue`.
+
+**Follow-ups filed:** [M2-05.F1](../followups/M2-05.F1-harden-primitive-and-event-sources.md)

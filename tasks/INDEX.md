@@ -41,7 +41,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-02](M2-combat/M2-02-bodies-parts.md) | Bodies and parts as entities, as channels | done | feature | M | M1-11, M1-13 |
 | [M2-03](M2-combat/M2-03-materials-types-items.md) | Materials, types, items and the party's pack | done | feature | S | M2-02 |
 | [M2-04](M2-combat/M2-04-effects.md) | Combat effect primitives | done | feature | M | M2-01, M2-03 |
-| [M2-05](M2-combat/M2-05-triggers.md) | Triggers: content reacting to events | todo | seam | S | M2-04 |
+| [M2-05](M2-combat/M2-05-triggers.md) | Triggers: content reacting to events | done | seam | S | M2-04 |
 | [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | todo | content | M | M2-04 |
 | [M2-07](M2-combat/M2-07-hostility-alert-death.md) | Hostility, alert and death | todo | feature | M | M2-06 |
 | [M2-08](M2-combat/M2-08-act-options-controller.md) | The bodies view and the creature controller | todo | feature | M | M2-07 |
@@ -82,6 +82,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M2-02.F1](followups/M2-02.F1-despawn-body-parts.md) | Despawning a body must remove its parts | proposed | bug | M2 | M2-02 |
 | [M2-04.F1](followups/M2-04.F1-validate-content-ids-in-effects.md) | Check content IDs named by effect parameters at load | done | seam | M2 | M2-04 |
 | [M2-04.F2](followups/M2-04.F2-lock-reason-on-busy.md) | Tell a lock from ordinary busy time | done | seam | M2 | M2-04 |
+| [M2-05.F1](followups/M2-05.F1-harden-primitive-and-event-sources.md) | A raise_max_integrity primitive and a source on combat events | done | seam | M2 | M2-05 |
 | [M1-10.F1.F1.F1](followups/M1-10.F1.F1.F1-cache-plan-reachability.md) | Plan view: do not recompute reachability on every view build | proposed | debt | unplanned | M1-10.F1.F1 |
 | [M1-10.F3](followups/M1-10.F3-sight-vs-prototype.md) | Sight differs from the prototype at pillar edges | obsolete | debt | M1 | M1-10 |
 | [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | unplanned | M1-16 |

@@ -59,6 +59,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // Busy marks a channel (a body or one of its parts) busy until a tick. No component means free.
 #Busy: {
 	until: int64 @go(Until)
+
+	// Locked is true when a lock effect, not the channel's own action, is holding it busy.
+	locked?: bool @go(Locked)
 }
 
 // Actor puts a body on the timeline.
@@ -153,4 +156,10 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // Allegiance is the side a body fights for.
 #Allegiance: {
 	faction: api.#ContentID @go(Faction)
+}
+
+// Triggers lists the content triggers an entity carries from its template, by trigger ID (see
+// content.TriggerID). The trigger runner reads it so it need not look at content for every event.
+#Triggers: {
+	ids: [...string] @go(IDs,[]string)
 }

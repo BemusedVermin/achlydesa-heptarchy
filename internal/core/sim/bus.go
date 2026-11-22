@@ -25,6 +25,17 @@ type Bus struct {
 	subscribers map[string][]subscriber
 	all         []subscriber
 	queue       []api.Event
+	failure     error
+}
+
+// Fail records an error from a subscriber, which cannot return one. The drain in progress stops
+// delivering after the current event and returns the first error recorded.
+func (b *Bus) Fail(err error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.failure == nil {
+		b.failure = err
+	}
 }
 
 // NewBus returns an empty bus.
@@ -84,6 +95,12 @@ func (b *Bus) Drain(w *World) ([]api.Event, error) {
 	var delivered []api.Event
 	for {
 		b.mu.Lock()
+		if b.failure != nil {
+			err := b.failure
+			b.failure, b.queue, b.draining = nil, nil, false
+			b.mu.Unlock()
+			return delivered, err
+		}
 		if len(b.queue) == 0 {
 			b.queue = nil
 			b.draining = false

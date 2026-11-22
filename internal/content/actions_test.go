@@ -30,8 +30,8 @@ func TestSampleActions(t *testing.T) {
 		t.Errorf("connects present = %v, %v; want the default", present, err)
 	}
 	sites := reg.EffectSites()
-	if len(sites) != 1 || sites[0].Path != `actions["action.step"].on_land` {
-		t.Errorf("EffectSites = %+v", sites)
+	if len(sites) == 0 || sites[0].Path != `actions["action.step"].on_land` {
+		t.Errorf("EffectSites = %+v, want the step's on_land first", sites)
 	}
 	template, _ := reg.Template("template.person.reaper")
 	if len(template.Actions) != 1 || template.Actions[0] != "action.step" {

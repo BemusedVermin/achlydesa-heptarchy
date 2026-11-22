@@ -17,11 +17,17 @@ package api
 
 // PartDamaged reports that a part lost integrity.
 #PartDamaged: {
-	body:      #UID  @go(Body)
-	part:      #UID  @go(Part)
-	amount:    int   @go(Amount)
-	integrity: int   @go(Integrity)
-	tick:      int64 @go(Tick)
+	body:      #UID @go(Body)
+	part:      #UID @go(Part)
+	amount:    int  @go(Amount)
+	integrity: int  @go(Integrity)
+
+	// Type is the damage type the action chose, or empty when it chose none.
+	type?: #ContentID @go(Type)
+
+	// Source is the body that acted, or zero when nothing did.
+	source?: #UID  @go(Source)
+	tick:    int64 @go(Tick)
 }
 
 // PartSevered reports that a part came off its body. It stays in the world, where the body stands.
@@ -29,7 +35,10 @@ package api
 	body:  #UID   @go(Body)
 	part:  #UID   @go(Part)
 	cause: string @go(Cause)
-	tick:  int64  @go(Tick)
+
+	// Source is the body that acted, or zero when nothing did.
+	source?: #UID  @go(Source)
+	tick:    int64 @go(Tick)
 }
 
 // PartAttached reports that a part was fitted onto a body, which gains its channel.
@@ -37,7 +46,10 @@ package api
 	body: #UID   @go(Body)
 	part: #UID   @go(Part)
 	from: string @go(From)
-	tick: int64  @go(Tick)
+
+	// Source is the body that acted, or zero when nothing did.
+	source?: #UID  @go(Source)
+	tick:    int64 @go(Tick)
 }
 
 // StatusAdded reports that a body came under a status, or had it extended.
@@ -45,5 +57,8 @@ package api
 	body:   #UID       @go(Body)
 	status: #ContentID @go(Status)
 	until:  int64      @go(Until)
-	tick:   int64      @go(Tick)
+
+	// Source is the body that acted, or zero when nothing did.
+	source?: #UID  @go(Source)
+	tick:    int64 @go(Tick)
 }

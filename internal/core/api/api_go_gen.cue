@@ -41,3 +41,15 @@ package api
 	command: string @go(Command)
 	reason:  #Text  @go(Reason)
 }
+
+#SubjectSource: "source"
+#SubjectTarget: "target"
+#SubjectPart:   "part"
+
+// Subjected events name the entities they are about, by role ("source", "target", "part"), so
+// content triggers can find who they apply to. A role an event has no entity for is left out.
+#Subjected: _
+
+// Chosen events carry the choices of the action that caused them, such as "type": "type.burn", for
+// the formulas of the triggers they fire.
+#Chosen: _

@@ -114,6 +114,7 @@ type state struct {
 	programs   map[programKey]*program
 	hostile    func(w *sim.World, a, b ecs.Entity) bool
 	maps       func(id api.MapID) *hexmap.Map
+	triggers   *triggerIndex
 }
 
 func stateOf(w *sim.World) *state {
@@ -143,7 +144,10 @@ func Install(w *sim.World) error {
 			return err
 		}
 	}
-	return registerTiming(w)
+	if err := registerTiming(w); err != nil {
+		return err
+	}
+	return installTriggers(w)
 }
 
 // Register makes p available to content by name. Names are unique.
@@ -287,6 +291,7 @@ func ValidateContent(w *sim.World) error {
 			problems = append(problems, err)
 		}
 	}
+	problems = append(problems, validateTriggers(w)...)
 	if err := errors.Join(problems...); err != nil {
 		return fmt.Errorf("effects: content names effects that do not exist or are malformed: %w", err)
 	}
@@ -370,7 +375,7 @@ func (p *params) env(withRoll bool) content.EffectEnv {
 // baseEnv works out everything in the formula environment except roll.
 func baseEnv(ctx *Context) content.EffectEnv {
 	w := ctx.World
-	env := content.EffectEnv{Now: w.Now}
+	env := content.EffectEnv{Now: w.Now, Type: ctx.Choices["type"]}
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if alive(w, ctx.Source) && alive(w, ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)

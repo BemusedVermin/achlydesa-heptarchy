@@ -11,6 +11,13 @@ materials: {
 		weak_to:   ["type.soak", "type.relic"]
 		immune_to: []
 		tags: ["clay"]
+		// Fire bakes clay hard: a burned clay part can take more before it gives.
+		triggers: [{
+			on:   "combat.part_damaged"
+			role: "part"
+			if:   "type == \"type.burn\""
+			do: [{do: "raise_max_integrity", params: {parts: "target_part", amount: "2"}}]
+		}]
 	}
 	"material.flesh": {
 		name:      "text.material.flesh"

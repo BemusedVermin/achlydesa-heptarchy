@@ -34,7 +34,8 @@ type Bundle struct {
 // Status is a condition a body is under until a tick, such as Stand's braced stance. Code knows
 // nothing of any one status: formulas read the ones a body has through the statuses variable.
 type Status struct {
-	Name api.ContentID `json:"name"` // a text ID
+	Name     api.ContentID `json:"name"`               // a text ID
+	Triggers []Trigger     `json:"triggers,omitempty"` // run for bodies carrying the status
 }
 
 // Claim is a kind of fact a knower can hold, such as "claim.material". Each claim needs the text
@@ -66,6 +67,8 @@ type Material struct {
 	WeakTo   []api.ContentID `json:"weak_to"`   // type IDs
 	ImmuneTo []api.ContentID `json:"immune_to"` // type IDs
 	Tags     []string        `json:"tags"`      // e.g. "old_matter", "clay"
+	// Triggers run for parts made of the material.
+	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
 // DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
@@ -84,6 +87,8 @@ type Item struct {
 	Bound bool          `json:"bound"` // tied to one person, e.g. a name or a keepsake
 	// Part is the part template ("part." ID) a piece becomes when grafted on; only a piece has one.
 	Part *api.ContentID `json:"part,omitempty"`
+	// Triggers run for holders of the item.
+	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
 // ItemKinds lists the kinds an item may have.
@@ -140,7 +145,29 @@ type Template struct {
 	Protected bool `json:"protected,omitempty"`
 	// Inventory is the pack the entity starts with.
 	Inventory []StackDef `json:"inventory,omitempty"`
-	// Later: Combatant, Needs, Inventory, Triggers, ...
+	// Triggers react to events for the entities spawned from this template.
+	Triggers []Trigger `json:"triggers,omitempty"`
+	// Later: Combatant, Needs, ...
+}
+
+// Roles a trigger's entity may play in the event.
+const (
+	RoleSource = "source"
+	RoleTarget = "target"
+	RolePart   = "part"
+	RoleAny    = "any"
+)
+
+// TriggerRoles lists the roles a trigger may name.
+var TriggerRoles = []string{RoleSource, RoleTarget, RolePart, RoleAny}
+
+// Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
+// template, material, status or item; the entities that carry that thing run it.
+type Trigger struct {
+	On   string      `json:"on"`   // an event kind, e.g. "combat.part_severed"
+	If   string      `json:"if"`   // Expr bool over EffectEnv; empty means always
+	Do   []EffectRef `json:"do"`   // effects to apply, with the event's subjects as source, target and part
+	Role string      `json:"role"` // which subject of the event this entity must be: one of TriggerRoles
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
