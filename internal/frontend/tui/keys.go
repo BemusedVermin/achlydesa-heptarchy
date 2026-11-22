@@ -21,6 +21,8 @@ type binding struct {
 // KeyMap is every binding of the map screen.
 type KeyMap struct {
 	moves     []binding
+	up        key.Binding // w: NE or NW, alternating, so the party climbs a screen column
+	down      key.Binding // s: SE or SW, alternating
 	waitEvent binding
 	waitPhase binding
 	nextLead  key.Binding // tab: the next leader option, cycling
@@ -41,6 +43,8 @@ func DefaultKeyMap() KeyMap {
 			move("q", "step/nw"), move("e", "step/ne"), move("a", "step/w"),
 			move("d", "step/e"), move("z", "step/sw"), move("c", "step/se"),
 		},
+		up:        key.NewBinding(key.WithKeys("w"), key.WithHelp("w", "up")),
+		down:      key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "down")),
 		waitEvent: binding{key.NewBinding(key.WithKeys("."), key.WithHelp(".", "wait")), "wait/event"},
 		waitPhase: binding{key.NewBinding(key.WithKeys(","), key.WithHelp(",", "wait to next phase")), "wait/phase"},
 		nextLead:  key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "next leader")),
@@ -79,6 +83,40 @@ func (k KeyMap) OptionFor(msg tea.KeyPressMsg, v api.View) (string, bool) {
 	return "", false
 }
 
+// VerticalOptions are the step options a vertical key tries, in order. A pointy-top grid has no
+// straight up or down, so the party alternates two diagonals. The first press after another move
+// (last empty) prefers the east diagonal; otherwise the diagonal that was not just used goes first.
+func VerticalOptions(up bool, last string) [2]string {
+	east, west := "step/se", "step/sw"
+	if up {
+		east, west = "step/ne", "step/nw"
+	}
+	if last == east {
+		return [2]string{west, east}
+	}
+	return [2]string{east, west}
+}
+
+// VerticalOption picks the step a vertical key stands for: the first of [VerticalOptions] that is
+// offered and enabled, else the first that is offered (so its reason shows), else none.
+func VerticalOption(v api.View, up bool, last string) (string, bool) {
+	offered := ""
+	for _, id := range VerticalOptions(up, last) {
+		for _, o := range v.Options {
+			if o.ID != id {
+				continue
+			}
+			if o.Enabled {
+				return id, true
+			}
+			if offered == "" {
+				offered = id
+			}
+		}
+	}
+	return offered, offered != ""
+}
+
 // nextLeadOption picks the member after the leader in a fixed (UID) order, wrapping, so that
 // repeated presses visit every member even though leading reorders the party.
 func nextLeadOption(v api.View) (string, bool) {
@@ -115,6 +153,9 @@ func (k KeyMap) HelpBindings(v api.View) []key.Binding {
 	var out []key.Binding
 	if slices.ContainsFunc(k.moves, func(b binding) bool { return hasOption(v, b.option) }) {
 		out = append(out, key.NewBinding(key.WithHelp("q e a d z c", "move")))
+	}
+	if hasOption(v, "step/ne") || hasOption(v, "step/nw") || hasOption(v, "step/se") || hasOption(v, "step/sw") {
+		out = append(out, key.NewBinding(key.WithHelp("w s", "up down")))
 	}
 	if hasOption(v, k.waitEvent.option) {
 		out = append(out, k.waitEvent.keys)
