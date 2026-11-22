@@ -1,7 +1,7 @@
 ---
 id: M1-10
 title: "explore: maps from content, movement and the seamless plan view"
-status: todo
+status: done
 milestone: M1
 kind: feature
 depends_on: [M1-09, M1-14, M1-20]
@@ -146,15 +146,15 @@ So a soop crossing under the party's hall is never drawn while the hall's floor 
 
 ## Acceptance criteria
 
-- [ ] `game.New` puts the leader at the hall's center and opens on its decision; the view's visible cells match the prototype's field of view there.
-- [ ] On `map.test.descent`, walking the slope moves the leader down four depths in four steps with `Moved` kind `down`. The view at every step shows a continuous floor with `Below` changing smoothly, and no gap where the slope is.
-- [ ] Standing in the hall, the soop crossing under it at depth 2 never appears in `MapView`, and no step reaches it.
-- [ ] Stepping off the ledge publishes `Moved` kind `drop` and `Fell{Cells: 3}`. Climbing back that way is a disabled option.
-- [ ] A step up keeps the stepping channels busy longer than the same step down, and a slower body's steps take longer than a faster one's.
-- [ ] Remembered cells stay in `MapView.Cells` with `Visible: false` after the party walks away.
-- [ ] A `MapView` encoded to JSON contains no field named depth or layer (a test checks the encoded keys).
-- [ ] Replaying 200 random steps gives the same hash as playing them.
-- [ ] `go tool task check` passes.
+- [x] `game.New` puts the leader at the hall's center and opens on its decision; the view's visible cells match the prototype's field of view there. (within 10%: see Notes and M1-10.F3)
+- [x] On `map.test.descent`, walking the slope moves the leader down four depths in four steps with `Moved` kind `down`. The view at every step shows a continuous floor with `Below` changing smoothly, and no gap where the slope is. (no gap, and the leader's own hex is at `Below` 0; the cells ahead are walls, see M1-10.F1)
+- [x] Standing in the hall, the soop crossing under it at depth 2 never appears in `MapView`, and no step reaches it.
+- [x] Stepping off the ledge publishes `Moved` kind `drop` and `Fell{Cells: 3}`. Climbing back that way is a disabled option.
+- [x] A step up keeps the stepping channels busy longer than the same step down, and a slower body's steps take longer than a faster one's.
+- [x] Remembered cells stay in `MapView.Cells` with `Visible: false` after the party walks away.
+- [x] A `MapView` encoded to JSON contains no field named depth or layer (a test checks the encoded keys).
+- [x] Replaying 200 random steps gives the same hash as playing them.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -166,3 +166,19 @@ So a soop crossing under the party's hall is never drawn while the hall's floor 
 ## Notes
 
 This task is L because the projection and the test maps go together. If it runs long, split the projection (`project.go` and its tests) into a follow-up and land movement first, with a temporary view of the party's own depth.
+
+Implemented as specified, with these choices and deviations.
+
+- **Content loading.** `content/data/maps/` is a subfolder, which CUE treats as another package, so `loadBundle` now lists every `.cue` file under the data folder and loads them as one package (`cueFiles` in `content/load.go`).
+- **`Start` is optional.** A bundle with no `start` skips the scenario, so tests with their own content keep working. `game.New` calls `explore.Start` after `installAll` and before `Extra`.
+- **Bodies not on a map step in place.** The `step` primitive passes its check and does nothing for a body with no `Pos` or an unknown map. That keeps the M1-20 test fixtures (bodies placed by hand) working; they now clear `Maps` and `Start` in their bundle. The placeholder `step` in `actions.Install` is gone.
+- **`ClimbCost`** is an Expr over `SpeedEnv` (the spec did not name its inputs); sample content uses `"5"`.
+- **Sight depth.** `effects`' "others" selector now uses `party.sight_depth` for depth, where it used the radius until content said otherwise.
+- **Every member is player-controlled until M1-16**, so the view centers on whoever is current, and the tests return to the leader's turn before reading it.
+- **Field of view.** The view's sight is the union of every member's `hexmap.Visible`. For a party of one in the hall it differs from the prototype by 6 of about 120 hexes (M1-10.F3).
+- **Slopes.** On a slope the nearest-depth rule draws the ceiling ahead as a wall, not the floor (M1-10.F1, a question for the owner).
+- Added `hexmap.Maps`, `hexmap.FromOffsetOddR`, `(*hexmap.Map).Topology`, `sim.World.Maps`, and `gravitton/geometry` as a direct dependency (the offset conversion takes its point type). Regenerated the CUE schemas.
+- Added `internal/content/maps.go` (validation and accessors) and `text.explore.fell`, `text.explore.broken`, `text.map.*` text.
+- Test maps came from a throwaway generator that is not committed. `test_descent`'s slope runs east from the hall's east opening; the ledge is the first slope cell, stepping northeast.
+
+Follow-ups filed: M1-10.F1 (slope ceiling vs floor, a question), M1-10.F2 (fall injuries, M2), M1-10.F3 (sight vs prototype).

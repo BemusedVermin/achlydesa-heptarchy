@@ -69,3 +69,13 @@ type Landing struct {
 	Dir        api.Dir           `json:"dir"`
 	Choices    map[string]string `json:"choices,omitempty"`
 }
+
+// Controlled marks the party the player commands.
+type Controlled struct{}
+
+// Seen is what a party remembers of the maps: cells any member has seen. Each slice is sorted by
+// depth, then R, then Q, and has no repeats. Use the explore package's helpers rather than reading
+// the slices, because the representation will change.
+type Seen struct {
+	ByMap map[api.MapID][]api.Cell `json:"by_map"`
+}

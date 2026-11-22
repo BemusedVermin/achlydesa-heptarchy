@@ -15,6 +15,8 @@ type Bundle struct {
 	Party     PartyConfig          `json:"party"`
 	Timeline  TimelineConfig       `json:"timeline"`
 	Actions   map[string]ActionDef `json:"actions"`
+	Maps      map[string]MapDef    `json:"maps"`
+	Start     Start                `json:"start"`
 }
 
 // Material is a substance things are made of.
@@ -65,6 +67,43 @@ type PartyDef struct {
 type PartyConfig struct {
 	Slots       int `json:"slots"`        // fighters at a time; 4 to start
 	SightRadius int `json:"sight_radius"` // hexes; 6 to start
+	// SightDepth is how many cells up and down the party sees; 6 to start.
+	SightDepth int `json:"sight_depth"`
+	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules: 1, 1 and 8 to start.
+	MaxStepUp   int `json:"max_step_up"`
+	MaxStepDown int `json:"max_step_down"`
+	MaxDrop     int `json:"max_drop"`
+	// ClimbCost is an Expr with SpeedEnv: ticks added to each step up, on top of the timeline's
+	// step_ticks. Climbing costs more than descending on purpose. Empty means no extra cost.
+	ClimbCost string `json:"climb_cost,omitempty"`
+}
+
+// MapDef is a hand-made map: a few authored layers embedded in endless fill.
+type MapDef struct {
+	Name api.ContentID `json:"name"` // a text ID
+	// Fill is the terrain of every cell not authored, forever in every direction.
+	Fill api.ContentID `json:"fill"`
+	// Open is the terrain of a marked cell, usually air.
+	Open   api.ContentID `json:"open"`
+	Layers []LayerDef    `json:"layers"`
+	// Legend maps one character to a terrain ID.
+	Legend map[string]api.ContentID `json:"legend"`
+	// Marks maps one character to a mark name, such as "@": "party_start".
+	Marks map[string]string `json:"marks"`
+}
+
+// LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per
+// cell; a space leaves the fill.
+type LayerDef struct {
+	Depth int      `json:"depth"`
+	Rows  []string `json:"rows"`
+}
+
+// Start is the scenario a new game begins with: a party placed at a mark on a map.
+type Start struct {
+	Map         api.ContentID `json:"map"`
+	Party       api.ContentID `json:"party"`         // a party template ID
+	PartyAtMark string        `json:"party_at_mark"` // a mark name of the map
 }
 
 // TimelineConfig holds the numbers of the shared timeline.

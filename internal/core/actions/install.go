@@ -7,7 +7,6 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -70,17 +69,7 @@ func Install(w *sim.World) error {
 	if err != nil {
 		return err
 	}
-	return registerPlaceholderStep(w)
-}
-
-// registerPlaceholderStep registers the step effect the sample content names. It moves nobody: M1-10
-// replaces it with the real step, which walks the body through the map and checks what is in the way.
-// It is here so the sample content validates and a step takes its time until then.
-func registerPlaceholderStep(w *sim.World) error {
-	return effects.Register(w, effects.Primitive{
-		Name:  "step",
-		Apply: func(*effects.Context, effects.Params) error { return nil },
-	})
+	return nil
 }
 
 // ValidateContent checks what the loader cannot know: that every choice an action asks for has a

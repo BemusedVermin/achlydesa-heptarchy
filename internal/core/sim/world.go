@@ -7,6 +7,7 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 )
 
@@ -20,6 +21,8 @@ type World struct {
 	Commands *Commands
 	Views    *Views
 	Codec    *api.Codec
+	// Maps holds every map of the world, by ID.
+	Maps *hexmap.Maps
 	// Content is the loaded content; game.New sets it.
 	Content *content.Registry
 	// Now is the current tick; only clock writes it.
@@ -42,6 +45,7 @@ func NewWorld(seed uint64) *World {
 		Commands: NewCommands(),
 		Views:    NewViews(),
 		Codec:    api.NewCodec(),
+		Maps:     hexmap.NewMaps(),
 	}
 	w.nextUID.Store(1)
 	w.maps = newMappers(w.ECS)

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -39,7 +40,11 @@ func loadBundle(dir string) (Bundle, error) {
 	if err != nil {
 		return Bundle{}, fmt.Errorf("content: resolve %q: %w", dir, err)
 	}
-	instances := load.Instances([]string{"."}, &load.Config{Dir: abs})
+	files, err := cueFiles(abs)
+	if err != nil {
+		return Bundle{}, err
+	}
+	instances := load.Instances(files, &load.Config{Dir: abs})
 	if len(instances) != 1 {
 		return Bundle{}, fmt.Errorf("content: expected one CUE package in %q, found %d", dir, len(instances))
 	}
@@ -58,6 +63,30 @@ func loadBundle(dir string) (Bundle, error) {
 }
 
 // newRegistry validates a decoded bundle, compiles its formulas and templates, and hashes it.
+// cueFiles lists every .cue file under dir, as paths relative to it in a stable order, so that
+// subfolders such as maps/ are part of the same data package.
+func cueFiles(dir string) ([]string, error) {
+	var files []string
+	err := filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() || filepath.Ext(path) != ".cue" {
+			return err
+		}
+		rel, err := filepath.Rel(dir, path)
+		if err != nil {
+			return err
+		}
+		files = append(files, "./"+filepath.ToSlash(rel))
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("content: list %q: %w", dir, err)
+	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("content: no CUE files in %q", dir)
+	}
+	return files, nil
+}
+
 func newRegistry(bundle Bundle) (*Registry, error) {
 	registry := &Registry{
 		bundle:    bundle,
@@ -74,6 +103,8 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkActions()...)
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkParty()...)
+	problems = append(problems, registry.checkMaps()...)
+	problems = append(problems, registry.checkStart()...)
 	problems = append(problems, registry.compileFormulas()...)
 	problems = append(problems, registry.compileTimeline()...)
 	if err := errors.Join(problems...); err != nil {
@@ -133,6 +164,11 @@ func (r *Registry) checkIDs() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Actions) {
 		if err := checkID("actions", key, "action"); err != nil {
+			problems = append(problems, err)
+		}
+	}
+	for _, key := range sortedKeys(r.bundle.Maps) {
+		if err := checkID("maps", key, "map"); err != nil {
 			problems = append(problems, err)
 		}
 	}
@@ -271,6 +307,21 @@ func (r *Registry) checkParty() []error {
 	}
 	if cfg.SightRadius < 1 {
 		problems = append(problems, fmt.Errorf("party.sight_radius: must be at least 1, got %d", cfg.SightRadius))
+	}
+	for name, value := range map[string]int{
+		"sight_depth": cfg.SightDepth, "max_step_up": cfg.MaxStepUp, "max_step_down": cfg.MaxStepDown,
+		"max_drop": cfg.MaxDrop,
+	} {
+		if value < 0 {
+			problems = append(problems, fmt.Errorf("party.%s: must not be negative, got %d", name, value))
+		}
+	}
+	if cfg.ClimbCost != "" {
+		program, err := expr.Compile(cfg.ClimbCost, expr.Env(SpeedEnv{}), expr.AsInt64())
+		if err != nil {
+			return append(problems, fmt.Errorf("party.climb_cost: %w", err))
+		}
+		r.climbCost = program
 	}
 	return problems
 }

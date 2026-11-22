@@ -14,6 +14,8 @@ package api
 	log: [...#LogLine] @go(Log,[]LogLine)
 	clock?:    null | #ClockView    @go(Clock,*ClockView)
 	timeline?: null | #TimelineView @go(Timeline,*TimelineView)
+	map?:      null | #MapView      @go(Map,*MapView)
+	party?:    null | #PartyView    @go(Party,*PartyView)
 }
 
 // Option is one thing the player can do right now. Frontends render Label and

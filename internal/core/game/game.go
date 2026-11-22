@@ -12,6 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -48,6 +49,9 @@ func New(cfg Config) (*Game, error) {
 	}
 	if err := installAll(g.world, g.clock); err != nil {
 		return nil, fmt.Errorf("game: install: %w", err)
+	}
+	if err := explore.Start(g.world); err != nil {
+		return nil, fmt.Errorf("game: start: %w", err)
 	}
 	if cfg.Extra != nil {
 		if err := cfg.Extra(g.world, g.clock); err != nil {
