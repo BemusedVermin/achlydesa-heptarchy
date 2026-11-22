@@ -1,7 +1,7 @@
 ---
 id: M1-08
 title: "clock: ticks, phases and days"
-status: review
+status: done
 milestone: M1
 kind: feature
 depends_on: [M1-04, M1-06]
