@@ -28,7 +28,19 @@ type Bundle struct {
 // "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
 type Claim struct {
 	Name api.ContentID `json:"name"` // a text ID
+	// Value says what a fact's value of this claim holds: "material" (a material ID, shown as its
+	// name), "text" (a text ID, shown rendered) or empty (a literal, shown as it is).
+	Value string `json:"value,omitempty"`
 }
+
+// Value kinds of a claim.
+const (
+	ValueMaterial = "material"
+	ValueText     = "text"
+)
+
+// ValueKinds lists the non-empty value kinds a claim may name.
+var ValueKinds = []string{ValueMaterial, ValueText}
 
 // Source is where a fact came from, such as "source.sweep".
 type Source struct {

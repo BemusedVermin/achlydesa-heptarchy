@@ -146,6 +146,38 @@ func TestLearnAddsKnowledgeAndPublishesEvents(t *testing.T) {
 	}
 }
 
+func TestNoticedFactLogsTheValueAsText(t *testing.T) {
+	reg, err := content.Load(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := sim.NewWorld(1)
+	w.Content = reg
+	var noticed []api.FactNoticed
+	w.Bus.SubscribeAll("test", func(_ *sim.World, e api.Event) {
+		if n, ok := e.(api.FactNoticed); ok {
+			noticed = append(noticed, n)
+		}
+	})
+	knower := newKnower(w)
+	ecs.NewMap[comp.Controlled](w.ECS).Add(knower, &comp.Controlled{})
+	clay := api.Fact{Subject: 2, Claim: "claim.material", Value: "material.clay", Source: "source.sweep"}
+	bram := api.Fact{Subject: 2, Claim: "claim.name", Value: "Bram", Source: "source.sweep"}
+	knowledge.Learn(w, knower, clay)
+	knowledge.Learn(w, knower, bram)
+	if _, err := w.Bus.Drain(w); err != nil {
+		t.Fatal(err)
+	}
+	if len(noticed) != 2 {
+		t.Fatalf("noticed = %v, want 2", noticed)
+	}
+	for i, want := range []string{"You learn what it is made of: clay.", "You learn its name: Bram."} {
+		if got := reg.Render(noticed[i].LogText()); got != want {
+			t.Errorf("log line %d = %q, want %q", i, got, want)
+		}
+	}
+}
+
 func TestSaveAndLoadKeepEveryFact(t *testing.T) {
 	bundle, err := content.LoadBundle(contentDir)
 	if err != nil {

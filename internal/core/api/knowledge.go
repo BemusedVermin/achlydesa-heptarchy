@@ -31,6 +31,9 @@ func (FactLearned) EventKind() string { return FactLearnedKind }
 // its members, so that only what the player's side learns reaches the message log.
 type FactNoticed struct {
 	Fact Fact `json:"fact"`
+	// Shown is the fact's value as player-facing text ("clay" for "material.clay"). Empty means
+	// the value is shown as it is.
+	Shown string `json:"shown,omitempty"`
 }
 
 // EventKind implements [Event].
@@ -38,7 +41,11 @@ func (FactNoticed) EventKind() string { return FactNoticedKind }
 
 // LogText implements [Loggable]; see [KnowledgeTextID].
 func (n FactNoticed) LogText() Text {
-	return Text{ID: KnowledgeTextID(n.Fact.Claim), Args: map[string]string{"value": n.Fact.Value}}
+	value := n.Shown
+	if value == "" {
+		value = n.Fact.Value
+	}
+	return Text{ID: KnowledgeTextID(n.Fact.Claim), Args: map[string]string{"value": value}}
 }
 
 // KnowledgeTextID is the text ID that reports a fact of the given claim: "text.knowledge." plus the

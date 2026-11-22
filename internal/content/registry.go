@@ -37,6 +37,22 @@ func (r *Registry) Claim(id api.ContentID) (Claim, bool) {
 	return claim, ok
 }
 
+// RenderValue turns a fact's value of the given claim into player-facing text, by the claim's value
+// kind. A literal, an unknown claim or an unknown ID is returned as it is.
+func (r *Registry) RenderValue(claim api.ContentID, value string) string {
+	switch r.bundle.Claims[string(claim)].Value {
+	case ValueMaterial:
+		if material, ok := r.bundle.Materials[value]; ok {
+			return r.Render(api.Text{ID: material.Name})
+		}
+	case ValueText:
+		if _, ok := r.templates[api.ContentID(value)]; ok {
+			return r.Render(api.Text{ID: api.ContentID(value)})
+		}
+	}
+	return value
+}
+
 // Source returns the fact source with the given ID.
 func (r *Registry) Source(id api.ContentID) (Source, bool) {
 	source, ok := r.bundle.Sources[string(id)]

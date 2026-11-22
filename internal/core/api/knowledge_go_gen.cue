@@ -27,4 +27,8 @@ package api
 // its members, so that only what the player's side learns reaches the message log.
 #FactNoticed: {
 	fact: #Fact @go(Fact)
+
+	// Shown is the fact's value as player-facing text ("clay" for "material.clay"). Empty means
+	// the value is shown as it is.
+	shown?: string @go(Shown)
 }
