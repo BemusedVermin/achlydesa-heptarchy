@@ -1,7 +1,7 @@
 ---
 id: M1-18
 title: "timeline: actions that land later"
-status: todo
+status: done
 milestone: M1
 kind: seam
 depends_on: [M1-17]
@@ -64,15 +64,25 @@ func AimedAt(w *sim.World, target api.UID) []ecs.Entity               // the sam
 
 ## Acceptance criteria
 
-- [ ] A pending action landing at tick 12 resolves at 12, before a decision at 12; two landing at 12 resolve in `Seq` order.
-- [ ] Canceling one removes it from the timeline and the view and publishes `ActionCanceled`; its resolver never runs.
-- [ ] Despawning the actor before the landing cancels it with the "gone" reason.
-- [ ] A `lands` entry appears in `TimelineView` with its resolver's label, and disappears once landed.
-- [ ] Save, load and continue gives the same entries and the same hash (once M1-12 exists, add this to its tests; until then, a round trip through ark-serde in this task's tests).
-- [ ] `go tool task check` passes.
+- [x] A pending action landing at tick 12 resolves at 12, before a decision at 12; two landing at 12 resolve in `Seq` order.
+- [x] Canceling one removes it from the timeline and the view and publishes `ActionCanceled`; its resolver never runs.
+- [x] Despawning the actor before the landing cancels it with the "gone" reason.
+- [x] A `lands` entry appears in `TimelineView` with its resolver's label, and disappears once landed.
+- [x] Save, load and continue gives the same entries and the same hash (once M1-12 exists, add this to its tests; until then, a round trip through ark-serde in this task's tests).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - What any action does, hits or misses, and staggering (M2-06, M2-04).
 
 ## Notes
+
+- Pending actions are found by querying `comp.Pending` and sorting by `Lands` then `Seq`, not kept in a second heap. Run compares the earliest landing with the next decision (`peekTick`), so there is nothing to rebuild after a load beyond M1-15.F1.
+- `Resolve` runs before the pending entity is removed, so the resolver can read its kind-specific components. `ActionLanded` is published after removal.
+- A player with a free channel no longer returns from `Run` while a landing is due at the current tick, so two landings at one tick both resolve before the decision.
+- `Seq` is the highest `Seq` in the world plus one, found at each `Schedule`, so it is right after a load whenever that happens.
+- Both events carry `Kind`, `Actor`, `Target` and `Tick`; `ActionCanceled` also has a `Reason` (`api.Text`, like `Rejected`).
+- Added text `text.timeline.lands` (fallback label) and `text.timeline.canceled.gone`.
+- The save round-trip criterion is met with a component copy into a fresh world, because ark-serde is not a dependency yet. The real round trip is filed as M1-18.F1.
+- Follow-ups filed: M1-18.F1.
+

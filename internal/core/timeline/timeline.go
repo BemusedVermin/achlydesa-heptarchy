@@ -82,6 +82,9 @@ type state struct {
 	actors      *ecs.Map[comp.Actor]
 	busy        *ecs.Map[comp.Busy]
 	members     *ecs.Map[comp.MemberOf]
+	pendings    *ecs.Map[comp.Pending]
+	resolvers   map[string]Resolver
+	seq         uint64 // the last Seq handed out
 }
 
 // stateOf returns the world's timeline state, creating it on first use.
@@ -96,6 +99,8 @@ func stateOf(w *sim.World) *state {
 		actors:      ecs.NewMap[comp.Actor](w.ECS),
 		busy:        ecs.NewMap[comp.Busy](w.ECS),
 		members:     ecs.NewMap[comp.MemberOf](w.ECS),
+		pendings:    ecs.NewMap[comp.Pending](w.ECS),
+		resolvers:   map[string]Resolver{},
 	}
 	st.channels = func(_ *sim.World, body ecs.Entity) []Channel {
 		return []Channel{{Entity: body, Tags: []string{bodyTag}}}
@@ -226,6 +231,25 @@ func (st *state) pop(w *sim.World) (ecs.Entity, bool) {
 	return ecs.Entity{}, false
 }
 
+// peekTick is the tick of the earliest decision, discarding stale entries as pop does.
+func (st *state) peekTick(w *sim.World) (int64, bool) {
+	for st.line.Len() > 0 {
+		next := st.line[0]
+		if !st.live(w, next) {
+			heap.Pop(&st.line)
+			continue
+		}
+		if tick := st.decisionTick(w, next.e); tick != next.tick {
+			heap.Pop(&st.line)
+			delete(st.queued, next.e)
+			st.schedule(w, next.e)
+			continue
+		}
+		return next.tick, true
+	}
+	return 0, false
+}
+
 // Current returns the body that is deciding now: it has a free usable channel at this tick.
 func Current(w *sim.World) (ecs.Entity, bool) {
 	st := stateOf(w)
@@ -320,7 +344,8 @@ func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 	st := stateOf(w)
 	aiTurns := 0
 	for {
-		if body, ok := Current(w); ok && st.actors.Get(body).Controller == PlayerController {
+		if body, ok := Current(w); ok && st.actors.Get(body).Controller == PlayerController &&
+			!st.landingDue(w) {
 			return body, nil
 		}
 		if st.pending {
@@ -328,6 +353,11 @@ func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 			if err := w.Systems.Run(w, sim.PerTurn); err != nil {
 				return ecs.Entity{}, fmt.Errorf("timeline: per-turn systems: %w", err)
 			}
+		}
+		if landed, err := st.landNext(w, clk); err != nil {
+			return ecs.Entity{}, err
+		} else if landed {
+			continue
 		}
 		body, ok := st.pop(w)
 		if !ok {

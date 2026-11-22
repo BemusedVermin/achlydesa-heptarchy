@@ -25,4 +25,6 @@ text: {
 	"text.timeline.ready":       "{{.name}} is ready"
 	"text.timeline.not_current": "It is not that actor's turn to act."
 	"text.timeline.bad_wait":    "Waiting takes some time."
+	"text.timeline.lands":       "{{.kind}} lands"
+	"text.timeline.canceled.gone": "The one acting is gone."
 }

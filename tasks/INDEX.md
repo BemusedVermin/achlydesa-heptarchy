@@ -22,7 +22,7 @@ Brief: [M1-skeleton/README.md](M1-skeleton/README.md)
 | [M1-17](M1-skeleton/M1-17-action-timing.md) | timeline: part-level action timing | done | seam | L | M1-15 |
 | [M1-09](M1-skeleton/M1-09-game.md) | game: the public API | todo | seam | M | M1-17 |
 | [M1-14](M1-skeleton/M1-14-sight-pathing.md) | hexmap: sight lines and pathing in 3D | done | feature | M | M1-05 |
-| [M1-18](M1-skeleton/M1-18-pending-actions.md) | timeline: actions that land later | todo | seam | M | M1-17 |
+| [M1-18](M1-skeleton/M1-18-pending-actions.md) | timeline: actions that land later | done | seam | M | M1-17 |
 | [M1-19](M1-skeleton/M1-19-effects-core.md) | effects: the effect core, selectors and timing primitives | todo | seam | M | M1-06, M1-18 |
 | [M1-20](M1-skeleton/M1-20-actions.md) | actions: content-defined actions | todo | seam | L | M1-07, M1-14, M1-19 |
 | [M1-10](M1-skeleton/M1-10-explore.md) | explore: maps from content, movement and the seamless plan view | todo | feature | L | M1-09, M1-14, M1-20 |
@@ -71,3 +71,4 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | proposed | seam | M1 | M1-15 |
 | [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | M1 | M1-14 |
 | [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | proposed | seam | M1 | M1-17 |
+| [M1-18.F1](followups/M1-18.F1-pending-save-roundtrip.md) | Round-trip pending actions through a real save | proposed | test | M1 | M1-18 |
