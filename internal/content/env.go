@@ -27,6 +27,7 @@ type EffectEnv struct {
 	Locked       bool     `expr:"locked"`        // the part is busy, as a lock leaves it
 	Graft        bool     `expr:"graft"`         // the part is a graft
 	Type         string   `expr:"type"`          // the damage type ID the action chose or the event carries, or empty
+	Cells        int      `expr:"cells"`         // the cells a fall dropped, or 0
 }
 
 // ActionEnv is what an action's formulas see. Grow it deliberately.

@@ -31,6 +31,7 @@ package content
 	Locked: bool
 	Graft:  bool
 	Type:   string
+	Cells:  int
 }
 
 // ActionEnv is what an action's formulas see. Grow it deliberately.

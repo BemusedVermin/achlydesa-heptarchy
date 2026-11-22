@@ -77,7 +77,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M1-20.F1](followups/M1-20.F1-check-draws-roll.md) | Effect checks must not draw from the RNG | done | bug | M1 | M1-20 |
 | [M1-20.F2](followups/M1-20.F2-cell-targets.md) | Cell-targeted actions | proposed | seam | unplanned | M1-20 |
 | [M1-10.F1](followups/M1-10.F1-slope-floor-in-plan-view.md) | Plan view: a slope's ceiling beats its floor | done | question | M1 | M1-10 |
-| [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | todo | feature | M2 | M1-10 |
+| [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | done | feature | M2 | M1-10 |
 | [M1-10.F1.F1](followups/M1-10.F1.F1-plan-view-reachability.md) | Plan view: draw by reachability within a limit | done | feature | M1 | M1-10.F1 |
 | [M2-02.F1](followups/M2-02.F1-despawn-body-parts.md) | Despawning a body must remove its parts | proposed | bug | M2 | M2-02 |
 | [M2-04.F1](followups/M2-04.F1-validate-content-ids-in-effects.md) | Check content IDs named by effect parameters at load | done | seam | M2 | M2-04 |

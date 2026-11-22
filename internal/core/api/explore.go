@@ -100,6 +100,12 @@ type Fell struct {
 // EventKind implements [Event].
 func (Fell) EventKind() string { return FellKind }
 
+// Subjects implements [Subjected]: the faller is the target.
+func (f Fell) Subjects() map[string]UID { return map[string]UID{SubjectTarget: f.Actor} }
+
+// Choices implements [Chosen]: the cells fallen, for the formulas of the triggers it fires.
+func (f Fell) Choices() map[string]string { return map[string]string{"cells": strconv.Itoa(f.Cells)} }
+
 // LogText implements [Loggable].
 func (f Fell) LogText() Text {
 	return Text{ID: "text.explore.fell", Args: map[string]string{"cells": strconv.Itoa(f.Cells)}}
