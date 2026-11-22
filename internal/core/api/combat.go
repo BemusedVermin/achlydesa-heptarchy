@@ -26,8 +26,9 @@ type PartDamaged struct {
 	Part      UID `json:"part"`
 	Amount    int `json:"amount"`    // the integrity it actually lost
 	Integrity int `json:"integrity"` // what it has left
-	// Type is the damage type the action chose, or empty when it chose none.
-	Type ContentID `json:"type,omitempty"`
+	// Chosen is every choice of the action that dealt the damage, such as "type": "type.cut"; the
+	// Choices method returns it, so trigger formulas see it as chosen.
+	Chosen map[string]string `json:"choices,omitempty"`
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`
@@ -89,13 +90,8 @@ func (e StatusAdded) Subjects() map[string]UID {
 	return withSource(map[string]UID{SubjectTarget: e.Body}, e.Source)
 }
 
-// Choices implements [Chosen]: the damage type, when there is one.
-func (e PartDamaged) Choices() map[string]string {
-	if e.Type == "" {
-		return nil
-	}
-	return map[string]string{"type": string(e.Type)}
-}
+// Choices implements [Chosen]: every choice of the action that dealt the damage.
+func (e PartDamaged) Choices() map[string]string { return e.Chosen }
 
 func partSubjects(body, part, source UID) map[string]UID {
 	return withSource(map[string]UID{SubjectTarget: body, SubjectPart: part}, source)

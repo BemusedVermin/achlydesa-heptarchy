@@ -16,12 +16,12 @@ package api
 	#DirSE
 
 #values_Dir: {
-	DirE:  #DirE
-	DirNE: #DirNE
-	DirNW: #DirNW
-	DirW:  #DirW
-	DirSW: #DirSW
-	DirSE: #DirSE
+	#DirE
+	#DirNE
+	#DirNW
+	#DirW
+	#DirSW
+	#DirSE
 }
 
 #DirE:  #Dir & 0

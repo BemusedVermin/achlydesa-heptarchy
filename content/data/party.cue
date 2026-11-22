@@ -18,4 +18,6 @@ party: {
 	climb_cost: "5"
 	// An alert puts every member under the player's hand, and gives single file back when it ends.
 	individual_on_alert: true
+	// A follower steps with this action.
+	follow_action: "action.step"
 }

@@ -14,6 +14,28 @@ package content
 	Speed: int
 }
 
+// GrantEnv is what the speed formula sees: the totals of a body's functioning parts' grants, by kind.
+#GrantEnv: {
+	Grant: {[string]: int} @go(,map[string]int)
+}
+
+// Record is what a formula sees of one content record. Tags, props and lists it doesn't have read
+// as empty: no tags, 0, an empty list.
+#Record: {
+	ID: string
+	Tags: [...string] @go(,[]string)
+	Props: {[string]: float64} @go(,map[string]float64)
+	Lists: {[string]: [...string]} @go(,map[string][]string)
+}
+
+// Side is what a formula sees of one body: its template, one of its parts, and that part's material.
+// A record is empty (ID "") when there's none.
+#Side: {
+	Template: #Record
+	Part:     #Record
+	Material: #Record
+}
+
 // EffectEnv is everything an effect formula can see. Later tasks add fields deliberately.
 #EffectEnv: {
 	Now:       int64
@@ -21,16 +43,26 @@ package content
 	Distance:  int
 	WindingUp: bool
 
+	// Source is the acting body; its part is the first channel the action occupies that is a part.
+	Source: #Side
+
+	// Target is the target body and the target part.
+	Target: #Side
+
+	// Chosen is every choice the action or event carries, as the record its value names. A value
+	// that names no record, such as a direction, is Record{ID: value}.
+	Chosen: {[string]: #Record} @go(,map[string]Record)
+
+	// Pack counts, per item ID, the stacks the source's pack can use on the target.
+	Pack: {[string]: int} @go(,map[string]int)
+
 	// The rest describe the target part and body. They are false, 0 or empty when there is none.
-	Weak:         bool
-	Immune:       bool
 	Integrity:    int
 	MaxIntegrity: int
 	Height:       int
 	Statuses: [...string] @go(,[]string)
 	Locked: bool
 	Graft:  bool
-	Type:   string
 	Cells:  int
 }
 
@@ -41,11 +73,15 @@ package content
 	Distance:  int
 	Used:      int
 	Choice: {[string]: string} @go(,map[string]string)
+	Source: #Side
+	Target: #Side
+	Chosen: {[string]: #Record} @go(,map[string]Record)
+	Pack: {[string]: int} @go(,map[string]int)
 }
 
-// TypeEnv is what a damage type's condition can see.
-#TypeEnv: {
-	TargetUID:   uint64
-	ItemBoundTo: uint64
-	TargetTags: [...string] @go(,[]string)
+// OfferEnv is what a choice's offer formula sees.
+#OfferEnv: {
+	#Record
+	Source: #Side
+	Pack: {[string]: int} @go(,map[string]int)
 }

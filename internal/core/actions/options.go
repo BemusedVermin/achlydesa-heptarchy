@@ -76,13 +76,13 @@ func (ev *evaluator) candidates(actor ecs.Entity, requireFree bool) ([]candidate
 func (ev *evaluator) choiceCombos(actor ecs.Entity, def content.ActionDef) [][]string {
 	combos := [][]string{nil}
 	for _, name := range def.Choices {
-		provider, ok := ev.st.providers[name]
-		if !ok {
+		values, err := ev.choiceValues(name, actor)
+		if err != nil || values == nil {
 			return nil
 		}
 		var next [][]string
 		for _, prefix := range combos {
-			for _, value := range provider(ev.w, actor) {
+			for _, value := range values {
 				next = append(next, append(slices.Clone(prefix), value))
 			}
 		}

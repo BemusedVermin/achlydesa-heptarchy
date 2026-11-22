@@ -95,11 +95,16 @@ func channelsOf(w *sim.World, body ecs.Entity) []timeline.Channel {
 	return channels
 }
 
-// speedOf is the timeline's speed hook: the sum of the speed grants of the functioning parts, so a
-// body with no legs has speed 0. An entity with no body keeps the configured default speed.
+// speedOf is the timeline's speed hook: the configured speed formula over the grants of the
+// functioning parts. An entity with no body keeps the configured default speed. A formula that
+// fails is a content bug the loader should have caught, so it reads as speed 0.
 func speedOf(w *sim.World, body ecs.Entity) int {
 	if !ecs.NewMap[comp.Body](w.ECS).Has(body) {
 		return w.Content.Timeline().DefaultSpeed
 	}
-	return Grants(w, body, content.GrantSpeed)
+	speed, err := w.Content.Speed(content.GrantEnv{Grant: GrantTotals(w, body)})
+	if err != nil {
+		return 0
+	}
+	return speed
 }

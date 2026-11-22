@@ -14,8 +14,6 @@ import (
 const (
 	// followController is the controller of a member trailing the one ahead of it.
 	followController = "follow"
-	// stepAction is the content action a step is.
-	stepAction api.ContentID = "action.step"
 	// followPathNodes bounds the search for a way to a member that has fallen behind.
 	followPathNodes = 200
 )
@@ -111,7 +109,7 @@ func stepTo(w *sim.World, body ecs.Entity, from comp.Pos, dir api.Dir) error {
 	if _, occupied := bodyAt(w, from.Map, step.To.Cell, body); occupied {
 		return nil
 	}
-	in := actions.Intent{Actor: body, Action: stepAction, Dir: &dir}
+	in := actions.Intent{Actor: body, Action: w.Content.Party().FollowAction, Dir: &dir}
 	if ok, _ := actions.Validate(w, in); !ok {
 		return nil
 	}

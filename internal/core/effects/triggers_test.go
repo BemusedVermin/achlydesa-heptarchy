@@ -152,7 +152,7 @@ func TestMaterialTriggerHardensClayWhenBurned(t *testing.T) {
 	hardenOnBurn := func(b *content.Bundle) {
 		clay := b.Materials["material.clay"]
 		clay.Triggers = []content.Trigger{trigger(
-			"combat.part_damaged", content.RolePart, `type == "type.burn"`,
+			"combat.part_damaged", content.RolePart, `chosen.type.id == "type.burn"`,
 			ref("raise_max_integrity", "parts", "target_part", "amount", "2"),
 		)}
 		b.Materials["material.clay"] = clay

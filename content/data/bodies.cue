@@ -12,14 +12,14 @@ parts: {
 		slot:      "head"
 		material:  "material.flesh"
 		integrity: 8
-		grants: [{kind: "targeting"}]
+		grants: [{kind: "targeting", value: 1}]
 	}
 	"part.human_arm": {
 		name:      "text.part.arm"
 		slot:      "arm"
 		material:  "material.flesh"
 		integrity: 6
-		grants: [{kind: "action"}]
+		grants: [{kind: "action", value: 1}]
 	}
 	"part.human_legs": {
 		name:      "text.part.legs"
@@ -41,7 +41,7 @@ parts: {
 		slot:      "head"
 		material:  "material.flesh"
 		integrity: 5
-		grants: [{kind: "targeting"}, {kind: "action"}]
+		grants: [{kind: "targeting", value: 1}, {kind: "action", value: 1}]
 	}
 	"part.crawler_legs": {
 		name:      "text.part.legs"
