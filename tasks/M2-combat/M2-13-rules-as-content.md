@@ -283,7 +283,7 @@ Implemented as specified except where listed here.
 - `anatomy.Grants(w, body, kind)` stays and now sums values for every kind; `anatomy.GrantTotals` gives all kinds for the speed formula.
 - `reveal` takes `claim`, `value` and `source` (all required) and optional `parts`; unknown claim or source fails when applied, naming the parameter, and at load for literals.
 - Errors for an unknown item, status, faction, claim or source from a text formula name the parameter, e.g. `parameter "item": unknown item ...`.
-- The CUE overlap constraint for weak/immune (`_overlap` in `materials.cue`) was checked by hand with an overlapping fixture; there is no Go test, since the temp-dir loader has no `cue.mod` (follow-up M2-13.F1).
+- The CUE overlap constraint for weak/immune (`_overlap` in `materials.cue`) is tested in `internal/content/schema_test.go` (follow-up M2-13.F1, done in this PR).
 - The sample rules `weak` and `immune` are used by no formula in the sample content yet (M2-06 uses them), so `Registry.Warnings()` lists them as unused. Tests that counted warnings now count hostility warnings only.
 - `item.name` (bound, tagged `name`) and `text.item.name` were added for `type.name`'s requires, as specified.
 
@@ -291,4 +291,4 @@ Implemented as specified except where listed here.
 
 **Tests added**: `content/rules_test.go`, `actions/content_choices_test.go`, `combat/rules_test.go`, `explore/rules_test.go`, `inventory/usable_test.go`.
 
-**Follow-ups filed**: M2-13.F1 (test CUE constraints against the real schema).
+**Follow-ups filed**: M2-13.F1 (test CUE constraints against the real schema), done in this PR.
