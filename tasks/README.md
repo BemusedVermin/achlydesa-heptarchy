@@ -85,7 +85,7 @@ Record each decision as one line in the follow-up's Notes, such as `Triaged 2026
 
 Between milestones, the owner runs a cleanup: `/audit` has read-only agents look for comment bloat, duplication, tests that cost more than they protect, unclear names, hand-written code a library already does, and convention slips, then files the work as a milestone `C1`, `C2` and so on, in `tasks/C<n>-cleanup/`. The first audit also files a task to write `docs/content-guide.md`, the guide to making content in CUE, and later audits check it for drift. The owner settles the names and new libraries with `/decide` and the tasks with `/triage`; agents do the tasks; `/audit lock-in` turns what was decided into lint rules and agent rules. The steps are in `.claude/skills/audit/SKILL.md`.
 
-Every cleanup task must show it changed no behavior: `go tool task same-behavior` plays the same harness games on `origin/master` and on the working tree, and compares the CSV, the final hashes and the golden files. A rename passes `-- --rename old=new` for each name it changes.
+Every cleanup task must show it changed no behavior: `go tool task same-behavior` plays the same harness games on `origin/master` and on the working tree, and compares the CSV, the final hashes and the golden files. A rename task lists its renames in its front matter (`renames: [old=new, ...]`), so the comparison allows exactly those. A tests task (`kind: test`) instead changes only tests. `go tool task check-pr` picks the right check from the branch's task, and CI runs it on every pull request, along with the task bookkeeping checks.
 
 ## Writing a task spec
 

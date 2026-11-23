@@ -40,6 +40,14 @@ jobs:
         run: go tool task check-ci 2>&1 | tee check.log
         env:
           BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+      # Task bookkeeping: INDEX.md matches the task files, and a task branch's task is done. For a
+      # cleanup task (task/C...), also that it changed no behavior, or, for a tests task, only tests.
+      - name: task check
+        if: github.event_name == 'pull_request'
+        run: go tool task check-pr -- --branch "$HEAD_REF" --base "origin/$BASE_REF"
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
       # Lists the slowest packages and warns about slow ones; never fails.
       - name: test times
         if: always()
@@ -73,3 +81,27 @@ jobs:
         with:
           path: test-times-master.txt
           key: test-times-master-${{ github.sha }}
+
+  # The owner works on Windows, while agents and the check above run on Linux. This catches what only
+  # breaks there: path separators, line endings, case-insensitive file names.
+  check-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.15.0
+          install-mode: binary
+          install-only: true
+      - name: check
+        shell: bash
+        run: go tool task check-ci
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}

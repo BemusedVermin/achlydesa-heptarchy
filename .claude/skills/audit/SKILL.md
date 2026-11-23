@@ -56,15 +56,15 @@ Say what you started. Wait for every report.
    - each contested name, with the options and your recommendation;
    - each new third-party library;
    - each convention that conflicts with `AGENTS.md`.
-4. **Tasks** (`kind: debt`), in this order:
-   - **Renames.** One task per contested name, depending on its question, and each depending on the rename before it, so they run one at a time. Agents rename Go identifiers with `gopls rename`, never by hand, and content IDs everywhere they appear.
+4. **Tasks** (`kind: debt`, except tests tasks), in this order:
+   - **Renames.** One task per contested name, depending on its question, and each depending on the rename before it, so they run one at a time. Its front matter lists the renames it makes, as `renames: [old=new, ...]`; the check reads them from there. Agents rename Go identifiers with `gopls rename`, never by hand, and content IDs everywhere they appear.
    - **Duplication and libraries.** One task per area, or per cross-area finding, each depending on the last rename.
-   - **Tests.** One task per area: delete, shrink or merge the tests the auditor flagged. Each depends on that area's duplication task, since tests follow the code they test.
+   - **Tests** (`kind: test`). One task per area: delete, shrink or merge the tests the auditor flagged. Each depends on that area's duplication task, since tests follow the code they test.
    - **Comments.** One task per area, depending on that area's tests task, so they run once the code and tests have settled. The task quotes the comments lens's policy and the auditor's examples.
    - **Content guide.** If `docs/content-guide.md` doesn't exist, one task to write it. If it exists and the content auditor found gaps, one task to update it. It depends on the last rename and on the content area's comments task, so it describes names and content that have settled. Its Spec takes the content-guide lens's description of what the guide covers. It changes only `docs/`, so its criteria are: every file, ID and command it names exists, its terms match the glossary, and `go tool task content` passes.
    - **Lock-in.** Last, depending on every other task. Its Spec says to run `/audit lock-in` in the owner's session, because it changes files agents can't touch.
 5. **Every cleanup task's acceptance criteria** include:
-   - `go tool task same-behavior` passes. For a rename, add `-- --rename old=new` for each rename it makes, all listed in the task. A tests task instead shows that it changed only `_test.go` files and `testdata/`, since deleting a golden test removes its golden files.
+   - `go tool task check-pr` passes. On a cleanup task's branch it runs the same-behavior check, with the renames from the task's front matter. For a `kind: test` task, it checks instead that only `_test.go` files, `testdata/` and `tasks/` changed, since deleting a golden test removes its golden files. CI runs it on the pull request too.
    - `go tool task check` passes.
    - The task's findings, one per line, each resolved.
 

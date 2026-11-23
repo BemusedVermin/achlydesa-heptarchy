@@ -1,0 +1,92 @@
+name: nightly
+
+# Longer checks than a pull request can wait for, run on master once a night. If one fails, the run
+# opens an issue (or comments on the open one); when they pass again, it closes it.
+on:
+  schedule:
+    - cron: "23 11 * * *" # 03:23 in Seattle (04:23 in summer)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Many seeds and long games, to catch crashes and slowdowns that 3 seeds miss.
+  soak:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: harness
+        shell: bash
+        run: |
+          start=$(date +%s)
+          go run ./cmd/harness run --seeds 100 --steps 300 --out soak.csv 2> soak.log
+          echo "### Soak: 100 seeds × 300 steps" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "$(($(wc -l < soak.csv) - 1)) rows in $(( $(date +%s) - start ))s. The CSV is attached to this run." >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soak
+          path: |
+            soak.csv
+            soak.log
+          retention-days: 14
+
+  # The race detector: harness games run side by side, and nothing else checks that they never
+  # share state (AGENTS.md rule 3).
+  race:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test -race -count=1 ./...
+
+  # A few minutes on each fuzz target.
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test -run '^$' -fuzz '^FuzzLoad$' -fuzztime 5m ./internal/content
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failures
+          path: internal/content/testdata/fuzz
+          retention-days: 30
+
+  report:
+    needs: [soak, race, fuzz]
+    if: always() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RESULTS: "soak: ${{ needs.soak.result }}, race: ${{ needs.race.result }}, fuzz: ${{ needs.fuzz.result }}"
+          FAILED: ${{ contains(needs.*.result, 'failure') }}
+        run: |
+          title="Nightly checks are failing"
+          open=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ "$FAILED" = "true" ]; then
+            body="$RESULTS. [Run]($RUN_URL)"
+            if [ -n "$open" ]; then
+              gh issue comment "$open" --repo "$REPO" --body "Still failing. $body"
+            else
+              gh issue create --repo "$REPO" --title "$title" --body "$body"
+            fi
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --repo "$REPO" --comment "Passing again. [Run]($RUN_URL)"
+          fi
