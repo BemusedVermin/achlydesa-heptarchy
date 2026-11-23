@@ -81,7 +81,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-20](C1-cleanup/C1-20-actions-area-duplication-tests-comments.md) | Actions area: duplication, tests, comments | todo | debt | L | C1-18 |
 | [C1-21](C1-cleanup/C1-21-features-area-duplication-tests-comments.md) | Features area: duplication, tests, comments | todo | debt | L | C1-18 |
 | [C1-22](C1-cleanup/C1-22-foundation-area-duplication-tests-comments-speed.md) | Foundation area: duplication, tests, comments, speed errors | todo | debt | L | C1-18, C1-16 |
-| [C1-23](C1-cleanup/C1-23-game-and-frontend-duplication-text-out-of-the-tu.md) | Game and frontend: duplication, text out of the tui, tests, comments | proposed | debt | L | C1-18, C1-12 |
+| [C1-23](C1-cleanup/C1-23-game-and-frontend-duplication-text-out-of-the-tu.md) | Game and frontend: duplication, text out of the tui, tests, comments | todo | debt | L | C1-18, C1-12 |
 | [C1-24](C1-cleanup/C1-24-tools-fix-the-windows-test-shared-git-code-tests.md) | Tools: fix the Windows test, shared git code, tests, comments | proposed | debt | L | C1-18, C1-15 |
 | [C1-25](C1-cleanup/C1-25-agentkit-cleanup-owner-does-this-one.md) | agentkit cleanup (owner does this one) | proposed | debt | L | C1-24, C1-14 |
 | [C1-26](C1-cleanup/C1-26-design-doc-fixes-and-the-content-guide.md) | Design-doc fixes and the content guide | proposed | content | L | C1-17, C1-19 |
