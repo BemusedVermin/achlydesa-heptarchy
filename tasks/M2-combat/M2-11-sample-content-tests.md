@@ -1,7 +1,7 @@
 ---
 id: M2-11
 title: Sample content, lethality targets and golden encounters
-status: todo
+status: in-progress
 milestone: M2
 kind: test
 depends_on: [M2-09]

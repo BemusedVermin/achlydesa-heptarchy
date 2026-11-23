@@ -48,6 +48,7 @@ func (p *RandomPolicy) Choose(view api.View) (api.Option, bool) {
 // Header is the first CSV row.
 var Header = []string{
 	"seed", "step", "tick", "day", "phase", "map", "q", "r", "depth", "events", "rejected",
+	"alert_ticks", "landings", "misses", "severed", "deaths", "outcome",
 }
 
 // RunConfig says what Run plays.
@@ -93,6 +94,10 @@ func runSeed(cfg RunConfig, seed uint64, writer *csv.Writer) error {
 		return err
 	}
 	policy := cfg.NewPolicy(seed)
+	if binder, ok := policy.(Binder); ok {
+		binder.Bind(g)
+	}
+	track := newTracker()
 	for step := 1; step <= cfg.Steps; step++ {
 		view, err := g.View()
 		if err != nil {
@@ -106,7 +111,7 @@ func runSeed(cfg RunConfig, seed uint64, writer *csv.Writer) error {
 		if err != nil {
 			return fmt.Errorf("step %d: %w", step, err)
 		}
-		row, err := stepRow(g, seed, step, events)
+		row, err := stepRow(g, seed, step, events, track)
 		if err != nil {
 			return err
 		}
@@ -122,11 +127,12 @@ func runSeed(cfg RunConfig, seed uint64, writer *csv.Writer) error {
 	return nil
 }
 
-func stepRow(g *game.Game, seed uint64, step int, events []api.Event) ([]string, error) {
+func stepRow(g *game.Game, seed uint64, step int, events []api.Event, track *tracker) ([]string, error) {
 	view, err := g.View()
 	if err != nil {
 		return nil, err
 	}
+	track.observe(events, view)
 	var day, phase, mapID, q, r, depth string
 	if view.Clock != nil {
 		day, phase = strconv.Itoa(view.Clock.Day), view.Clock.Phase
@@ -144,8 +150,9 @@ func stepRow(g *game.Game, seed uint64, step int, events []api.Event) ([]string,
 			rejected++
 		}
 	}
-	return []string{
+	row := []string{
 		strconv.FormatUint(seed, 10), strconv.Itoa(step), strconv.FormatInt(view.Tick, 10),
 		day, phase, mapID, q, r, depth, strconv.Itoa(len(events)), strconv.Itoa(rejected),
-	}, nil
+	}
+	return append(row, track.columns()...), nil
 }

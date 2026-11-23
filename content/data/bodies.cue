@@ -84,9 +84,76 @@ parts: {
 		vital:     true
 		grants: []
 	}
+	// The parts of the clay thing that moves: clay through and through, tougher than the crawler's,
+	// with two maws to bite with. Placeholder numbers, tuned so a party that does not know
+	// clay loses (M2-11).
+	"part.clay_maw": {
+		name:      "text.part.maw"
+		slot:      "head"
+		material:  "material.clay"
+		integrity: 10
+		grants: [{kind: "targeting", value: 1}, {kind: "action", value: 1}]
+	}
+	"part.clay_legs": {
+		name:      "text.part.legs"
+		slot:      "legs"
+		material:  "material.clay"
+		integrity: 10
+		grants: [{kind: "speed", value: 1}]
+	}
+	"part.clay_core": {
+		name:      "text.part.core"
+		slot:      "torso"
+		material:  "material.clay"
+		integrity: 12
+		vital:     true
+		grants: []
+	}
+	// A flesh creature of the shallows: a skull to bite with, an eye that sees for it, legs and a core.
+	"part.beast_skull": {
+		name:      "text.part.skull"
+		slot:      "head"
+		material:  "material.bone"
+		integrity: 4
+		grants: [{kind: "action", value: 1}]
+	}
+	"part.beast_eye": {
+		name:      "text.part.eye"
+		slot:      "eye"
+		material:  "material.eye"
+		integrity: 2
+		grants: [{kind: "targeting", value: 1}]
+	}
+	"part.beast_legs": {
+		name:      "text.part.legs"
+		slot:      "legs"
+		material:  "material.flesh"
+		integrity: 5
+		grants: [{kind: "speed", value: 2}]
+	}
+	"part.beast_torso": {
+		name:      "text.part.torso"
+		slot:      "torso"
+		material:  "material.flesh"
+		integrity: 7
+		vital:     true
+		grants: []
+	}
 }
 
 bodies: {
+	"body.clay_thing": parts: [
+		{part: "part.clay_maw"},
+		{part: "part.clay_maw"},
+		{part: "part.clay_legs"},
+		{part: "part.clay_core"},
+	]
+	"body.beast": parts: [
+		{part: "part.beast_skull"},
+		{part: "part.beast_eye"},
+		{part: "part.beast_legs"},
+		{part: "part.beast_torso"},
+	]
 	"body.human": parts: [
 		{part: "part.human_head"},
 		{part: "part.human_arm"},

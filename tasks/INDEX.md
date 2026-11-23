@@ -49,7 +49,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-08](M2-combat/M2-08-act-options-controller.md) | The bodies view and the creature controller | done | feature | M | M2-07 |
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | done | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | done | feature | M | M2-08 |
-| [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
+| [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | in-progress | test | M | M2-09 |
 | [M2-14](M2-combat/M2-14-step-speed.md) | Make a game step fast again after the seven forms | done | bug | M | M2-06 |
 | [M2-15](M2-combat/M2-15-triage-followups.md) | Triage the open follow-ups into milestones | done | debt | S | none |
 

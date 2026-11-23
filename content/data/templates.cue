@@ -53,7 +53,7 @@ templates: {
 		actor: controller: "hunt"
 		actions: ["action.step", "action.strike"]
 		lists: types: ["type.cut"]
-		body:    "body.crawler"
+		body:    "body.clay_thing"
 		faction: "faction.deep"
 	}
 	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
@@ -64,12 +64,24 @@ templates: {
 		actor: controller: "hunt"
 		body:    "body.remnant"
 		faction: "faction.deep"
+		actions: ["action.step", "action.strike"]
+		lists: types: ["type.cut"]
 		triggers: [{
 			on:   "combat.part_severed"
 			role: "target"
 			if:   "roll < 0.3"
 			do: [{do: "spawn_from_part", params: {faction: "faction.crawling", controller: "hunt"}}]
 		}]
+	}
+	// A flesh creature with a skull and an eye: Press cracks the bone, Light blinds the eye.
+	"template.creature.beast": {
+		name: "text.template.creature.beast"
+		appearance: {glyph: "b", color: "red"}
+		actor: controller: "hunt"
+		actions: ["action.step", "action.strike"]
+		lists: types: ["type.cut"]
+		body:    "body.beast"
+		faction: "faction.deep"
 	}
 	// What a remnant's arm fights as once it crawls off (its part's crawls_as): the arm is its whole
 	// body, so it has none of its own, and spawn_from_part gives its faction and controller. Strike
@@ -112,6 +124,7 @@ templates: {
 
 text: {
 	"text.template.creature.remnant": "The remnant"
+	"text.template.creature.beast":   "The beast"
 	"text.template.crawling.remnant_arm": "A crawling arm"
 	"text.template.test.dummy":      "Dummy"
 	"text.template.creature.crawler": "The crawler"
