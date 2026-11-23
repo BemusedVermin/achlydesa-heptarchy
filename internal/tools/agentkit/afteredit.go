@@ -135,7 +135,8 @@ func afterEdit(input hookInput, tools goTools) string {
 }
 
 // findingsIn picks the lines of golangci-lint's output that are about file, at most maxFindings of
-// them. golangci-lint prints paths relative to the root it ran in, with backslashes on Windows.
+// them. golangci-lint prints paths relative to the root it ran in, with backslashes on Windows; the
+// lines it returns start with file as given, with forward slashes, on every system.
 func findingsIn(output, file string) []string {
 	var found []string
 	for line := range strings.SplitSeq(output, "\n") {
@@ -147,7 +148,7 @@ func findingsIn(output, file string) []string {
 			found = append(found, "(more not shown)")
 			break
 		}
-		found = append(found, line)
+		found = append(found, file+line[len(file):])
 	}
 	return found
 }
