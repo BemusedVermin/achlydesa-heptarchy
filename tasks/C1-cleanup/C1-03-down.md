@@ -1,7 +1,7 @@
 ---
 id: C1-03
 title: "Which words for being out of the fight, for dropping, and for a wipe?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** The first. The player-facing wording (for example "goes down") is the owner's.
 
+**Decided by the owner:** "fall" means dropping off a ledge only. `fallen()` becomes `outOfFight()` and the two texts that say "falls" for a downed or dead body are reworded. `api.PartyLost` becomes `api.PartyWiped` (`combat.party_wiped`, `text.combat.party_wiped`). "Lost" is kept for the unrecoverable end, and `text.game.lost` shows only when the party cannot wake. The player-facing wording of the new texts is the owner's to give; the applying task picks a plain default and notes it. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: the recommended option. In the glossary.

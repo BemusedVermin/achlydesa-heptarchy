@@ -61,7 +61,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | --- | --- | --- | --- | --- | --- |
 | [C1-01](C1-cleanup/C1-01-clay.md) | What do we call the clay creature that moves, and the body Stand freezes? | todo | question | S | none |
 | [C1-02](C1-cleanup/C1-02-graft.md) | Is an own severed part that is put back a graft? | todo | question | S | none |
-| [C1-03](C1-cleanup/C1-03-down.md) | Which words for being out of the fight, for dropping, and for a wipe? | proposed | question | S | none |
+| [C1-03](C1-cleanup/C1-03-down.md) | Which words for being out of the fight, for dropping, and for a wipe? | todo | question | S | none |
 | [C1-04](C1-cleanup/C1-04-actor.md) | How are the acting body, the body acted on, a fact's origin and a formula's subject named? | proposed | question | M | none |
 | [C1-05](C1-cleanup/C1-05-formula.md) | How are the variables in formula environments named? | proposed | question | S | none |
 | [C1-06](C1-cleanup/C1-06-form.md) | What are "form", "action", "move" and "type"? | proposed | question | S | none |
