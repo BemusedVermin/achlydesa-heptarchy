@@ -217,7 +217,8 @@ func TestSwapContentRefreshesTheCalendarAndTimeline(t *testing.T) {
 	bundle.Start = content.Start{}
 	first := bundle.Calendar.Phases[0]
 	bundle.Calendar.Phases[0].ID = "phase.renamed"
-	bundle.Calendar.Phases[0].Name = "text.phase.dusk"
+	bundle.Calendar.Phases[0].Name = "text.phase.renamed"
+	bundle.Text["text.phase.renamed"] = "dusk"
 	bundle.Calendar.Phases[0].Ticks = first.Ticks + 7
 	bundle.Timeline.WindowTicks++
 	reg, err := content.New(bundle)

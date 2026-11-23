@@ -35,7 +35,7 @@ items: "item.serilmen_arm": {
 
 text: {
 	"text.item.serilmen_arm": "a piece of Serilmen"
-	"text.item.name":        "a name"
+	"text.item.name":         "a name"
 	"text.item.coal":         "coal"
 	"text.item.salk_dust":    "salk dust"
 	"text.item.lake_water":   "lake water"

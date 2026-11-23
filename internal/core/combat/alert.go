@@ -12,7 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// alertSystem is the name of the per-turn system that raises and ends the alert.
+// alertSystem is the name of the per-entry system that raises and ends the alert.
 const alertSystem = "combat.alert"
 
 // controlledParty returns the party the player commands.

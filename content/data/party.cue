@@ -6,9 +6,9 @@ party: content.#PartyConfig
 
 // Placeholder numbers, for tuning.
 party: {
-	slots:         4
-	sight_radius:  6
-	sight_depth:   6
+	slots:        4
+	sight_radius: 6
+	sight_depth:  6
 	// The plan view draws floor out to this many steps of walking from the party; walls show elsewhere.
 	plan_range:    12
 	max_step_up:   1

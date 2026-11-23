@@ -44,7 +44,7 @@ type fixture struct {
 	stopAfter int64
 	speeds    map[api.UID]int
 	phases    []int64 // the tick at which each PerPhase system ran
-	perTurn   int     // how many times the PerTurn system ran
+	perEntry  int     // how many times the PerEntry system ran
 	after     func(w *sim.World, body ecs.Entity)
 }
 
@@ -80,8 +80,8 @@ func newFixture(t tester, seed uint64) *fixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = fx.w.Systems.Register(sim.System{Name: "test.turn", Cadence: sim.PerTurn, Run: func(*sim.World) error {
-		fx.perTurn++
+	err = fx.w.Systems.Register(sim.System{Name: "test.turn", Cadence: sim.PerEntry, Run: func(*sim.World) error {
+		fx.perEntry++
 		return nil
 	}})
 	if err != nil {
@@ -544,15 +544,15 @@ func TestDefaultVisibilityIsTheParty(t *testing.T) {
 	}
 }
 
-func TestPerTurnSystemsRunAfterEveryEntry(t *testing.T) {
+func TestPerEntrySystemsRunAfterEveryEntry(t *testing.T) {
 	fx := newFixture(t, 1)
 	fx.spawn(t, "record", 2)
 	fx.spawn(t, "record", 1)
 	fx.stopAfter = 100
 	fx.run(t)
-	// Every entry but the last (which stopped the run) has been followed by a PerTurn run.
-	if want := len(fx.taken); fx.perTurn != want {
-		t.Errorf("PerTurn ran %d times after %d decisions", fx.perTurn, want)
+	// Every entry but the last (which stopped the run) has been followed by a PerEntry run.
+	if want := len(fx.taken); fx.perEntry != want {
+		t.Errorf("PerEntry ran %d times after %d decisions", fx.perEntry, want)
 	}
 }
 

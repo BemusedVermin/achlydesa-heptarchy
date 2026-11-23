@@ -79,7 +79,7 @@ type state struct {
 	queued      map[ecs.Entity]int64 // the tick of each body's one live slot; only ever looked up
 	current     ecs.Entity
 	hasCurrent  bool
-	pending     bool                // the last entry has not had its per-turn systems run yet
+	systemsDue  bool                // the last entry has not had its per-entry systems run yet
 	sleeping    map[ecs.Entity]bool // bodies whose last decision only waited; others do not wake for them
 	changes     int64               // counts Occupy, Extend and Wait, to tell whether a controller did anything
 	actors      *ecs.Map[comp.Actor]
@@ -369,7 +369,7 @@ func (st *state) nextOtherEntry(w *sim.World, body ecs.Entity) int64 {
 // second arm. Otherwise it takes the earliest entry, advances the clock to its tick (running
 // per-phase and per-day systems), publishes Ready for a decision and either stops (player) or runs
 // the body's controller. A controller must occupy a channel or wait; if it does neither, the loop
-// makes it wait until the next entry. PerTurn systems run after every entry. It errors after
+// makes it wait until the next entry. PerEntry systems run after every entry. It errors after
 // MaxAITurns AI decisions in one call, so a world with no player can't hang.
 // It returns the zero entity at once, without error, when the halt check (SetHalt) holds.
 func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
@@ -383,10 +383,10 @@ func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 			!st.landingDue(w) {
 			return body, nil
 		}
-		if st.pending {
-			st.pending = false
-			if err := w.Systems.Run(w, sim.PerTurn); err != nil {
-				return ecs.Entity{}, fmt.Errorf("timeline: per-turn systems: %w", err)
+		if st.systemsDue {
+			st.systemsDue = false
+			if err := w.Systems.Run(w, sim.PerEntry); err != nil {
+				return ecs.Entity{}, fmt.Errorf("timeline: per-entry systems: %w", err)
 			}
 		}
 		if landed, err := st.landNext(w, clk); err != nil {
@@ -423,7 +423,7 @@ func (st *state) open(w *sim.World, clk *clock.Clock, body ecs.Entity) error {
 		}
 	}
 	st.current, st.hasCurrent = body, true
-	st.pending = true
+	st.systemsDue = true
 	w.Bus.Publish(api.Ready{Source: w.UIDOf(body), Tick: w.Now})
 	if _, err := w.Bus.Drain(w); err != nil {
 		return fmt.Errorf("timeline: ready: %w", err)

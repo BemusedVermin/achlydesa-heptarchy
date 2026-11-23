@@ -28,14 +28,14 @@ The game will change once it's played, so every place the game design already ex
 | Plan view | The core projects the 3D world into one 2D hex view: for each hex, the visible cell nearest the party's depth, shaded only by how far above or below it lies. The view never holds a depth or a layer | A seamless deep in the terminal now, and the same view or a richer one for Ebitengine later |
 | Entity templates | Content defines templates as bags of optional components, not one Go type per kind; one spawn function builds any of them | A person who becomes a monster, a creature that trades, a recruit who becomes a candidate, with no new content types |
 | Parts as entities | Each part is its own entity, tied to its body by an Ark relation, `PartOf` | Severed parts that crawl off and fight, a hand that latches onto an ally, moving clay taking a part, grafting and reattaching |
-| System scheduler | Each system registers with a cadence (per turn, per phase, per day, or on an event) and the systems it runs after; the order is sorted once, deterministically | The flock, dreams and export effects slot in without touching the tick loop |
+| System scheduler | Each system registers with a cadence (per entry, per phase, per day, or on an event) and the systems it runs after; the order is sorted once, deterministically | The flock, dreams and export effects slot in without touching the tick loop |
 | Time | Every body acts on one shared timeline of ticks, and the body and each of its parts is a channel with its own busy-until tick; phases per day, ticks per phase and costs are content | Exploration and fights on one clock, multi-limb actions, wind-ups, dodging, hit-and-run, staggering, retuning the calendar |
 | Commands and events | Plain serializable structs with a stable kind name, kept with the view types in the api package; each package registers handlers for its own commands | New verbs without growing `core/game`, JSON replay logs now, protobuf later |
 | Choices come from the core | The view lists what the player can do right now (moves, targets, routes) in the order to show it; frontends only render the list | Grafts shaping what's offered, recruits refusing orders, an interface that is quietly the Demiurge's |
 | View sections | Each package contributes its own section of the view (map, party, combat, journal) | New screens and a second frontend, without one giant snapshot struct |
 | Combat sides | Sides are allegiances to factions with content-defined hostility. There's no fight entity or combat mode: a fight is hostile bodies acting near each other, so anyone joins or leaves by walking in or out | Grafts acting on their own, recruits fleeing, monsters fighting each other, crawling parts, fights spilling into towns |
 | Effects anywhere | Effect primitives act on entities through a generic context, not on combat state | Consumables used while exploring, seat prices, dreams with effects, traps |
-| Actions | Every action, a step included, is content: which channels it occupies (by tag and count), wind-up and recovery formulas, target and range, and effects on start and on landing. The choices an action asks for, and what a chosen type or item changes about it, are content too; code adds only primitives | Two-handed and lunging moves, new forms, effects that hit several limbs or stop a whole body, alternative combat rules tried in CUE |
+| Actions | Every action, a step included, is content: which channels it occupies (by tag and count), wind-up and recovery formulas, target and range, and effects on start and on landing. The choices an action asks for, and what a chosen type or item changes about it, are content too; code adds only primitives | Two-handed and lunging actions, new forms, effects that hit several limbs or stop a whole body, alternative combat rules tried in CUE |
 | Rules | Content records carry generic tags, numbers and lists. Named formulas (`rules`) and content-defined choices read them, and code names no content record, tag or rule | Reworking what weakness means, partial resistances, types that only work on pinned parts, new kinds of item or grant, all in CUE |
 | Triggers | A `Triggers` component from content: on an event, if an Expr condition holds, apply effects | Graft autonomy, curdle modes, exotic recruit abilities and material reactions, all as data |
 | Behaviors | Agent behaviors are registered primitives that content composes and scores with Expr considerations; monsters, people, recruits and candidates share one path | Simulating candidates later, new creature families as pure data |
@@ -119,7 +119,7 @@ achlydesa-heptarchy/
 │   │   ├── actions/        # content-defined actions and the do command
 │   │   ├── explore/        # party movement, plan-view projection
 │   │   ├── procgen/        # stage pipeline, reseeding, guarantees
-│   │   ├── combat/         # hostility, alert, moves with reach, death
+│   │   ├── combat/         # hostility, alert, actions with reach, death
 │   │   ├── agents/         # behavior registry, needs scoring, level of detail
 │   │   ├── seats/          # seat state machine, passing, the piece's readings
 │   │   ├── cast/           # wounds, relationships, wish generator
@@ -186,7 +186,7 @@ Content goes from Go structs to CUE schemas to validated data, and almost none o
 What stays as code versus data:
 
 - **Code:** effect primitives and the machinery that runs them (selectors, timing, actions), the needs scorer, seat rules, procgen algorithms. Code names no content record, tag or rule, only its own message text; where it needs a record, a config key says which.
-- **Data:** materials, forms as compositions of primitives, the rules that tie them together (what makes a part weak, which types a body may load, what a loaded type does to a form), part and creature templates, needs and their curves, towns and gates, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
+- **Data:** materials, actions as compositions of primitives, the rules that tie them together (what makes a part weak, which types a body may load, what a loaded type does to a form), part and creature templates, needs and their curves, towns and gates, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
 
 ## Simulation loop and determinism
 
@@ -198,7 +198,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 1. The earliest entry on the timeline happens next, and the clock jumps to its tick: an attack landing, or a body deciding. At the same tick, landings go first, then decisions by UID.
 2. A deciding body's controller picks actions: the player for party members (only the leader while no hostile is in sight), a follow controller for the rest of the party, and behaviors for everyone else. Each action occupies the channels it needs (a step the body, a swing one or more arms) for its wind-up and recovery; legs, terrain and climbing set how long a step takes.
-3. After every entry, per-turn systems run: statuses expire and the party's alert updates.
+3. After every entry, per-entry systems run: statuses expire and the party's alert updates.
 4. At each day-phase boundary the clock crosses, the off-screen tick runs: region populations drift, town residents follow their routines, generic NPCs are replaced on their timers.
 5. Once a day: seats advance, the export schedule is checked, rumors move between towns.
 6. Ark events fire after each step (a death, a severed part, a passed seat), and subscribers update wounds, grudges and readings.
@@ -218,7 +218,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 ### Saves and replays
 
-- **A save** is one JSON document: an ark-serde snapshot of the entities (resources are rebuilt by `Install`, and the turn queue is exported by `timeline`), every RNG stream's state, the UID counter, map edits, the command history and the message log. ark-serde's output is canonicalized (entities sorted by ECS ID, keys sorted) so equal worlds give equal bytes, and `Game.Hash` is the SHA-256 of those bytes.
+- **A save** is one JSON document: an ark-serde snapshot of the entities (resources are rebuilt by `Install`, and the timeline is exported by `timeline`), every RNG stream's state, the UID counter, map edits, the command history and the message log. ark-serde's output is canonicalized (entities sorted by ECS ID, keys sorted) so equal worlds give equal bytes, and `Game.Hash` is the SHA-256 of those bytes.
 - **A replay** is the world seed plus the player's command log. The harness uses replays to reproduce any bug or odd emergent run.
 - **Versioned.** Every save header carries a save version and a content hash, and migration functions upgrade older saves one version at a time. Until v1.0.0, saves are disposable: a change bumps the save version without a migration, and older saves stop loading.
 

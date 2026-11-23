@@ -41,7 +41,7 @@ func startApp(t *testing.T) *tui.App {
 		t.Fatal(err)
 	}
 	crawler := bundle.Templates["template.creature.moving_clay"]
-	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actor = &content.ActorDef{Controller: "still"}
 	crawler.Actions = nil
 	crawler.Lists = nil
 	bundle.Templates["template.creature.moving_clay"] = crawler

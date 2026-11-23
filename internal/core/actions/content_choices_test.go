@@ -42,10 +42,10 @@ func TestTypeChoiceComesFromContent(t *testing.T) {
 		t.Fatalf("options with lake water = %v, want %v, in ID order", got, want)
 	}
 	if option := fx.option("load/type.name"); !option.Enabled {
-		t.Error("Name is refused without a name in the pack; it should be offered, so the menu tells nothing")
+		t.Error("Name is refused without a name in the inventory; it should be offered, so the menu tells nothing")
 	}
 	if !fx.option("load/type.soak").Enabled {
-		t.Error("Soak should be enabled while the pack holds lake water")
+		t.Error("Soak should be enabled while the inventory holds lake water")
 	}
 	if !inventory.Take(fx.w, fx.fighter, "item.lake_water", 0, 1) {
 		t.Fatal("the fighter had no lake water")
@@ -113,8 +113,9 @@ func TestChosenRecordsChangeTheAction(t *testing.T) {
 			load.OnLand = []content.EffectRef{{Do: "test.log", Params: map[string]string{"tag": "own"}}}
 			b.Actions["action.test.load"] = load
 			b.Text["text.test.refusal"] = "Locked up."
-			b.Types["type.test"] = content.DamageType{
-				Name: "text.type.cut", Data: content.Data{Tags: []string{"innate"}},
+			b.Text["text.type.test"], b.Text["text.type.locked"] = "Test", "Locked"
+			b.Types["type.test"] = content.Type{
+				Name: "text.type.test", Data: content.Data{Tags: []string{"innate"}},
 				Mods: content.Mods{
 					Windup: "2", Recovery: "1",
 					OnStart: []content.EffectRef{{Do: "consume", Params: map[string]string{"item": "item.lake_water"}},
@@ -123,8 +124,8 @@ func TestChosenRecordsChangeTheAction(t *testing.T) {
 					OnLand: []content.EffectRef{{Do: "test.log", Params: map[string]string{"tag": "mod"}}},
 				},
 			}
-			b.Types["type.locked"] = content.DamageType{
-				Name: "text.type.cut", Data: content.Data{Tags: []string{"innate"}},
+			b.Types["type.locked"] = content.Type{
+				Name: "text.type.locked", Data: content.Data{Tags: []string{"innate"}},
 				Mods: content.Mods{Requires: "false", Refusal: "text.test.refusal"},
 			}
 		},

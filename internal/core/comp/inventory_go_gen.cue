@@ -13,7 +13,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	bound_to?: api.#UID       @go(BoundTo)
 }
 
-// Inventory is a pack. Stacks are sorted by (Item, BoundTo) and none is empty. Use the inventory
+// Inventory is an inventory. Stacks are sorted by (Item, BoundTo) and none is empty. Use the inventory
 // package's Add, Take and Count rather than changing the slice.
 #Inventory: {
 	stacks: [...#ItemStack] @go(Stacks,[]ItemStack)

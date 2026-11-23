@@ -112,7 +112,7 @@ func TestRuleReadingRollIsRefusedWhereAPrimitiveChecks(t *testing.T) {
 	r := newRigWith(t, func(b *content.Bundle) { b.Rules["lucky"] = "roll < 0.5" })
 	// attach_part has a Check; its parameters are text, so a formula in one is what could draw.
 	err := effects.Validate(r.w, "test", []content.EffectRef{
-		do("attach_part", "from", "= rule.lucky ? \"pack\" : \"severed\"", "item", "item.test_arm"),
+		do("attach_part", "from", "= rule.lucky ? \"inventory\" : \"severed\"", "item", "item.test_arm"),
 	})
 	if err == nil || !strings.Contains(err.Error(), "cannot read roll") {
 		t.Errorf("Validate = %v, want a refusal to read roll", err)

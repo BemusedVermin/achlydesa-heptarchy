@@ -134,7 +134,7 @@ func (fx *fixture) channel(e ecs.Entity) timeline.Channel {
 func (fx *fixture) swing(t *testing.T, actor, part ecs.Entity, lands int64) {
 	t.Helper()
 	_, err := timeline.Schedule(fx.w, comp.Pending{
-		Kind: "test.swing", Actor: fx.w.UIDOf(actor), Part: fx.w.UIDOf(part), Lands: lands,
+		Kind: "test.swing", Actor: fx.w.UIDOf(actor), Channel: fx.w.UIDOf(part), Lands: lands,
 	})
 	if err != nil {
 		t.Fatal(err)

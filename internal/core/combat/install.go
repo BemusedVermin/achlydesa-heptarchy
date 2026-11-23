@@ -36,7 +36,7 @@ func installSides(w *sim.World) error {
 	if err != nil {
 		return err
 	}
-	if err := timeline.RegisterController(w, restController, rester{}); err != nil {
+	if err := timeline.RegisterController(w, stillController, stiller{}); err != nil {
 		return err
 	}
 	if err := timeline.RegisterController(w, huntController, hunter{}); err != nil {
@@ -52,5 +52,5 @@ func installSides(w *sim.World) error {
 	timeline.SetHalt(w, PartyWiped)
 	sim.Subscribe(w.Bus, "combat.death", onPartDamaged)
 	sim.Subscribe(w.Bus, "combat.death_severed", onPartSevered)
-	return w.Systems.Register(sim.System{Name: alertSystem, Cadence: sim.PerTurn, Run: alert})
+	return w.Systems.Register(sim.System{Name: alertSystem, Cadence: sim.PerEntry, Run: alert})
 }

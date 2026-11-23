@@ -2,7 +2,7 @@ package data
 
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
-types: [string]: content.#DamageType
+types: [string]: content.#Type
 
 // A type that burns one item: it lists the item in lists.consumes and uses one up when it starts,
 // whether the swing lands or not.
@@ -14,7 +14,7 @@ types: [string]: content.#DamageType
 }
 
 // The eleven types of the design table. Which body knows which type innately is on the templates
-// (templates.cue); the rest need their item in the pack. The timings and landing effects here are
+// (templates.cue); the rest need their item in the inventory. The timings and landing effects here are
 // placeholders for M7's tuning.
 types: {
 	"type.cut": {name: "text.type.cut"}
@@ -41,7 +41,7 @@ types: {
 	"type.violet": #Consumable & {_item: "item.violet_blood", name: "text.type.violet"}
 	// Like Name, a keepsake on the wrong body is not refused: the swing lands and does nothing. It is
 	// used up when the swing lands, after the form's own effects, not when it starts: rule.unheld reads
-	// the pack, so the keepsake must still be there when the damage is worked out.
+	// the inventory, so the keepsake must still be there when the damage is worked out.
 	"type.keepsake": {
 		name: "text.type.keepsake"
 		lists: consumes: ["item.keepsake"]
@@ -51,15 +51,15 @@ types: {
 }
 
 text: {
-	"text.type.cut":              "Cut"
-	"text.type.press":            "Press"
-	"text.type.relic":            "Relic"
-	"text.type.name":             "Name"
-	"text.type.burn":             "Burn"
-	"text.type.rot":              "Rot"
-	"text.type.soak":             "Soak"
-	"text.type.light":            "Light"
-	"text.type.violet":           "Violet"
-	"text.type.keepsake":         "Keepsake"
-	"text.type.lees":             "Lees"
+	"text.type.cut":      "Cut"
+	"text.type.press":    "Press"
+	"text.type.relic":    "Relic"
+	"text.type.name":     "Name"
+	"text.type.burn":     "Burn"
+	"text.type.rot":      "Rot"
+	"text.type.soak":     "Soak"
+	"text.type.light":    "Light"
+	"text.type.violet":   "Violet"
+	"text.type.keepsake": "Keepsake"
+	"text.type.lees":     "Lees"
 }

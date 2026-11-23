@@ -55,8 +55,8 @@ type EffectEnv struct {
 	// Chosen is every choice the action or event carries, as the record its value names. A value
 	// that names no record, such as a direction, is Record{ID: value}.
 	Chosen map[string]Record `expr:"chosen"`
-	// Pack counts, per item ID, the stacks the source's pack can use on the target.
-	Pack map[string]int `expr:"pack"`
+	// Inventory counts, per item ID, the stacks the source's inventory can use on the target.
+	Inventory map[string]int `expr:"inventory"`
 
 	Height int `expr:"height"` // target depth minus source depth: positive when the source is above
 	Cells  int `expr:"cells"`  // the cells a fall dropped, or 0
@@ -71,22 +71,22 @@ type ActionEnv struct {
 	Source    BodyEnv           `expr:"source"`     // the actor and the first part it uses
 	Target    BodyEnv           `expr:"target"`     // the target body and part
 	Chosen    map[string]Record `expr:"chosen"`     // the choices made, as the records they name
-	Pack      map[string]int    `expr:"pack"`       // per item, the stacks the actor's pack can use on the target
+	Inventory map[string]int    `expr:"inventory"`  // per item, the stacks the actor's inventory can use on the target
 }
 
 // OfferEnv is what a choice's offer formula sees.
 type OfferEnv struct {
-	Record Record         `expr:"record"` // the candidate
-	Source BodyEnv        `expr:"source"` // the actor; only its template is filled in
-	Pack   map[string]int `expr:"pack"`   // the actor's whole pack: there's no target yet, so bound stacks count
+	Record    Record         `expr:"record"`    // the candidate
+	Source    BodyEnv        `expr:"source"`    // the actor; only its template is filled in
+	Inventory map[string]int `expr:"inventory"` // the actor's whole inventory: there's no target yet, so bound stacks count
 }
 
 // ScoreEnv is what combat.ai_score sees of one intent a creature could start.
 type ScoreEnv struct {
-	Source BodyEnv           `expr:"source"` // the actor and the first part it uses
-	Target BodyEnv           `expr:"target"` // the body aimed at and the part
-	Chosen map[string]Record `expr:"chosen"` // the choices made, as the records they name
-	Pack   map[string]int    `expr:"pack"`   // per item, the stacks the actor's pack can use on the target
+	Source    BodyEnv           `expr:"source"`    // the actor and the first part it uses
+	Target    BodyEnv           `expr:"target"`    // the body aimed at and the part
+	Chosen    map[string]Record `expr:"chosen"`    // the choices made, as the records they name
+	Inventory map[string]int    `expr:"inventory"` // per item, the stacks the actor's inventory can use on the target
 	// MaterialKnown is whether the source knows what the target part is made of.
 	MaterialKnown bool `expr:"material_known"`
 	// Windup is the ticks before the action would land.

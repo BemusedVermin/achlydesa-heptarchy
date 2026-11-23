@@ -21,8 +21,8 @@ const (
 
 // Where an attached part came from, in [PartAttached].From.
 const (
-	AttachedFromPack    = "pack"    // a piece the party carried
-	AttachedFromSevered = "severed" // a severed part lying where the body stands
+	AttachedFromInventory = "inventory" // a piece the party carried
+	AttachedFromSevered   = "severed"   // a severed part lying where the body stands
 )
 
 // PartDamaged reports that a part lost integrity.
@@ -59,7 +59,7 @@ func (PartSevered) EventKind() string { return PartSeveredKind }
 type PartAttached struct {
 	Body UID    `json:"body"`
 	Part UID    `json:"part"`
-	From string `json:"from"` // AttachedFromPack or AttachedFromSevered
+	From string `json:"from"` // AttachedFromInventory or AttachedFromSevered
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`

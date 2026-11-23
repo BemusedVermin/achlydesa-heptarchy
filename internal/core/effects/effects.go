@@ -418,7 +418,7 @@ func baseEnv(ctx *Context) content.EffectEnv {
 	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"]) // absent or malformed means no fall
 	env.Source = SideOf(w, ctx.Source, firstPart(ctx.Used))
 	env.Target = SideOf(w, ctx.Target, ctx.TargetPart)
-	env.Pack = inventory.Usable(w, ctx.Source, ctx.Target)
+	env.Inventory = inventory.Usable(w, ctx.Source, ctx.Target)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if alive(w, ctx.Source) && alive(w, ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)

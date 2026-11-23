@@ -23,8 +23,8 @@ rules: {
 	either:  "rule.weak || rule.brittle"
 	brittle: "\"brittle\" in target.part.tags"
 }
-types: "type.cut": name: "text.a"
-text: "text.a": "a"
+types: "type.cut": name: "text.type.cut"
+text: "text.type.cut": "a"
 `)
 	if err != nil {
 		t.Fatal(err)
@@ -92,7 +92,8 @@ func TestRuleErrorsNameTheFormula(t *testing.T) {
 		{
 			name: "unknown rule in a formula",
 			extra: `
-terrains: "terrain.pit": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "rule.nope"}
+terrains: "terrain.pit": {name: "text.terrain.pit", solid: true, opaque: true, move_cost: "rule.nope"}
+text: "text.terrain.pit": "pit"
 `,
 			want: []string{`terrains["terrain.pit"].move_cost`, `unknown rule "nope"`},
 		},
@@ -140,7 +141,8 @@ rules: {
 	used:   "true"
 	unused: "false"
 }
-terrains: "terrain.pit": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "rule.used ? 1 : 2"}
+terrains: "terrain.pit": {name: "text.terrain.pit", solid: true, opaque: true, move_cost: "rule.used ? 1 : 2"}
+text: "text.terrain.pit": "pit"
 `)
 	if err != nil {
 		t.Fatal(err)
@@ -158,8 +160,8 @@ vocabulary: {
 	grants: ["action"]
 	lists: "materials.weak_to": "types"
 }
-types: "type.cut": name: "text.a"
-text: "text.a": "a"
+types: "type.cut": name: "text.type.cut"
+text: {"text.type.cut": "a", "text.item.x": "a"}
 `
 	tests := []struct {
 		name  string
@@ -167,16 +169,16 @@ text: "text.a": "a"
 		want  string // empty means it loads
 	}{
 		{"nothing declared", `
-items: "item.x": {name: "text.a", tags: ["whatever"]}
+items: "item.x": {name: "text.item.x", tags: ["whatever"]}
 parts: "part.x": {name: "text.a", slot: "arm", material: "material.clay", integrity: 1, grants: [{kind: "anything", value: 1}]}
 materials: "material.clay": lists: weak_to: ["nope"]
-text: "text.a": "a"
+text: {"text.a": "a", "text.item.x": "a"}
 `, ""},
 		{"undeclared item tag", closed + `
-items: "item.x": {name: "text.a", tags: ["piece"]}
+items: "item.x": {name: "text.item.x", tags: ["piece"]}
 `, `items["item.x"].tags[0]`},
 		{"declared item tag", closed + `
-items: "item.x": {name: "text.a", tags: ["consumable"]}
+items: "item.x": {name: "text.item.x", tags: ["consumable"]}
 `, ""},
 		{"undeclared grant kind", closed + `
 parts: "part.x": {name: "text.a", slot: "arm", material: "material.clay", integrity: 1, grants: [{kind: "flight", value: 1}]}
@@ -217,12 +219,12 @@ choices: type: from: "terrains"
 choices: type: {from: "types", offer: "nope +"}
 `, `choices["type"].offer`},
 		{"mods requires that does not compile", `
-types: "type.cut": {name: "text.a", requires: "nope +"}
-text: "text.a": "a"
+types: "type.cut": {name: "text.type.cut", requires: "nope +"}
+text: "text.type.cut": "a"
 `, `types["type.cut"].requires`},
 		{"mods refusal without text", `
-types: "type.cut": {name: "text.a", requires: "false", refusal: "text.missing"}
-text: "text.a": "a"
+types: "type.cut": {name: "text.type.cut", requires: "false", refusal: "text.missing"}
+text: "text.type.cut": "a"
 `, `types["type.cut"].refusal`},
 	}
 	for _, test := range tests {
@@ -270,5 +272,37 @@ func TestFollowActionIsChecked(t *testing.T) {
 		if _, err := New(bundle); err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("follow_action %q: error = %v, want it to contain %q", follow, err, want)
 		}
+	}
+}
+
+func TestARecordsNameIsItsOwnIDAsText(t *testing.T) {
+	tests := []struct {
+		name  string
+		extra string
+		want  string // empty means it loads
+	}{
+		{"beside its record", `
+types: "type.cut": name: "text.type.cut"
+text: "text.type.cut": "Cut"
+`, ""},
+		{"another record's text", `
+types: "type.cut": name: "text.a"
+text: "text.a": "a"
+`, `types["type.cut"].name: text ID is "text.a", want "text.type.cut"`},
+		{"a part may share a name", `
+parts: "part.x": {name: "text.a", slot: "arm", material: "material.clay", integrity: 1, grants: []}
+text: "text.a": "arm"
+`, ""},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := loadWith(t, test.extra)
+			switch {
+			case test.want == "" && err != nil:
+				t.Errorf("Load failed: %v", err)
+			case test.want != "" && (err == nil || !strings.Contains(err.Error(), test.want)):
+				t.Errorf("Load = %v, want an error containing %q", err, test.want)
+			}
+		})
 	}
 }

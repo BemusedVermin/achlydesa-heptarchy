@@ -31,7 +31,7 @@ func TestSchedulerOrderIsStable(t *testing.T) {
 		if err := w.Systems.Freeze(); err != nil {
 			t.Fatal(err)
 		}
-		if got := w.Systems.Order(PerTurn); !slices.Equal(got, want) {
+		if got := w.Systems.Order(PerEntry); !slices.Equal(got, want) {
 			t.Fatalf("run %d: order = %v, want %v", run, got, want)
 		}
 	}
@@ -60,7 +60,7 @@ func TestSchedulerFreezeErrors(t *testing.T) {
 			name: "cross cadence",
 			systems: []System{
 				{Name: "x.one", Cadence: PerDay, Run: noop},
-				{Name: "x.two", Cadence: PerTurn, After: []string{"x.one"}, Run: noop},
+				{Name: "x.two", Cadence: PerEntry, After: []string{"x.one"}, Run: noop},
 			},
 			wantIn: []string{"x.one", "x.two"},
 		},
@@ -88,7 +88,7 @@ func TestSchedulerFreezeErrors(t *testing.T) {
 
 func TestSchedulerLifecycleErrors(t *testing.T) {
 	w := NewWorld(1)
-	if err := w.Systems.Run(w, PerTurn); err == nil {
+	if err := w.Systems.Run(w, PerEntry); err == nil {
 		t.Error("Run before Freeze should error")
 	}
 	if err := w.Systems.Register(System{Name: "a.a", Run: noop}); err != nil {
@@ -132,7 +132,7 @@ func TestSchedulerRunDrainsBusAndStopsOnError(t *testing.T) {
 	if err := w.Systems.Freeze(); err != nil {
 		t.Fatal(err)
 	}
-	err := w.Systems.Run(w, PerTurn)
+	err := w.Systems.Run(w, PerEntry)
 	if !errors.Is(err, boom) {
 		t.Fatalf("Run() = %v, want wrapped boom", err)
 	}

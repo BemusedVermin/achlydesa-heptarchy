@@ -17,7 +17,7 @@ actions: {
 		windup:   "3"
 		recovery: "4"
 		on_land: [{do: "damage", params: {parts: "target_part", amount: "rule.hit"}}]
-		tags: ["attack"]
+		tags: ["form", "attack"]
 	}
 	// Sweep hits every part of the body, each by its own material, and teaches what each is made of.
 	"action.sweep": {
@@ -36,7 +36,7 @@ actions: {
 				parts: "target:all", claim: "claim.material", value: "= target.material.id", origin: "origin.sweep"
 			}},
 		]
-		tags: ["attack"]
+		tags: ["form", "attack"]
 	}
 	// Sever wears a part by one and cuts it off outright where it is weak.
 	"action.sever": {
@@ -53,7 +53,7 @@ actions: {
 			{do: "damage", params: {parts: "target_part", amount: "rule.immune ? 0 : 1"}},
 			{do: "sever", params: {parts: "target_part", when: "rule.weak"}},
 		]
-		tags: ["attack"]
+		tags: ["form", "attack"]
 	}
 	"action.pin": {
 		name: "text.action.pin"
@@ -65,7 +65,7 @@ actions: {
 		windup:   "1"
 		recovery: "3"
 		on_land: [{do: "lock", params: {channels: "target_part", ticks: "8"}}]
-		tags: ["attack"]
+		tags: ["form", "attack"]
 	}
 	// Stand braces the body and freezes the others, then frees the stander's own channels at once.
 	// Recovery is 1, not 0, because an action that takes no time is refused; the ready effect frees
@@ -83,7 +83,7 @@ actions: {
 			{do: "delay", params: {channels: "others[crawls]:all", ticks: "8"}},
 			{do: "ready", params: {channels: "self:all", count: "99"}},
 		]
-		tags: ["stance"]
+		tags: ["form", "stance"]
 	}
 	"action.give": {
 		name: "text.action.give"
@@ -95,9 +95,9 @@ actions: {
 		windup:   "0"
 		recovery: "6"
 		on_land: [{do: "ready", params: {channels: "target:all", count: "1"}}]
-		tags: ["support"]
+		tags: ["form", "support"]
 	}
-	// Graft fits a piece from the pack onto a graftable ally: one arm holds it, the other fits it.
+	// Graft fits a piece from the inventory onto a graftable ally: one arm holds it, the other fits it.
 	"action.graft": {
 		name: "text.action.graft"
 		key:  "graft"
@@ -109,8 +109,8 @@ actions: {
 		requires: "\"graftable\" in target.template.tags"
 		windup:   "6"
 		recovery: "6"
-		on_land: [{do: "attach_part", params: {from: "pack", item: "= chosen.piece.id"}}]
-		tags: ["support", "graft"]
+		on_land: [{do: "attach_part", params: {from: "inventory", item: "= chosen.piece.id"}}]
+		tags: ["form", "support", "graft"]
 	}
 }
 

@@ -1,0 +1,27 @@
+package data
+
+text: {
+	"text.action.lands":         "{{.actor}}'s {{.action}} lands"
+	"text.action.lands_on":      "{{.actor}}'s {{.action}} lands on {{.target}}"
+	"text.action.option":        "{{.name}} (lands in {{.lands}}, busy {{.busy}})"
+	"text.action.option_with":   "{{.name}}: {{.detail}} (lands in {{.lands}}, busy {{.busy}})"
+	"text.action.missed":        "{{.actor}}'s {{.action}} hits empty air."
+	"text.action.dir.e":         "east"
+	"text.action.dir.ne":        "northeast"
+	"text.action.dir.nw":        "northwest"
+	"text.action.dir.w":         "west"
+	"text.action.dir.sw":        "southwest"
+	"text.action.dir.se":        "southeast"
+	"text.action.not_known":     "That body does not know that action."
+	"text.action.channels_busy": "Not enough free limbs for that."
+	"text.action.bad_channels":  "Those limbs cannot do that."
+	"text.action.bad_target":    "That is not a valid target."
+	"text.action.out_of_range":  "The target is out of range."
+	"text.action.not_visible":   "The target cannot be seen."
+	"text.action.requires":      "Not right now."
+	"text.action.bad_choice":    "That choice is not available."
+	"text.action.no_connect":    "It does not connect."
+	"text.action.channel_gone":  "A limb it needed is gone."
+	"text.action.too_quick":     "That action would take no time."
+	"text.action.broken":        "That action cannot be worked out: {{.error}}"
+}

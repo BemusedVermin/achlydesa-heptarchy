@@ -34,7 +34,7 @@ func config(t *testing.T) game.Config {
 	}
 	// The sample crawler hunts; these goldens were drawn with it standing still.
 	crawler := bundle.Templates["template.creature.moving_clay"]
-	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actor = &content.ActorDef{Controller: "still"}
 	crawler.Actions = nil
 	crawler.Lists = nil
 	bundle.Templates["template.creature.moving_clay"] = crawler

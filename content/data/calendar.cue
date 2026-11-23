@@ -13,3 +13,10 @@ calendar: {
 		{id: "phase.night", name: "text.phase.night", ticks: 90},
 	]
 }
+
+text: {
+	"text.phase.dawn":  "dawn"
+	"text.phase.day":   "day"
+	"text.phase.dusk":  "dusk"
+	"text.phase.night": "night"
+}

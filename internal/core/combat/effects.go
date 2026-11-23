@@ -20,12 +20,12 @@ import (
 
 // Text IDs of the reasons and cancelations this package gives.
 const (
-	severedReason   api.ContentID = "text.combat.severed"
-	packShortReason api.ContentID = "text.combat.pack_short"
-	nothingToAttach api.ContentID = "text.combat.no_severed_part"
+	severedReason        api.ContentID = "text.combat.severed"
+	inventoryShortReason api.ContentID = "text.combat.inventory_short"
+	nothingToAttach      api.ContentID = "text.combat.no_severed_part"
 )
 
-// expireSystem is the name of the per-turn system that removes expired statuses.
+// expireSystem is the name of the per-entry system that removes expired statuses.
 const expireSystem = "combat.expire_statuses"
 
 // Install registers the combat events, the primitives and the system that expires statuses. It
@@ -49,7 +49,7 @@ func Install(w *sim.World) error {
 	if err := installSides(w); err != nil {
 		return err
 	}
-	return w.Systems.Register(sim.System{Name: expireSystem, Cadence: sim.PerTurn, Run: expireStatuses})
+	return w.Systems.Register(sim.System{Name: expireSystem, Cadence: sim.PerEntry, Run: expireStatuses})
 }
 
 func primitives() []effects.Primitive {
@@ -292,16 +292,21 @@ func verifyAttach(raw map[string]string) error {
 		return nil
 	}
 	switch raw["from"] {
-	case api.AttachedFromPack:
+	case api.AttachedFromInventory:
 		if !hasItem {
-			return errors.New("from pack needs an item")
+			return errors.New("from inventory needs an item")
 		}
 	case api.AttachedFromSevered:
 		if hasItem {
 			return errors.New("from severed takes no item")
 		}
 	default:
-		return fmt.Errorf("from must be %q or %q, got %q", api.AttachedFromPack, api.AttachedFromSevered, raw["from"])
+		return fmt.Errorf(
+			"from must be %q or %q, got %q",
+			api.AttachedFromInventory,
+			api.AttachedFromSevered,
+			raw["from"],
+		)
 	}
 	return nil
 }
@@ -341,7 +346,7 @@ func checkAttach(ctx *effects.Context, p effects.Params) (bool, api.Text) {
 		return true, api.Text{}
 	}
 	item, _ := p.String("item")
-	return packHas(ctx, api.ContentID(item))
+	return inventoryHas(ctx, api.ContentID(item))
 }
 
 func applyAttach(ctx *effects.Context, p effects.Params) error {
@@ -399,7 +404,7 @@ func applyAttach(ctx *effects.Context, p effects.Params) error {
 	return nil
 }
 
-// takePiece takes the piece from the pack and makes the part it becomes, not yet attached.
+// takePiece takes the piece from the inventory and makes the part it becomes, not yet attached.
 func takePiece(ctx *effects.Context, item api.ContentID) (ecs.Entity, error) {
 	w := ctx.World
 	def, ok := w.Content.Item(item)
@@ -411,7 +416,7 @@ func takePiece(ctx *effects.Context, item api.ContentID) (ecs.Entity, error) {
 		return ecs.Entity{}, fmt.Errorf("item %q becomes unknown part %q", item, *def.Part)
 	}
 	if !inventory.Take(w, inventory.HolderOf(w, ctx.Source), item, 0, 1) {
-		return ecs.Entity{}, fmt.Errorf("the pack has no %q", item)
+		return ecs.Entity{}, fmt.Errorf("the inventory has no %q", item)
 	}
 	part := w.NewIdentified(*def.Part)
 	ecs.NewMap[comp.Part](w.ECS).Add(part, &comp.Part{
@@ -493,8 +498,8 @@ func boundTo(ctx *effects.Context, item api.ContentID) api.UID {
 	return 0
 }
 
-// packHas says whether the source's pack holds the item, and gives the reason when it does not.
-func packHas(ctx *effects.Context, item api.ContentID) (bool, api.Text) {
+// inventoryHas says whether the source's inventory holds the item, and gives the reason when it does not.
+func inventoryHas(ctx *effects.Context, item api.ContentID) (bool, api.Text) {
 	w := ctx.World
 	if inventory.Count(w, inventory.HolderOf(w, ctx.Source), item, boundTo(ctx, item)) > 0 {
 		return true, api.Text{}
@@ -503,7 +508,7 @@ func packHas(ctx *effects.Context, item api.ContentID) (bool, api.Text) {
 	if def, ok := w.Content.Item(item); ok {
 		args["item"] = w.Content.Render(api.Text{ID: def.Name})
 	}
-	return false, api.Text{ID: packShortReason, Args: args}
+	return false, api.Text{ID: inventoryShortReason, Args: args}
 }
 
 func checkConsume(ctx *effects.Context, p effects.Params) (bool, api.Text) {
@@ -515,7 +520,7 @@ func checkConsume(ctx *effects.Context, p effects.Params) (bool, api.Text) {
 		inventory.Usable(ctx.World, ctx.Source, ecs.Entity{})[item] > 0 {
 		return true, api.Text{}
 	}
-	return packHas(ctx, id)
+	return inventoryHas(ctx, id)
 }
 
 func applyConsume(ctx *effects.Context, p effects.Params) error {

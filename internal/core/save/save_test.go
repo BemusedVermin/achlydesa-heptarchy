@@ -42,7 +42,7 @@ func newBundle(t testing.TB) content.Bundle {
 	}
 	// The sample crawler hunts. Random walkers would be killed, so these tests keep it standing.
 	crawler := bundle.Templates["template.creature.moving_clay"]
-	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actor = &content.ActorDef{Controller: "still"}
 	crawler.Actions = nil
 	crawler.Lists = nil
 	bundle.Templates["template.creature.moving_clay"] = crawler
@@ -333,7 +333,11 @@ func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
 		})
 		return nil
 	}
-	got, err := save.ReadWith(bytes.NewReader(old), save.CurrentVersion, map[int]save.Migration{0: renameSeed})
+	got, err := save.ReadWith(
+		bytes.NewReader(old),
+		save.CurrentVersion,
+		map[int]save.Migration{0: renameSeed, 1: func(map[string]json.RawMessage) error { return nil }},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

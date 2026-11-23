@@ -70,19 +70,19 @@ func (ev *evaluator) offeredValues(name string, actor ecs.Entity) ([]string, err
 	if _, ok := reg.Choice(name); !ok {
 		return nil, nil
 	}
-	if ev.pack == nil {
-		ev.pack = map[ecs.Entity]map[string]int{}
+	if ev.inventory == nil {
+		ev.inventory = map[ecs.Entity]map[string]int{}
 	}
-	pack, ok := ev.pack[actor]
+	held, ok := ev.inventory[actor]
 	if !ok {
-		pack = inventory.Usable(ev.w, actor, ecs.Entity{})
-		ev.pack[actor] = pack
+		held = inventory.Usable(ev.w, actor, ecs.Entity{})
+		ev.inventory[actor] = held
 	}
 	source := effects.SideOf(ev.w, actor, ecs.Entity{})
 	values := []string{}
 	for _, id := range reg.ChoiceRecords(name) {
 		record, _ := reg.Record(id)
-		offered, err := reg.Offered(name, content.OfferEnv{Record: record, Source: source, Pack: pack})
+		offered, err := reg.Offered(name, content.OfferEnv{Record: record, Source: source, Inventory: held})
 		if err != nil {
 			return nil, err
 		}

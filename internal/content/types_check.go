@@ -11,13 +11,13 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// Type returns the damage type with the given ID.
-func (r *Registry) Type(id api.ContentID) (DamageType, bool) {
+// Type returns the type with the given ID.
+func (r *Registry) Type(id api.ContentID) (Type, bool) {
 	def, ok := r.bundle.Types[string(id)]
 	return def, ok
 }
 
-// TypeIDs lists every damage type ID in sorted order.
+// TypeIDs lists every type ID in sorted order.
 func (r *Registry) TypeIDs() []api.ContentID { return sortedIDs(r.bundle.Types) }
 
 // Item returns the item with the given ID.
@@ -51,7 +51,7 @@ func sortedIDs[V any](m map[string]V) []api.ContentID {
 	return ids
 }
 
-// checkTypes checks materials, damage types, items, factions and template packs, compiles type
+// checkTypes checks materials, types, items, factions and template inventories, compiles type
 // conditions, and records one-sided hostility as warnings.
 func (r *Registry) checkTypes() []error {
 	var problems []error
@@ -190,7 +190,7 @@ func (r *Registry) compileMods(path string, id api.ContentID, mods Mods) []error
 }
 
 // refusalText is the reason a mod refuses an action when it names none.
-var refusalText api.ContentID = "text.actions.requires"
+var refusalText api.ContentID = "text.action.requires"
 
 // Mods returns what the type or item changes about an action it is chosen for.
 func (r *Registry) Mods(id api.ContentID) (Mods, bool) {

@@ -208,7 +208,7 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 			}
 			near := *ecs.NewMap[comp.Pos](f.w.ECS).Get(f.creature())
 			f.moveParty(api.Cell{Hex: api.Hex{Q: near.At.Hex.Q - 3, R: near.At.Hex.R}})
-			f.option("wait/event") // the per-turn systems run at the next apply when every member is the player's
+			f.option("wait/event") // the per-entry systems run at the next apply when every member is the player's
 			f.option("wait/event")
 			if !f.view().Party.Alert {
 				t.Fatal("no alert beside the creature")
@@ -240,9 +240,10 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 
 func TestHostileIsSymmetricWhenOnlyOneFactionListsTheOther(t *testing.T) {
 	f := newField(t, "map.test.hall", func(b *content.Bundle) {
-		b.Factions["faction.a"] = content.Faction{Name: "text.faction.party", HostileTo: []api.ContentID{"faction.b"}}
-		b.Factions["faction.b"] = content.Faction{Name: "text.faction.party"}
-		b.Factions["faction.c"] = content.Faction{Name: "text.faction.party"}
+		b.Factions["faction.a"] = content.Faction{Name: "text.faction.a", HostileTo: []api.ContentID{"faction.b"}}
+		b.Factions["faction.b"] = content.Faction{Name: "text.faction.b"}
+		b.Factions["faction.c"] = content.Faction{Name: "text.faction.c"}
+		b.Text["text.faction.a"], b.Text["text.faction.b"], b.Text["text.faction.c"] = "a", "b", "c"
 		for _, id := range []string{"a", "b", "c"} {
 			faction := api.ContentID("faction." + id)
 			b.Templates["template.test.side_"+id] = content.Template{Faction: &faction}
@@ -342,7 +343,7 @@ func TestDeathCancelsPendingActions(t *testing.T) {
 	uid := f.w.UIDOf(creature)
 	if _, err := timeline.Schedule(
 		f.w,
-		comp.Pending{Kind: "test.swing", Actor: uid, Part: uid, Lands: f.w.Now + 500},
+		comp.Pending{Kind: "test.swing", Actor: uid, Channel: uid, Lands: f.w.Now + 500},
 	); err != nil {
 		t.Fatal(err)
 	}

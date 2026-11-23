@@ -173,3 +173,16 @@ bodies: {
 		{part: "part.test.crawler_core", material: "material.clay"},
 	]
 }
+
+text: {
+	"text.part.head":         "head"
+	"text.part.arm":          "arm"
+	"text.part.legs":         "legs"
+	"text.part.torso":        "torso"
+	"text.part.maw":          "maw"
+	"text.part.serilmen_arm": "arm of Serilmen"
+	"text.part.remnant_arm":  "old arm"
+	"text.part.core":         "core"
+	"text.part.skull":        "skull"
+	"text.part.eye":          "eye"
+}

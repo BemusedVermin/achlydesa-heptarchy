@@ -113,6 +113,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [C1-17.F1](followups/C1-17.F1-content-rules-text-ids.md) | Correct .claude/rules/content.md for the text ID shape | proposed | debt | C1 | C1-17 |
 | [M2-11.F2](followups/M2-11.F2-where-the-three-creatures-spawn.md) | Where do the sample's three creatures spawn? | obsolete | question | M2 | M2-11 |
 | [M2-11.F1](followups/M2-11.F1-ready-frees-a-winding-channel.md) | Stand and Give free a channel that still has a swing winding up | done | bug | M2 | M2-11 |
 | [M1-17.F2](followups/M1-17.F2-advance-to-next-real-action.md) | Advance the timeline to the player's next real action | done | bug | M2 | M1-17 |

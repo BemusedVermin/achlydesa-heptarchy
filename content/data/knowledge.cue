@@ -7,7 +7,7 @@ origins: [string]: content.#Origin
 
 claims: {
 	"claim.material": {name: "text.claim.material", value: "material"}
-	"claim.name": name:     "text.claim.name"
+	"claim.name": name: "text.claim.name"
 }
 
 origins: {
@@ -16,10 +16,8 @@ origins: {
 }
 
 text: {
-	"text.claim.material":    "material"
-	"text.claim.name":        "name"
-	"text.origin.sweep":      "a sweep"
-	"text.origin.rumor":      "a rumor"
-	"text.knowledge.material": "You learn what it is made of: {{.value}}."
-	"text.knowledge.name":     "You learn its name: {{.value}}."
+	"text.claim.material": "material"
+	"text.claim.name":     "name"
+	"text.origin.sweep":   "a sweep"
+	"text.origin.rumor":   "a rumor"
 }

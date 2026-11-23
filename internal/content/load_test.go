@@ -127,8 +127,8 @@ func TestLoadRejects(t *testing.T) {
 		{
 			name: "solid terrain without move_cost",
 			src: `
-terrains: "terrain.wall": {name: "text.a", solid: true, opaque: true}
-text: "text.a": "a"
+terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true}
+text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
 			want: []string{`terrains["terrain.wall"].move_cost`, "required"},
 		},
@@ -225,24 +225,24 @@ text: "text.a": "a"
 		{
 			name: "formula does not compile",
 			src: `
-terrains: "terrain.wall": {name: "text.a", solid: true, opaque: true, move_cost: "1 +"}
-text: "text.a": "a"
+terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "1 +"}
+text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
 			want: []string{`terrains["terrain.wall"].move_cost`},
 		},
 		{
 			name: "formula uses unknown variable",
 			src: `
-terrains: "terrain.wall": {name: "text.a", solid: true, opaque: true, move_cost: "weight"}
-text: "text.a": "a"
+terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "weight"}
+text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
 			want: []string{`terrains["terrain.wall"].move_cost`, "weight"},
 		},
 		{
 			name: "formula returns the wrong type",
 			src: `
-terrains: "terrain.wall": {name: "text.a", solid: true, opaque: true, move_cost: "'heavy'"}
-text: "text.a": "a"
+terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "'heavy'"}
+text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
 			want: []string{`terrains["terrain.wall"].move_cost`},
 		},
@@ -256,7 +256,7 @@ text: "text.a": "{{.who"
 		{
 			name: "bad calendar",
 			src: `
-text: "text.a": "a"
+text: {"text.a": "a", "text.terrain.wall": "a"}
 calendar: {phases: [{id: "day.dawn", name: "text.missing", ticks: 0}]}
 `,
 			want: []string{"calendar.phases[0].ticks", "calendar.phases[0]", "text.missing"},
@@ -265,8 +265,8 @@ calendar: {phases: [{id: "day.dawn", name: "text.missing", ticks: 0}]}
 			name: "all problems are reported",
 			src: `
 materials: "material.clay": name: "text.missing"
-terrains: "terrain.wall": {name: "text.a", solid: true, opaque: true}
-text: "text.a": "a"
+terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true}
+text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
 			want: []string{`materials["material.clay"].name`, `terrains["terrain.wall"].move_cost`},
 		},

@@ -23,7 +23,7 @@ func load(t *testing.T) *content.Registry {
 	// The sample crawler hunts and kills random walkers, which would end runs early. These tests
 	// count rows, so they keep it standing.
 	crawler := bundle.Templates["template.creature.moving_clay"]
-	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actor = &content.ActorDef{Controller: "still"}
 	crawler.Actions = nil
 	crawler.Lists = nil
 	bundle.Templates["template.creature.moving_clay"] = crawler

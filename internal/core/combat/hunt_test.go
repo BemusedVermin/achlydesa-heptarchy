@@ -274,12 +274,15 @@ func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 		hall := b.Maps["map.test.hall"]
 		hall.Spawns = nil
 		b.Maps["map.test.hall"] = hall
-		b.Factions["faction.a"] = content.Faction{Name: "text.faction.deep", HostileTo: []api.ContentID{"faction.b"}}
-		b.Factions["faction.b"] = content.Faction{Name: "text.faction.deep", HostileTo: []api.ContentID{"faction.a"}}
+		b.Factions["faction.a"] = content.Faction{Name: "text.faction.a", HostileTo: []api.ContentID{"faction.b"}}
+		b.Factions["faction.b"] = content.Faction{Name: "text.faction.b", HostileTo: []api.ContentID{"faction.a"}}
+		b.Text["text.faction.a"], b.Text["text.faction.b"] = "a", "b"
 		for _, side := range []string{"a", "b"} {
 			faction := api.ContentID("faction." + side)
 			crawler := b.Templates["template.creature.moving_clay"]
 			crawler.Faction = &faction
+			textID := api.ContentID("text.template.test.side_" + side)
+			crawler.Name = &textID
 			b.Templates["template.test.side_"+side] = crawler
 			b.Text["text.template.test.side_"+side] = side
 		}

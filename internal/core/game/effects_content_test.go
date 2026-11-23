@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 )
 
@@ -31,6 +32,8 @@ func TestNewRejectsBadActionEffects(t *testing.T) {
 	}
 	bundle.Start = content.Start{}
 	for id, def := range badActions(t) {
+		def.Name = api.ContentID("text." + id)
+		bundle.Text[string(def.Name)] = id
 		bundle.Actions[id] = def
 	}
 	reg, err := content.New(bundle)

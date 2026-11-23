@@ -39,6 +39,6 @@
     "name": "text.action.step", "key": "bad_piece",
     "uses": [{"tag": "body", "count": 1}], "target": "self",
     "windup": "0", "recovery": "1",
-    "on_land": [{"do": "attach_part", "params": {"from": "pack", "item": "item.coal"}}]
+    "on_land": [{"do": "attach_part", "params": {"from": "inventory", "item": "item.coal"}}]
   }
 }

@@ -140,7 +140,7 @@ func TestGoldenGiveAndGraftBetweenMembers(t *testing.T) {
 		before := len(timeline.Channels(r.w, victim))
 		events := r.do("graft", "item.test_arm", r.uid(victim))
 		events = append(events, r.wait(14)...)
-		if !has(events, func(e api.PartAttached) bool { return e.From == api.AttachedFromPack }) ||
+		if !has(events, func(e api.PartAttached) bool { return e.From == api.AttachedFromInventory }) ||
 			len(timeline.Channels(r.w, victim)) != before+1 {
 			t.Errorf("the graft did not fit: %v", events)
 		}

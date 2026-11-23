@@ -24,7 +24,7 @@ const sampleDir = "../../../content/data"
 // here is where the test bodies stand.
 var here = comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
 
-// rig is a game with the sample party, a crawler standing at here, and a piece in the pack.
+// rig is a game with the sample party, a crawler standing at here, and a piece in the inventory.
 type rig struct {
 	g       *game.Game
 	w       *sim.World
@@ -255,12 +255,12 @@ func TestSeveringAnArmMidWindupCancelsTheSwing(t *testing.T) {
 	r := newRig(t)
 	arms := r.partsOf(r.reaper, "arm")
 	if _, err := timeline.Schedule(r.w, comp.Pending{
-		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Part: r.w.UIDOf(arms[0]), Lands: r.w.Now + 5,
+		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Channel: r.w.UIDOf(arms[0]), Lands: r.w.Now + 5,
 	}); err != nil {
 		t.Fatal(err)
 	}
 	other, err := timeline.Schedule(r.w, comp.Pending{
-		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Part: r.w.UIDOf(arms[1]), Lands: r.w.Now + 6,
+		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Channel: r.w.UIDOf(arms[1]), Lands: r.w.Now + 6,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -300,7 +300,7 @@ func TestAddStatusExpiresByTick(t *testing.T) {
 	}
 	run := func() {
 		t.Helper()
-		if err := r.w.Systems.Run(r.w, sim.PerTurn); err != nil {
+		if err := r.w.Systems.Run(r.w, sim.PerEntry); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -336,21 +336,21 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 func TestAttachPartFromThePack(t *testing.T) {
 	r := newRig(t)
 	target := anatomy.Members(r.w, r.party)[1]
-	attach := do("attach_part", "from", "pack", "item", "item.test_arm")
+	attach := do("attach_part", "from", "inventory", "item", "item.test_arm")
 	before := len(timeline.Channels(r.w, target))
 	if ok, reason := effects.Check(
 		r.ctx(target),
 		[]content.EffectRef{attach},
 	); ok ||
-		reason.ID != "text.combat.pack_short" {
-		t.Fatalf("check on an empty pack = %v, %+v", ok, reason)
+		reason.ID != "text.combat.inventory_short" {
+		t.Fatalf("check on an empty inventory = %v, %+v", ok, reason)
 	}
 	if events := r.apply(t, r.ctx(target), attach); len(events) != 0 {
 		t.Fatalf("an impossible attach published %v", events)
 	}
 	inventory.Add(r.w, r.party, comp.ItemStack{Item: "item.test_arm", Count: 1})
 	events := r.apply(t, r.ctx(target), attach)
-	if len(events) != 1 || events[0].(api.PartAttached).From != api.AttachedFromPack {
+	if len(events) != 1 || events[0].(api.PartAttached).From != api.AttachedFromInventory {
 		t.Fatalf("events = %+v", events)
 	}
 	if got := len(timeline.Channels(r.w, target)); got != before+1 {
@@ -414,22 +414,22 @@ func TestConsume(t *testing.T) {
 	r := newRig(t)
 	consume := []content.EffectRef{do("consume", "item", "item.coal")}
 	if ok, _ := effects.Check(r.ctx(r.crawler), consume); !ok {
-		t.Fatal("the pack has coal, but check refused")
+		t.Fatal("the inventory has coal, but check refused")
 	}
 	r.apply(t, r.ctx(r.crawler), consume...)
 	if got := inventory.Count(r.w, r.party, "item.coal", 0); got != 2 {
 		t.Errorf("coal = %d, want 2", got)
 	}
-	// Using up what is left leaves a pack that cannot pay.
+	// Using up what is left leaves an inventory that cannot pay.
 	r.apply(t, r.ctx(r.crawler), consume...)
 	r.apply(t, r.ctx(r.crawler), consume...)
 	ok, reason := effects.Check(r.ctx(r.crawler), consume)
-	if ok || reason.ID != "text.combat.pack_short" || reason.Args["item"] != "coal" {
-		t.Errorf("check on a short pack = %v, %+v", ok, reason)
+	if ok || reason.ID != "text.combat.inventory_short" || reason.Args["item"] != "coal" {
+		t.Errorf("check on a short inventory = %v, %+v", ok, reason)
 	}
 	r.apply(t, r.ctx(r.crawler), consume...)
 	if got := inventory.Count(r.w, r.party, "item.coal", 0); got != 0 {
-		t.Errorf("coal = %d, a short pack must not go negative", got)
+		t.Errorf("coal = %d, a short inventory must not go negative", got)
 	}
 }
 
@@ -438,7 +438,7 @@ func TestSpawnFromPart(t *testing.T) {
 	maw := r.partsOf(r.crawler, "head")[0]
 	ctx := r.ctx(r.crawler)
 	ctx.TargetPart = maw
-	spawn := do("spawn_from_part", "faction", "faction.deep", "controller", "idle")
+	spawn := do("spawn_from_part", "faction", "faction.wild", "controller", "idle")
 	r.apply(t, ctx, spawn) // nothing is severed yet
 	if ecs.NewMap[comp.Actor](r.w.ECS).Has(maw) {
 		t.Fatal("an attached part became a body")
@@ -452,7 +452,7 @@ func TestSpawnFromPart(t *testing.T) {
 	if got := anatomy.Parts(r.w, body); len(got) != 1 || got[0] != maw {
 		t.Errorf("the new body's parts = %v, want just the maw", got)
 	}
-	if faction := ecs.NewMap[comp.Allegiance](r.w.ECS).Get(body).Faction; faction != "faction.deep" {
+	if faction := ecs.NewMap[comp.Allegiance](r.w.ECS).Get(body).Faction; faction != "faction.wild" {
 		t.Errorf("faction = %q", faction)
 	}
 	if controller := ecs.NewMap[comp.Actor](r.w.ECS).Get(body).Controller; controller != "idle" {

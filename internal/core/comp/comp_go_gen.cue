@@ -80,7 +80,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Pending: {
 	kind:    string   @go(Kind)
 	actor:   api.#UID @go(Actor)
-	part:    api.#UID @go(Part)
+	channel: api.#UID @go(Channel)
 	target:  api.#UID @go(Target)
 	started: int64    @go(Started)
 	lands:   int64    @go(Lands)

@@ -41,7 +41,7 @@ func TestAGraftActsOnItsOwnAndLeavesTheOtherLimbsFree(t *testing.T) {
 	creature := f.creature()
 	party, _ := f.w.ByUID(f.view().Party.UID)
 	inventory.Add(f.w, party, comp.ItemStack{Item: "item.serilmen_arm", Count: 1})
-	f.apply(f.members()[0], creature, ecs.Entity{}, do("attach_part", "from", "pack", "item", "item.serilmen_arm"))
+	f.apply(f.members()[0], creature, ecs.Entity{}, do("attach_part", "from", "inventory", "item", "item.serilmen_arm"))
 	graft := f.partOf(creature, "arm")
 	maw := f.partOf(creature, "head")
 	if got := ecs.NewMap[comp.Graft](f.w.ECS).Get(graft).Piece; got != "item.serilmen_arm" {
@@ -256,7 +256,7 @@ func TestRotEatsAGraftOnEitherSide(t *testing.T) {
 	grafts := ecs.NewMap[comp.Graft](r.w.ECS)
 	for name, body := range map[string]ecs.Entity{"ally": anatomy.Members(r.w, r.party)[1], "enemy": r.crawler} {
 		inventory.Add(r.w, r.party, comp.ItemStack{Item: "item.test_arm", Count: 1})
-		r.apply(t, r.ctx(body), do("attach_part", "from", "pack", "item", "item.test_arm"))
+		r.apply(t, r.ctx(body), do("attach_part", "from", "inventory", "item", "item.test_arm"))
 		seen := false
 		for _, part := range anatomy.Parts(r.w, body) {
 			before := parts.Get(part).Integrity

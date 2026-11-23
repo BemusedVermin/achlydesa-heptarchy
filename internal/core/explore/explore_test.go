@@ -284,8 +284,9 @@ func TestTheRangeCapLeavesFarSlopeFloorToTheWalls(t *testing.T) {
 
 func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
 	fx := newFixture(t, "map.test.ledge", func(b *content.Bundle) {
+		b.Text["text.map.test.ledge"] = "ledge"
 		b.Maps["map.test.ledge"] = content.MapDef{
-			Name: "text.map.test_descent", Fill: "terrain.packed_clay", Open: "terrain.air",
+			Name: "text.map.test.ledge", Fill: "terrain.packed_clay", Open: "terrain.air",
 			Legend: map[string]api.ContentID{"#": "terrain.packed_clay", ".": "terrain.air"},
 			Marks:  map[string]string{"@": "party_start"},
 			Layers: []content.LayerDef{

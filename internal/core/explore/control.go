@@ -12,7 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// installControl registers the follow controller, the two commands, the per-turn system and the
+// installControl registers the follow controller, the two commands, the per-entry system and the
 // view builder for the control and lead options.
 func installControl(w *sim.World) error {
 	if err := timeline.RegisterController(w, followController, follower{}); err != nil {
@@ -27,7 +27,7 @@ func installControl(w *sim.World) error {
 	err := w.Systems.Register(
 		sim.System{
 			Name:    "explore.party_control",
-			Cadence: sim.PerTurn,
+			Cadence: sim.PerEntry,
 			After:   []string{"combat.alert"},
 			Run:     partyControl,
 		},

@@ -59,7 +59,7 @@ func schedule(t *testing.T, fx *fixture, actor, target api.UID, lands int64) ecs
 	t.Helper()
 	e, err := timeline.Schedule(
 		fx.w,
-		comp.Pending{Kind: "test.swing", Actor: actor, Part: actor, Target: target, Lands: lands},
+		comp.Pending{Kind: "test.swing", Actor: actor, Channel: actor, Target: target, Lands: lands},
 	)
 	if err != nil {
 		t.Fatal(err)

@@ -17,8 +17,8 @@ package api
 #SeveredWorn: "worn"
 #SeveredCut:  "cut"
 
-#AttachedFromPack:    "pack"
-#AttachedFromSevered: "severed"
+#AttachedFromInventory: "inventory"
+#AttachedFromSevered:   "severed"
 
 // PartDamaged reports that a part lost integrity.
 #PartDamaged: {

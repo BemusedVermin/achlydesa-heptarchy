@@ -29,9 +29,9 @@ import (
 	parts: {[string]: #PartTemplate} @go(Parts,map[string]PartTemplate)
 	bodies: {[string]: #BodyPlan} @go(Bodies,map[string]BodyPlan)
 
-	// Types are the damage types ("type." IDs), Items the things types burn ("item." IDs) and
+	// Types are the types a form can carry ("type." IDs), Items the things types burn ("item." IDs) and
 	// Factions the sides things fight for ("faction." IDs).
-	types: {[string]: #DamageType} @go(Types,map[string]DamageType)
+	types: {[string]: #Type} @go(Types,map[string]Type)
 	items: {[string]: #Item} @go(Items,map[string]Item)
 	factions: {[string]: #Faction} @go(Factions,map[string]Faction)
 
@@ -120,15 +120,16 @@ import (
 	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
 }
 
-// DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
+// Type is what a form carries into the part it lands on, such as Cut or Soak. Not every type does
+// damage. Code knows nothing of any one type:
 // what it needs and what it does are its data and mods.
-#DamageType: {
+#Type: {
 	#Data
 	#Mods
 	name: api.#ContentID @go(Name)
 }
 
-// Item is something the pack carries.
+// Item is something the inventory carries.
 #Item: {
 	#Data
 	#Mods
@@ -198,7 +199,7 @@ import (
 	// Protected gives the entity plot armor: it is downed rather than killed.
 	protected?: bool @go(Protected)
 
-	// Inventory is the pack the entity starts with.
+	// Inventory is the inventory the entity starts with.
 	inventory?: [...#StackDef] @go(Inventory,[]StackDef)
 
 	// Triggers react to events for the entities spawned from this template.
@@ -265,8 +266,8 @@ import (
 	// CalmTicks is how long no hostile may be in sight before an alert ends.
 	calm_ticks: int64 @go(CalmTicks)
 
-	// RestTicks is how long a creature with no mind of its own keeps still before it looks again.
-	rest_ticks: int64 @go(RestTicks)
+	// StillTicks is how long a creature with no mind of its own keeps still before it looks again.
+	still_ticks: int64 @go(StillTicks)
 
 	// SightRadius and SightDepth are how far a member looks for hostiles, in hexes and in depths.
 	sight_radius: int @go(SightRadius)

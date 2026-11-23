@@ -74,9 +74,9 @@ type Actor struct {
 // Pending is an action in flight, on an entity of its own: one per action. Whatever the action
 // needs beyond this lives in a kind-specific component on the same entity.
 type Pending struct {
-	Kind    string  `json:"kind"`    // the resolver's name, e.g. "combat.move"
+	Kind    string  `json:"kind"`    // the resolver's name, e.g. "actions.land"
 	Actor   api.UID `json:"actor"`   // the body acting
-	Part    api.UID `json:"part"`    // the channel it uses (an arm), or the body
+	Channel api.UID `json:"channel"` // the channel it uses (an arm), or the body
 	Target  api.UID `json:"target"`  // the body it is aimed at, or 0
 	Started int64   `json:"started"` // the tick it was started
 	Lands   int64   `json:"lands"`   // the tick it lands

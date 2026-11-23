@@ -136,8 +136,8 @@ func (st *state) landNext(w *sim.World, clk *clock.Clock) (bool, error) {
 			return false, err
 		}
 	}
-	st.pending = true
-	if !exists(w, p.Actor) || (p.Part != 0 && !exists(w, p.Part)) {
+	st.systemsDue = true
+	if !exists(w, p.Actor) || (p.Channel != 0 && !exists(w, p.Channel)) {
 		Cancel(w, first, canceledGone)
 	} else {
 		if err := st.resolvers[p.Kind].Resolve(w, first); err != nil {

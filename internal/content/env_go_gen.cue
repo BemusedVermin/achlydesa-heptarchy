@@ -62,8 +62,8 @@ package content
 	// that names no record, such as a direction, is Record{ID: value}.
 	Chosen: {[string]: #Record} @go(,map[string]Record)
 
-	// Pack counts, per item ID, the stacks the source's pack can use on the target.
-	Pack: {[string]: int} @go(,map[string]int)
+	// Inventory counts, per item ID, the stacks the source's inventory can use on the target.
+	Inventory: {[string]: int} @go(,map[string]int)
 	Height: int
 	Cells:  int
 }
@@ -77,14 +77,14 @@ package content
 	Source:    #BodyEnv
 	Target:    #BodyEnv
 	Chosen: {[string]: #Record} @go(,map[string]Record)
-	Pack: {[string]: int} @go(,map[string]int)
+	Inventory: {[string]: int} @go(,map[string]int)
 }
 
 // OfferEnv is what a choice's offer formula sees.
 #OfferEnv: {
 	#Record
 	Source: #BodyEnv
-	Pack: {[string]: int} @go(,map[string]int)
+	Inventory: {[string]: int} @go(,map[string]int)
 }
 
 // ScoreEnv is what combat.ai_score sees of one intent a creature could start.
@@ -92,7 +92,7 @@ package content
 	Source: #BodyEnv
 	Target: #BodyEnv
 	Chosen: {[string]: #Record} @go(,map[string]Record)
-	Pack: {[string]: int} @go(,map[string]int)
+	Inventory: {[string]: int} @go(,map[string]int)
 
 	// MaterialKnown is whether the source knows what the target part is made of.
 	MaterialKnown: bool

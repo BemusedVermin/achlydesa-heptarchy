@@ -31,7 +31,7 @@ const (
 )
 
 // propertyGame is the hall as shipped (a hunting crawler and the whole party) with a piece of
-// Serilmen in the pack, so every form is on the menu.
+// Serilmen in the inventory, so every form is on the menu.
 func propertyConfig(t *testing.T, seed uint64, install func(w *sim.World)) game.Config {
 	t.Helper()
 	bundle, err := content.LoadBundle(sampleDir)
