@@ -27,8 +27,7 @@ The rules are guidance; `AGENTS.md` stays the full rulebook, because other codin
 | commit to master, push to master, or rebase it | guard hook |
 | force-push, delete branches, merge PRs, or change repo settings, releases or secrets | guard hook, and deny rules in `settings.json` |
 | throw away uncommitted work (`reset --hard`, `clean -f`, `checkout -- .`, `restore .`, `stash clear`) | guard hook |
-| push a commit that `go tool task check` hasn't passed on | guard hook: it runs the check before the push if it hasn't passed on that commit yet |
-| edit `AGENTS.md`, `CLAUDE.md`, `docs/`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or the hooks on a `task/` branch | protect hook (agents file a follow-up instead) |
+| edit `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or the hooks on a `task/` branch | protect hook (agents file a follow-up instead). The design docs in `docs/` stay editable |
 | touch your main checkout from a worktree | Claude Code's own worktree isolation |
 
 Edits are accepted automatically, and the usual go, git and gh commands run without asking. Anything else asks you first.
