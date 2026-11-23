@@ -1,7 +1,7 @@
 ---
 id: M2-14
 title: "Make a game step fast again after the seven forms"
-status: todo
+status: done
 milestone: M2
 kind: bug
 depends_on: [M2-06]
@@ -50,10 +50,10 @@ A game step (build the view, pick an option, apply it) costs about what it did b
 
 ## Acceptance criteria
 
-- [ ] Notes give the benchmark's time per step and the profile's top costs, before and after.
-- [ ] `go run ./cmd/harness run --seeds 3 --steps 200 --out after.csv` writes a file byte-identical to the one master writes (`--out before.csv`).
-- [ ] `go test -count=1 ./internal/harness` runs at least five times faster than on master. Notes give both times.
-- [ ] `go tool task check` passes.
+- [x] Notes give the benchmark's time per step and the profile's top costs, before and after.
+- [x] `go run ./cmd/harness run --seeds 3 --steps 200 --out after.csv` writes a file byte-identical to the one master writes (`--out before.csv`).
+- [x] `go test -count=1 ./internal/harness` runs at least five times faster than on master. Notes give both times.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -63,4 +63,30 @@ A game step (build the view, pick an option, apply it) costs about what it did b
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+**Measured** (`BenchmarkStep`, `internal/harness/bench_test.go`, local machine, 300 steps; sample content):
+
+| | Before | After |
+| --- | --- | --- |
+| Time per step | 29.2 ms | 2.9 to 3.9 ms (7 to 10x) |
+| `go test -count=1 ./internal/harness` | 80.2 s | 8.8 s (9x) |
+| `harness run --seeds 3 --steps 200` | about 30 s | about 12 s before the sight cache, under 5 s after |
+
+The CSV from `harness run --seeds 3 --steps 200` is byte-identical to master's, and the three game hashes match.
+
+**Profile on master (top costs by cumulative CPU):** the `usable` hook (`actions.usable` to `candidates`) 48%, called once per channel from `timeline.decisionTick` and again from `timeline.Current` in every view; line of sight (`hexmap.Visible` / `clearLine`) 30%, called from `actions.sees` (via `effects.bodiesInSight`), `explore.sightOf` and `combat.firstHostileSeen`; `choiceCombos` 15%; GC about 20%. The suspect in Context was right.
+
+**What changed:**
+- `timeline`: new `SetUsableChannels`, a hook answering for all of a body's channels in one pass. `decisionTick` uses it when set. `SetUsable` stays and clears it, so existing tests are unaffected.
+- `actions`: `usable` became `usableChannels`. It builds the candidates once, evaluates each at most once, and marks every channel of a passing candidate usable. This gives the same answer as the old per-channel test.
+- `actions`: the evaluator remembers body targets (by actor, target kind, range, sight) and offered choice values (by actor and choice). The evaluator lives for one operation, so nothing outlives a world change.
+- `hexmap`: `Map.Visible` remembers its results per map (key: cell, radius, depth range). The memory is cleared by `Set`, the only way terrain changes after load. It is derived data: never saved or hashed, empty after a load, bounded at 4096 entries. Callers get a copy. This is the change that mattered most for the 5x target. It is not plan-view reachability caching (M1-10.F1.F1.F1), which stays out of scope.
+
+**Deviations / notes:**
+- Spec idea 2 (one candidate list per decision shared by the usable check, `Startable` and the view) was not needed to meet the criteria, so it was left.
+- Files outside the Deliverables: `internal/core/hexmap/{map,sight,sight_test}.go`, `internal/core/timeline/{timeline,controllers}.go`, `internal/core/actions/{actions,choices,install}.go`.
+- `go tool task check` passes. No follow-ups filed.
+- Remaining cost is mostly line of sight on a cold cache, candidate building and GC. A step is now about 3 ms.
+
+**Why the `Visible` memory obeys spec 4 (rebuilt after a load and after a hot reload):** a remembered result depends only on the map's chunks and edits. Loaded chunks are never evicted or changed; `Map.Set` is the only writer of edits and it clears the memory; a save load restores edits through `Map.Set`, so it clears too; a content hot reload touches no map terrain, and the key holds the radius and depth range, so a changed sight radius misses rather than hits. Only the world's goroutine reads or writes it.
+
+**Review:** `task-reviewer` found the code correct. Its should-fix items are done: a length guard on the batch hook (a miscounting hook falls back to the per-channel test), tests for the timeline's two hooks (`TestUsableChannelsHookDecidesWhichChannelsCount`) and for the batch hook agreeing with the old per-channel test (`TestBatchUsableHookAgreesWithTheChannelByChannelTest`, using `actions/export_test.go`), and the stale `SetUsable` comment. Plan-view reachability was not among the top costs.

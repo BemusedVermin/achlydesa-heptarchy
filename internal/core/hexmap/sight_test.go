@@ -119,3 +119,48 @@ func hexDistance(a, b api.Hex) int {
 	dq, dr := a.Q-b.Q, a.R-b.R
 	return (absInt(dq) + absInt(dr) + absInt(dq+dr)) / 2
 }
+
+func TestVisibleRemembersUntilAnEdit(t *testing.T) {
+	m := NewMap(1, "room", FuncSource(func(c api.Cell) Terrain {
+		if c.Depth != 0 {
+			return rock
+		}
+		return air
+	}), Prisms{})
+	from := cell(0, 0, 0)
+	first, err := m.Visible(from, 4, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := slices.Clone(first)
+	first[0] = cell(9, 9, 9) // a caller changing its copy must not change what the map remembers
+	again, err := m.Visible(from, 4, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(again, want) {
+		t.Fatal("a remembered result changed when the caller edited its copy")
+	}
+
+	wall := cell(1, 0, 0)
+	if !slices.Contains(again, cell(3, 0, 0)) {
+		t.Fatal("setup: the open room should show (3,0)")
+	}
+	if err := m.Set(wall, rock); err != nil {
+		t.Fatal(err)
+	}
+	after, err := m.Visible(from, 4, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fresh, err := m.computeVisible(from, 4, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(after, fresh) {
+		t.Error("after an edit, Visible differs from a fresh computation")
+	}
+	if slices.Contains(after, cell(3, 0, 0)) {
+		t.Error("the new wall at (1,0) should hide (3,0)")
+	}
+}

@@ -21,6 +21,8 @@ type Map struct {
 	topo   Topology
 	chunks map[ChunkKey]*Chunk
 	edits  map[api.Cell]Terrain
+	// sights remembers Visible results until the next edit. It is derived, never saved or hashed.
+	sights map[sightKey][]api.Cell
 }
 
 // NewMap returns a map that loads chunks from src on first use.
@@ -62,6 +64,7 @@ func (m *Map) At(c api.Cell) (Terrain, error) {
 // Set edits c. The edit lives in an overlay, so it can be saved and survives reloading the chunk.
 func (m *Map) Set(c api.Cell, t Terrain) error {
 	m.edits[c] = t
+	clear(m.sights)
 	return nil
 }
 

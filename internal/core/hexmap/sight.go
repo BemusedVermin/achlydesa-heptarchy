@@ -1,6 +1,8 @@
 package hexmap
 
 import (
+	"slices"
+
 	hex "github.com/gravitton/hexagon"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -13,6 +15,31 @@ import (
 // behind them is not. Depth is interpolated linearly along the hex line; where it is fractional, the line is clear
 // if either the sequence of cells above or the sequence below is clear. Sight stays on this map.
 func (m *Map) Visible(from api.Cell, radius, depthRange int) ([]api.Cell, error) {
+	key := sightKey{from: from, radius: radius, depthRange: depthRange}
+	if cells, ok := m.sights[key]; ok {
+		return slices.Clone(cells), nil
+	}
+	cells, err := m.computeVisible(from, radius, depthRange)
+	if err != nil {
+		return nil, err
+	}
+	if m.sights == nil || len(m.sights) >= maxSights {
+		m.sights = map[sightKey][]api.Cell{}
+	}
+	m.sights[key] = slices.Clone(cells)
+	return cells, nil
+}
+
+// sightKey is what a Visible result depends on, besides the terrain.
+type sightKey struct {
+	from               api.Cell
+	radius, depthRange int
+}
+
+// maxSights bounds the Visible results a map remembers; past it the memory starts over.
+const maxSights = 4096
+
+func (m *Map) computeVisible(from api.Cell, radius, depthRange int) ([]api.Cell, error) {
 	candidates := m.CellsIn(from.Hex, radius, from.Depth-depthRange, from.Depth+depthRange)
 	out := make([]api.Cell, 0, len(candidates))
 	for _, target := range candidates {

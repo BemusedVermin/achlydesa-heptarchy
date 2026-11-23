@@ -52,9 +52,18 @@ func SetChannels(w *sim.World, fn func(w *sim.World, body ecs.Entity) []Channel)
 }
 
 // SetUsable replaces the test for whether a channel can be used at all. The default is that every
-// channel is usable; M1-20 marks a channel usable when some action could start with it.
+// channel is usable; the actions package installs [SetUsableChannels] instead, which marks a channel
+// usable when some action could start with it.
 func SetUsable(w *sim.World, fn func(w *sim.World, body ecs.Entity, c Channel) bool) {
-	stateOf(w).usable = fn
+	st := stateOf(w)
+	st.usable, st.usableAll = fn, nil
+}
+
+// SetUsableChannels replaces the test for whether channels can be used at all with one that answers
+// for all of a body's channels in one pass. It returns one flag per channel, in order, and must agree
+// with what a per-channel test would say. A later [SetUsable] replaces it.
+func SetUsableChannels(w *sim.World, fn func(w *sim.World, body ecs.Entity, channels []Channel) []bool) {
+	stateOf(w).usableAll = fn
 }
 
 // SetSpeed replaces how a body's speed is found. The default is the configured default_speed;

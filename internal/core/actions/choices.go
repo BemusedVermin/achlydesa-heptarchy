@@ -46,6 +46,23 @@ func RegisterChoice(w *sim.World, name string, p ChoiceProvider) error {
 // choiceValues lists the values the actor may pick for a choice, in order: the Go provider's, or
 // else the records the content choice offers, in ID order.
 func (ev *evaluator) choiceValues(name string, actor ecs.Entity) ([]string, error) {
+	key := valueKey{actor: actor, name: name}
+	if values, ok := ev.valueMemo[key]; ok {
+		return values, nil
+	}
+	values, err := ev.offeredValues(name, actor)
+	if err != nil {
+		return nil, err
+	}
+	if ev.valueMemo == nil {
+		ev.valueMemo = map[valueKey][]string{}
+	}
+	ev.valueMemo[key] = values
+	return values, nil
+}
+
+// offeredValues works out the values choiceValues remembers.
+func (ev *evaluator) offeredValues(name string, actor ecs.Entity) ([]string, error) {
 	if provider, ok := ev.st.providers[name]; ok {
 		return provider(ev.w, actor), nil
 	}

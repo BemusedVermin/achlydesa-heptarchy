@@ -112,6 +112,22 @@ func (ev *evaluator) targets(actor ecs.Entity, def content.ActionDef) ([]Intent,
 }
 
 func (ev *evaluator) bodyTargets(actor ecs.Entity, def content.ActionDef) ([]Intent, error) {
+	key := targetKey{actor: actor, target: def.Target, rng: def.Range, sight: def.Sight}
+	if out, ok := ev.targetMemo[key]; ok {
+		return out, nil
+	}
+	out, err := ev.findBodyTargets(actor, def)
+	if err != nil {
+		return nil, err
+	}
+	if ev.targetMemo == nil {
+		ev.targetMemo = map[targetKey][]Intent{}
+	}
+	ev.targetMemo[key] = out
+	return out, nil
+}
+
+func (ev *evaluator) findBodyTargets(actor ecs.Entity, def content.ActionDef) ([]Intent, error) {
 	var bodies []ecs.Entity
 	query := ecs.NewFilter2[comp.Pos, comp.Actor](ev.w.ECS).Query()
 	for query.Next() {
@@ -212,26 +228,49 @@ func Startable(w *sim.World, actor ecs.Entity) []Intent {
 	return out
 }
 
-// usable is the timeline's usable hook: a channel is usable when some action could be started with it
-// were it free. So an arm with nothing in reach does not make its body stop and decide.
-func usable(w *sim.World, body ecs.Entity, c timeline.Channel) bool {
+// usableChannels is the timeline's usable hook: a channel is usable when some action could be started
+// with it were it free. So an arm with nothing in reach does not make its body stop and decide. It
+// builds the body's candidates once and evaluates each at most once, however many channels it uses.
+func usableChannels(w *sim.World, body ecs.Entity, channels []timeline.Channel) []bool {
+	flags := make([]bool, len(channels))
+	if len(channels) == 0 {
+		return flags
+	}
 	ev := newEvaluator(w)
 	cands, err := ev.candidates(body, false)
 	if err != nil {
-		return false
+		return flags
 	}
+	index := make(map[ecs.Entity]int, len(channels))
+	for i, c := range channels {
+		index[c.Entity] = i
+	}
+	open := len(channels)
 	for _, cand := range cands {
-		if !slices.ContainsFunc(
-			cand.intent.Channels,
-			func(used timeline.Channel) bool { return used.Entity == c.Entity },
-		) {
+		if open == 0 {
+			break
+		}
+		wanted := false
+		for _, used := range cand.intent.Channels {
+			if i, ok := index[used.Entity]; ok && !flags[i] {
+				wanted = true
+			}
+		}
+		if !wanted {
 			continue
 		}
-		if p, reason, err := ev.evaluate(cand.intent, false); err == nil && p != nil && reason.ID == "" {
-			return true
+		p, reason, err := ev.evaluate(cand.intent, false)
+		if err != nil || p == nil || reason.ID != "" {
+			continue
+		}
+		for _, used := range cand.intent.Channels {
+			if i, ok := index[used.Entity]; ok && !flags[i] {
+				flags[i] = true
+				open--
+			}
 		}
 	}
-	return false
+	return flags
 }
 
 // optionID is the option's ID: the action's key, each choice, then the target, the part or direction,
