@@ -489,7 +489,14 @@ func packHas(ctx *effects.Context, item api.ContentID) (bool, api.Text) {
 
 func checkConsume(ctx *effects.Context, p effects.Params) (bool, api.Text) {
 	item, _ := p.String("item")
-	return packHas(ctx, api.ContentID(item))
+	id := api.ContentID(item)
+	// A bound item held for some other body doesn't refuse: refusing would tell the player whose
+	// keepsake they hold. The swing lands and the stack bound to this target, if any, is used.
+	if def, ok := ctx.World.Content.Item(id); ok && def.Bound &&
+		inventory.Usable(ctx.World, ctx.Source, ecs.Entity{})[item] > 0 {
+		return true, api.Text{}
+	}
+	return packHas(ctx, id)
 }
 
 func applyConsume(ctx *effects.Context, p effects.Params) error {

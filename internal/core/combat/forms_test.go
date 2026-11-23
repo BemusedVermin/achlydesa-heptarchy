@@ -431,19 +431,46 @@ func TestRelicOnOldMatterLandsAndDoesNothing(t *testing.T) {
 	}
 }
 
-func TestNameIsDisabledUnlessANameIsBoundToTheTarget(t *testing.T) {
+func TestNameOnTheWrongBodyLandsAndDoesNothing(t *testing.T) {
 	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "ally": -1})
 	victim := r.body("victim")
 	arm := r.part(victim, "arm")
 	r.give("item.name", 1, r.body("ally"))
 	option, ok := r.option("strike", "type.name", r.uid(victim), r.uid(arm))
-	want := r.w.Content.Render(api.Text{ID: "text.type.name_refusal"})
-	if !ok || option.Enabled || want == "" || option.Reason != want {
-		t.Fatalf("Name on a body whose name is not held = %+v, %v; want disabled with %q", option, ok, want)
+	if !ok || !option.Enabled {
+		t.Fatalf("Name on a body whose name is not held = %+v, %v; want offered, so the menu tells nothing", option, ok)
 	}
+	events := r.do("strike", "type.name", r.uid(victim), r.uid(arm))
+	events = append(events, r.wait(3)...)
+	if !has(events, always[api.ActionLanded]) || has(events, always[api.PartDamaged]) || r.integrityOf(arm) != 3 {
+		t.Errorf(
+			"Name on the wrong body: events %v, integrity %d; want it to land and do nothing",
+			events,
+			r.integrityOf(arm),
+		)
+	}
+}
+
+func TestKeepsakeOnTheWrongBodyIsNotRefused(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "ally": -1})
+	victim := r.body("victim")
+	arm := r.part(victim, "arm")
+	r.give("item.keepsake", 1, r.body("ally"))
+	option, ok := r.option("strike", "type.keepsake", r.uid(victim), r.uid(arm))
+	if !ok || !option.Enabled {
+		t.Fatalf("Keepsake on a body whose keepsake is not held = %+v, %v; want offered", option, ok)
+	}
+}
+
+func TestNameOnItsOwnerHurts(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "victim": 1})
+	victim := r.body("victim")
+	arm := r.part(victim, "arm")
 	r.give("item.name", 1, victim)
-	if option, _ = r.option("strike", "type.name", r.uid(victim), r.uid(arm)); !option.Enabled {
-		t.Errorf("Name on the body whose name is held is disabled: %+v", option)
+	r.do("strike", "type.name", r.uid(victim), r.uid(arm))
+	r.wait(3)
+	if r.integrityOf(arm) == 3 {
+		t.Error("Name on the body whose name is held did no damage")
 	}
 }
 

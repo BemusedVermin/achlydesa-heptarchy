@@ -97,7 +97,7 @@ func TestCountOfAnEntityWithNoPackIsZero(t *testing.T) {
 	}
 }
 
-func TestAllElevenTypesLoadAndNameNeedsItsOwner(t *testing.T) {
+func TestAllElevenTypesLoadAndNameIsNeverRefused(t *testing.T) {
 	reg, err := content.Load(contentDir)
 	if err != nil {
 		t.Fatal(err)
@@ -108,7 +108,7 @@ func TestAllElevenTypesLoadAndNameNeedsItsOwner(t *testing.T) {
 	tests := []struct {
 		pack map[string]int
 		want bool
-	}{{map[string]int{"item.name": 1}, true}, {map[string]int{}, false}}
+	}{{map[string]int{"item.name": 1}, true}, {map[string]int{}, true}}
 	for _, tc := range tests {
 		got, _, err := reg.ModsRequires("type.name", content.ActionEnv{Pack: tc.pack})
 		if err != nil || got != tc.want {
@@ -153,9 +153,9 @@ func TestBadTypeContentIsRejected(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bad := bundle.Types["type.name"]
+	bad := bundle.Types["type.press"]
 	bad.Requires = "no_such_field == 1"
-	bundle.Types["type.name"] = bad
+	bundle.Types["type.press"] = bad
 	burn := bundle.Types["type.burn"]
 	burn.Lists = map[string][]string{"consumes": {"item.nothing"}}
 	bundle.Types["type.burn"] = burn
