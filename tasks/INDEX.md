@@ -88,7 +88,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M2-09.F1](followups/M2-09.F1-crawling-parts-know-no-actions.md) | Give a crawling part the actions to fight with | done | seam | M2 | M2-09 |
 | [M2-08.F2](followups/M2-08.F2-alert-started-twice.md) | AlertStarted is published twice for one alert | done | bug | M2 | M2-08 |
 | [M2-08.F1](followups/M2-08.F1-sample-crawler-hunts.md) | Make the sample crawler hunt | done | content | M2 | M2-08 |
-| [M2-07.F1.F1](followups/M2-07.F1.F1-wake-after-wipe.md) | Wake at the last rest town after a party wipe | todo | feature | M3 | M2-07.F1 |
+| [M2-07.F1.F1.F1](followups/M2-07.F1.F1.F1-rest-sets-rest-place.md) | Resting in a town sets the party's rest place | proposed | feature | M3 | M2-07.F1.F1 |
+| [M2-07.F1.F1](followups/M2-07.F1.F1-wake-after-wipe.md) | Wake at the last rest town after a party wipe | done | feature | M3 | M2-07.F1 |
 | [M2-06.F1.F1](followups/M2-06.F1.F1-forms-doc-strike-sever.md) | Update the forms table in the game design for Strike and Sever | done | debt | unplanned | M2-06.F1 |
 | [M2-06.F1](followups/M2-06.F1-strike-sever-weakness.md) | Should Strike and Sever differ on a weakness the way these placeholders do? | done | question | unplanned | M2-06 |
 | [M2-06.F4.F1](followups/M2-06.F4.F1-record-name-keepsake-decision.md) | Record in the design doc that Name and Keepsake are never refused | done | debt | M2 | M2-06.F4 |

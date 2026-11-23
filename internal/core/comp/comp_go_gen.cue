@@ -98,6 +98,13 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	choices?: {[string]: string} @go(Choices,map[string]string)
 }
 
+// RestPlace is the cell a party last rested at, on the party entity. A party that is wiped out wakes
+// there. Use the explore package's SetRestPlace rather than writing it.
+#RestPlace: {
+	map: api.#MapID @go(Map)
+	at:  api.#Cell  @go(At)
+}
+
 // Controlled marks the party the player commands.
 #Controlled: {}
 

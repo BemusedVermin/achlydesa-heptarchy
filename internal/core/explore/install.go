@@ -27,6 +27,7 @@ func Install(w *sim.World) error {
 		api.RegisterEvent[api.Fell],
 		api.RegisterEvent[api.ControlChanged],
 		api.RegisterEvent[api.LeaderChanged],
+		api.RegisterEvent[api.PartyWoke],
 	} {
 		if err := register(w.Codec); err != nil {
 			return err
