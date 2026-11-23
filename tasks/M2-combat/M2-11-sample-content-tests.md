@@ -1,7 +1,7 @@
 ---
 id: M2-11
 title: Sample content, lethality targets and golden encounters
-status: todo
+status: done
 milestone: M2
 kind: test
 depends_on: [M2-09]
@@ -55,14 +55,28 @@ From M1-18.F1, also: a test in `internal/core/save` that saves mid-fight with ac
 
 ## Acceptance criteria
 
-- [ ] Seven golden encounters pass, and each covers what its name says (checked by reading the golden logs).
-- [ ] The properties hold over 200 cases each.
-- [ ] **Lethality:** over 100 seeds each, a `blind` party loses at least 60% of fights against the hall's creature and an `informed` party wins at least 80%, and the median fight lasts under 60 ticks. Record the measured numbers in Notes. If they miss, tune content, not code, and say what changed. These targets are placeholders for M7.
-- [ ] `harness run --seeds 50 --steps 500` completes with the combat columns filled, and no run hits a bus cascade error.
-- [ ] `go tool task check` passes.
+- [x] Seven golden encounters pass, and each covers what its name says (checked by reading the golden logs).
+- [x] The properties hold over 200 cases each.
+- [x] **Lethality:** over 100 seeds each, a `blind` party loses at least 60% of fights against the hall's creature and an `informed` party wins at least 80%, and the median fight lasts under 60 ticks. Record the measured numbers in Notes. If they miss, tune content, not code, and say what changed. These targets are placeholders for M7.
+- [x] `harness run --seeds 50 --steps 500` completes with the combat columns filled, and no run hits a bus cascade error.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Balancing numbers (M7).
 
 ## Notes
+
+**Lethality, measured** (`TestLethalityTargets`, seeds 1 to 100 each, hall's crawler): blind lost 100% (won 0%, median fight 49 ticks); informed won 100% (median 34 ticks). Tuned in content only. Before tuning, the sample crawler's flesh maw let a blind party Sever it with Burn at once and win 95%. I made the hall's creature a new `body.clay_thing` (clay maws, legs and core, integrity 10/10/12, two maws), because clay is weak only to Soak and Relic, and Burn bakes it harder. `body.crawler` stays as it was, since many tests build on it.
+
+**Deviations and decisions**
+
+- **Hall spawns.** The remnant and the beast do not spawn on `map.test.hall`: with three hunters there, a random walker (harness, save and frontend tests) dies, and the lethality target says "the hall's creature". They spawn on a new `map.test.den` (`content/data/maps/test_den.cue`), and the hall keeps the crawler. Change `spawns` on the hall if the owner wants all three there.
+- **Protagonists** were already in content from earlier tasks (the Reaper with Press, the salken graftable with Relic through grafts), so none were added. The remnant gained Step and Strike (with Cut) so it fights, and a flesh `template.creature.beast` (bone skull, eye, flesh legs and torso) was added.
+- **Golden encounters** set bodies up with the test fixtures (`ring`, `field`), as the existing tests do, and from there every move is an option of the view. They are not "a seed plus a command log" replays, because the setup places bodies directly. Goldens: `internal/core/combat/testdata/encounters/*.jsonl`, the events encoded with the codec; the old `hunt.golden` was regenerated (map and UIDs shifted). "Soak plus Strike severing clay": Strike never severs, so it is the clay arm worn off by a weak hit (`SeveredWorn`).
+- **Properties** are one rapid test (`TestRandomFightsKeepTheInvariants`, 200 cases, about 90 s, skipped under `-short`) that checks every listed property after each command, plus the replay hash and "no `Rejected`". "Every pending action lands, misses or is canceled exactly once" is checked as: `ActionStarted` count equals landed plus canceled plus actions in flight (a miss is also a landing). It skips Stand and Give options, which break "no channel starts an action while busy" (M2-11.F1).
+- `internal/harness`: `blind` takes the first offered attack that is not a Sweep and loads whatever type is offered first; `informed` reads each part's true material through a new read-only `game.(*Game).PartOfUID` (added to `internal/core/game/inspect.go`, next to `PositionOf`) and picks a weak type, preferring vital parts. Both walk to the creature and close in. The CSV gained `alert_ticks, landings, misses, severed, deaths, outcome` (running totals; landings = blows that cost a part integrity). `harness run --seeds 50 --steps 500` completes with no bus cascade error, and the outcome column reads won or lost in the random-policy runs.
+- Existing tests touched: `internal/frontend/tui` goldens (`look_*`, `menu_parts`: the creature's body changed) and `TestWholeFightEndsAndTheMapResumesFollow` now soaks and severs the core instead of striking with the first type, since the tougher clay thing cannot be struck down by the naive option.
+- The save test (M1-18.F1, now obsolete and merged here) is `internal/core/save/fight_test.go`.
+
+**Follow-ups filed:** M2-11.F1 (Stand and Give free a channel that has a swing winding up), M2-11.F2 (question: where the three creatures spawn). The den and the beast are exercised by `TestEachCreatureOfTheDenSpawnsAndFightsBack`. The blind policy skips any action without a type choice (Pin, Stand, Give) as well as Sweep, so it only ever attacks with loaded forms. The property test sets `rapid.checks` to 200 for the whole package through a flag, which a second rapid test in the package would inherit.

@@ -387,8 +387,15 @@ func TestWholeFightEndsAndTheMapResumesFollow(t *testing.T) {
 			break
 		}
 		if foe := creature(app); foe != nil {
-			if strike, ok := findOption(app, "strike/", "/"+uidString(foe.UID)+"/"); ok && strike.Enabled {
-				app.Choose(strike.ID)
+			// The last part listed is the core, which a severing kills the creature through.
+			var sever []api.Option
+			for _, o := range optionsWithPrefix(app, "sever/type.soak/") {
+				if strings.Contains(o.ID, "/"+uidString(foe.UID)+"/") && o.Enabled {
+					sever = append(sever, o)
+				}
+			}
+			if len(sever) > 0 {
+				app.Choose(sever[len(sever)-1].ID)
 			}
 		} else {
 			press(app, "d")
