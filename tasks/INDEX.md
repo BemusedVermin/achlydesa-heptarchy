@@ -51,7 +51,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
 | [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
 | [M2-14](M2-combat/M2-14-step-speed.md) | Make a game step fast again after the seven forms | todo | bug | M | M2-06 |
-| [M2-15](M2-combat/M2-15-triage-followups.md) | Triage the open follow-ups into milestones | todo | debt | S | none |
+| [M2-15](M2-combat/M2-15-triage-followups.md) | Triage the open follow-ups into milestones | done | debt | S | none |
 
 ## Later milestones (outlines)
 
@@ -82,9 +82,9 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M2-06.F1.F1](followups/M2-06.F1.F1-forms-doc-strike-sever.md) | Update the forms table in the game design for Strike and Sever | done | debt | unplanned | M2-06.F1 |
 | [M2-06.F1](followups/M2-06.F1-strike-sever-weakness.md) | Should Strike and Sever differ on a weakness the way these placeholders do? | done | question | unplanned | M2-06 |
 | [M2-06.F4.F1](followups/M2-06.F4.F1-record-name-keepsake-decision.md) | Record in the design doc that Name and Keepsake are never refused | done | debt | M2 | M2-06.F4 |
-| [M2-07.F3](followups/M2-07.F3-wipe-inside-apply.md) | Stop the timeline when the party is wiped inside an Apply | proposed | bug | M2 | M2-07 |
+| [M2-07.F3](followups/M2-07.F3-wipe-inside-apply.md) | Stop the timeline when the party is wiped inside an Apply | todo | bug | M2 | M2-07 |
 | [M2-07.F1](followups/M2-07.F1-party-wipe-story.md) | What does a party wipe mean for the story? | proposed | question | unplanned | M2-07 |
-| [M2-07.F2](followups/M2-07.F2-idle-bodies-ping-pong.md) | Idle bodies waiting on each other move time on a tick at a time | proposed | bug | M2 | M2-07 |
+| [M2-07.F2](followups/M2-07.F2-idle-bodies-ping-pong.md) | Idle bodies waiting on each other move time on a tick at a time | todo | bug | M2 | M2-07 |
 | [M2-06.F2](followups/M2-06.F2-crawls-tag.md) | A crawls tag, so Stand freezes only the crawlers | done | feature | M2 | M2-06 |
 | [M2-06.F3](followups/M2-06.F3-relic-innate-to-grafts.md) | Relic as innate to grafts | done | seam | M2 | M2-06 |
 | [M2-06.F5](followups/M2-06.F5-option-labels-name-the-choice.md) | Option labels show a chosen record's ID, not its name | done | bug | M2 | M2-06 |
@@ -92,22 +92,22 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M2-13.F1](followups/M2-13.F1-cue-schema-tests.md) | Test CUE constraints against the real schema | done | test | unplanned | M2-13 |
 | [M2-01.F1](followups/M2-01.F1-render-fact-values.md) | Render a fact's value as text in the log | done | seam | unplanned | M2-01 |
 | [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | obsolete | seam | M1 | M1-15 |
-| [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | proposed | seam | unplanned | M1-14 |
+| [M1-14.F1](followups/M1-14.F1-sight-across-links.md) | Sight and pathing across map links | obsolete | seam | unplanned | M1-14 |
 | [M1-17.F1](followups/M1-17.F1-reschedule-on-hook-change.md) | timeline: reschedule bodies when a hook's answer changes | obsolete | seam | M1 | M1-17 |
 | [M1-18.F1](followups/M1-18.F1-pending-save-roundtrip.md) | Round-trip pending actions through a real save | obsolete | test | M1 | M1-18 |
 | [M1-19.F1](followups/M1-19.F1-effect-validation-end-to-end.md) | Test that game.New rejects bad effects in real content | obsolete | test | M1 | M1-19 |
 | [M1-20.F1](followups/M1-20.F1-check-draws-roll.md) | Effect checks must not draw from the RNG | done | bug | M1 | M1-20 |
-| [M1-20.F2](followups/M1-20.F2-cell-targets.md) | Cell-targeted actions | proposed | seam | unplanned | M1-20 |
+| [M1-20.F2](followups/M1-20.F2-cell-targets.md) | Cell-targeted actions | obsolete | seam | unplanned | M1-20 |
 | [M1-10.F1](followups/M1-10.F1-slope-floor-in-plan-view.md) | Plan view: a slope's ceiling beats its floor | done | question | M1 | M1-10 |
 | [M1-10.F2](followups/M1-10.F2-fall-injuries.md) | Injuries from falls | done | feature | M2 | M1-10 |
 | [M1-10.F1.F1](followups/M1-10.F1.F1-plan-view-reachability.md) | Plan view: draw by reachability within a limit | done | feature | M1 | M1-10.F1 |
-| [M2-02.F1](followups/M2-02.F1-despawn-body-parts.md) | Despawning a body must remove its parts | proposed | bug | M2 | M2-02 |
+| [M2-02.F1](followups/M2-02.F1-despawn-body-parts.md) | Despawning a body must remove its parts | todo | bug | M2 | M2-02 |
 | [M2-04.F1](followups/M2-04.F1-validate-content-ids-in-effects.md) | Check content IDs named by effect parameters at load | done | seam | M2 | M2-04 |
 | [M2-04.F2](followups/M2-04.F2-lock-reason-on-busy.md) | Tell a lock from ordinary busy time | done | seam | M2 | M2-04 |
 | [M2-05.F1](followups/M2-05.F1-harden-primitive-and-event-sources.md) | A raise_max_integrity primitive and a source on combat events | done | seam | M2 | M2-05 |
-| [M1-10.F1.F1.F1](followups/M1-10.F1.F1.F1-cache-plan-reachability.md) | Plan view: do not recompute reachability on every view build | proposed | debt | unplanned | M1-10.F1.F1 |
+| [M1-10.F1.F1.F1](followups/M1-10.F1.F1.F1-cache-plan-reachability.md) | Plan view: do not recompute reachability on every view build | obsolete | debt | unplanned | M1-10.F1.F1 |
 | [M1-10.F3](followups/M1-10.F3-sight-vs-prototype.md) | Sight differs from the prototype at pillar edges | obsolete | debt | M1 | M1-10 |
-| [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | proposed | seam | unplanned | M1-16 |
+| [M1-16.F1](followups/M1-16.F1-follow-across-links.md) | Followers and swaps across map links | obsolete | seam | unplanned | M1-16 |
 | [M1-16.F2](followups/M1-16.F2-party-view-control.md) | Show the party's control mode and alert in the view | obsolete | feature | M1 | M1-16 |
 | [M1-12.F1](followups/M1-12.F1-load-with-spawning-extra.md) | Let Load run a Config.Extra that spawns | done | debt | M1 | M1-12 |
 | [M1-11.F1](followups/M1-11.F1-wasd-alternating-diagonals.md) | WASD: up and down zigzag diagonally | done | feature | M1 | M1-11 |
