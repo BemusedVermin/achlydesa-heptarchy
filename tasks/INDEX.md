@@ -79,6 +79,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M2-11.F2](followups/M2-11.F2-where-the-three-creatures-spawn.md) | Where do the sample's three creatures spawn? | proposed | question | M2 | M2-11 |
 | [M2-11.F1](followups/M2-11.F1-ready-frees-a-winding-channel.md) | Stand and Give free a channel that still has a swing winding up | proposed | bug | M2 | M2-11 |
 | [M2-09.F1.F1](followups/M2-09.F1.F1-what-a-crawling-part-can-do.md) | What can a crawling part do? | proposed | question | M2 | M2-09.F1 |
 | [M2-10.F2](followups/M2-10.F2-agentkit-afteredit-windows-path.md) | Fix TestAfterEditWithGolangciLint on Windows paths | done | bug | unplanned | M2-10 |

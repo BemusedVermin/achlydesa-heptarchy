@@ -79,4 +79,4 @@ From M1-18.F1, also: a test in `internal/core/save` that saves mid-fight with ac
 - Existing tests touched: `internal/frontend/tui` goldens (`look_*`, `menu_parts`: the creature's body changed) and `TestWholeFightEndsAndTheMapResumesFollow` now soaks and severs the core instead of striking with the first type, since the tougher clay thing cannot be struck down by the naive option.
 - The save test (M1-18.F1, now obsolete and merged here) is `internal/core/save/fight_test.go`.
 
-**Follow-ups filed:** M2-11.F1 (Stand and Give free a channel that has a swing winding up).
+**Follow-ups filed:** M2-11.F1 (Stand and Give free a channel that has a swing winding up), M2-11.F2 (question: where the three creatures spawn). The den and the beast are exercised by `TestEachCreatureOfTheDenSpawnsAndFightsBack`. The blind policy skips any action without a type choice (Pin, Stand, Give) as well as Sweep, so it only ever attacks with loaded forms. The property test sets `rapid.checks` to 200 for the whole package through a flag, which a second rapid test in the package would inherit.

@@ -46,7 +46,7 @@ templates: {
 		lists: types: _innateTypes
 		triggers: [_fallInjury]
 	}
-	// A clay-cored creature of the soop. It hunts the party and bites.
+	// A creature of the soop, all clay. It hunts the party and bites.
 	"template.creature.crawler": {
 		name: "text.template.creature.crawler"
 		appearance: {glyph: "c", color: "yellow"}
