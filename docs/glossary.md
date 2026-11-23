@@ -23,3 +23,6 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **BodyEnv**: what a formula sees of one body (`content.BodyEnv`, formerly `Side`). A side is a faction.
 - **chosen**: in an action's formulas, the records the player picked (`chosen.<x>.id`).
 - **params**: a trigger event's numbers, such as `cells` (`api.Params`).
+- **form**: one of the seven combat actions, tagged `form` in `forms.cue`. Not a separate record.
+- **move**: movement across the map (`api.Moved`, `move_cost`); never form x type.
+- **type**: what a form carries into the part it lands on (`content.Type`). Not every type does damage.

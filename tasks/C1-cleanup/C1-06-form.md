@@ -1,7 +1,7 @@
 ---
 id: C1-06
 title: "What are 'form', 'action', 'move' and 'type'?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The design's "form" (the seven combat forms) is `ActionDef` and `action.*` in co
 
 **Recommendation:** The glossary rule.
 
+**Decided by the owner:** the glossary rule. An action is any timed doing; a form is one of the seven combat actions, tagged `form` in `forms.cue`, and `_forms` becomes `_actions` (the list that says "the seven forms" holds exactly seven). "Move" means movement only. `content.DamageType` becomes `content.Type`, because Name, Keepsake and Relic are types but not damage. `docs/go-technical-design.md` is fixed so it no longer names a `Form` record. No `Form` record is added. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: glossary rule. In the glossary and the tech design.

@@ -174,7 +174,7 @@ Each package owns one part of the rules and leans on a library for everything el
 
 Content goes from Go structs to CUE schemas to validated data, and almost none of that path is custom code.
 
-1. **Go structs define the shapes.** Components (in `comp`) and content records (`Material`, `Form`, `Template`, `CurdleMode`...) are plain structs. A template is a bag of optional components, so a creature, a person, a town and a candidate are all templates rather than separate types.
+1. **Go structs define the shapes.** Components (in `comp`) and content records (`Material`, `ActionDef`, `Template`, `CurdleMode`...) are plain structs. A template is a bag of optional components, so a creature, a person, a town and a candidate are all templates rather than separate types.
 2. **`cue get go --local` generates the schemas** as `*_go_gen.cue` files beside the Go structs in `internal/content`, so schema and code never drift.
 3. **Authors write data in CUE** under `content/data`. CUE fills defaults and checks references (a form naming an unknown primitive, a creature using an unknown material).
 4. **`cue vet` runs in CI** through `go tool task check`, alongside the tests, so content errors fail before the game starts.
