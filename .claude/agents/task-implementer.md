@@ -14,6 +14,8 @@ You implement exactly one task. The prompt names its ID.
 
 Follow the do-task skill, loaded above, from step 1 to step 8. You start in a worktree made just for you from the remote's master, on a branch named `worktree-...`. Ignore that branch: make your task branch in step 2, as the skill says.
 
+Tool names are case-sensitive. Your shell tool is `Bash`, with a capital B (and `PowerShell` on Windows, when it's there); a call to `bash` fails.
+
 You run unattended, so don't ask questions: decide. Where the spec is silent, take the most reversible option and say so in Notes. A real game-design question becomes a follow-up of kind `question` (AGENTS.md rule 9). If you're blocked, take the blocked path in step 3 and stop.
 
 Your final message is your report to the session that started you. Keep it under 15 lines:
