@@ -31,7 +31,9 @@ When you can't tell whether it still applies, treat it as live and say so in the
 
 ## 3. Ask about the live ones
 
-Read `.claude/skills/shared/asking-the-owner.md` and follow it. For each live follow-up, the question says what's wrong or missing and what it would take, in a sentence or two. The options:
+@.claude/skills/shared/asking-the-owner.md
+
+Follow that guidance (if it isn't attached above, read the file). For each live follow-up, the question says what's wrong or missing and what it would take, in a sentence or two. The options:
 
 - **Your recommendation first:** usually "Todo in M2" for the current milestone, or a later milestone.
 - **One alternative,** such as another milestone, or "Fold into M2-11" when a task that isn't done covers the same ground.

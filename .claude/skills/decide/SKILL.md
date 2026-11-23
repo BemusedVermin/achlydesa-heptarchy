@@ -19,7 +19,9 @@ Agents file design questions as follow-ups with `kind: question`, because only t
 
 ## 2. Ask
 
-Read `.claude/skills/shared/asking-the-owner.md` and follow it. Each question is the design question itself, and each option a real answer to it, with what the player would notice or what content would change.
+@.claude/skills/shared/asking-the-owner.md
+
+Follow that guidance (if it isn't attached above, read the file). Each question is the design question itself, and each option a real answer to it, with what the player would notice or what content would change.
 
 ## 3. Record each answer
 
