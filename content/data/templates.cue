@@ -128,7 +128,7 @@ text: {
 	"text.template.creature.beast":       "The beast"
 	"text.template.crawling.remnant_arm": "A crawling arm"
 	"text.template.test.dummy":           "Dummy"
-	"text.template.creature.moving_clay": "The moving clay"
+	"text.template.creature.moving_clay": "The crawler"
 	"text.template.test.crawler":         "Crawler"
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"

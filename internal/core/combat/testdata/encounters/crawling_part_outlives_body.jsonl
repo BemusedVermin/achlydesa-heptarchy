@@ -4,7 +4,7 @@
 {"kind":"combat.body_died","data":{"body":33,"name":"The remnant","tick":0}}
 {"kind":"combat.part_damaged","data":{"body":28,"part":32,"amount":12,"integrity":0,"source":2,"tick":0}}
 {"kind":"combat.part_severed","data":{"body":28,"part":32,"cause":"worn","source":2,"tick":0}}
-{"kind":"combat.body_died","data":{"body":28,"name":"The moving clay","tick":0}}
+{"kind":"combat.body_died","data":{"body":28,"name":"The crawler","tick":0}}
 {"kind":"combat.alert_started","data":{"party":1,"hostile":37,"name":"A crawling arm","tick":0}}
 {"kind":"explore.control_changed","data":{"party":1,"mode":"individual","by":"alert"}}
 {"kind":"combat.part_damaged","data":{"body":37,"part":34,"amount":4,"integrity":0,"source":2,"tick":3}}
