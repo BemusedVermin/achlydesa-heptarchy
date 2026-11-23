@@ -4,6 +4,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -19,6 +20,12 @@ func SideOf(w *sim.World, body, part ecs.Entity) content.Side {
 	if alive(w, body) {
 		if identities := ecs.NewMap[comp.Identity](w.ECS); identities.Has(body) {
 			side.Template, _ = w.Content.Record(identities.Get(body).Template)
+		}
+		grafts := ecs.NewMap[comp.Graft](w.ECS)
+		for _, attached := range anatomy.Parts(w, body) {
+			if grafts.Has(attached) {
+				side.Grafts++
+			}
 		}
 	}
 	if alive(w, part) {

@@ -34,6 +34,7 @@ package content
 	Template: #Record
 	Part:     #Record
 	Material: #Record
+	Grafts:   int
 }
 
 // EffectEnv is everything an effect formula can see. Later tasks add fields deliberately.

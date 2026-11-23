@@ -5,8 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mlange-42/ark/ecs"
+
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -54,6 +57,26 @@ func TestTypeChoiceComesFromContent(t *testing.T) {
 	}
 	if got := fx.loadIDs(); len(got) != 4 {
 		t.Errorf("innate types are always offered: got %v", got)
+	}
+}
+
+func TestRelicIsOfferedOnlyToABodyWithAGraft(t *testing.T) {
+	fx := newFixture(t, 1, opts{
+		actions: []api.ContentID{"action.test.load"}, contentChoices: true,
+		mutate: func(b *content.Bundle) {
+			fighter := b.Templates["template.test.fighter"]
+			fighter.Lists = map[string][]string{"types": {"type.cut"}}
+			b.Templates["template.test.fighter"] = fighter
+		},
+	})
+	if got := fx.loadIDs(); slices.Contains(got, "load/type.relic") {
+		t.Fatalf("a body with no graft is offered Relic: %v", got)
+	}
+	arm := fx.arms[0]
+	ecs.NewMap[comp.PartOf](fx.w.ECS).Add(arm, &comp.PartOf{}, fx.fighter)
+	ecs.NewMap[comp.Graft](fx.w.ECS).Add(arm, &comp.Graft{})
+	if got := fx.loadIDs(); !slices.Contains(got, "load/type.relic") {
+		t.Fatalf("a body with a graft is not offered Relic: %v", got)
 	}
 }
 
