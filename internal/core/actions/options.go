@@ -358,7 +358,7 @@ func (ev *evaluator) valueName(value string) string {
 func (ev *evaluator) command(in Intent) api.Do {
 	w := ev.w
 	cmd := api.Do{
-		Actor: w.UIDOf(in.Actor), Action: in.Action, Channels: channelUIDs(w, in.Channels),
+		Source: w.UIDOf(in.Actor), Action: in.Action, Channels: channelUIDs(w, in.Channels),
 		Target: w.UIDOf(in.Target), TargetPart: w.UIDOf(in.TargetPart),
 	}
 	if in.Dir != nil {

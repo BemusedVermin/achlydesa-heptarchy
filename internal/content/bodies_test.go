@@ -83,7 +83,7 @@ func TestBodiesRejectBadReferences(t *testing.T) {
 			part.CrawlsAs = "template.crawling.remnant_arm"
 			b.Parts["part.human_arm"] = part
 			template := b.Templates["template.crawling.remnant_arm"]
-			faction := api.ContentID("faction.deep")
+			faction := api.ContentID("faction.wild")
 			template.Faction = &faction
 			b.Templates["template.crawling.remnant_arm"] = template
 		}, `sets faction, which a crawling part ignores`},

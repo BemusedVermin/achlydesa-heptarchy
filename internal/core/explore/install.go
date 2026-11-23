@@ -134,7 +134,7 @@ func swapWith(w *sim.World, other ecs.Entity, from, dest api.Cell, kind string) 
 	pos := positions.Get(other)
 	pos.At = from
 	setTrail(w, other, dest)
-	w.Bus.Publish(api.Moved{Actor: w.UIDOf(other), Map: pos.Map, From: dest, To: from, Kind: reverse(kind)})
+	w.Bus.Publish(api.Moved{Source: w.UIDOf(other), Map: pos.Map, From: dest, To: from, Kind: reverse(kind)})
 	party, _ := partyOf(w, other)
 	cells, err := sightOf(w, *pos)
 	if err != nil {
@@ -184,14 +184,14 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 	pos.At = step.To.Cell
 	setTrail(w, ctx.Source, from)
 	actor := w.UIDOf(ctx.Source)
-	w.Bus.Publish(api.Moved{Actor: actor, Map: pos.Map, From: from, To: pos.At, Kind: moveKinds[step.Kind]})
+	w.Bus.Publish(api.Moved{Source: actor, Map: pos.Map, From: from, To: pos.At, Kind: moveKinds[step.Kind]})
 	if occupied {
 		if err := swapWith(w, other, from, pos.At, moveKinds[step.Kind]); err != nil {
 			return err
 		}
 	}
 	if step.Kind == hexmap.StepDrop {
-		w.Bus.Publish(api.Fell{Actor: actor, Cells: step.Fall})
+		w.Bus.Publish(api.Fell{Body: actor, Cells: step.Fall})
 	}
 	if party, member := partyOf(w, ctx.Source); member {
 		cells, err := sightOf(w, *pos)

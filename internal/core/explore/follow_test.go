@@ -52,7 +52,7 @@ func (fx *fixture) hasOption(id string) bool {
 func moves(events []api.Event, actor api.UID) []api.Moved {
 	var out []api.Moved
 	for _, e := range events {
-		if m, ok := e.(api.Moved); ok && m.Actor == actor {
+		if m, ok := e.(api.Moved); ok && m.Source == actor {
 			out = append(out, m)
 		}
 	}

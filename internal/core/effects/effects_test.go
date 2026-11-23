@@ -134,7 +134,7 @@ func (fx *fixture) channel(e ecs.Entity) timeline.Channel {
 func (fx *fixture) swing(t *testing.T, actor, part ecs.Entity, lands int64) {
 	t.Helper()
 	_, err := timeline.Schedule(fx.w, comp.Pending{
-		Kind: "test.swing", Actor: fx.w.UIDOf(actor), Part: fx.w.UIDOf(part), Lands: lands,
+		Kind: "test.swing", Actor: fx.w.UIDOf(actor), Channel: fx.w.UIDOf(part), Lands: lands,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -342,7 +342,7 @@ func TestInterrupt(t *testing.T) {
 	t.Run("does nothing to an idle body", func(t *testing.T) {
 		fx := newFixture(t)
 		ctx := &effects.Context{World: fx.w, Source: fx.s, Target: fx.b}
-		events := fx.apply(t, ctx, do("interrupt", "bodies", "target", "when", "winding_up"))
+		events := fx.apply(t, ctx, do("interrupt", "bodies", "target", "when", "target.winding_up"))
 		if len(events) != 0 {
 			t.Errorf("events = %v, want none", events)
 		}
@@ -350,7 +350,7 @@ func TestInterrupt(t *testing.T) {
 	t.Run("cancels a body's wind-up when the condition holds", func(t *testing.T) {
 		fx := newFixture(t)
 		fx.swing(t, fx.a, fx.arm1, 5)
-		events := fx.apply(t, fx.ctx(), do("interrupt", "bodies", "target", "when", "winding_up"))
+		events := fx.apply(t, fx.ctx(), do("interrupt", "bodies", "target", "when", "target.winding_up"))
 		if len(timeline.PendingOf(fx.w, fx.w.UIDOf(fx.a))) != 0 {
 			t.Error("the swing should be canceled")
 		}
@@ -496,7 +496,7 @@ func TestParametersAreFormulas(t *testing.T) {
 	fx.apply(
 		t,
 		fx.ctx(),
-		do("probe", "ticks", "4 + 4", "distance", "distance", "winding", "winding_up", "roll", "roll"),
+		do("probe", "ticks", "4 + 4", "distance", "distance", "winding", "target.winding_up", "roll", "roll"),
 	)
 	if got.ticks != 8 || got.distance != 2 || !got.winding || got.roll < 0 || got.roll >= 1 {
 		t.Errorf("probe saw %+v, want ticks 8, distance 2, winding up and a roll in [0,1)", got)

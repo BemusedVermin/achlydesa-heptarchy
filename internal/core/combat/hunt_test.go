@@ -20,15 +20,15 @@ import (
 
 var update = flag.Bool("update", false, "rewrite the golden files")
 
-// huntField is the hall with a hunting crawler, and a party that can fight.
+// huntField is the hall with a hunting moving clay, and a party that can fight.
 func huntField(t *testing.T, mutate func(*content.Bundle)) *field {
 	t.Helper()
 	return newField(t, "map.test.hall", func(b *content.Bundle) {
-		crawler := b.Templates["template.creature.crawler"]
-		crawler.Actor = &content.ActorDef{Controller: "hunt"}
-		crawler.Actions = []api.ContentID{"action.step", "action.strike"}
-		crawler.Lists = map[string][]string{"types": {"type.cut"}}
-		b.Templates["template.creature.crawler"] = crawler
+		movingClay := b.Templates["template.creature.moving_clay"]
+		movingClay.Actor = &content.ActorDef{Controller: "hunt"}
+		movingClay.Actions = []api.ContentID{"action.step", "action.strike"}
+		movingClay.Lists = map[string][]string{"types": {"type.cut"}}
+		b.Templates["template.creature.moving_clay"] = movingClay
 		for _, id := range []string{"template.person.reaper", "template.person.salken"} {
 			person := b.Templates[id]
 			person.Actions = []api.ContentID{"action.step", "action.strike", "action.sweep"}
@@ -57,7 +57,7 @@ func east(c api.Cell, n int) api.Cell {
 // wait lets the body that is deciding wait for the next entry on the timeline.
 func (f *field) wait() []api.Event {
 	f.t.Helper()
-	events, err := f.g.Apply(api.Wait{Actor: f.view().Timeline.Current, Until: api.WaitEvent})
+	events, err := f.g.Apply(api.Wait{Source: f.view().Timeline.Current, Until: api.WaitEvent})
 	if err != nil {
 		f.t.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func (f *field) until(limit int, stop func() bool) bool {
 // started is the first action the body started, from the events so far.
 func (f *field) started(actor api.UID) (api.ActionStarted, bool) {
 	for _, e := range f.events {
-		if s, ok := e.(api.ActionStarted); ok && s.Actor == actor {
+		if s, ok := e.(api.ActionStarted); ok && s.Source == actor {
 			return s, true
 		}
 	}
@@ -89,7 +89,7 @@ func (f *field) started(actor api.UID) (api.ActionStarted, bool) {
 func (f *field) moves(actor api.UID) int {
 	n := 0
 	for _, e := range f.events {
-		if m, ok := e.(api.Moved); ok && m.Actor == actor {
+		if m, ok := e.(api.Moved); ok && m.Source == actor {
 			n++
 		}
 	}
@@ -132,7 +132,7 @@ func (f *field) memberUIDs() []api.UID {
 	return out
 }
 
-func (f *field) crawlerStarted(uid api.UID) bool {
+func (f *field) movingClayStarted(uid api.UID) bool {
 	_, ok := f.started(uid)
 	return ok
 }
@@ -142,7 +142,7 @@ func TestAHunterClosesInOverSeveralStepsAndBites(t *testing.T) {
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -5))
-	if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 		t.Fatal("the creature never attacked")
 	}
 	if got := f.moves(uid); got < 3 {
@@ -162,7 +162,7 @@ func TestThreatsListTheSwingUntilItLandsOrMisses(t *testing.T) {
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -5))
-	if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 		t.Fatal("the creature never attacked")
 	}
 	swing, _ := f.started(uid)
@@ -208,7 +208,7 @@ func TestSteppingOutOfReachBeforeTheSwingLandsMakesItMiss(t *testing.T) {
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -4))
-	if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 		t.Fatal("the creature never attacked")
 	}
 	swing, _ := f.started(uid)
@@ -224,7 +224,7 @@ func TestSteppingOutOfReachBeforeTheSwingLandsMakesItMiss(t *testing.T) {
 	f.until(20, func() bool { return f.w.Now > swing.Lands })
 	var missed bool
 	for _, e := range f.events {
-		if m, ok := e.(api.ActionMissed); ok && m.Actor == uid && m.Tick == swing.Lands {
+		if m, ok := e.(api.ActionMissed); ok && m.Source == uid && m.Tick == swing.Lands {
 			missed = true
 		}
 		if d, ok := e.(api.PartDamaged); ok && d.Source == uid && d.Tick == swing.Lands {
@@ -274,13 +274,16 @@ func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 		hall := b.Maps["map.test.hall"]
 		hall.Spawns = nil
 		b.Maps["map.test.hall"] = hall
-		b.Factions["faction.a"] = content.Faction{Name: "text.faction.deep", HostileTo: []api.ContentID{"faction.b"}}
-		b.Factions["faction.b"] = content.Faction{Name: "text.faction.deep", HostileTo: []api.ContentID{"faction.a"}}
+		b.Factions["faction.a"] = content.Faction{Name: "text.faction.a", HostileTo: []api.ContentID{"faction.b"}}
+		b.Factions["faction.b"] = content.Faction{Name: "text.faction.b", HostileTo: []api.ContentID{"faction.a"}}
+		b.Text["text.faction.a"], b.Text["text.faction.b"] = "a", "b"
 		for _, side := range []string{"a", "b"} {
 			faction := api.ContentID("faction." + side)
-			crawler := b.Templates["template.creature.crawler"]
-			crawler.Faction = &faction
-			b.Templates["template.test.side_"+side] = crawler
+			movingClay := b.Templates["template.creature.moving_clay"]
+			movingClay.Faction = &faction
+			textID := api.ContentID("text.template.test.side_" + side)
+			movingClay.Name = &textID
+			b.Templates["template.test.side_"+side] = movingClay
 			b.Text["text.template.test.side_"+side] = side
 		}
 	})
@@ -322,7 +325,7 @@ func TestOptionsAreLegalAndAHandBuiltDoIsRefused(t *testing.T) {
 	// Out of reach: the creature is across the hall.
 	head := f.partOf(creature, "head")
 	far := api.Do{
-		Actor: f.w.UIDOf(member), Action: "action.strike", Target: f.w.UIDOf(creature), TargetPart: f.w.UIDOf(head),
+		Source: f.w.UIDOf(member), Action: "action.strike", Target: f.w.UIDOf(creature), TargetPart: f.w.UIDOf(head),
 		Choices: map[string]string{"type": "type.cut"},
 	}
 	events, err := f.g.Apply(far)
@@ -349,7 +352,7 @@ func TestOptionsAreLegalAndAHandBuiltDoIsRefused(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !has(events, func(e api.ActionStarted) bool { return e.Actor == strike.Actor }) {
+	if !has(events, func(e api.ActionStarted) bool { return e.Source == strike.Source }) {
 		t.Fatalf("the option's own command did not start: %+v", events)
 	}
 	// The arm it used is busy: the same command is refused until it is free.
@@ -381,9 +384,9 @@ func optionIDs(v api.View) []string {
 func TestAMaterialIsUnknownUntilASweepLands(t *testing.T) {
 	// A creature that stays put, so the sweep is not cut short by its bite.
 	f := huntField(t, func(b *content.Bundle) {
-		crawler := b.Templates["template.creature.crawler"]
-		crawler.Actor = &content.ActorDef{Controller: "idle"}
-		b.Templates["template.creature.crawler"] = crawler
+		movingClay := b.Templates["template.creature.moving_clay"]
+		movingClay.Actor = &content.ActorDef{Controller: "idle"}
+		b.Templates["template.creature.moving_clay"] = movingClay
 	})
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)

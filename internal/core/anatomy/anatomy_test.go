@@ -197,7 +197,7 @@ func TestDetachingAPartDropsItFromPartsAndGrants(t *testing.T) {
 
 func TestAMaterialOverrideChangesThePartsMaterial(t *testing.T) {
 	r := newRig(t, 1, func(b *content.Bundle) {
-		b.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.crawler"))}
+		b.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.test.crawler"))}
 	})
 	crawler, err := r.w.Spawn("template.test.crawler", nil)
 	if err != nil {

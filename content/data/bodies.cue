@@ -62,21 +62,21 @@ parts: {
 		vital:     true
 		grants: []
 	}
-	"part.crawler_maw": {
+	"part.test.crawler_maw": {
 		name:      "text.part.maw"
 		slot:      "head"
 		material:  "material.flesh"
 		integrity: 5
 		grants: [{kind: "targeting", value: 1}, {kind: "action", value: 1}]
 	}
-	"part.crawler_legs": {
+	"part.test.crawler_legs": {
 		name:      "text.part.legs"
 		slot:      "legs"
 		material:  "material.flesh"
 		integrity: 6
 		grants: [{kind: "speed", value: 1}]
 	}
-	"part.crawler_core": {
+	"part.test.crawler_core": {
 		name:      "text.part.core"
 		slot:      "torso"
 		material:  "material.flesh"
@@ -84,24 +84,24 @@ parts: {
 		vital:     true
 		grants: []
 	}
-	// The parts of the clay thing that moves: clay through and through, tougher than the crawler's,
+	// The parts of the moving clay: clay through and through, tougher than the test crawler's,
 	// with two maws to bite with. Placeholder numbers, tuned so a party that does not know
 	// clay loses (M2-11).
-	"part.clay_maw": {
+	"part.moving_clay_maw": {
 		name:      "text.part.maw"
 		slot:      "head"
 		material:  "material.clay"
 		integrity: 10
 		grants: [{kind: "targeting", value: 1}, {kind: "action", value: 1}]
 	}
-	"part.clay_legs": {
+	"part.moving_clay_legs": {
 		name:      "text.part.legs"
 		slot:      "legs"
 		material:  "material.clay"
 		integrity: 10
 		grants: [{kind: "speed", value: 1}]
 	}
-	"part.clay_core": {
+	"part.moving_clay_core": {
 		name:      "text.part.core"
 		slot:      "torso"
 		material:  "material.clay"
@@ -142,11 +142,11 @@ parts: {
 }
 
 bodies: {
-	"body.clay_thing": parts: [
-		{part: "part.clay_maw"},
-		{part: "part.clay_maw"},
-		{part: "part.clay_legs"},
-		{part: "part.clay_core"},
+	"body.moving_clay": parts: [
+		{part: "part.moving_clay_maw"},
+		{part: "part.moving_clay_maw"},
+		{part: "part.moving_clay_legs"},
+		{part: "part.moving_clay_core"},
 	]
 	"body.beast": parts: [
 		{part: "part.beast_skull"},
@@ -166,10 +166,23 @@ bodies: {
 		{part: "part.remnant_arm"},
 		{part: "part.remnant_core"},
 	]
-	// A clay-bodied creature of the soop: a maw to bite with, slow legs and a core.
-	"body.crawler": parts: [
-		{part: "part.crawler_maw"},
-		{part: "part.crawler_legs"},
-		{part: "part.crawler_core", material: "material.clay"},
+	// A test fixture: a flesh body with a clay core, for tests of materials and severing.
+	"body.test.crawler": parts: [
+		{part: "part.test.crawler_maw"},
+		{part: "part.test.crawler_legs"},
+		{part: "part.test.crawler_core", material: "material.clay"},
 	]
+}
+
+text: {
+	"text.part.head":         "head"
+	"text.part.arm":          "arm"
+	"text.part.legs":         "legs"
+	"text.part.torso":        "torso"
+	"text.part.maw":          "maw"
+	"text.part.serilmen_arm": "arm of Serilmen"
+	"text.part.remnant_arm":  "old arm"
+	"text.part.core":         "core"
+	"text.part.skull":        "skull"
+	"text.part.eye":          "eye"
 }

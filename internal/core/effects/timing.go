@@ -55,7 +55,7 @@ func windingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
 	}
 	var out []ecs.Entity
 	for _, e := range timeline.PendingOf(w, w.UIDOf(body)) {
-		if pendings.Get(e).Part == uid || (landings.Has(e) && slices.Contains(landings.Get(e).Channels, uid)) {
+		if pendings.Get(e).Channel == uid || (landings.Has(e) && slices.Contains(landings.Get(e).Channels, uid)) {
 			out = append(out, e)
 		}
 	}

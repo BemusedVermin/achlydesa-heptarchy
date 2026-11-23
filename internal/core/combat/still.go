@@ -7,18 +7,18 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// restController is the name of the controller of a body that does nothing for a while.
-const restController = "rest"
+// stillController is the name of the controller of a body that does nothing for a while.
+const stillController = "still"
 
-// rester keeps a body still: it takes every one of the body's channels for the configured rest,
+// stiller keeps a body still: it takes every one of the body's channels for the configured still ticks,
 // then decides again. The built-in idle controller waits for the next entry on the timeline
 // instead, which with two such bodies alternating means time moves on a tick at a time. A real
 // creature mind (M2-08) replaces this.
-type rester struct{}
+type stiller struct{}
 
-// Decide occupies every free channel of the body for the rest.
-func (rester) Decide(w *sim.World, body ecs.Entity) error {
-	ticks := max(w.Content.Combat().RestTicks, 1)
+// Decide occupies every free channel of the body for the still ticks.
+func (stiller) Decide(w *sim.World, body ecs.Entity) error {
+	ticks := max(w.Content.Combat().StillTicks, 1)
 	for _, channel := range timeline.Channels(w, body) {
 		if !timeline.Free(w, channel) {
 			continue

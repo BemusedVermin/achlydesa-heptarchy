@@ -155,7 +155,7 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 		return nil, fmt.Errorf("game: unknown command kind %q", cmd.CommandKind())
 	}
 	g.events = nil
-	if combat.PartyLost(g.world) {
+	if combat.PartyWiped(g.world) {
 		g.world.Bus.Publish(api.Rejected{Command: cmd.CommandKind(), Reason: api.Text{ID: "text.game.lost"}})
 		if _, err := g.world.Bus.Drain(g.world); err != nil {
 			return nil, g.fail(err)
@@ -185,9 +185,9 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 }
 
 // wakeIfWiped gets a wiped-out party up at its last rest place after the configured time, then
-// plays on to the first decision. A party with nobody downed stays lost.
+// plays on to the first decision. A party with nobody downed stays lost: nothing can wake it.
 func (g *Game) wakeIfWiped() error {
-	if !combat.PartyLost(g.world) || !explore.CanWake(g.world) {
+	if !combat.PartyWiped(g.world) || !explore.CanWake(g.world) {
 		return nil
 	}
 	if err := g.clock.Advance(g.world, max(g.world.Content.Party().WakeTicks, 0)); err != nil {

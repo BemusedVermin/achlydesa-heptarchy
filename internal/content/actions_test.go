@@ -16,7 +16,7 @@ func TestSampleActions(t *testing.T) {
 	if !ok || def.Key != "step" || def.Target != TargetDirection {
 		t.Fatalf("action.step = %+v, %v", def, ok)
 	}
-	env := ActionEnv{Speed: 2, StepTicks: 10, Choice: map[string]string{}}
+	env := ActionEnv{Speed: 2, StepTicks: 10}
 	if windup, err := reg.ActionWindup("action.step", env); err != nil || windup != 0 {
 		t.Errorf("windup = %d, %v; want 0", windup, err)
 	}

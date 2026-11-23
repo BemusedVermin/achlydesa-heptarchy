@@ -12,7 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// installControl registers the follow controller, the two commands, the per-turn system and the
+// installControl registers the follow controller, the two commands, the per-entry system and the
 // view builder for the control and lead options.
 func installControl(w *sim.World) error {
 	if err := timeline.RegisterController(w, followController, follower{}); err != nil {
@@ -27,7 +27,7 @@ func installControl(w *sim.World) error {
 	err := w.Systems.Register(
 		sim.System{
 			Name:    "explore.party_control",
-			Cadence: sim.PerTurn,
+			Cadence: sim.PerEntry,
 			After:   []string{"combat.alert"},
 			Run:     partyControl,
 		},
@@ -93,8 +93,8 @@ func handleLead(w *sim.World, cmd api.Lead) (int64, error) {
 		rejectCommand(w, cmd.CommandKind(), "text.explore.not_member")
 		return 0, nil
 	}
-	if fallen(w, member) {
-		rejectCommand(w, cmd.CommandKind(), "text.explore.fallen")
+	if outOfFight(w, member) {
+		rejectCommand(w, cmd.CommandKind(), "text.explore.out_of_fight")
 		return 0, nil
 	}
 	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
@@ -204,7 +204,7 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 	}
 	for _, member := range members {
 		uid := w.UIDOf(member)
-		if uid == state.Leader || fallen(w, member) {
+		if uid == state.Leader || outOfFight(w, member) {
 			continue
 		}
 		v.Options = append(v.Options, api.Option{
@@ -220,7 +220,7 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 	return nil
 }
 
-// fallen reports whether a body is dead or downed, and so cannot lead.
-func fallen(w *sim.World, body ecs.Entity) bool {
+// outOfFight reports whether a body is dead or downed, and so cannot lead.
+func outOfFight(w *sim.World, body ecs.Entity) bool {
 	return ecs.NewMap[comp.Dead](w.ECS).Has(body) || ecs.NewMap[comp.Downed](w.ECS).Has(body)
 }

@@ -140,7 +140,7 @@ func TestGoldenGiveAndGraftBetweenMembers(t *testing.T) {
 		before := len(timeline.Channels(r.w, victim))
 		events := r.do("graft", "item.test_arm", r.uid(victim))
 		events = append(events, r.wait(14)...)
-		if !has(events, func(e api.PartAttached) bool { return e.From == api.AttachedFromPack }) ||
+		if !has(events, func(e api.PartAttached) bool { return e.From == api.AttachedFromInventory }) ||
 			len(timeline.Channels(r.w, victim)) != before+1 {
 			t.Errorf("the graft did not fit: %v", events)
 		}
@@ -172,12 +172,12 @@ func TestGoldenACrawlingPartOutlivesItsBody(t *testing.T) {
 		arm := f.partOf(remnant, "arm")
 		f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
 		crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-		// The source and the hall's own creature fall: only the crawling arm is left to see.
+		// The source and the hall's own creature go down: only the crawling arm is left to see.
 		f.damage(reaper, remnant, "torso", "99")
 		f.damage(reaper, f.creature(), "torso", "99")
 		dead := ecs.NewMap[comp.Dead](f.w.ECS)
 		if !dead.Has(remnant) || dead.Has(crawling) {
-			t.Fatal("the remnant must have fallen and its crawling arm lived")
+			t.Fatal("the remnant must have gone down and its crawling arm lived")
 		}
 		for range 6 {
 			f.option("wait/event")
@@ -198,7 +198,7 @@ func TestGoldenADodgeStepsOutOfReachBeforeTheSwingLands(t *testing.T) {
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -4))
 	fieldEncounter(t, "dodge", f, func() {
-		if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+		if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 			t.Fatal("the creature never attacked")
 		}
 		swing, _ := f.started(uid)
@@ -210,7 +210,7 @@ func TestGoldenADodgeStepsOutOfReachBeforeTheSwingLands(t *testing.T) {
 		f.until(20, func() bool { return f.w.Now > swing.Lands })
 		missed := slices.ContainsFunc(f.events, func(e api.Event) bool {
 			m, ok := e.(api.ActionMissed)
-			return ok && m.Actor == uid && m.Tick == swing.Lands
+			return ok && m.Source == uid && m.Tick == swing.Lands
 		})
 		if !missed {
 			t.Error("the swing did not miss the dodging target")

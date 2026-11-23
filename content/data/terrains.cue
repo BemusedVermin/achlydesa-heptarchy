@@ -19,3 +19,8 @@ terrains: {
 		move_cost:   "1"
 	}
 }
+
+text: {
+	"text.terrain.air":         "air"
+	"text.terrain.packed_clay": "packed clay"
+}

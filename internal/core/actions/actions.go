@@ -93,7 +93,7 @@ type evaluator struct {
 	positions  *ecs.Map[comp.Pos]
 	actors     *ecs.Map[comp.Actor]
 	sight      map[ecs.Entity]map[ecs.Entity]bool
-	pack       map[ecs.Entity]map[string]int // each actor's whole pack, for choice offers
+	inventory  map[ecs.Entity]map[string]int // each actor's whole inventory, for choice offers
 	targetMemo map[targetKey][]Intent        // body targets, by what decides them
 	valueMemo  map[valueKey][]string         // offered choice values, by choice and actor
 }
@@ -275,9 +275,9 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	}
 	return content.ActionEnv{
 		Speed: timeline.Speed(ev.w, p.actor), StepTicks: stepTicks,
-		Distance: ev.distance(p.actor, p.target), Used: len(p.channels), Choice: choices,
-		Source: effects.SideOf(ev.w, p.actor, sourcePart), Target: effects.SideOf(ev.w, p.target, p.part),
-		Chosen: effects.ChosenRecords(ev.w, choices), Pack: inventory.Usable(ev.w, p.actor, p.target),
+		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
+		Source: effects.BodyEnvOf(ev.w, p.actor, sourcePart), Target: effects.BodyEnvOf(ev.w, p.target, p.part),
+		Chosen: effects.ChosenRecords(ev.w, choices), Inventory: inventory.Usable(ev.w, p.actor, p.target),
 	}, nil
 }
 
@@ -450,7 +450,7 @@ func (ev *evaluator) start(p *plan, autonomous bool) error {
 		uids[i] = w.UIDOf(c.Entity)
 	}
 	pending, err := timeline.Schedule(w, comp.Pending{
-		Kind: landKind, Actor: w.UIDOf(p.actor), Part: uids[0], Target: w.UIDOf(p.target), Lands: w.Now + p.windup,
+		Kind: landKind, Actor: w.UIDOf(p.actor), Channel: uids[0], Target: w.UIDOf(p.target), Lands: w.Now + p.windup,
 	})
 	if err != nil {
 		return fmt.Errorf("actions: %s: %w", p.id, err)
@@ -461,7 +461,7 @@ func (ev *evaluator) start(p *plan, autonomous bool) error {
 	}
 	ecs.NewMap[comp.Landing](w.ECS).Add(pending, landing)
 	w.Bus.Publish(api.ActionStarted{
-		Actor: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Lands: w.Now + p.windup,
+		Source: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Lands: w.Now + p.windup,
 		Autonomous: autonomous,
 	})
 	return nil
@@ -520,7 +520,7 @@ func (ev *evaluator) land(p *plan) error {
 func (ev *evaluator) miss(p *plan, reason api.Text) {
 	w := ev.w
 	w.Bus.Publish(api.ActionMissed{
-		Actor: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Reason: reason,
+		Source: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Reason: reason,
 		Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
 			"actor": ev.nameOf(p.actor), "action": w.Content.Render(api.Text{ID: p.def.Name}),
 		}},
@@ -587,7 +587,7 @@ func resolveLanding(w *sim.World, pending ecs.Entity) error {
 		actor, _ := w.ByUID(pend.Actor)
 		def, _ := w.Content.Action(landing.Action)
 		w.Bus.Publish(api.ActionMissed{
-			Actor: pend.Actor, Action: landing.Action, Target: pend.Target, Tick: w.Now, Reason: reason,
+			Source: pend.Actor, Action: landing.Action, Target: pend.Target, Tick: w.Now, Reason: reason,
 			Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
 				"actor": ev.nameOf(actor), "action": w.Content.Render(api.Text{ID: def.Name}),
 			}},

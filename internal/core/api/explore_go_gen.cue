@@ -61,16 +61,16 @@ package api
 
 // Moved reports that a body stepped from one cell to another.
 #Moved: {
-	actor: #UID   @go(Actor)
-	map:   #MapID @go(Map)
-	from:  #Cell  @go(From)
-	to:    #Cell  @go(To)
-	kind:  string @go(Kind)
+	source: #UID   @go(Source)
+	map:    #MapID @go(Map)
+	from:   #Cell  @go(From)
+	to:     #Cell  @go(To)
+	kind:   string @go(Kind)
 }
 
 // Fell reports that a body dropped off a ledge.
 #Fell: {
-	actor: #UID @go(Actor)
+	body:  #UID @go(Body)
 	cells: int  @go(Cells)
 }
 

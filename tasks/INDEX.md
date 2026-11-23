@@ -75,7 +75,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-14](C1-cleanup/C1-14-yaml.md) | May `go.yaml.in/yaml/v3` become a direct dependency? | done | question | S | none |
 | [C1-15](C1-cleanup/C1-15-gitcmd.md) | Where does shared git code for the tools go, given agentkit is protected? | done | question | S | none |
 | [C1-16](C1-cleanup/C1-16-speed.md) | What should a speed formula that fails at run time do? | done | question | S | none |
-| [C1-17](C1-cleanup/C1-17-apply-the-decided-renames.md) | Apply the decided renames | todo | debt | L | C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11 |
+| [C1-17](C1-cleanup/C1-17-apply-the-decided-renames.md) | Apply the decided renames | done | debt | L | C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11 |
 | [C1-18](C1-cleanup/C1-18-shared-helpers-in-the-lowest-layer-and-one-test.md) | Shared helpers in the lowest layer, and one test fixture | todo | debt | L | C1-17, C1-13 |
 | [C1-19](C1-cleanup/C1-19-content-area-duplication-tests-comments.md) | Content area: duplication, tests, comments | todo | debt | L | C1-18 |
 | [C1-20](C1-cleanup/C1-20-actions-area-duplication-tests-comments.md) | Actions area: duplication, tests, comments | todo | debt | L | C1-18 |
@@ -113,6 +113,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [C1-17.F2](followups/C1-17.F2-tui-line-cuts-the-tick.md) | The actor panel cuts a line's last digit when the target's name is long | proposed | bug | C1 | C1-17 |
+| [C1-17.F1](followups/C1-17.F1-content-rules-text-ids.md) | Correct .claude/rules/content.md for the text ID shape | done | debt | C1 | C1-17 |
 | [M2-11.F2](followups/M2-11.F2-where-the-three-creatures-spawn.md) | Where do the sample's three creatures spawn? | obsolete | question | M2 | M2-11 |
 | [M2-11.F1](followups/M2-11.F1-ready-frees-a-winding-channel.md) | Stand and Give free a channel that still has a swing winding up | done | bug | M2 | M2-11 |
 | [M1-17.F2](followups/M1-17.F2-advance-to-next-real-action.md) | Advance the timeline to the player's next real action | done | bug | M2 | M1-17 |

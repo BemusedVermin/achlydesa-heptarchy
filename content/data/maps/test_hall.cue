@@ -4,7 +4,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
 // The prototype's room at depth 0: air inside a ring of packed clay with three pillars.
 maps: "map.test.hall": content.#MapDef & {
-	name: "text.map.test_hall"
+	name: "text.map.test.hall"
 	fill: "terrain.packed_clay"
 	open: "terrain.air"
 	legend: {
@@ -12,7 +12,7 @@ maps: "map.test.hall": content.#MapDef & {
 		".": "terrain.air"
 	}
 	marks: {"@": "party_start", "c": "creature"}
-	spawns: "c": "template.creature.crawler"
+	spawns: "c": "template.creature.moving_clay"
 	layers: [
 		{
 			depth: 0
@@ -41,4 +41,8 @@ maps: "map.test.hall": content.#MapDef & {
 			]
 		},
 	]
+}
+
+text: {
+	"text.map.test.hall": "The test hall"
 }
