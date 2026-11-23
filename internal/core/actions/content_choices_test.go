@@ -77,7 +77,7 @@ func TestRelicIsOfferedOnlyToABodyWithAGraft(t *testing.T) {
 	ecs.NewMap[comp.Graft](fx.w.ECS).Add(arm, &comp.Graft{})
 	if got := fx.loadIDs(); !slices.Contains(got, "load/type.relic") {
 		t.Fatalf("a body with a graft is not offered Relic: %v", got)
-  }
+	}
 }
 
 func TestLabelNamesTheChosenRecord(t *testing.T) {
