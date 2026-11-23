@@ -12,3 +12,4 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 
 - **pending**: an action in flight (`comp.Pending`).
 - **moving clay**: clay that has held the dead long enough to move. In content it is `moving_clay`; "crawl" means only the `crawls` tag and crawling parts.
+- **graft**: a fitted piece of Serilmen. A severed part of the body's own that is put back is a reattach, not a graft.
