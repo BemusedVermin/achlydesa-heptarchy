@@ -1,0 +1,4 @@
+{"kind":"actions.started","data":{"actor":20,"action":"action.strike","target":26,"tick":0,"lands":3}}
+{"kind":"combat.part_damaged","data":{"body":26,"part":28,"amount":3,"integrity":0,"choices":{"type":"type.soak"},"source":20,"tick":3}}
+{"kind":"combat.part_severed","data":{"body":26,"part":28,"cause":"worn","source":20,"tick":3}}
+{"kind":"timeline.action_landed","data":{"kind":"actions.land","actor":20,"target":26,"tick":3}}
