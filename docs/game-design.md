@@ -423,9 +423,9 @@ Press, Violet and Lees are phrased so the mechanic works whether or not the doct
 
 | Form | Effect |
 | --- | --- |
-| Strike | Hits one part at full force |
+| Strike | Hits one part hard, harder on a weakness. It never severs |
 | Sweep | Hits every part of one body lightly, and reveals what each part is made of |
-| Sever | Weak in general, but removes the part outright on a weakness |
+| Sever | The only form that cuts a part off. Cuts the part off outright on a weakness; otherwise it only wears the part, less than a Strike does |
 | Pin | Locks a part so it can't act for a while, canceling any swing it was winding up. No damage, which is the safe answer to old things whose severed parts crawl off |
 | Stand | Everyone crawling, on both sides, is pushed back on the timeline, and the stander's parts are all ready at once. While standing they take double damage, and allies are delayed too |
 | Give | A character spends one arm's time so an ally can act at once |
