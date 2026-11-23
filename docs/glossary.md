@@ -26,3 +26,4 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **form**: one of the seven combat actions, tagged `form` in `forms.cue`. Not a separate record.
 - **move**: movement across the map (`api.Moved`, `move_cost`); never form x type.
 - **type**: what a form carries into the part it lands on (`content.Type`). Not every type does damage.
+- **still**: the controller for a creature that keeps still (`still_ticks`). Not rest.
