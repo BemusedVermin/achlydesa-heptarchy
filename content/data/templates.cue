@@ -87,4 +87,5 @@ templates: {
 text: {
 	"text.template.test.dummy":       "Dummy"
 	"text.template.creature.crawler": "The crawler"
+	"text.template.test.crawler":     "Crawler"
 }
