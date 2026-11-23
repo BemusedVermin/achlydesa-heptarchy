@@ -1,7 +1,7 @@
 ---
 id: C1-15
 title: "Where does shared git code for the tools go, given agentkit is protected?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** The first.
 
+**Decided by the owner:** share outside agentkit and leave agentkit alone. `internal/tools/internal/gitcmd` holds the git helper for `samebehavior` and `affected` only; agentkit keeps its own copy and is not changed, so an agent cannot alter the guard. Applied by C1-24.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: the recommended option.
