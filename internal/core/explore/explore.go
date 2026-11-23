@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -166,12 +165,7 @@ func partySight(w *sim.World, party ecs.Entity) (map[api.MapID]map[api.Cell]bool
 
 // templateName is the text ID that names a body, "text.template.<template without its prefix>".
 func templateName(w *sim.World, e ecs.Entity) api.Text {
-	identities := ecs.NewMap[comp.Identity](w.ECS)
-	if !w.Alive(e) || !identities.Has(e) {
-		return api.Text{ID: "text.template.unknown"}
-	}
-	template := strings.TrimPrefix(string(identities.Get(e).Template), "template.")
-	return api.Text{ID: api.ContentID("text.template." + template)}
+	return w.Content.TemplateName(w.TemplateOf(e))
 }
 
 // LoadMaps builds every map from content and registers it, without starting a game. Loading a save

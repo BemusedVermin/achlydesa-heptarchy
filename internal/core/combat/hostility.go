@@ -2,7 +2,6 @@ package combat
 
 import (
 	"slices"
-	"strings"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -30,10 +29,5 @@ func lists(w *sim.World, faction, other api.ContentID) bool {
 
 // nameOf is the text of a body's name, "text.template.<template without its prefix>".
 func nameOf(w *sim.World, e ecs.Entity) string {
-	identities := ecs.NewMap[comp.Identity](w.ECS)
-	if !w.Alive(e) || !identities.Has(e) {
-		return w.Content.Render(api.Text{ID: "text.template.unknown"})
-	}
-	template := strings.TrimPrefix(string(identities.Get(e).Template), "template.")
-	return w.Content.Render(api.Text{ID: api.ContentID("text.template." + template)})
+	return w.Content.Render(w.Content.TemplateName(w.TemplateOf(e)))
 }

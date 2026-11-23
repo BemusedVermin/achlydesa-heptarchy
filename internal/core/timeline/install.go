@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -126,7 +125,6 @@ func (st *state) visibleEntries(w *sim.World) []api.TimelineEntry {
 		return cmp.Or(cmp.Compare(a.tick, b.tick), w.CompareUID(a.body, b.body))
 	})
 	appearances := ecs.NewMap[comp.Appearance](w.ECS)
-	identities := ecs.NewMap[comp.Identity](w.ECS)
 	var entries []api.TimelineEntry
 	for _, d := range decisions {
 		if d.tick > w.Now+st.cfg.WindowTicks || !st.visible(w, d.body) {
@@ -137,15 +135,9 @@ func (st *state) visibleEntries(w *sim.World) []api.TimelineEntry {
 			look := appearances.Get(d.body)
 			entry.Glyph, entry.Color = look.Glyph, look.Color
 		}
-		name := api.Text{ID: "text.template.unknown"}
-		if identities.Has(d.body) {
-			name.ID = api.ContentID(
-				"text.template." + strings.TrimPrefix(string(identities.Get(d.body).Template), "template."),
-			)
-		}
 		entry.Label = w.Content.Render(api.Text{
 			ID:   "text.timeline.ready",
-			Args: map[string]string{"name": w.Content.Render(name)},
+			Args: map[string]string{"name": w.Content.Render(w.Content.TemplateName(w.TemplateOf(d.body)))},
 		})
 		entries = append(entries, entry)
 	}

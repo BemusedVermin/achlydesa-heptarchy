@@ -129,6 +129,14 @@ func (w *World) UIDOf(e ecs.Entity) api.UID {
 	return w.maps.identity.Get(e).UID
 }
 
+// TemplateOf returns the entity's template ID, or "" when it is dead or has no Identity.
+func (w *World) TemplateOf(e ecs.Entity) api.ContentID {
+	if !w.Alive(e) || !w.maps.identity.Has(e) {
+		return ""
+	}
+	return w.maps.identity.Get(e).Template
+}
+
 // CompareUID orders two entities by UID. An entity with no Identity has UID 0 and sorts first.
 func (w *World) CompareUID(a, b ecs.Entity) int {
 	return cmp.Compare(w.UIDOf(a), w.UIDOf(b))

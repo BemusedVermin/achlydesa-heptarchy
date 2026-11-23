@@ -2,7 +2,6 @@ package anatomy
 
 import (
 	"slices"
-	"strings"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -65,11 +64,6 @@ func SetLeader(w *sim.World, party ecs.Entity, leader api.UID) {
 
 // nameOf renders the name of the body with the UID from its template.
 func nameOf(w *sim.World, uid api.UID) string {
-	id := api.ContentID("text.template.unknown")
-	if e, ok := w.ByUID(uid); ok {
-		if identities := ecs.NewMap[comp.Identity](w.ECS); identities.Has(e) {
-			id = api.ContentID("text.template." + strings.TrimPrefix(string(identities.Get(e).Template), "template."))
-		}
-	}
-	return w.Content.Render(api.Text{ID: id})
+	e, _ := w.ByUID(uid)
+	return w.Content.Render(w.Content.TemplateName(w.TemplateOf(e)))
 }

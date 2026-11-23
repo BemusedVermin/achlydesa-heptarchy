@@ -3,7 +3,6 @@ package actions
 import (
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -527,13 +526,7 @@ func (ev *evaluator) miss(p *plan, reason api.Text) {
 
 // nameOf is the rendered name of a body, from its template.
 func (ev *evaluator) nameOf(e ecs.Entity) string {
-	name := api.Text{ID: "text.template.unknown"}
-	if ev.w.Alive(e) && ev.identities.Has(e) {
-		name.ID = api.ContentID(
-			"text.template." + strings.TrimPrefix(string(ev.identities.Get(e).Template), "template."),
-		)
-	}
-	return ev.w.Content.Render(name)
+	return ev.w.Content.Render(ev.w.Content.TemplateName(ev.w.TemplateOf(e)))
 }
 
 // landingPlan rebuilds the plan of a pending action. The reason is set when a channel it used is gone.

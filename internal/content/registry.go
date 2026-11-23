@@ -3,6 +3,7 @@ package content
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"text/template"
 
 	"github.com/expr-lang/expr"
@@ -33,6 +34,15 @@ type Registry struct {
 
 // Hash is a hex SHA-256 of the whole bundle; equal content gives an equal hash.
 func (r *Registry) Hash() string { return r.hash }
+
+// TemplateName is the text that names a body of the template: "text.template.<ID without its
+// prefix>", or "text.template.unknown" when the template ID is empty.
+func (r *Registry) TemplateName(template api.ContentID) api.Text {
+	if template == "" {
+		return api.Text{ID: "text.template.unknown"}
+	}
+	return api.Text{ID: api.ContentID("text.template." + strings.TrimPrefix(string(template), "template."))}
+}
 
 // Material returns the material with the given ID.
 func (r *Registry) Material(id api.ContentID) (Material, bool) {
