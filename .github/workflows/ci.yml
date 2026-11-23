@@ -13,11 +13,11 @@ jobs:
       # To post the test-time report as a comment on the pull request.
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The full history, so the check can compare the PR with its base branch.
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - uses: golangci/golangci-lint-action@v9
@@ -28,7 +28,7 @@ jobs:
       # Master's test times from its last run, to compare this pull request with. The key never
       # matches exactly; the prefix finds the newest one saved.
       - if: github.event_name == 'pull_request'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: test-times-master.txt
           key: test-times-master-none
@@ -77,7 +77,7 @@ jobs:
             gh api "repos/$REPO/issues/$PR/comments" -F body=@comment.md > /dev/null
           fi
       - if: github.event_name == 'push' && success()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: test-times-master.txt
           key: test-times-master-${{ github.sha }}
@@ -89,10 +89,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - uses: golangci/golangci-lint-action@v9
