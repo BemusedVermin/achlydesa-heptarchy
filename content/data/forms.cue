@@ -70,7 +70,7 @@ actions: {
 	// Stand braces the body and freezes the others, then frees the stander's own channels at once.
 	// Recovery is 1, not 0, because an action that takes no time is refused; the ready effect frees
 	// the channels anyway. The canon: "In the deep, anyone who stands freezes everyone who crawls."
-	// Until crawling is modeled, every other body stands in for the crawlers.
+	// A body crawls when its template carries the crawls tag.
 	"action.stand": {
 		name: "text.action.stand"
 		key:  "stand"
@@ -80,7 +80,7 @@ actions: {
 		recovery: "1"
 		on_land: [
 			{do: "add_status", params: {bodies: "self", status: "status.standing", ticks: "10"}},
-			{do: "delay", params: {channels: "others:all", ticks: "8"}},
+			{do: "delay", params: {channels: "others[crawls]:all", ticks: "8"}},
 			{do: "ready", params: {channels: "self:all", count: "99"}},
 		]
 		tags: ["stance"]

@@ -52,6 +52,14 @@ templates: {
 		body: "body.human"
 		tags: ["graftable"]
 	}
+	// A body that crawls, for Stand to freeze.
+	"template.test.crawler": {
+		name: "text.template.test.crawler"
+		appearance: {glyph: "c", color: "white"}
+		actor: controller: "idle"
+		body: "body.human"
+		tags: ["crawls"]
+	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
 		// A few of each consumable to start with.
@@ -67,3 +75,4 @@ templates: {
 }
 
 text: "text.template.test.dummy": "Dummy"
+text: "text.template.test.crawler": "Crawler"
