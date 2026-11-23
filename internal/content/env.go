@@ -30,6 +30,7 @@ type Side struct {
 	Template Record `expr:"template"`
 	Part     Record `expr:"part"`     // the part's template
 	Material Record `expr:"material"` // the part's own material, which a body plan may override
+	Grafts   int    `expr:"grafts"`   // how many of the body's parts are grafts
 }
 
 // EffectEnv is everything an effect formula can see. Later tasks add fields deliberately.
