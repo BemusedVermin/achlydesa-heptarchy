@@ -1,7 +1,7 @@
 ---
 id: C1-26
 title: "Design-doc fixes and the content guide"
-status: proposed
+status: todo
 milestone: C1
 kind: content
 depends_on: [C1-17, C1-19]
@@ -68,3 +68,5 @@ Cover: the layout of `content/data` and `maps/`; ID prefixes, with the table tha
 
 ## Notes
 
+
+- Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
