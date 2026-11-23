@@ -27,6 +27,11 @@ tasks:
     cmds:
       - go test {{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}./...{{end}}
 
+  test-affected:
+    desc: "Test only the packages a change can affect (BASE=origin/master); CI uses this"
+    cmds:
+      - go run ./internal/tools/affected {{if .BASE}}--base {{.BASE}}{{end}}
+
   lint:
     desc: Run golangci-lint (a separately installed binary)
     preconditions:
@@ -57,6 +62,15 @@ tasks:
       # Record the commit the check passed on (when the tree is clean), so the agent guardrails
       # let the next git push through without running the check again. See internal/tools/agentkit.
       - go run ./internal/tools/agentkit mark-checked
+
+  check-ci:
+    desc: "Like check, but tests only the affected packages (BASE=origin/master); used by CI"
+    cmds:
+      - task: fmt-check
+      - task: vet
+      - task: test-affected
+      - task: lint
+      - task: content
 
   clean-worktrees:
     desc: "Remove agent worktrees and merged agent branches that hold nothing unsaved (-- --dry-run to preview)"
