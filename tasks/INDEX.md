@@ -53,6 +53,40 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-14](M2-combat/M2-14-step-speed.md) | Make a game step fast again after the seven forms | done | bug | M | M2-06 |
 | [M2-15](M2-combat/M2-15-triage-followups.md) | Triage the open follow-ups into milestones | done | debt | S | none |
 
+## C1 · Cleanup
+
+Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
+
+| ID | Title | Status | Kind | Size | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| [C1-01](C1-cleanup/C1-01-clay.md) | What do we call the clay creature that moves, and the body Stand freezes? | proposed | question | S | none |
+| [C1-02](C1-cleanup/C1-02-graft.md) | Is an own severed part that is put back a graft? | proposed | question | S | none |
+| [C1-03](C1-cleanup/C1-03-down.md) | Which words for being out of the fight, for dropping, and for a wipe? | proposed | question | S | none |
+| [C1-04](C1-cleanup/C1-04-actor.md) | How are the acting body, the body acted on, a fact's origin and a formula's subject named? | proposed | question | M | none |
+| [C1-05](C1-cleanup/C1-05-formula.md) | How are the variables in formula environments named? | proposed | question | S | none |
+| [C1-06](C1-cleanup/C1-06-form.md) | What are "form", "action", "move" and "type"? | proposed | question | S | none |
+| [C1-07](C1-cleanup/C1-07-still.md) | What is the controller for a creature that keeps still called? | proposed | question | S | none |
+| [C1-08](C1-cleanup/C1-08-pack.md) | Is it a pack or an inventory? | proposed | question | S | none |
+| [C1-09](C1-cleanup/C1-09-turn.md) | What do "turn", "per-turn" and "pending" mean? | proposed | question | S | none |
+| [C1-10](C1-cleanup/C1-10-faction.md) | What is the hostile faction called? | proposed | question | S | none |
+| [C1-11](C1-cleanup/C1-11-text.md) | Where does player-facing text live, and how are its IDs shaped? | proposed | question | S | none |
+| [C1-12](C1-cleanup/C1-12-frontend.md) | Where does frontend chrome end and game text begin, and which core packages may the tui import? | proposed | question | S | none |
+| [C1-13](C1-cleanup/C1-13-cache.md) | May tests share one cached sample registry? | proposed | question | S | none |
+| [C1-14](C1-cleanup/C1-14-yaml.md) | May `go.yaml.in/yaml/v3` become a direct dependency? | proposed | question | S | none |
+| [C1-15](C1-cleanup/C1-15-gitcmd.md) | Where does shared git code for the tools go, given agentkit is protected? | proposed | question | S | none |
+| [C1-16](C1-cleanup/C1-16-speed.md) | What should a speed formula that fails at run time do? | proposed | question | S | none |
+| [C1-17](C1-cleanup/C1-17-apply-the-decided-renames.md) | Apply the decided renames | proposed | debt | L | C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11 |
+| [C1-18](C1-cleanup/C1-18-shared-helpers-in-the-lowest-layer-and-one-test.md) | Shared helpers in the lowest layer, and one test fixture | proposed | debt | L | C1-17, C1-13 |
+| [C1-19](C1-cleanup/C1-19-content-area-duplication-tests-comments.md) | Content area: duplication, tests, comments | proposed | debt | L | C1-18 |
+| [C1-20](C1-cleanup/C1-20-actions-area-duplication-tests-comments.md) | Actions area: duplication, tests, comments | proposed | debt | L | C1-18 |
+| [C1-21](C1-cleanup/C1-21-features-area-duplication-tests-comments.md) | Features area: duplication, tests, comments | proposed | debt | L | C1-18 |
+| [C1-22](C1-cleanup/C1-22-foundation-area-duplication-tests-comments-speed.md) | Foundation area: duplication, tests, comments, speed errors | proposed | debt | L | C1-18, C1-16 |
+| [C1-23](C1-cleanup/C1-23-game-and-frontend-duplication-text-out-of-the-tu.md) | Game and frontend: duplication, text out of the tui, tests, comments | proposed | debt | L | C1-18, C1-12 |
+| [C1-24](C1-cleanup/C1-24-tools-fix-the-windows-test-shared-git-code-tests.md) | Tools: fix the Windows test, shared git code, tests, comments | proposed | debt | L | C1-18, C1-15 |
+| [C1-25](C1-cleanup/C1-25-agentkit-cleanup-owner-does-this-one.md) | agentkit cleanup (owner does this one) | proposed | debt | L | C1-24, C1-14 |
+| [C1-26](C1-cleanup/C1-26-design-doc-fixes-and-the-content-guide.md) | Design-doc fixes and the content guide | proposed | content | L | C1-17, C1-19 |
+| [C1-27](C1-cleanup/C1-27-lock-in-what-the-cleanup-decided.md) | Lock in what the cleanup decided | proposed | debt | S | C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-25, C1-26 |
+
 ## Later milestones (outlines)
 
 Each becomes task files when the milestone before it is done: run `/plan-milestone`.
