@@ -107,7 +107,7 @@ The cloud caches what the script installs, so later sessions start with it. Keep
 
 ### Review and merge
 
-1. Read the PR on GitHub. CI runs `go tool task check` again. The CI run's summary lists the slowest test packages next to master's times, and warns (without failing) about any package over 30 seconds or at least twice as slow as on master.
+1. Read the PR on GitHub. CI runs `go tool task check` again. CI also posts a comment on the PR, edited in place on each push, listing the slowest test packages next to master's times. It flags, without failing, any package over 30 seconds or at least twice as slow as on master.
 2. For a second opinion, ask in any Claude session: `Use the task-reviewer agent on PR #45 for task M2-06.`
 3. To ask for changes, start a session and describe them:
 

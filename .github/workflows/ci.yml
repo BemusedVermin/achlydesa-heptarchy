@@ -8,6 +8,10 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # To post the test-time report as a comment on the pull request.
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,12 +40,34 @@ jobs:
         run: go tool task check-ci 2>&1 | tee check.log
         env:
           BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
-      # Lists the slowest packages in the run's summary and warns about slow ones; never fails.
+      # Lists the slowest packages and warns about slow ones; never fails.
       - name: test times
         if: always()
-        run: >-
-          go run ./internal/tools/testtimes --budget 30s --summary "$GITHUB_STEP_SUMMARY"
-          --baseline test-times-master.txt --save test-times-master.txt check.log
+        run: |
+          go run ./internal/tools/testtimes --budget 30s --summary test-times.md \
+            --baseline test-times-master.txt --save test-times-master.txt check.log
+          cat test-times.md >> "$GITHUB_STEP_SUMMARY"
+      # Posts the report as one comment on the pull request, edited in place on each push.
+      - name: test-time comment
+        if: always() && github.event_name == 'pull_request' && hashFiles('test-times.md') != ''
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          marker='<!-- test-times -->'
+          { echo "$marker"; cat test-times.md; echo; echo "<sub>Commit ${HEAD_SHA:0:7}, [CI run]($RUN_URL)</sub>"; } > comment.md
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@comment.md > /dev/null
+          else
+            gh api "repos/$REPO/issues/$PR/comments" -F body=@comment.md > /dev/null
+          fi
       - if: github.event_name == 'push' && success()
         uses: actions/cache/save@v4
         with:
