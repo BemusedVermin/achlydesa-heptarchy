@@ -28,3 +28,6 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **type**: what a form carries into the part it lands on (`content.Type`). Not every type does damage.
 - **still**: the controller for a creature that keeps still (`still_ticks`). Not rest.
 - **inventory**: what a body carries, a list of item stacks (`comp.Inventory`, `inventory:`). The word "pack" is not used.
+- **timeline**: the shared queue of entries (what was once called the turn queue).
+- **per-entry**: runs after each timeline entry (`sim.PerEntry`).
+- **systems due**: the timeline's flag that per-entry systems have not yet run (`SystemsDue`).
