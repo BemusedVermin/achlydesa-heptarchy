@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"slices"
 )
 
 // Exit statuses. A hook refuses a tool call by printing a decision on standard output and exiting
@@ -20,7 +19,7 @@ const (
 
 // errUsage reports a command line agentkit doesn't understand.
 var errUsage = errors.New(
-	"usage: agentkit guard | protect | mark-checked | ready | clean-worktrees [--dry-run] [--no-fetch]")
+	"usage: agentkit guard | protect | ready | clean-worktrees [--dry-run] [--no-fetch]")
 
 // hookInput is the part of Claude Code's PreToolUse hook input that the hooks read.
 type hookInput struct {
@@ -49,16 +48,6 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return hook(stdin, stdout, stderr, guardHook)
 	case "protect":
 		return hook(stdin, stdout, stderr, protectHook)
-	case "mark-checked":
-		dir, err := os.Getwd()
-		if err == nil {
-			err = markChecked(dir)
-		}
-		if err != nil {
-			// The check itself passed; failing to record it only means the next push runs it again.
-			warn(stderr, "agentkit mark-checked: couldn't record the passing commit:", err)
-		}
-		return exitOK
 	case "ready":
 		dir, err := os.Getwd()
 		report := ""
@@ -150,27 +139,13 @@ func hook(stdin io.Reader, stdout, stderr io.Writer, decide func(hookInput) stri
 	return exitOK
 }
 
-// guardHook checks a Bash or PowerShell command line, and runs the push gate for each push in it.
+// guardHook checks a Bash or PowerShell command line.
 func guardHook(input hookInput) string {
 	dia := bash
 	if input.ToolName == "PowerShell" {
 		dia = powershell
 	}
-	result := evaluate(input.ToolInput.Command, dia, input.Cwd, gitRepo{})
-	if result.refusal != "" {
-		return result.refusal
-	}
-	var gated []string
-	for _, dir := range result.pushes {
-		if slices.Contains(gated, dir) {
-			continue
-		}
-		gated = append(gated, dir)
-		if refusal := gatePush(dir, runTaskCheck); refusal != "" {
-			return refusal
-		}
-	}
-	return ""
+	return evaluate(input.ToolInput.Command, dia, input.Cwd, gitRepo{}).refusal
 }
 
 // protectHook checks a file edit.

@@ -32,7 +32,7 @@ func TestRun(t *testing.T) {
 		{"guard refuses", []string{"guard"}, input("Bash", "command", "git push --force"), exitOK, "force-push", ""},
 		{"guard reads powershell", []string{"guard"}, input("PowerShell", "command", "gh pr merge 3"), exitOK,
 			"gh pr merge", ""},
-		{"protect outside a checkout", []string{"protect"}, input("Write", "file_path", "docs/x.md"), exitOK, "", ""},
+		{"protect outside a checkout", []string{"protect"}, input("Write", "file_path", "AGENTS.md"), exitOK, "", ""},
 		{"bad hook input fails open", []string{"guard"}, "not json", exitFailed, "", "reading the hook input"},
 		{"unknown subcommand", []string{"nope"}, "", exitFailed, "", "usage"},
 		{"no subcommand", nil, "", exitFailed, "", "usage"},

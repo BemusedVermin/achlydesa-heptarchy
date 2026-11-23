@@ -4,7 +4,8 @@
 //
 // Files named on the command line stand in for the git diff, to see what a change would run.
 //
-// It takes the files changed since the merge base with REF (git diff REF...HEAD) and tests:
+// It takes the files changed since the merge base with REF (git diff REF...HEAD), plus any
+// uncommitted or untracked files, and tests:
 //
 //   - each package that holds a changed file, and every package that imports it, directly or not;
 //   - for a change under content/, each package whose tests read ../content/data, and nothing that
@@ -13,5 +14,5 @@
 //     .github, or if no REF is given.
 //
 // Files that belong to no package (docs, tasks) select nothing. --list prints the selected packages
-// instead of testing them. Only CI uses this; "task check" on a developer machine tests everything.
+// instead of testing them. CI and agents use this ("task check-ci"); "task check" tests everything.
 package main
