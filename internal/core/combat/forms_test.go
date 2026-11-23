@@ -431,19 +431,47 @@ func TestRelicOnOldMatterLandsAndDoesNothing(t *testing.T) {
 	}
 }
 
-func TestNameIsDisabledUnlessANameIsBoundToTheTarget(t *testing.T) {
-	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "ally": -1})
-	victim := r.body("victim")
-	arm := r.part(victim, "arm")
-	r.give("item.name", 1, r.body("ally"))
-	option, ok := r.option("strike", "type.name", r.uid(victim), r.uid(arm))
-	want := r.w.Content.Render(api.Text{ID: "text.type.name_refusal"})
-	if !ok || option.Enabled || want == "" || option.Reason != want {
-		t.Fatalf("Name on a body whose name is not held = %+v, %v; want disabled with %q", option, ok, want)
-	}
-	r.give("item.name", 1, victim)
-	if option, _ = r.option("strike", "type.name", r.uid(victim), r.uid(arm)); !option.Enabled {
-		t.Errorf("Name on the body whose name is held is disabled: %+v", option)
+// A name or a keepsake is never refused on the wrong body: the swing lands and does nothing, and a
+// bound item held for someone else is not used up. On its owner it hurts, and a keepsake is used up.
+func TestNameAndKeepsakeOnTheirOwnerAndOnTheWrongBody(t *testing.T) {
+	for _, tt := range []struct {
+		item          api.ContentID
+		kind          string
+		onOwner       bool
+		wantDamage    bool
+		wantRemaining int
+	}{
+		{"item.name", "type.name", true, true, 1},
+		{"item.name", "type.name", false, false, 1},
+		{"item.keepsake", "type.keepsake", true, true, 0},
+		{"item.keepsake", "type.keepsake", false, false, 1},
+	} {
+		t.Run(fmt.Sprintf("%s/owner=%v", tt.kind, tt.onOwner), func(t *testing.T) {
+			r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "ally": -1})
+			victim := r.body("victim")
+			arm := r.part(victim, "arm")
+			owner := r.body("ally")
+			if tt.onOwner {
+				owner = victim
+			}
+			r.give(tt.item, 1, owner)
+			option, ok := r.option("strike", tt.kind, r.uid(victim), r.uid(arm))
+			if !ok || !option.Enabled {
+				t.Fatalf("option = %+v, %v; want offered, so the menu tells nothing", option, ok)
+			}
+			events := r.do("strike", tt.kind, r.uid(victim), r.uid(arm))
+			events = append(events, r.wait(3)...)
+			if !has(events, always[api.ActionLanded]) {
+				t.Errorf("the swing did not land: %v", events)
+			}
+			if damaged := r.integrityOf(arm) < 3; damaged != tt.wantDamage {
+				t.Errorf("arm damaged = %v, want %v", damaged, tt.wantDamage)
+			}
+			held := inventory.Count(r.w, inventory.HolderOf(r.w, r.body("fighter")), tt.item, r.w.UIDOf(owner))
+			if held != tt.wantRemaining {
+				t.Errorf("%s left in the pack = %d, want %d", tt.item, held, tt.wantRemaining)
+			}
+		})
 	}
 }
 

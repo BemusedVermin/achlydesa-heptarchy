@@ -419,6 +419,8 @@ A move is a character's **form** loaded with a **type**. Cut, Press, Relic and N
 
 Press, Violet and Lees are phrased so the mechanic works whether or not the doctrine and the rift origin are true.
 
+Name and Keepsake are never refused. Used on a body they don't belong to, the swing lands and does nothing, as an immunity does, so the menu never tells the player whose name or keepsake they hold.
+
 ### Forms
 
 | Form | Effect |
