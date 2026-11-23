@@ -79,3 +79,22 @@ type OfferEnv struct {
 	Source Side           `expr:"source"` // the actor; only its template is filled in
 	Pack   map[string]int `expr:"pack"`   // the actor's whole pack: there's no target yet, so bound stacks count
 }
+
+// ScoreEnv is what combat.ai_score sees of one intent a creature could start.
+type ScoreEnv struct {
+	Source Side              `expr:"source"` // the actor and the first part it uses
+	Target Side              `expr:"target"` // the body aimed at and the part
+	Chosen map[string]Record `expr:"chosen"` // the choices made, as the records they name
+	Pack   map[string]int    `expr:"pack"`   // per item, the stacks the actor's pack can use on the target
+	// ImmuneKnown is whether the actor knows what the target part is made of.
+	ImmuneKnown bool `expr:"immune_known"`
+	// TargetIsParty is whether the target belongs to the party the player commands.
+	TargetIsParty bool `expr:"target_is_party"`
+	// TargetIntegrity is the integrity of the part aimed at, or of the whole body's least part when
+	// no part is aimed at; 0 when there is none.
+	TargetIntegrity int `expr:"target_integrity"`
+	// Windup is the ticks before the action would land.
+	Windup int64 `expr:"windup"`
+	// Height is the target's depth minus the actor's: positive when the actor is above.
+	Height int `expr:"height"`
+}

@@ -12,6 +12,7 @@ type View struct {
 	Timeline *TimelineView `json:"timeline,omitempty"`
 	Map      *MapView      `json:"map,omitempty"`
 	Party    *PartyView    `json:"party,omitempty"`
+	Bodies   *BodiesView   `json:"bodies,omitempty"`
 }
 
 // Option is one thing the player can do right now. Frontends render Label and

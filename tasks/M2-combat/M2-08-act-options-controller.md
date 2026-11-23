@@ -1,7 +1,7 @@
 ---
 id: M2-08
 title: The bodies view and the creature controller
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M2-07]
@@ -62,18 +62,27 @@ type ScoreChooser struct{}
 
 ## Acceptance criteria
 
-- [ ] On alert, the deciding member's options list only legal intents. A `Do` built from an option always starts; a hand-built `Do` with an out-of-reach target or a busy arm is rejected with a reason.
-- [ ] Unknown materials show "?" until a Sweep lands, then show the material.
-- [ ] `Threats` lists a creature's swing at the Reaper with the right landing tick, and it's gone once the swing lands or misses.
-- [ ] A hunting creature closes in over several steps and attacks once in reach.
-- [ ] The party can dodge: stepping out of reach before a hunter's swing lands makes it miss.
-- [ ] A creature with its legs severed falls behind a party walking away, and the alert eventually ends.
-- [ ] Two creatures of mutually hostile factions fight each other with the party out of sight.
-- [ ] A scripted encounter's event log matches a golden file.
-- [ ] `go tool task check` passes.
+- [x] On alert, the deciding member's options list only legal intents. A `Do` built from an option always starts; a hand-built `Do` with an out-of-reach target or a busy arm is rejected with a reason.
+- [x] Unknown materials show "?" until a Sweep lands, then show the material.
+- [x] `Threats` lists a creature's swing at the Reaper with the right landing tick, and it's gone once the swing lands or misses.
+- [x] A hunting creature closes in over several steps and attacks once in reach.
+- [x] The party can dodge: stepping out of reach before a hunter's swing lands makes it miss.
+- [x] A creature with its legs severed falls behind a party walking away, and the alert eventually ends.
+- [x] Two creatures of mutually hostile factions fight each other with the party out of sight.
+- [x] A scripted encounter's event log matches a golden file.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Drawing any of this (M2-10). Needs-driven behavior and dodging AI (M3).
 
 ## Notes
+
+- Tests are in `internal/core/combat/hunt_test.go`; the golden is `testdata/hunt.golden`. Each criterion maps to one test there. Options legality: a Do built from an option starts, a hand-built out-of-reach or busy-arm Do gets `Rejected` with a reason.
+- Deviations: `CombatConfig` also has `MaterialClaim` (the claim the bodies view reads with `knowledge.Best`), so code names no claim ID. It may be empty. `ScoreEnv` has the spec's names plus `immune_known`, `target_is_party`, `target_integrity`, `windup`, `height`; `immune_known` means the attacker's party knows the target part's material.
+- Added `actions.Windup(w, in)` (outside the Deliverables) so a chooser can score by wind-up. A Chooser is registered by name with `combat.RegisterChooser`; `hunt` asks for `score`.
+- A body that cannot aim (`combat.aims` false) picks at random among its startable attack intents, any target, from the `combat` stream.
+- The sample crawler is unchanged (still `rest`): making it hunt breaks the save, TUI golden and harness tests, which assume a creature that stands still. The tests mutate the bundle instead. Filed as M2-08.F1.
+- The ai_score formula and the "hunting creatures don't dodge" behavior are placeholders for tuning (M7) and M3.
+- Follow-ups filed: M2-08.F1 (sample crawler hunts), M2-08.F2 (AlertStarted appears twice in the golden).
+- `internal/tools/agentkit`'s `TestAfterEditWithGolangciLint` failed once in a full local run (an errcheck note); it doesn't touch this change, and check-ci doesn't run it.

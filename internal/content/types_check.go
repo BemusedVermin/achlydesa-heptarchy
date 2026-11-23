@@ -1,6 +1,7 @@
 package content
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -131,6 +132,27 @@ func (r *Registry) checkCombat() []error {
 			cfg.SightRadius,
 			cfg.SightDepth,
 		))
+	}
+	if program, err := r.Compile(cfg.AIScore, ScoreEnv{}, expr.AsFloat64()); err != nil {
+		problems = append(problems, fmt.Errorf("combat.ai_score: %w", err))
+	} else {
+		r.aiScore = program
+	}
+	if program, err := r.Compile(cfg.Aims, GrantEnv{}, expr.AsBool()); err != nil {
+		problems = append(problems, fmt.Errorf("combat.aims: %w", err))
+	} else {
+		r.aims = program
+	}
+	if cfg.AttackTag == "" {
+		problems = append(problems, errors.New("combat.attack_tag: required"))
+	}
+	if step, ok := r.bundle.Actions[string(cfg.StepAction)]; !ok {
+		problems = append(problems, fmt.Errorf("combat.step_action: unknown action %q", cfg.StepAction))
+	} else if step.Target != TargetDirection {
+		problems = append(problems, fmt.Errorf("combat.step_action: %q must target a direction", cfg.StepAction))
+	}
+	if _, ok := r.bundle.Claims[string(cfg.MaterialClaim)]; cfg.MaterialClaim != "" && !ok {
+		problems = append(problems, fmt.Errorf("combat.material_claim: unknown claim %q", cfg.MaterialClaim))
 	}
 	return problems
 }

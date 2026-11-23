@@ -253,6 +253,18 @@ type CombatConfig struct {
 	// CorpseGlyph and CorpseColor are how a dead body is drawn.
 	CorpseGlyph string `json:"corpse_glyph"`
 	CorpseColor string `json:"corpse_color"`
+	// AIScore is an Expr over ScoreEnv that rates an intent for a hunting creature: the highest wins.
+	AIScore string `json:"ai_score"`
+	// Aims is an Expr bool over GrantEnv: whether a body can pick its target. One that cannot swings
+	// at random among what it could hit.
+	Aims string `json:"aims"`
+	// AttackTag is the action tag that marks the actions a hunting creature attacks with.
+	AttackTag string `json:"attack_tag"`
+	// StepAction is the action ("action." ID) a hunting creature closes in with; it targets a direction.
+	StepAction api.ContentID `json:"step_action"`
+	// MaterialClaim is the claim ("claim." ID) that says what a part is made of, so the bodies view
+	// can show "?" until the party has learned it. Empty means no material is ever known.
+	MaterialClaim api.ContentID `json:"material_claim"`
 }
 
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.

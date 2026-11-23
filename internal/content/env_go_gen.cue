@@ -86,3 +86,27 @@ package content
 	Source: #Side
 	Pack: {[string]: int} @go(,map[string]int)
 }
+
+// ScoreEnv is what combat.ai_score sees of one intent a creature could start.
+#ScoreEnv: {
+	Source: #Side
+	Target: #Side
+	Chosen: {[string]: #Record} @go(,map[string]Record)
+	Pack: {[string]: int} @go(,map[string]int)
+
+	// ImmuneKnown is whether the actor knows what the target part is made of.
+	ImmuneKnown: bool
+
+	// TargetIsParty is whether the target belongs to the party the player commands.
+	TargetIsParty: bool
+
+	// TargetIntegrity is the integrity of the part aimed at, or of the whole body's least part when
+	// no part is aimed at; 0 when there is none.
+	TargetIntegrity: int
+
+	// Windup is the ticks before the action would land.
+	Windup: int64
+
+	// Height is the target's depth minus the actor's: positive when the actor is above.
+	Height: int
+}
