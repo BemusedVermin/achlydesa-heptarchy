@@ -41,8 +41,8 @@ func TestTypeChoiceComesFromContent(t *testing.T) {
 	if got := fx.loadIDs(); !slices.Equal(got, want) {
 		t.Fatalf("options with lake water = %v, want %v, in ID order", got, want)
 	}
-	if option := fx.option("load/type.name"); option.Enabled {
-		t.Error("Name is offered but its requires formula should refuse it without a name in the pack")
+	if option := fx.option("load/type.name"); !option.Enabled {
+		t.Error("Name is refused without a name in the pack; it should be offered, so the menu tells nothing")
 	}
 	if !fx.option("load/type.soak").Enabled {
 		t.Error("Soak should be enabled while the pack holds lake water")
