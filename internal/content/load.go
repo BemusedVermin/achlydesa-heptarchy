@@ -252,6 +252,19 @@ func (r *Registry) checkKnowledge() []error {
 	return problems
 }
 
+// checkCrawlsAs checks the template a crawling part acts as: it must exist, and have no body plan or
+// party of its own, since the part it is made from is its whole body.
+func (r *Registry) checkCrawlsAs(path string, id api.ContentID) []error {
+	def, ok := r.bundle.Templates[string(id)]
+	if !ok {
+		return []error{fmt.Errorf("%s.crawls_as: unknown template %q", path, id)}
+	}
+	if def.Body != nil || def.Party != nil {
+		return []error{fmt.Errorf("%s.crawls_as: template %q has a body or party of its own", path, id)}
+	}
+	return nil
+}
+
 // checkBodies checks every part template and body plan: references, integrity and grant kinds.
 func (r *Registry) checkBodies() []error {
 	var problems []error
@@ -274,6 +287,9 @@ func (r *Registry) checkBodies() []error {
 			if grant.Kind == "" {
 				problems = append(problems, fmt.Errorf("%s.grants[%d].kind: required", path, i))
 			}
+		}
+		if part.CrawlsAs != "" {
+			problems = append(problems, r.checkCrawlsAs(path, part.CrawlsAs)...)
 		}
 	}
 	for _, key := range sortedKeys(r.bundle.Bodies) {

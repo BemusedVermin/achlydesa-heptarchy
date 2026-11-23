@@ -27,8 +27,6 @@ text: {
 	"text.part.maw":               "maw"
 	"text.part.serilmen_arm":      "arm of Serilmen"
 	"text.part.remnant_arm":       "old arm"
-	// A severed part that crawls off is a body named for the part it was.
-	"text.template.part.remnant_arm": "A crawling arm"
 	"text.part.core":              "core"
 	"text.timeline.wait_event":  "Wait until something happens"
 	"text.timeline.wait_phase":  "Wait until {{.phase}}"

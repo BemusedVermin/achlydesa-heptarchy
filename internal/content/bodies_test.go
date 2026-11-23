@@ -68,6 +68,16 @@ func TestBodiesRejectBadReferences(t *testing.T) {
 		{"empty plan", func(b *Bundle) {
 			b.Bodies["body.human"] = BodyPlan{}
 		}, "a body needs at least one part"},
+		{"crawls as an unknown template", func(b *Bundle) {
+			part := b.Parts["part.human_arm"]
+			part.CrawlsAs = "template.nope"
+			b.Parts["part.human_arm"] = part
+		}, `parts["part.human_arm"].crawls_as: unknown template "template.nope"`},
+		{"crawls as a template with a body", func(b *Bundle) {
+			part := b.Parts["part.human_arm"]
+			part.CrawlsAs = "template.test.dummy"
+			b.Parts["part.human_arm"] = part
+		}, `crawls_as: template "template.test.dummy" has a body or party of its own`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

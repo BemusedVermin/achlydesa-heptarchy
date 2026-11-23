@@ -367,6 +367,10 @@ type PartTemplate struct {
 	Integrity int           `json:"integrity"`
 	Grants    []comp.Grant  `json:"grants"`
 	Vital     bool          `json:"vital,omitempty"`
+	// CrawlsAs is the template ("template." ID) a body made from this part by spawn_from_part takes
+	// as its identity: its name, appearance, the actions it knows and its lists. Without it the body
+	// is named for the part template and knows no actions.
+	CrawlsAs api.ContentID `json:"crawls_as,omitempty"`
 }
 
 // BodyPlan lists the parts a body is built from, in order.

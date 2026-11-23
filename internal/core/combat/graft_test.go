@@ -1,6 +1,7 @@
 package combat_test
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
@@ -132,6 +133,43 @@ func TestASeveredPartOfAPreEntropyThingCrawlsOff(t *testing.T) {
 	}
 	if got := ecs.NewMap[comp.Actor](f.w.ECS).Get(body).Controller; got != "hunt" {
 		t.Errorf("controller = %q", got)
+	}
+}
+
+func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
+	f, remnant := remnantField(t)
+	reaper := f.members()[0]
+	arm := f.partOf(remnant, "arm")
+	f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
+	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
+	if got := ecs.NewMap[comp.Identity](f.w.ECS).Get(crawling).Template; got != "template.crawling.remnant_arm" {
+		t.Errorf("the crawling arm acts as %q, want its part's crawls_as", got)
+	}
+	if got := ecs.NewMap[comp.Appearance](f.w.ECS); !got.Has(crawling) || got.Get(crawling).Glyph == "" {
+		t.Error("the crawling arm has no appearance")
+	}
+	// The source and the hall's own creature fall, and the party stands next to the arm: the only
+	// hostiles in its reach are the party.
+	f.damage(reaper, remnant, "torso", "99")
+	f.damage(reaper, f.creature(), "torso", "99")
+	f.moveParty(east(f.at(crawling), -1))
+
+	uid := f.w.UIDOf(crawling)
+	members := f.memberUIDs()
+	var swing *api.ActionStarted
+	f.w.Bus.SubscribeAll("test.crawling_swing", func(_ *sim.World, e api.Event) {
+		if s, ok := e.(api.ActionStarted); ok && s.Actor == uid && swing == nil {
+			swing = &s
+		}
+	})
+	if !f.until(300, func() bool { return swing != nil }) {
+		t.Fatal("the crawling arm never started an action")
+	}
+	if swing.Action != "action.strike" {
+		t.Errorf("the crawling arm started %q, want a strike", swing.Action)
+	}
+	if !slices.Contains(members, swing.Target) {
+		t.Errorf("the crawling arm swung at %v, want one of the party %v", swing.Target, members)
 	}
 }
 
