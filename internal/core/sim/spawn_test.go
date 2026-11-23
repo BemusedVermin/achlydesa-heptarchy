@@ -75,6 +75,45 @@ func TestSpawnParty(t *testing.T) {
 	}
 }
 
+func TestDespawnRemovesAttachedParts(t *testing.T) {
+	w := newSampleWorld(t, 1)
+	body, err := w.Spawn("template.person.reaper", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	other, err := w.Spawn("template.person.reaper", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	partOf := ecs.NewMap[comp.PartOf](w.ECS)
+	attached := w.NewIdentified("part.test")
+	partOf.Add(attached, &comp.PartOf{}, body)
+	nested := w.NewIdentified("part.test")
+	partOf.Add(nested, &comp.PartOf{}, attached)
+	severed := w.NewIdentified("part.test")
+	kept := w.NewIdentified("part.test")
+	partOf.Add(kept, &comp.PartOf{}, other)
+	attachedUID := w.UIDOf(attached)
+
+	w.Despawn(body)
+
+	if w.ECS.Alive(attached) || w.ECS.Alive(nested) {
+		t.Error("a part survived its body")
+	}
+	if _, ok := w.ByUID(attachedUID); ok {
+		t.Error("attached part still in the UID index")
+	}
+	if !w.ECS.Alive(severed) || !w.ECS.Alive(kept) {
+		t.Error("an unrelated part was removed")
+	}
+	query := ecs.NewFilter1[comp.PartOf](w.ECS).Query()
+	for query.Next() {
+		if partOf.GetRelation(query.Entity()).IsZero() {
+			t.Error("a part with a zero PartOf target remains")
+		}
+	}
+}
+
 func TestByUIDAndDespawn(t *testing.T) {
 	w := newSampleWorld(t, 1)
 	e, err := w.Spawn("template.person.reaper", nil)
