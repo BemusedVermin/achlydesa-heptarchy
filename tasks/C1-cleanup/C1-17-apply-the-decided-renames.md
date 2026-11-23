@@ -1,7 +1,7 @@
 ---
 id: C1-17
 title: "Apply the decided renames"
-status: proposed
+status: todo
 milestone: C1
 kind: debt
 depends_on: [C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11]
@@ -224,3 +224,5 @@ Rename with `gopls rename` for Go identifiers, never by hand, and everywhere a c
 
 ## Notes
 
+
+- Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
