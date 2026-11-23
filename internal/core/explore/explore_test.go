@@ -9,6 +9,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -16,8 +17,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const sampleDir = "../../../content/data"
 
 // fixture is a running game on one of the test maps.
 type fixture struct {
@@ -30,10 +29,7 @@ type fixture struct {
 // newFixture starts the sample content's party on the named map, or on its own start map if empty.
 func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle)) *fixture {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	// These tests walk. A member who can also fight is still ready while its legs recover, so they
 	// teach the party only the step.
 	for _, id := range []string{"template.person.reaper", "template.person.salken"} {

@@ -9,10 +9,7 @@ import (
 )
 
 func TestBodiesAreLoaded(t *testing.T) {
-	registry, err := Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	registry := sampleRegistry(t)
 	plan, ok := registry.Body("body.human")
 	if !ok || len(plan.Parts) != 5 {
 		t.Fatalf("body.human = %+v, %v; want five parts", plan, ok)
@@ -90,10 +87,7 @@ func TestBodiesRejectBadReferences(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bundle, err := LoadBundle(sampleDir)
-			if err != nil {
-				t.Fatal(err)
-			}
+			bundle := sampleBundle(t)
 			tt.mutate(&bundle)
 			if _, err := New(bundle); err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("err = %v, want it to contain %q", err, tt.want)

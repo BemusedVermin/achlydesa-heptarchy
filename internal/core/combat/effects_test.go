@@ -7,6 +7,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -18,8 +19,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
-
-const sampleDir = "../../../content/data"
 
 // here is where the test bodies stand.
 var here = comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
@@ -39,10 +38,7 @@ func newRig(t *testing.T) *rig { return newRigWith(t, nil) }
 // newRigWith is newRig with the bundle adjusted first.
 func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bundle.Start = content.Start{}
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Part: &armPart}

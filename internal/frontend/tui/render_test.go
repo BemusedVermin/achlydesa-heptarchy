@@ -11,6 +11,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/frontend/tui"
@@ -18,14 +19,9 @@ import (
 
 var update = flag.Bool("update", false, "rewrite the golden files")
 
-const sampleDir = "../../../content/data"
-
 func config(t *testing.T) game.Config {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	// These tests walk and read goldens drawn for a party that can only step.
 	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
 		person := bundle.Templates[id]
@@ -60,10 +56,7 @@ func newApp(t *testing.T) *tui.App {
 
 func TestContentMsgSwapsOrLogsTheError(t *testing.T) {
 	app := newApp(t)
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	app.Update(tui.ContentMsg{Registry: reg})
 	last := app.State.Log[len(app.State.Log)-1].Text
 	if !strings.Contains(last, "reloaded") {

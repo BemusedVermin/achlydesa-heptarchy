@@ -7,6 +7,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
@@ -71,10 +72,7 @@ func TestSwappingContentRecomputesAFormulaAlreadyEvaluated(t *testing.T) {
 	if got := soakAll(t, r, "type.soak"); got["head"] != 1 {
 		t.Fatalf("before the swap the maw lost %d, want 1", got["head"])
 	}
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bundle.Rules["weak"] = brittleWeak
 	maw := bundle.Parts["part.test.crawler_maw"]
 	maw.Tags = []string{"brittle"}

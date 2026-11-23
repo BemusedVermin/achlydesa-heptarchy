@@ -8,6 +8,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -15,8 +16,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const contentDir = "../../../content/data"
 
 func newKnower(w *sim.World) ecs.Entity {
 	return ecs.NewMap1[comp.Identity](w.ECS).NewEntity(&comp.Identity{UID: w.NewUID()})
@@ -147,10 +146,7 @@ func TestLearnAddsKnowledgeAndPublishesEvents(t *testing.T) {
 }
 
 func TestNoticedFactLogsTheValueAsText(t *testing.T) {
-	reg, err := content.Load(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	w := sim.NewWorld(1)
 	w.Content = reg
 	var noticed []api.FactNoticed
@@ -179,10 +175,7 @@ func TestNoticedFactLogsTheValueAsText(t *testing.T) {
 }
 
 func TestSaveAndLoadKeepEveryFact(t *testing.T) {
-	bundle, err := content.LoadBundle(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bundle.Start = content.Start{}
 	reg, err := content.New(bundle)
 	if err != nil {

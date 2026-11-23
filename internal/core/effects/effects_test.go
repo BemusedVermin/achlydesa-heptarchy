@@ -8,6 +8,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -16,8 +17,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
-
-const sampleDir = "../../../content/data"
 
 const mapID api.MapID = 1
 
@@ -37,10 +36,7 @@ type fixture struct {
 
 func newFixture(t *testing.T) *fixture {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	fx := &fixture{
 		w: sim.NewWorld(1), parts: map[ecs.Entity][]ecs.Entity{}, partTags: map[ecs.Entity][]string{},
 	}
@@ -76,7 +72,7 @@ func newFixture(t *testing.T) *fixture {
 	fx.leg = fx.part(t, fx.a, "leg")
 	effects.SetHostile(fx.w, func(w *sim.World, from, to ecs.Entity) bool { return from == fx.s && to == fx.b })
 	fx.w.Bus.SubscribeAll("test.events", func(_ *sim.World, e api.Event) { fx.events = append(fx.events, e) })
-	err = timeline.RegisterResolver(fx.w, "test.swing", timeline.Resolver{
+	err := timeline.RegisterResolver(fx.w, "test.swing", timeline.Resolver{
 		Resolve: func(*sim.World, ecs.Entity) error { return nil },
 	})
 	if err != nil {

@@ -8,20 +8,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
 
-const sampleDir = "../../content/data"
-
 // recordLog plays a short game and writes its log to a file, returning the path and the hash.
 func recordLog(t *testing.T) (string, string) {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	g, err := game.New(game.Config{Seed: 3, Content: reg})
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +56,7 @@ func runReplay(t *testing.T, args ...string) (string, error) {
 	cmd := root()
 	cmd.SetOut(&out)
 	cmd.SetErr(&bytes.Buffer{})
-	cmd.SetArgs(append([]string{"replay", "--seed", "3", "--content", sampleDir}, args...))
+	cmd.SetArgs(append([]string{"replay", "--seed", "3", "--content", contenttest.Dir()}, args...))
 	err := cmd.Execute()
 	return strings.TrimSpace(out.String()), err
 }

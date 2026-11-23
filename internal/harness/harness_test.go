@@ -8,18 +8,14 @@ import (
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
 
-const sampleDir = "../../content/data"
-
 func load(t *testing.T) *content.Registry {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	// The sample moving clay hunts and kills random walkers, which would end runs early. These tests
 	// count rows, so they keep it standing.
 	movingClay := bundle.Templates["template.creature.moving_clay"]

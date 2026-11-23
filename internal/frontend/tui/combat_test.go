@@ -7,6 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/frontend/tui"
@@ -36,10 +37,7 @@ func fightApp(t *testing.T) *tui.App {
 // tests browse menus, and a hunting creature would change what they see.
 func startApp(t *testing.T) *tui.App {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	movingClay := bundle.Templates["template.creature.moving_clay"]
 	movingClay.Actor = &content.ActorDef{Controller: "still"}
 	movingClay.Actions = nil
@@ -355,10 +353,7 @@ func TestOverlayMarksThreatsAndTimeline(t *testing.T) {
 // huntingApp is the sample game as shipped: the moving clay hunts and fights back.
 func huntingApp(t *testing.T) *tui.App {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	g, err := game.New(game.Config{Seed: 1, Content: reg})
 	if err != nil {
 		t.Fatal(err)

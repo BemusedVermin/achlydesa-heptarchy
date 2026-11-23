@@ -4,20 +4,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-const sampleDir = "../../../content/data"
-
 // setup returns a world with a clock and recording systems.
 func setup(t *testing.T) (*sim.World, *clock.Clock, *[]string) {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	world := sim.NewWorld(1)
 	clk := clock.New(reg.Calendar())
 	if err := clock.Install(world, clk, reg); err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -29,10 +30,7 @@ type field struct {
 
 func newField(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle)) *field {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bundle.Start.Map = mapID
 	// These tests walk and wait. A member who can also fight is still ready while its legs
 	// recover, so the party knows only the step.

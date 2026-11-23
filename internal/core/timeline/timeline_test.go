@@ -10,14 +10,13 @@ import (
 	"pgregory.net/rapid"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
-
-const sampleDir = "../../../content/data"
 
 // tester is the part of testing.T that rapid.T shares.
 type tester interface {
@@ -50,10 +49,7 @@ type fixture struct {
 
 func newFixture(t tester, seed uint64) *fixture {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	fx := &fixture{w: sim.NewWorld(seed), speeds: map[api.UID]int{}, stopAfter: 1 << 60}
 	fx.w.Content = reg
 	fx.clk = clock.New(reg.Calendar())
@@ -73,7 +69,7 @@ func newFixture(t tester, seed uint64) *fixture {
 	if err := timeline.RegisterController(fx.w, "record", recorder{fx}); err != nil {
 		t.Fatal(err)
 	}
-	err = fx.w.Systems.Register(sim.System{Name: "test.phase", Cadence: sim.PerPhase, Run: func(w *sim.World) error {
+	err := fx.w.Systems.Register(sim.System{Name: "test.phase", Cadence: sim.PerPhase, Run: func(w *sim.World) error {
 		fx.phases = append(fx.phases, w.Now)
 		return nil
 	}})
@@ -509,10 +505,7 @@ func TestViewListsVisibleBodiesInWindow(t *testing.T) {
 }
 
 func TestDefaultVisibilityIsTheParty(t *testing.T) {
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	w := sim.NewWorld(1)
 	w.Content = reg
 	clk := clock.New(reg.Calendar())

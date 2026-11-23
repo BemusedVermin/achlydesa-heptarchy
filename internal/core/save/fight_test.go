@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
@@ -31,10 +31,7 @@ func landsOf(t testing.TB, g *game.Game) []api.TimelineEntry {
 // loads, runs on, and wants the same actions in flight and the same hash as the game that never saved.
 func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 	// The hall as shipped: the crawler hunts, and the party fights back.
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	cfg := game.Config{Seed: 3, Content: reg}
 	g, err := game.New(cfg)
 	if err != nil {

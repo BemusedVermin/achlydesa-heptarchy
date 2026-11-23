@@ -9,6 +9,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -19,8 +20,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
-
-const sampleDir = "../../../content/data"
 
 // opts shapes a fixture.
 type opts struct {
@@ -56,10 +55,7 @@ func use(tag string, count int) []content.Requirement {
 // testBundle is the sample content plus the actions the tests need.
 func testBundle(t *testing.T, o opts) content.Bundle {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	// The fixtures place bodies by hand, so they start with no maps and no start party; a body that
 	// is not on a map steps in place.
 	bundle.Maps, bundle.Start = nil, content.Start{}

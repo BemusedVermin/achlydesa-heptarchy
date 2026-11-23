@@ -9,6 +9,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -17,8 +18,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
-
-const sampleDir = "../../../content/data"
 
 // rig is a game whose only entity is the sample party, with its world and party kept for tests.
 type rig struct {
@@ -30,10 +29,7 @@ type rig struct {
 
 func newRig(t *testing.T, seed uint64, mutate func(*content.Bundle)) *rig {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bundle.Start = content.Start{} // the rig spawns its own party
 	if mutate != nil {
 		mutate(&bundle)

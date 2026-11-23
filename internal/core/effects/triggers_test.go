@@ -9,6 +9,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -36,10 +37,7 @@ func ref(name string, params ...string) content.EffectRef {
 
 func triggerBundle(t *testing.T, mutate func(*content.Bundle)) content.Bundle {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bundle.Start = content.Start{}
 	body := api.ContentID("body.test.crawler")
 	bundle.Templates["template.test.crawler"] = content.Template{Body: &body}

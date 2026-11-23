@@ -5,7 +5,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -15,10 +15,7 @@ import (
 )
 
 func TestWakeWithADeadLeaderHandsTheLeadOverAndReordersTheParty(t *testing.T) {
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	var world *sim.World
 	g, err := game.New(game.Config{
 		Seed:    1,

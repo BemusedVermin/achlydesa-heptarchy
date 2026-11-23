@@ -10,6 +10,7 @@ import (
 	"pgregory.net/rapid"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
@@ -17,8 +18,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const sampleDir = "../../../content/data"
 
 // rig is a game on the sample content's start scenario, with the world kept for tests that edit it.
 type rig struct {
@@ -29,10 +28,7 @@ type rig struct {
 
 func newBundle(t testing.TB) content.Bundle {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	// These tests walk. A member who can also fight is still ready while its legs recover, so they
 	// teach the party only the step.
 	for _, id := range []string{"template.person.reaper", "template.person.salken"} {

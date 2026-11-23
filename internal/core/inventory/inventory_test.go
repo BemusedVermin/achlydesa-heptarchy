@@ -9,6 +9,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -16,8 +17,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const contentDir = "../../../content/data"
 
 func newHolder(w *sim.World) ecs.Entity {
 	return ecs.NewMap1[comp.Identity](w.ECS).NewEntity(&comp.Identity{UID: w.NewUID()})
@@ -98,10 +97,7 @@ func TestCountOfAnEntityWithNoInventoryIsZero(t *testing.T) {
 }
 
 func TestAllElevenTypesLoadAndNameIsNeverRefused(t *testing.T) {
-	reg, err := content.Load(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	if got := len(reg.TypeIDs()); got != 11 {
 		t.Errorf("types = %d, want 11", got)
 	}
@@ -126,10 +122,7 @@ func TestAllElevenTypesLoadAndNameIsNeverRefused(t *testing.T) {
 }
 
 func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
-	bundle, err := content.LoadBundle(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	deep := bundle.Factions["faction.wild"]
 	deep.HostileTo = []api.ContentID{"faction.crawling"} // only the party's side of the feud is left one-sided
 	bundle.Factions["faction.wild"] = deep
@@ -149,10 +142,7 @@ func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
 }
 
 func TestBadTypeContentIsRejected(t *testing.T) {
-	bundle, err := content.LoadBundle(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bad := bundle.Types["type.press"]
 	bad.Requires = "no_such_field == 1"
 	bundle.Types["type.press"] = bad
@@ -175,10 +165,7 @@ func partyOf(t *testing.T, w *sim.World) ecs.Entity {
 }
 
 func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
-	reg, err := content.Load(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	var world *sim.World
 	cfg := game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
 		world = w

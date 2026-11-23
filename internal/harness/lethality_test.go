@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
 
@@ -59,10 +60,7 @@ func median(results []harness.FightResult) int64 {
 // The targets are placeholders for M7's tuning: combat is lethal, and knowing the materials is what
 // wins it.
 func TestLethalityTargets(t *testing.T) {
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	blind := playFights(t, reg, func() harness.Policy { return harness.NewBlindPolicy(reg) })
 	informed := playFights(t, reg, func() harness.Policy { return harness.NewInformedPolicy(reg) })
 	t.Logf("blind: wiped %.2f won %.2f undecided %.2f, median %d ticks", share(blind, harness.OutcomeWiped),

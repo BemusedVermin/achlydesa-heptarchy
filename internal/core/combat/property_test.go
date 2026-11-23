@@ -12,6 +12,7 @@ import (
 	"pgregory.net/rapid"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -34,10 +35,7 @@ const (
 // Serilmen in the inventory, so every form is on the menu.
 func propertyConfig(t *testing.T, seed uint64, install func(w *sim.World)) game.Config {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	party := bundle.Templates["template.party.main"]
 	party.Inventory = append(slices.Clone(party.Inventory), content.StackDef{Item: "item.serilmen_arm", Count: 1})
 	bundle.Templates["template.party.main"] = party
