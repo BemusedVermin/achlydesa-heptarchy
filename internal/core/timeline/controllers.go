@@ -72,3 +72,8 @@ func SetSpeed(w *sim.World, fn func(w *sim.World, body ecs.Entity) int) { stateO
 
 // SetVisible replaces which bodies the player may see on the timeline. The default is party members.
 func SetVisible(w *sim.World, fn func(w *sim.World, body ecs.Entity) bool) { stateOf(w).visible = fn }
+
+// SetHalt sets a check Run makes before each step: when it reports true, Run returns at once with
+// the zero entity and no error, because no decision is left to wait for. Combat sets it to the
+// party being wiped, so a landing that downs the last member ends the call. The default never halts.
+func SetHalt(w *sim.World, fn func(w *sim.World) bool) { stateOf(w).halt = fn }

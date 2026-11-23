@@ -73,6 +73,7 @@ type state struct {
 	usableAll   func(w *sim.World, body ecs.Entity, channels []Channel) []bool
 	speed       func(w *sim.World, body ecs.Entity) int
 	visible     func(w *sim.World, body ecs.Entity) bool
+	halt        func(w *sim.World) bool
 	controllers map[string]Controller
 	line        queue
 	queued      map[ecs.Entity]int64 // the tick of each body's one live slot; only ever looked up
@@ -365,10 +366,14 @@ func (st *state) nextOtherEntry(w *sim.World, body ecs.Entity) int64 {
 // the body's controller. A controller must occupy a channel or wait; if it does neither, the loop
 // makes it wait until the next entry. PerTurn systems run after every entry. It errors after
 // MaxAITurns AI decisions in one call, so a world with no player can't hang.
+// It returns the zero entity at once, without error, when the halt check (SetHalt) holds.
 func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 	st := stateOf(w)
 	aiTurns := 0
 	for {
+		if st.halt != nil && st.halt(w) {
+			return ecs.Entity{}, nil
+		}
 		if body, ok := Current(w); ok && st.actors.Get(body).Controller == PlayerController &&
 			!st.landingDue(w) {
 			return body, nil
