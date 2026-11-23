@@ -19,7 +19,8 @@ const (
 )
 
 // errUsage reports a command line agentkit doesn't understand.
-var errUsage = errors.New("usage: agentkit guard | protect | mark-checked | ready")
+var errUsage = errors.New(
+	"usage: agentkit guard | protect | mark-checked | ready | clean-worktrees [--dry-run] [--no-fetch]")
 
 // hookInput is the part of Claude Code's PreToolUse hook input that the hooks read.
 type hookInput struct {
@@ -39,7 +40,7 @@ func main() {
 
 // run runs a subcommand and returns the exit status.
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	if len(args) != 1 {
+	if len(args) == 0 || (len(args) > 1 && args[0] != "clean-worktrees") {
 		warn(stderr, errUsage)
 		return exitFailed
 	}
@@ -73,10 +74,40 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			return exitFailed
 		}
 		return exitOK
+	case "clean-worktrees":
+		return runCleanWorktrees(args[1:], stdout, stderr)
 	default:
 		warn(stderr, errUsage)
 		return exitFailed
 	}
+}
+
+// runCleanWorktrees runs clean-worktrees from the current directory and prints its report. It fails
+// when it can't run at all, or when git refused a removal or deletion it meant to make.
+func runCleanWorktrees(flags []string, stdout, stderr io.Writer) int {
+	opts, err := parseCleanFlags(flags)
+	if err != nil {
+		warn(stderr, "agentkit clean-worktrees:", err)
+		return exitFailed
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		warn(stderr, "agentkit clean-worktrees:", err)
+		return exitFailed
+	}
+	result, err := cleanWorktrees(dir, opts)
+	if err != nil {
+		warn(stderr, "agentkit clean-worktrees:", err)
+		return exitFailed
+	}
+	if _, err := io.WriteString(stdout, result.report()); err != nil {
+		warn(stderr, "agentkit clean-worktrees:", err)
+		return exitFailed
+	}
+	if len(result.failures) > 0 {
+		return exitFailed
+	}
+	return exitOK
 }
 
 // warn writes a diagnostic line to standard error. If that write fails there is nowhere left to
