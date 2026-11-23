@@ -11,6 +11,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/combat"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -154,6 +155,16 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 		return nil, fmt.Errorf("game: unknown command kind %q", cmd.CommandKind())
 	}
 	g.events = nil
+	if combat.PartyLost(g.world) {
+		g.world.Bus.Publish(api.Rejected{Command: cmd.CommandKind(), Reason: api.Text{ID: "text.game.lost"}})
+		if _, err := g.world.Bus.Drain(g.world); err != nil {
+			return nil, g.fail(err)
+		}
+		g.history = append(g.history, cmd)
+		events := g.events
+		g.events = nil
+		return events, nil
+	}
 	// Handlers that take time occupy channels themselves, so the returned cost is ignored.
 	if _, err := g.world.Commands.Dispatch(g.world, cmd); err != nil {
 		return nil, g.fail(err)

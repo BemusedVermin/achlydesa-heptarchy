@@ -1,7 +1,7 @@
 ---
 id: M2-07
 title: "Hostility, alert and death"
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M2-06]
@@ -61,16 +61,30 @@ func Hostile(w *sim.World, a, b ecs.Entity) bool
 
 ## Acceptance criteria
 
-- [ ] Walking the leader into sight of the hall's creature sets `Alert`, publishes `AlertStarted`, and switches a party in follow mode to individual control.
-- [ ] On `map.test.descent`, standing in the hall directly over the creature in the soop below never sets `Alert`: there's no sight through rock.
-- [ ] After `CalmTicks` with no hostile visible, `AlertEnded` fires and lead and follow resume, unless the player chose individual control.
-- [ ] `Hostile` is symmetric when only one faction lists the other (table test).
-- [ ] Applying damage directly (through effects) until a vital part is gone kills the body: the corpse stays on the map with its corpse glyph and never decides again.
-- [ ] A protected member is downed instead of killed; downing every member publishes `PartyLost`, and the next command is rejected.
-- [ ] `go tool task check` passes.
+- [x] Walking the leader into sight of the hall's creature sets `Alert`, publishes `AlertStarted`, and switches a party in follow mode to individual control.
+- [x] On `map.test.descent`, standing in the hall directly over the creature in the soop below never sets `Alert`: there's no sight through rock.
+- [x] After `CalmTicks` with no hostile visible, `AlertEnded` fires and lead and follow resume, unless the player chose individual control.
+- [x] `Hostile` is symmetric when only one faction lists the other (table test).
+- [x] Applying damage directly (through effects) until a vital part is gone kills the body: the corpse stays on the map with its corpse glyph and never decides again.
+- [x] A protected member is downed instead of killed; downing every member publishes `PartyLost`, and the next command is rejected.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Attacking, options and creature behavior (M2-08). The action menu (M2-10).
 
 ## Notes
+
+Decisions and deviations:
+
+- `combat.alert` is registered in `combat` and `explore.party_control` now lists it in `After`, so the freeze fails if combat isn't installed (game installs both).
+- `MapDef.Spawns` keys must also be in `Marks`, and a spawn character may appear any number of times (the exactly-once rule applies to the other marks). Spawned bodies get the template's own actor; "the template's Turn" had no matching field, so I used what `w.Spawn` does (the actor is scheduled at once). Maps spawn in content ID order, each in layer, row, column order. Creatures spawn after the party, so the party's UIDs are unchanged.
+- Added `CombatConfig.RestTicks` and a `rest` controller (`internal/core/combat/rest.go`). With the built-in `idle` controller the creature and a follower waited on each other a tick at a time, and the harness hit "10000 decisions". The sample creature uses `rest` until M2-08 gives it a mind. Filed as M2-07.F2.
+- The death rule finds out whether a body "has vital parts" from its plan, or from a vital part still attached. Bodies without a plan (from `spawn_from_part`) die when their last part goes.
+- When the leader falls, combat hands the lead to the first standing member in party order and publishes `LeaderChanged`; without that the follow-mode party has nobody to decide for it. `explore.lead` now rejects a fallen member (`text.explore.fallen`) and the options leave them out. Both were found by the harness's random play.
+- `game.Apply` decides "party lost" from the world (`combat.PartyLost`), not from a stored flag, so a loaded save is lost too. The rejected command is still recorded in the history, like any other rejection.
+- With every member player-controlled, the per-turn systems run at the start of the next `timeline.Run`, so an alert shows one apply after the body moved. Left alone: it is how the timeline loop already orders things.
+- The explore test fixture removes map spawns so walking tests don't raise alerts. The TUI golden `map_walked.golden` now shows the hall's creature.
+- Files outside the list: `internal/content/{maps,registry,types_check,load}.go`, `internal/core/explore/{source,explore,control}.go`, `internal/core/combat/effects.go` (calls the new install), `internal/frontend/tui/testdata/map_walked.golden`, `content/data/text.cue`.
+
+Follow-ups filed: M2-07.F1 (question: what a party wipe means for the story), M2-07.F2 (bug: idle bodies waiting on each other move time on a tick at a time), M2-07.F3 (bug: a wipe inside one Apply is not handled; unreachable with today's content).
