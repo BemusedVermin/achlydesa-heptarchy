@@ -18,8 +18,6 @@ type branchReader interface {
 type verdict struct {
 	// refusal says why the line may not run; empty when it may.
 	refusal string
-	// pushes lists the directories the line runs git push in. Each push waits for the check.
-	pushes []string
 }
 
 // guardState follows a command line from one simple command to the next: cd changes the
@@ -151,9 +149,6 @@ func (state *guardState) git(args []string, result *verdict) {
 	switch sub {
 	case "push":
 		result.refusal = checkPush(rest, state.branch(dir))
-		if result.refusal == "" && !hasFlag(rest, "-n", "--dry-run") {
-			result.pushes = append(result.pushes, dir)
-		}
 	case "commit", "merge", "rebase", "cherry-pick", "revert", "am":
 		if branch := state.branch(dir); isDefaultBranch(branch) {
 			result.refusal = "git " + sub + " on " + branch + ": only the owner changes " + branch +

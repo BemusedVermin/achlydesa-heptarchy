@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -63,13 +64,24 @@ func run(args []string) error {
 	return test.Run()
 }
 
-// changedFiles lists the files changed since the merge base with base, slash-separated.
+// changedFiles lists the files changed since the merge base with base, slash-separated, together
+// with uncommitted and untracked files, so a run before committing tests the change too. In CI the
+// tree is clean, so only the first list counts.
 func changedFiles(base string) ([]string, error) {
-	out, err := exec.Command("git", "diff", "--name-only", base+"...HEAD").Output()
-	if err != nil {
-		return nil, fmt.Errorf("git diff %s...HEAD: %w", base, err)
+	var files []string
+	for _, args := range [][]string{
+		{"diff", "--name-only", base + "...HEAD"},
+		{"diff", "--name-only", "HEAD"},
+		{"ls-files", "--others", "--exclude-standard"},
+	} {
+		out, err := exec.Command("git", args...).Output()
+		if err != nil {
+			return nil, fmt.Errorf("git %s: %w", strings.Join(args, " "), err)
+		}
+		files = append(files, strings.Fields(string(out))...)
 	}
-	return strings.Fields(string(out)), nil
+	slices.Sort(files)
+	return slices.Compact(files), nil
 }
 
 // listedPackage is the part of "go list -json" output used here.

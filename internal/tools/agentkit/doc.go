@@ -4,12 +4,11 @@
 // it as a helper:
 //
 //	guard         before a Bash or PowerShell command: refuses commits to master, force pushes,
-//	              branch deletion, merging pull requests and commands that throw away work, and
-//	              makes every git push wait until "go tool task check" has passed on the commit
+//	              branch deletion, merging pull requests and commands that throw away work. It
+//	              only reads the command line and asks git which branch is checked out, so it
+//	              stays fast; CI runs the full check on every pull request
 //	protect       before a file edit: on task/ branches, refuses edits to the rules, the design
 //	              docs and the checks themselves
-//	mark-checked  run by "task check" after it passes: records the commit it passed on, so the
-//	              push that follows doesn't run the check again
 //	ready         lists the tasks an agent can start now, from the task files' front matter
 //	clean-worktrees
 //	              removes the worktrees in .claude/worktrees that hold nothing unsaved (their work

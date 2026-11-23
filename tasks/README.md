@@ -51,7 +51,7 @@ Take the lowest-numbered `todo` task whose `depends_on` are all `done`. Tasks in
 
 ## Running agents
 
-Claude Code is set up to run agents on tasks: `/do-task <ID>` takes one task to an open pull request, and `/run-tasks` runs several in parallel worktrees. Guardrails stop agents from committing to master, force-pushing, merging, throwing work away, or pushing before the check passes. How to use it, and what each guardrail does: [../.claude/README.md](../.claude/README.md).
+Claude Code is set up to run agents on tasks: `/do-task <ID>` takes one task to an open pull request, and `/run-tasks` runs several in parallel worktrees. Guardrails stop agents from committing to master, force-pushing, merging, or throwing work away. How to use it, and what each guardrail does: [../.claude/README.md](../.claude/README.md).
 
 ## Definition of done
 

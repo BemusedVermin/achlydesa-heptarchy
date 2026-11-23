@@ -52,7 +52,7 @@ The full workflow is in `tasks/README.md`. In Claude Code, `/do-task <ID>` walks
 ## Branches, pushes and pull requests
 
 - Work on a branch named `task/<ID>-<slug>`, made from `origin/master`. Never commit to master, force-push, delete a branch, or merge a pull request: the owner merges.
-- `go tool task check` must pass on the exact commit you push. Before a `git push`, the guard runs the check if it hasn't passed on that commit yet.
+- Before you push, run the check: `go tool task check-ci BASE=origin/master` runs every check but tests only the packages your change can affect. CI runs it again on every pull request. While you work, test only the packages you're changing.
 - On a task branch, don't edit `AGENTS.md`, `CLAUDE.md`, `docs/`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or `internal/tools/agentkit/`. If your task needs one of them changed, file a follow-up that says what should change.
 - To update a branch you've pushed, add commits. To catch up with master, merge `origin/master` into it. Never rebase or amend commits you've pushed.
 - The guardrails are hooks in `internal/tools/agentkit`, wired up in `.claude/settings.json`. When one refuses a command, do what its reason says. Don't run the same thing another way.
