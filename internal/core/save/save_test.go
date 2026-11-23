@@ -40,6 +40,12 @@ func newBundle(t testing.TB) content.Bundle {
 		person.Actions = []api.ContentID{"action.step"}
 		bundle.Templates[id] = person
 	}
+	// The sample crawler hunts. Random walkers would be killed, so these tests keep it standing.
+	crawler := bundle.Templates["template.creature.crawler"]
+	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actions = nil
+	crawler.Lists = nil
+	bundle.Templates["template.creature.crawler"] = crawler
 	return bundle
 }
 

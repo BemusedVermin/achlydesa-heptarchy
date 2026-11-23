@@ -32,6 +32,12 @@ func config(t *testing.T) game.Config {
 		person.Actions = []api.ContentID{"action.step"}
 		bundle.Templates[id] = person
 	}
+	// The sample crawler hunts; these goldens were drawn with it standing still.
+	crawler := bundle.Templates["template.creature.crawler"]
+	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actions = nil
+	crawler.Lists = nil
+	bundle.Templates["template.creature.crawler"] = crawler
 	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
