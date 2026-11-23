@@ -79,7 +79,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M2-06.F4.F1](followups/M2-06.F4.F1-record-name-keepsake-decision.md) | Record in the design doc that Name and Keepsake are never refused | proposed | debt | M2 | M2-06.F4 |
+| [M2-06.F4.F1](followups/M2-06.F4.F1-record-name-keepsake-decision.md) | Record in the design doc that Name and Keepsake are never refused | done | debt | M2 | M2-06.F4 |
 | [M2-07.F3](followups/M2-07.F3-wipe-inside-apply.md) | Stop the timeline when the party is wiped inside an Apply | proposed | bug | M2 | M2-07 |
 | [M2-07.F1](followups/M2-07.F1-party-wipe-story.md) | What does a party wipe mean for the story? | proposed | question | unplanned | M2-07 |
 | [M2-07.F2](followups/M2-07.F2-idle-bodies-ping-pong.md) | Idle bodies waiting on each other move time on a tick at a time | proposed | bug | M2 | M2-07 |
