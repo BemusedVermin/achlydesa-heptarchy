@@ -291,6 +291,7 @@ func spawnParty(w *sim.World, id api.MapID, mark api.Cell, template api.ContentI
 		trails.Add(member, &comp.Trail{Last: at})
 	}
 	ecs.NewMap[comp.Controlled](w.ECS).Add(party, &comp.Controlled{})
+	SetRestPlace(w, party, id, mark)
 	for _, member := range membersOf(w, party) {
 		cells, err := sightOf(w, *positions.Get(member))
 		if err != nil {

@@ -11,6 +11,7 @@ const (
 	LeadKind           = "explore.lead"
 	ControlChangedKind = "explore.control_changed"
 	LeaderChangedKind  = "explore.leader_changed"
+	PartyWokeKind      = "explore.party_woke"
 )
 
 // The modes of party control, and who may have set one.
@@ -70,6 +71,20 @@ func (LeaderChanged) EventKind() string { return LeaderChangedKind }
 func (l LeaderChanged) LogText() Text {
 	return Text{ID: "text.explore.leader_changed", Args: map[string]string{"name": l.Name}}
 }
+
+// PartyWoke reports that a party that was wiped out got up again at its last rest place.
+type PartyWoke struct {
+	Party UID   `json:"party"`
+	Map   MapID `json:"map"`
+	At    Cell  `json:"at"`
+	Tick  int64 `json:"tick"`
+}
+
+// EventKind implements [Event].
+func (PartyWoke) EventKind() string { return PartyWokeKind }
+
+// LogText implements [Loggable].
+func (PartyWoke) LogText() Text { return Text{ID: "text.explore.party_woke"} }
 
 // The kinds of a [Moved] event.
 const (

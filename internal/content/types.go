@@ -237,6 +237,8 @@ type PartyConfig struct {
 	// IndividualOnAlert says whether an alert switches the party to individual control, and back
 	// when it ends. True to start.
 	IndividualOnAlert bool `json:"individual_on_alert"`
+	// WakeTicks is how long a wiped-out party is out before it wakes at its last rest place.
+	WakeTicks int64 `json:"wake_ticks"`
 	// FollowAction is the action ("action." ID) a follower steps with; it targets a direction.
 	FollowAction api.ContentID `json:"follow_action"`
 }
