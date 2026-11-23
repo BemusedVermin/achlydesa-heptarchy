@@ -1,7 +1,7 @@
 ---
 id: C1-27
 title: "Lock in what the cleanup decided"
-status: proposed
+status: todo
 milestone: C1
 kind: debt
 depends_on: [C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-25, C1-26]
@@ -38,3 +38,5 @@ What the cleanup decided becomes lint rules and rules for agents, so the next au
 
 ## Notes
 
+
+- Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
