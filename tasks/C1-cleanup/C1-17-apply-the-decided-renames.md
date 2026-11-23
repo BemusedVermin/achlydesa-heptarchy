@@ -250,4 +250,4 @@ Rename with `gopls rename` for Go identifiers, never by hand, and everywhere a c
 - The spec asks to update `.claude/rules/content.md`; a task branch cannot edit `.claude/`, so filed **C1-17.F1**.
 - The `Graft` finding's scope: `act_alone` still requires a real graft (a piece), so a reattached limb never acts alone.
 
-- Follow-ups filed: **C1-17.F1** (`.claude/rules/content.md`, protected on a task branch) and **C1-17.F2** (the TUI cuts a tick digit when the target name is long: the longer "The moving clay" exposes it).
+- Follow-ups filed: **C1-17.F1** (`.claude/rules/content.md`, protected on a task branch), done by the owner on this branch and **C1-17.F2** (the TUI cuts a tick digit when the target name is long: the longer "The moving clay" exposes it).
