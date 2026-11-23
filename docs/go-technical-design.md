@@ -113,7 +113,7 @@ achlydesa-heptarchy/
 │   │   ├── rng/            # named math/rand/v2 streams
 │   │   ├── hexmap/         # 3D hex cells in chunks, topology, sight, A*
 │   │   ├── knowledge/      # fact store per knower
-│   │   ├── inventory/      # packs of item stacks
+│   │   ├── inventory/      # inventories of item stacks
 │   │   ├── effects/        # effect core, selectors, timing primitives, triggers
 │   │   ├── actions/        # content-defined actions and the do command
 │   │   ├── explore/        # party movement, plan-view projection
@@ -157,7 +157,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `rng` | One named PCG stream per subsystem, seeded from the world seed (plus the export count for procgen) | `math/rand/v2` |
 | `hexmap` | Maps keyed by map ID: 3D hex cells in chunks (maps can be infinite), the topology, stepping rules, 3D sight and pathing. Sight is line based and symmetric, not shadowcasting, so it differs slightly from the prototype's field of view around pillars | gravitton/hexagon, fzipp/astar |
 | `knowledge` | Facts per knower: subject, claim, source, confidence. The journal is a view over the party's facts | Components only |
-| `inventory` | Packs of item stacks: add, take, count | Components only |
+| `inventory` | Inventories of item stacks: add, take, count | Components only |
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
 | `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options | `timeline`, `effects` |
 | `explore` | Maps from content, stepping, lead and follow, remembered cells and the plan-view projection; gates between maps later | `hexmap` |

@@ -1,7 +1,7 @@
 ---
 id: C1-08
 title: "Is it a pack or an inventory?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** `pack`.
 
+**Decided by the owner:** `inventory`. The formulas, effect parameters (`from: "pack"`, `api.AttachedFromPack`), text and Go that say "pack" are renamed to `inventory`; the template field, `comp.Inventory` and the package already are. This is the larger rename: about 72 places in Go plus content. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: `inventory` (not the recommended `pack`). In the glossary and the tech design.

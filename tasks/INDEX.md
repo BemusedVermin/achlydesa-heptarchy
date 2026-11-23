@@ -66,7 +66,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-05](C1-cleanup/C1-05-formula.md) | How are the variables in formula environments named? | todo | question | S | none |
 | [C1-06](C1-cleanup/C1-06-form.md) | What are "form", "action", "move" and "type"? | todo | question | S | none |
 | [C1-07](C1-cleanup/C1-07-still.md) | What is the controller for a creature that keeps still called? | todo | question | S | none |
-| [C1-08](C1-cleanup/C1-08-pack.md) | Is it a pack or an inventory? | proposed | question | S | none |
+| [C1-08](C1-cleanup/C1-08-pack.md) | Is it a pack or an inventory? | todo | question | S | none |
 | [C1-09](C1-cleanup/C1-09-turn.md) | What do "turn", "per-turn" and "pending" mean? | proposed | question | S | none |
 | [C1-10](C1-cleanup/C1-10-faction.md) | What is the hostile faction called? | proposed | question | S | none |
 | [C1-11](C1-cleanup/C1-11-text.md) | Where does player-facing text live, and how are its IDs shaped? | proposed | question | S | none |
