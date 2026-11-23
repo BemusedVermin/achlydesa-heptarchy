@@ -1,7 +1,7 @@
 ---
 id: M2-15
 title: "Triage the open follow-ups into milestones"
-status: todo
+status: done
 milestone: M2
 kind: debt
 depends_on: []
@@ -57,11 +57,11 @@ This is the one task where an agent sets `todo` and `obsolete` on tasks other th
 
 ## Acceptance criteria
 
-- [ ] No follow-up is left `proposed`, except questions that wait on the owner's decision. Each of those is listed in the pull request.
-- [ ] No `todo` follow-up is left with `milestone: unplanned`.
-- [ ] Each triaged follow-up has its `Triaged by M2-15` line, and its INDEX row matches its file.
-- [ ] `go run ./internal/tools/agentkit ready` reports no INDEX mismatches. Its Ready list holds only work meant for the current milestone.
-- [ ] `go tool task check` passes.
+- [x] No follow-up is left `proposed`, except questions that wait on the owner's decision. Each of those is listed in the pull request.
+- [x] No `todo` follow-up is left with `milestone: unplanned`.
+- [x] Each triaged follow-up has its `Triaged by M2-15` line, and its INDEX row matches its file.
+- [x] `go run ./internal/tools/agentkit ready` reports no INDEX mismatches. Its Ready list holds only work meant for the current milestone.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -71,4 +71,4 @@ This is the one task where an agent sets `todo` and `obsolete` on tasks other th
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+Triaged eight follow-ups (the six listed at filing had mostly been done since; M2-07 filed F1 to F3 later). M2-07.F1 was a question; the owner decided it in the pull request (wake at the last rest town), so it is `done` and the behavior is filed as M2-07.F1.F1 (todo, M3). The three parked seams M1-14.F1, M1-16.F1 and M1-20.F2, and the measure-first M1-10.F1.F1.F1, are `obsolete`: no M2 to M7 milestone needs folds, cell targets or a reachability cache, and each says when to refile. M2-02.F1, M2-07.F2 and M2-07.F3 are `todo` in M2 and ready now; M2-07.F3 is best done before M2-08. No follow-ups filed.
