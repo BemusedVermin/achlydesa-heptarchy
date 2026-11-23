@@ -67,9 +67,10 @@ If you can't start an agent, work through the checklist in `.claude/agents/task-
 ## 7. Push and open the pull request
 
 1. `git fetch origin`, then `git rebase origin/master`. If `tasks/INDEX.md` conflicts, keep both sides' rows, with your task's status on yours. If a conflict was in code or content, run `go tool task check-ci BASE=origin/master` again after resolving it.
-2. `git push -u origin HEAD`. CI runs the check on the pull request; if it fails, fix it, commit and push again.
-3. Write the PR body to a file outside the repository, such as in your system's temp folder. Use the layout of `.github/pull_request_template.md`: Summary, Notes, and a ticked Test plan.
-4. Open the PR:
+2. Run `go tool task check-pr`. It checks that `tasks/INDEX.md` agrees with the task files and that your task is `done`. On a cleanup task, it also checks that behavior didn't change. Fix whatever it reports.
+3. `git push -u origin HEAD`. CI runs the check, and check-pr, on the pull request; if either fails, fix it, commit and push again.
+4. Write the PR body to a file outside the repository, such as in your system's temp folder. Use the layout of `.github/pull_request_template.md`: Summary, Notes, and a ticked Test plan.
+5. Open the PR:
    ```
    gh pr create --base master --head <branch> --title "<ID>: <title>" --body-file <file>
    ```
@@ -77,7 +78,7 @@ If you can't start an agent, work through the checklist in `.claude/agents/task-
    ```
    gh api repos/BemusedVermin/achlydesa-heptarchy/pulls -f title="<ID>: <title>" -f head=<branch> -f base=master -F body=@<file>
    ```
-5. Stop there. Don't merge, approve or close the PR, and don't delete the branch.
+6. Stop there. Don't merge, approve or close the PR, and don't delete the branch.
 
 ## 8. Report
 
