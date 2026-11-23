@@ -131,7 +131,7 @@ func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
 		t.Fatal(err)
 	}
 	deep := bundle.Factions["faction.deep"]
-	deep.HostileTo = nil
+	deep.HostileTo = []api.ContentID{"faction.crawling"} // only the party's side of the feud is left one-sided
 	bundle.Factions["faction.deep"] = deep
 	reg, err := content.New(bundle)
 	if err != nil {

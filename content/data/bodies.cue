@@ -37,6 +37,29 @@ parts: {
 		vital:     true
 		grants: []
 	}
+	// The arm of a piece of Serilmen, and the limbs of a pre-entropy remnant.
+	"part.serilmen_arm": {
+		name:      "text.part.serilmen_arm"
+		slot:      "arm"
+		material:  "material.flesh"
+		integrity: 4
+		grants: [{kind: "action", value: 1}]
+	}
+	"part.remnant_arm": {
+		name:      "text.part.remnant_arm"
+		slot:      "arm"
+		material:  "material.old_matter"
+		integrity: 4
+		grants: [{kind: "action", value: 1}]
+	}
+	"part.remnant_core": {
+		name:      "text.part.core"
+		slot:      "torso"
+		material:  "material.old_matter"
+		integrity: 8
+		vital:     true
+		grants: []
+	}
 	"part.crawler_maw": {
 		name:      "text.part.maw"
 		slot:      "head"
@@ -68,6 +91,11 @@ bodies: {
 		{part: "part.human_arm"},
 		{part: "part.human_legs"},
 		{part: "part.human_torso"},
+	]
+	"body.remnant": parts: [
+		{part: "part.remnant_arm"},
+		{part: "part.remnant_arm"},
+		{part: "part.remnant_core"},
 	]
 	// A clay-bodied creature of the soop: a maw to bite with, slow legs and a core.
 	"body.crawler": parts: [

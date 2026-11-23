@@ -47,7 +47,7 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | done | content | M | M2-13 |
 | [M2-07](M2-combat/M2-07-hostility-alert-death.md) | Hostility, alert and death | done | feature | M | M2-06 |
 | [M2-08](M2-combat/M2-08-act-options-controller.md) | The bodies view and the creature controller | done | feature | M | M2-07 |
-| [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
+| [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | done | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
 | [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
 | [M2-14](M2-combat/M2-14-step-speed.md) | Make a game step fast again after the seven forms | done | bug | M | M2-06 |
@@ -79,6 +79,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M2-09.F1](followups/M2-09.F1-crawling-parts-know-no-actions.md) | Give a crawling part the actions to fight with | proposed | seam | M2 | M2-09 |
 | [M2-08.F2](followups/M2-08.F2-alert-started-twice.md) | AlertStarted is published twice for one alert | proposed | bug | M2 | M2-08 |
 | [M2-08.F1](followups/M2-08.F1-sample-crawler-hunts.md) | Make the sample crawler hunt | proposed | content | M2 | M2-08 |
 | [M2-07.F1.F1](followups/M2-07.F1.F1-wake-after-wipe.md) | Wake at the last rest town after a party wipe | todo | feature | M3 | M2-07.F1 |

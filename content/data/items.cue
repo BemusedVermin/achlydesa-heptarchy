@@ -18,8 +18,24 @@ items: {
 // A name: the thing a name type is spoken with, tied to its owner.
 items: "item.name": {name: "text.item.name", tags: ["name"], bound: true}
 
+// A piece of Serilmen: an arm that sometimes swings on its own once grafted on. The 0.15 is a
+// placeholder for M7's tuning.
+items: "item.serilmen_arm": {
+	name: "text.item.serilmen_arm"
+	tags: ["piece"]
+	bound: false
+	part:  "part.serilmen_arm"
+	triggers: [{
+		on:   "timeline.ready"
+		role: "source"
+		if:   "roll < 0.15"
+		do: [{do: "act_alone"}]
+	}]
+}
+
 text: {
-	"text.item.name":         "a name"
+	"text.item.serilmen_arm": "a piece of Serilmen"
+	"text.item.name":        "a name"
 	"text.item.coal":         "coal"
 	"text.item.salk_dust":    "salk dust"
 	"text.item.lake_water":   "lake water"

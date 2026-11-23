@@ -29,6 +29,7 @@ const rollStream = "effects"
 type Context struct {
 	World      *sim.World
 	Source     ecs.Entity         // the acting body, or zero
+	SourcePart ecs.Entity         // the part acting for the body, when a part's own trigger fired; else zero
 	Used       []timeline.Channel // the channels the action occupies, or none
 	Target     ecs.Entity         // the target body, or zero
 	TargetPart ecs.Entity         // the target part, or zero

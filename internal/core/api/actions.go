@@ -29,6 +29,8 @@ type ActionStarted struct {
 	Target UID       `json:"target"`
 	Tick   int64     `json:"tick"`
 	Lands  int64     `json:"lands"`
+	// Autonomous says a grafted part started the action on its own, not its host's controller.
+	Autonomous bool `json:"autonomous,omitempty"`
 }
 
 // EventKind implements [Event].

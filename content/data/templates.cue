@@ -54,6 +54,21 @@ templates: {
 		body:    "body.crawler"
 		faction: "faction.deep"
 	}
+	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
+	// The 0.3 is a placeholder for M7's tuning.
+	"template.creature.remnant": {
+		name: "text.template.creature.remnant"
+		appearance: {glyph: "r", color: "magenta"}
+		actor: controller: "hunt"
+		body:    "body.remnant"
+		faction: "faction.deep"
+		triggers: [{
+			on:   "combat.part_severed"
+			role: "target"
+			if:   "roll < 0.3"
+			do: [{do: "spawn_from_part", params: {faction: "faction.crawling", controller: "hunt"}}]
+		}]
+	}
 	// A human body with no controller of its own, for tests to swing at.
 	"template.test.dummy": {
 		name: "text.template.test.dummy"
@@ -85,7 +100,8 @@ templates: {
 }
 
 text: {
-	"text.template.test.dummy":       "Dummy"
+	"text.template.creature.remnant": "The remnant"
+	"text.template.test.dummy":      "Dummy"
 	"text.template.creature.crawler": "The crawler"
 	"text.template.test.crawler":     "Crawler"
 }

@@ -161,7 +161,9 @@ type Statuses struct {
 }
 
 // Graft marks a part grown or fitted onto a body that it was not made with.
-type Graft struct{}
+type Graft struct {
+	Piece api.ContentID `json:"piece,omitempty"` // the item it came from, or empty for a reattached limb
+}
 
 // Allegiance is the side a body fights for.
 type Allegiance struct {
