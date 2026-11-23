@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Audit the codebase between milestones for comment bloat, duplication, vocabulary, library use and Go and CUE conventions, and file the cleanup as a C<n> milestone of proposed tasks. "/audit lock-in" turns a finished cleanup's decisions into lint rules and rules for agents. Use when the owner wants a code audit or a cleanup pass.
+description: Audit the codebase between milestones for comment bloat, duplication, low-value tests, vocabulary, library use and Go and CUE conventions, and file the cleanup as a C<n> milestone of proposed tasks. "/audit lock-in" turns a finished cleanup's decisions into lint rules and rules for agents. Use when the owner wants a code audit or a cleanup pass.
 argument-hint: "[lock-in]"
 disable-model-invocation: true
 ---
@@ -42,7 +42,7 @@ Regroup when packages have grown or appeared since.
 
 Start them all at once, in the background, each a `code-auditor` agent:
 
-- **One per area,** with the lenses `comments`, `duplication`, `libraries` and `conventions`. The prompt is just: `Audit <area name>: <its packages and folders>. Lenses: comments, duplication, libraries, conventions.`
+- **One per area,** with the lenses `comments`, `duplication`, `tests`, `libraries` and `conventions`. The prompt is just: `Audit <area name>: <its packages and folders>. Lenses: comments, duplication, tests, libraries, conventions.`
 - **One for vocabulary,** across the whole codebase and the docs: `Audit the vocabulary of the whole codebase and docs. Lens: vocabulary.`
 
 Say what you started. Wait for every report.
@@ -58,10 +58,11 @@ Say what you started. Wait for every report.
 4. **Tasks** (`kind: debt`), in this order:
    - **Renames.** One task per contested name, depending on its question, and each depending on the rename before it, so they run one at a time. Agents rename Go identifiers with `gopls rename`, never by hand, and content IDs everywhere they appear.
    - **Duplication and libraries.** One task per area, or per cross-area finding, each depending on the last rename.
-   - **Comments.** One task per area, depending on that area's duplication task, so they run once the code has settled. The task quotes the comments lens's policy and the auditor's examples.
+   - **Tests.** One task per area: delete, shrink or merge the tests the auditor flagged. Each depends on that area's duplication task, since tests follow the code they test.
+   - **Comments.** One task per area, depending on that area's tests task, so they run once the code and tests have settled. The task quotes the comments lens's policy and the auditor's examples.
    - **Lock-in.** Last, depending on every other task. Its Spec says to run `/audit lock-in` in the owner's session, because it changes files agents can't touch.
 5. **Every cleanup task's acceptance criteria** include:
-   - `go tool task same-behavior` passes. For a rename, add `-- --rename old=new` for each rename it makes, all listed in the task.
+   - `go tool task same-behavior` passes. For a rename, add `-- --rename old=new` for each rename it makes, all listed in the task. A tests task instead shows that it changed only `_test.go` files and `testdata/`, since deleting a golden test removes its golden files.
    - `go tool task check` passes.
    - The task's findings, one per line, each resolved.
 
