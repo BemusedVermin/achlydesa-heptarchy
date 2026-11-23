@@ -33,3 +33,4 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **systems due**: the timeline's flag that per-entry systems have not yet run (`SystemsDue`).
 - **wild**: the hostile creatures as a side (`faction.wild`). The deep is the place.
 - **text ID**: a record's name is `text.<record id>` and sits beside the record. An engine message is `text.<package>.<event>` in that package's file under `text/`.
+- **chrome**: only key help. Every other word the player sees comes from the core's view.

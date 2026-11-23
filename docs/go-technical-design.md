@@ -229,6 +229,7 @@ Frontends only draw the core's read-only view and send it commands, so a second 
 
 - **One root Bubble Tea model with a screen stack:** the map screen (towns and the deep alike, exploring and fighting), with overlays for party and grafts, investigation notes and dreams. Each is its own model.
 - **Bubbles components for the plumbing:** `list` for menus, `table` for the party and inventories, `viewport` for logs and the investigation journal, `textinput` for naming, `help` and `key` for bindings.
+- **No game text in Go.** The view carries every word the player reads, including channel state and menu group labels; only key help is written in the frontend. Hot reload reaches the frontend as an opaque function over the game, so the frontend imports only `game` and `api`.
 - **Lip Gloss for layout and color.** The map, combat panel and message log are panes joined with Lip Gloss.
 - **The hex map** is drawn from the hex library's double-width coordinates: one glyph every two columns, alternate rows offset by one. Depth shows only as shading relative to the party, never as a layer.
 - **Combat** happens on the map screen: a side panel shows the deciding member's parts and what each is doing, a menu picks the action, type and target, and a look mode shows any visible body's parts. A timeline strip along the top shows upcoming ticks, an icon per tick with something on it and +N when several share one; selecting a tick lists who acts and what lands. There's no combat screen.
