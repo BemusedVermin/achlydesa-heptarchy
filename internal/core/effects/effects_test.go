@@ -442,6 +442,27 @@ func TestReadyFreesTheLowestBusyChannel(t *testing.T) {
 	}
 }
 
+func TestReadyLeavesAChannelWithASwingWindingUp(t *testing.T) {
+	fx := newFixture(t)
+	for _, e := range []ecs.Entity{fx.arm1, fx.arm2} {
+		if err := timeline.Occupy(fx.w, fx.channel(e), 10); err != nil {
+			t.Fatal(err)
+		}
+	}
+	fx.swing(t, fx.a, fx.arm1, 6)
+	events := fx.apply(t, fx.ctx(), do("ready", "channels", "target:all", "count", "5"))
+	if timeline.Free(fx.w, fx.channel(fx.arm1)) {
+		t.Error("the channel with a swing winding up should stay busy")
+	}
+	if !timeline.Free(fx.w, fx.channel(fx.arm2)) {
+		t.Error("the channel with no swing should be free")
+	}
+	if got, ok := events[len(events)-1].(api.ChannelsReadied); !ok ||
+		!reflect.DeepEqual(got.Channels, fx.uids(fx.arm2)) {
+		t.Errorf("event = %+v, want ChannelsReadied naming only the second arm", events[len(events)-1])
+	}
+}
+
 func TestParametersAreFormulas(t *testing.T) {
 	fx := newFixture(t)
 	var got struct {
