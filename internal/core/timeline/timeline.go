@@ -79,8 +79,9 @@ type state struct {
 	queued      map[ecs.Entity]int64 // the tick of each body's one live slot; only ever looked up
 	current     ecs.Entity
 	hasCurrent  bool
-	pending     bool  // the last entry has not had its per-turn systems run yet
-	changes     int64 // counts Occupy, Extend and Wait, to tell whether a controller did anything
+	pending     bool                // the last entry has not had its per-turn systems run yet
+	sleeping    map[ecs.Entity]bool // bodies whose last decision only waited; others do not wake for them
+	changes     int64               // counts Occupy, Extend and Wait, to tell whether a controller did anything
 	actors      *ecs.Map[comp.Actor]
 	busy        *ecs.Map[comp.Busy]
 	members     *ecs.Map[comp.MemberOf]
@@ -98,6 +99,7 @@ func stateOf(w *sim.World) *state {
 	st := &state{
 		controllers: map[string]Controller{IdleController: idle{}},
 		queued:      map[ecs.Entity]int64{},
+		sleeping:    map[ecs.Entity]bool{},
 		actors:      ecs.NewMap[comp.Actor](w.ECS),
 		busy:        ecs.NewMap[comp.Busy](w.ECS),
 		members:     ecs.NewMap[comp.MemberOf](w.ECS),
@@ -235,6 +237,7 @@ func (st *state) pop(w *sim.World) (ecs.Entity, bool) {
 			st.schedule(w, next.e)
 			continue
 		}
+		delete(st.sleeping, next.e) // it is awake: it decides now
 		return next.e, true
 	}
 	return ecs.Entity{}, false
@@ -344,12 +347,14 @@ func (st *state) waitUntil(w *sim.World, body ecs.Entity, tick int64) {
 }
 
 // nextOtherEntry is the tick of the earliest live entry that is not body's, but never before the
-// next tick, so waiting always moves time on. With no other entry it is the next tick.
+// next tick, so waiting always moves time on. Entries of sleeping bodies (whose last decision only
+// waited) are skipped, so bodies that do nothing don't wake each other a tick at a time. With no
+// other entry it is the next tick.
 func (st *state) nextOtherEntry(w *sim.World, body ecs.Entity) int64 {
 	best := w.Now + 1
 	found := false
 	for _, s := range st.line {
-		if s.e == body || !st.live(w, s) {
+		if s.e == body || st.sleeping[s.e] || !st.live(w, s) {
 			continue
 		}
 		if !found || s.tick < best {
@@ -436,7 +441,10 @@ func (st *state) decide(w *sim.World, body ecs.Entity, name string) error {
 	if err := controller.Decide(w, body); err != nil {
 		return fmt.Errorf("timeline: controller %q: %w", name, err)
 	}
-	if st.changes == before && w.ECS.Alive(body) && st.actors.Has(body) {
+	if st.changes != before {
+		delete(st.sleeping, body)
+	} else if w.ECS.Alive(body) && st.actors.Has(body) {
+		st.sleeping[body] = true
 		st.waitUntil(w, body, st.nextOtherEntry(w, body))
 	}
 	return nil

@@ -20,6 +20,8 @@ type Saved struct {
 	Current api.UID `json:"current"`
 	// Pending says the last entry has not had its per-turn systems run yet.
 	Pending bool `json:"pending"`
+	// Sleeping lists, by UID, the bodies whose last decision only waited.
+	Sleeping []api.UID `json:"sleeping,omitempty"`
 	// Changes is the counter that tells whether a controller did anything.
 	Changes int64 `json:"changes"`
 }
@@ -42,6 +44,12 @@ func Export(w *sim.World) Saved {
 	slices.SortFunc(saved.Line, func(a, b SavedSlot) int {
 		return cmp.Or(cmp.Compare(a.Tick, b.Tick), cmp.Compare(a.UID, b.UID))
 	})
+	for e := range st.sleeping {
+		if st.live(w, slot{tick: st.queued[e], e: e}) {
+			saved.Sleeping = append(saved.Sleeping, w.UIDOf(e))
+		}
+	}
+	slices.Sort(saved.Sleeping)
 	if st.hasCurrent {
 		saved.Current = w.UIDOf(st.current)
 	}
@@ -54,6 +62,7 @@ func Import(w *sim.World, saved Saved) error {
 	st := stateOf(w)
 	st.line = st.line[:0]
 	st.queued = map[ecs.Entity]int64{}
+	st.sleeping = map[ecs.Entity]bool{}
 	for _, s := range saved.Line {
 		e, ok := w.ByUID(s.UID)
 		if !ok || !st.actors.Has(e) {
@@ -61,6 +70,13 @@ func Import(w *sim.World, saved Saved) error {
 		}
 		st.line = append(st.line, slot{tick: s.Tick, uid: s.UID, e: e})
 		st.queued[e] = s.Tick
+	}
+	for _, uid := range saved.Sleeping {
+		e, ok := w.ByUID(uid)
+		if !ok || !st.actors.Has(e) {
+			return fmt.Errorf("timeline: saved sleeping body %d has no actor", uid)
+		}
+		st.sleeping[e] = true
 	}
 	// Sorted by (tick, uid) is already a valid min-heap.
 	st.current, st.hasCurrent = ecs.Entity{}, false
