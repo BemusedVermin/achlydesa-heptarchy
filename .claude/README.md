@@ -11,6 +11,8 @@ This folder sets up Claude Code so that agents can take tasks from `tasks/` and 
 | `skills/next-tasks/` | `/next-tasks`: what can start now, and what can run side by side. |
 | `skills/run-tasks/` | `/run-tasks [IDs or N]`: starts one implementer agent per task, in parallel. |
 | `skills/decide/` | `/decide`: asks you the open design questions as multiple choice, then records your answers in the task files and the design doc, in one PR. |
+| `skills/triage/` | `/triage`: marks the proposed follow-ups that no longer apply obsolete, asks you about the rest as multiple choice, and records it all in one PR. |
+| `skills/shared/` | Guidance the skills share, such as how to ask you questions. Not a skill itself. |
 | `skills/file-followup/` | How agents file follow-ups (used by do-task). |
 | `agents/task-implementer.md` | An agent that does one task in its own worktree: Sonnet, or Opus for `size: L` and `kind: seam` tasks when `/run-tasks` starts it. |
 | `agents/task-reviewer.md` | A read-only Opus agent that reviews a task's diff against its spec and `AGENTS.md`. |
@@ -83,6 +85,10 @@ claude
 ```
 
 Then type `/run-tasks M2-06 M2-12`, or `/run-tasks 3` for the first three ready tasks. Each task gets a `task-implementer` agent in its own worktree, running in the background, and the session reports each PR as it lands. It won't start two tasks that change the same files. Large tasks and seams run on Opus, the rest on Sonnet.
+
+### Triage follow-ups
+
+Type `/triage`. It checks each `proposed` follow-up against the code as it is now, and marks the ones another change already handled as obsolete. For each of the rest, it asks you what to do: `todo` in a milestone, fold it into a task that isn't done, won't do, or not now. Everything lands in one PR: the obsolete ones come first, each with the commit that made it so, so you can push back in review. Design questions are left to `/decide`.
 
 ### Answer design questions
 

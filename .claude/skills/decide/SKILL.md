@@ -17,19 +17,11 @@ Agents file design questions as follow-ups with `kind: question`, because only t
 3. If none are open, say so in one line and stop.
 4. Order them as `tasks/INDEX.md` lists them: earlier milestones first, and within one, the ones blocking the most work first.
 
-## 2. Prepare each question
+## 2. Ask
 
-For each one, read the task file, the docs and code it points at, and what depends on it. Then work out:
+Read `.claude/skills/shared/asking-the-owner.md` and follow it. Each question is the design question itself, and each option a real answer to it, with what the player would notice or what content would change.
 
-- **The question**, in a sentence or two the owner can answer without opening anything. Name the forms, parts or rules involved; say what the game does today.
-- **Two or three options**, each a real answer with its consequence in one line, such as what the player would notice or what content would change. Put the one you recommend first, with "(Recommended)" at the end of its label, and recommend only what the docs and the game's direction support.
-- **"Not now"** as the last option, for questions he wants to leave open.
-
-## 3. Ask
-
-Ask with AskUserQuestion, up to four questions per call, in batches until all are asked. He may be on his phone and see only the question dialog, so each question stands alone: no "as above", no IDs without a description. Keep each header under 12 characters, such as the form or rule the question is about. He can always type his own answer instead of picking one.
-
-## 4. Record each answer
+## 3. Record each answer
 
 On a new branch from `origin/master` named `decide/<today's date>`, for every question he answered (skip the "Not now" ones):
 
@@ -42,7 +34,7 @@ On a new branch from `origin/master` named `decide/<today's date>`, for every qu
 
 Commit with a message like `Decide M2-06.F4: Name and Keepsake are never refused`, one commit per question.
 
-## 5. Pull request
+## 4. Pull request
 
 Push and open a pull request, as in step 7 of the do-task skill (body file outside the repository; `gh pr create`, or the `gh api` REST call if GraphQL is blocked). The body:
 
