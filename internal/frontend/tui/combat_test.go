@@ -351,3 +351,63 @@ func TestOverlayMarksThreatsAndTimeline(t *testing.T) {
 	}}
 	golden(t, "timeline_marked", tui.RenderTimelineMarked(tl, bodies, 20, 0))
 }
+
+// huntingApp is the sample game as shipped: the crawler hunts and fights back.
+func huntingApp(t *testing.T) *tui.App {
+	t.Helper()
+	reg, err := content.Load(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := game.New(game.Config{Seed: 1, Content: reg})
+	if err != nil {
+		t.Fatal(err)
+	}
+	app, err := tui.NewApp(g)
+	if err != nil {
+		t.Fatal(err)
+	}
+	app.Width, app.Height = 180, 30
+	return app
+}
+
+// TestWholeFightEndsAndTheMapResumesFollow plays the hall's fight through the menu's options, from
+// the alert to the creature's death, and checks the alert ends and the party follows again.
+func TestWholeFightEndsAndTheMapResumesFollow(t *testing.T) {
+	app := huntingApp(t)
+	sawAlert, sawThreat := false, false
+	for range 600 {
+		if app.State.Party.Alert {
+			sawAlert = true
+		}
+		if app.State.Bodies != nil && len(app.State.Bodies.Threats) > 0 {
+			sawThreat = true
+		}
+		if sawAlert && !app.State.Party.Alert && creature(app) == nil {
+			break
+		}
+		if foe := creature(app); foe != nil {
+			if strike, ok := findOption(app, "strike/", "/"+uidString(foe.UID)+"/"); ok && strike.Enabled {
+				app.Choose(strike.ID)
+			}
+		} else {
+			press(app, "d")
+		}
+		press(app, ".")
+	}
+	if !sawAlert {
+		t.Fatal("the party never came on alert")
+	}
+	if app.State.Party.Alert || creature(app) != nil {
+		t.Fatalf("the fight never ended:\n%s", app.View().Content)
+	}
+	if strings.Contains(app.View().Content, "ALERT") {
+		t.Errorf("the status line still says ALERT:\n%s", app.View().Content)
+	}
+	if app.Mode() != api.ControlFollow {
+		t.Errorf("control = %q, want follow", app.Mode())
+	}
+	if !sawThreat {
+		t.Error("the hunting crawler never showed a threat")
+	}
+}
