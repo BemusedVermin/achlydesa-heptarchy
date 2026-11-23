@@ -56,3 +56,5 @@ Findings:
 
 ## Notes
 
+
+- Triaged 2026-11-23: left proposed, the owner chose not now.

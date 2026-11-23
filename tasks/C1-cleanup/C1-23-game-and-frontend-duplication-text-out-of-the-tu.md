@@ -1,7 +1,7 @@
 ---
 id: C1-23
 title: "Game and frontend: duplication, text out of the tui, tests, comments"
-status: proposed
+status: todo
 milestone: C1
 kind: debt
 depends_on: [C1-18, C1-12]
@@ -89,3 +89,5 @@ The policy is the comments lens: doc comments say what a thing is for and what a
 
 ## Notes
 
+
+- Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.

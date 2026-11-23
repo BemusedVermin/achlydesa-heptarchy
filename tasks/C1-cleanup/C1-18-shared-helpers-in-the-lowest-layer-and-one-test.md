@@ -1,7 +1,7 @@
 ---
 id: C1-18
 title: "Shared helpers in the lowest layer, and one test fixture"
-status: proposed
+status: todo
 milestone: C1
 kind: debt
 depends_on: [C1-17, C1-13]
@@ -121,3 +121,5 @@ Add `internal/content/contenttest` and `internal/core/game/gametest` (suggestion
 
 ## Notes
 
+
+- Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
