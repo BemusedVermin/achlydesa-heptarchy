@@ -78,7 +78,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-17](C1-cleanup/C1-17-apply-the-decided-renames.md) | Apply the decided renames | todo | debt | L | C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11 |
 | [C1-18](C1-cleanup/C1-18-shared-helpers-in-the-lowest-layer-and-one-test.md) | Shared helpers in the lowest layer, and one test fixture | todo | debt | L | C1-17, C1-13 |
 | [C1-19](C1-cleanup/C1-19-content-area-duplication-tests-comments.md) | Content area: duplication, tests, comments | todo | debt | L | C1-18 |
-| [C1-20](C1-cleanup/C1-20-actions-area-duplication-tests-comments.md) | Actions area: duplication, tests, comments | proposed | debt | L | C1-18 |
+| [C1-20](C1-cleanup/C1-20-actions-area-duplication-tests-comments.md) | Actions area: duplication, tests, comments | todo | debt | L | C1-18 |
 | [C1-21](C1-cleanup/C1-21-features-area-duplication-tests-comments.md) | Features area: duplication, tests, comments | proposed | debt | L | C1-18 |
 | [C1-22](C1-cleanup/C1-22-foundation-area-duplication-tests-comments-speed.md) | Foundation area: duplication, tests, comments, speed errors | proposed | debt | L | C1-18, C1-16 |
 | [C1-23](C1-cleanup/C1-23-game-and-frontend-duplication-text-out-of-the-tu.md) | Game and frontend: duplication, text out of the tui, tests, comments | proposed | debt | L | C1-18, C1-12 |
