@@ -132,6 +132,9 @@ func (r *Registry) Body(id api.ContentID) (BodyPlan, bool) {
 // Party returns the numbers every party shares.
 func (r *Registry) Party() PartyConfig { return r.bundle.Party }
 
+// Combat returns the numbers of alert and death.
+func (r *Registry) Combat() CombatConfig { return r.bundle.Combat }
+
 // Timeline returns the numbers of the shared timeline.
 func (r *Registry) Timeline() TimelineConfig { return r.bundle.Timeline }
 

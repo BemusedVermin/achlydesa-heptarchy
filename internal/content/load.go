@@ -117,6 +117,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.checkMaps()...)
 	problems = append(problems, registry.checkStart()...)
+	problems = append(problems, registry.checkCombat()...)
 	problems = append(problems, registry.compileFormulas()...)
 	problems = append(problems, registry.compileTimeline()...)
 	if err := errors.Join(problems...); err != nil {

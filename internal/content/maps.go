@@ -114,7 +114,22 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 			}
 		}
 	}
+	for _, char := range sortedKeys(def.Spawns) {
+		template := def.Spawns[char]
+		if _, ok := def.Marks[char]; !ok {
+			problems = append(problems, fmt.Errorf("%s.spawns[%q]: not a mark of the map", path, char))
+		}
+		if _, ok := r.bundle.Templates[string(template)]; !ok {
+			problems = append(problems, fmt.Errorf("%s.spawns[%q]: unknown template %q", path, char, template))
+		}
+		if found[char] < 1 {
+			problems = append(problems, fmt.Errorf("%s.spawns[%q]: the character is in no layer", path, char))
+		}
+	}
 	for _, char := range sortedKeys(def.Marks) {
+		if _, spawns := def.Spawns[char]; spawns {
+			continue
+		}
 		if n := found[char]; n != 1 {
 			problems = append(problems, fmt.Errorf(
 				"%s.marks[%q]: mark %q must appear exactly once, found %d", path, char, def.Marks[char], n))
