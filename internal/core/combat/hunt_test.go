@@ -428,6 +428,22 @@ func TestAMaterialIsUnknownUntilASweepLands(t *testing.T) {
 	}
 }
 
+func TestOneAlertPublishesOneAlertStarted(t *testing.T) {
+	f := huntField(t, nil)
+	creature := f.creature()
+	f.moveParty(east(f.at(creature), -4))
+	f.until(20, func() bool { return f.w.Now >= 20 })
+	count := 0
+	for _, e := range f.events {
+		if _, ok := e.(api.AlertStarted); ok {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Errorf("AlertStarted published %d times for one alert, want 1", count)
+	}
+}
+
 func TestAScriptedEncounterMatchesItsGoldenLog(t *testing.T) {
 	f := huntField(t, nil)
 	creature := f.creature()

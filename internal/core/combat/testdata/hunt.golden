@@ -1,20 +1,4 @@
 combat.alert_started {"party":1,"hostile":18,"name":"The crawler","tick":0}
-combat.alert_started {"party":1,"hostile":18,"name":"The crawler","tick":0}
 explore.control_changed {"party":1,"mode":"individual","by":"alert"}
 explore.moved {"actor":18,"map":2,"from":{"hex":{"q":13,"r":10},"depth":0},"to":{"hex":{"q":12,"r":10},"depth":0},"kind":"level"}
 explore.moved {"actor":18,"map":2,"from":{"hex":{"q":12,"r":10},"depth":0},"to":{"hex":{"q":11,"r":10},"depth":0},"kind":"level"}
-explore.moved {"actor":18,"map":2,"from":{"hex":{"q":11,"r":10},"depth":0},"to":{"hex":{"q":10,"r":10},"depth":0},"kind":"level"}
-actions.started {"actor":18,"action":"action.strike","target":2,"tick":32,"lands":35}
-combat.part_damaged {"body":2,"part":5,"amount":3,"integrity":0,"choices":{"type":"type.cut"},"source":18,"tick":35}
-combat.part_severed {"body":2,"part":5,"cause":"worn","source":18,"tick":35}
-timeline.action_landed {"kind":"actions.land","actor":18,"target":2,"tick":35}
-actions.started {"actor":18,"action":"action.strike","target":2,"tick":39,"lands":42}
-combat.part_damaged {"body":2,"part":7,"amount":5,"integrity":0,"choices":{"type":"type.cut"},"source":18,"tick":42}
-combat.part_severed {"body":2,"part":7,"cause":"worn","source":18,"tick":42}
-timeline.action_landed {"kind":"actions.land","actor":18,"target":2,"tick":42}
-combat.body_downed {"body":2,"name":"The Reaper","tick":42}
-explore.leader_changed {"party":1,"leader":8,"name":"Salken"}
-actions.started {"actor":18,"action":"action.strike","target":8,"tick":46,"lands":49}
-combat.part_damaged {"body":8,"part":10,"amount":3,"integrity":0,"choices":{"type":"type.cut"},"source":18,"tick":49}
-combat.part_severed {"body":8,"part":10,"cause":"worn","source":18,"tick":49}
-timeline.action_landed {"kind":"actions.land","actor":18,"target":8,"tick":49}
