@@ -159,8 +159,8 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	if !f.until(300, func() bool { return swing != nil }) {
 		t.Fatal("the crawling arm never started an action")
 	}
-	if swing.Action != "action.strike" {
-		t.Errorf("the crawling arm started %q, want a strike", swing.Action)
+	if !slices.Contains([]api.ContentID{"action.strike", "action.sever", "action.pin"}, swing.Action) {
+		t.Errorf("the crawling arm started %q, want a form its action grant pays for", swing.Action)
 	}
 	if !slices.Contains(members, swing.Target) {
 		t.Errorf("the crawling arm swung at %v, want one of the party %v", swing.Target, members)

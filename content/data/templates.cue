@@ -84,12 +84,13 @@ templates: {
 		faction: "faction.deep"
 	}
 	// What a remnant's arm fights as once it crawls off (its part's crawls_as): the arm is its whole
-	// body, so it has none of its own, and spawn_from_part gives its faction and controller. Strike
-	// only, with Cut, until the design says what else a crawling part can do (M2-09.F1.F1).
+	// body, so it has none of its own, and spawn_from_part gives its faction and controller. It knows
+	// every form its one action grant can pay for (Strike, Sever, Pin), swung with Cut, and has no
+	// crawls tag, so Stand does not freeze it.
 	"template.crawling.remnant_arm": {
 		name: "text.template.crawling.remnant_arm"
 		appearance: {glyph: "a", color: "magenta"}
-		actions: ["action.strike"]
+		actions: ["action.strike", "action.sever", "action.pin"]
 		lists: types: ["type.cut"]
 	}
 	// A human body with no controller of its own, for tests to swing at.
