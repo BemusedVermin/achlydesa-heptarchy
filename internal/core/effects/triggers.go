@@ -131,8 +131,8 @@ func runTriggers(w *sim.World, e api.Event) {
 		return a.order - b.order
 	})
 	var choices map[string]string
-	if chosen, ok := e.(api.Chosen); ok {
-		choices = chosen.Choices()
+	if withParams, ok := e.(api.Params); ok {
+		choices = withParams.Params()
 	}
 	for _, f := range firings {
 		ctx := &Context{World: w, Choices: choices}

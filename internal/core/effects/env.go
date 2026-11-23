@@ -11,7 +11,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// SideOf is what a formula sees of a body and one of its parts: their records. An entity that is
+// SideOf is what a formula sees of a body and one of its parts: their records and facts. An entity that is
 // gone, zero or has no such component reads as an empty record.
 func SideOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 	side := content.BodyEnv{
@@ -20,6 +20,12 @@ func SideOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 	if alive(w, body) {
 		if identities := ecs.NewMap[comp.Identity](w.ECS); identities.Has(body) {
 			side.Template, _ = w.Content.Record(identities.Get(body).Template)
+		}
+		side.WindingUp = len(timeline.PendingOf(w, w.UIDOf(body))) > 0
+		if statuses := ecs.NewMap[comp.Statuses](w.ECS); statuses.Has(body) {
+			for _, entry := range statuses.Get(body).Active {
+				side.Statuses = append(side.Statuses, string(entry.Status))
+			}
 		}
 		grafts := ecs.NewMap[comp.Graft](w.ECS)
 		for _, attached := range anatomy.Parts(w, body) {
@@ -33,6 +39,9 @@ func SideOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 			data := parts.Get(part)
 			side.Part, _ = w.Content.Record(data.Template)
 			side.Material, _ = w.Content.Record(data.Material)
+			side.Integrity, side.MaxIntegrity = data.Integrity, data.MaxIntegrity
+			side.Graft = ecs.NewMap[comp.Graft](w.ECS).Has(part)
+			side.Locked = timeline.Locked(w, timeline.Channel{Entity: part, Body: body})
 		}
 	}
 	return side

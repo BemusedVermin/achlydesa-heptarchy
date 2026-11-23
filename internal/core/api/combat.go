@@ -168,8 +168,8 @@ func (PartyWiped) EventKind() string { return PartyWipedKind }
 // LogText implements [Loggable].
 func (PartyWiped) LogText() Text { return Text{ID: "text.combat.party_wiped"} }
 
-// Choices implements [Chosen]: every choice of the action that dealt the damage.
-func (e PartDamaged) Choices() map[string]string { return e.Chosen }
+// Params implements [Params]: every choice of the action that dealt the damage.
+func (e PartDamaged) Params() map[string]string { return e.Chosen }
 
 func partSubjects(body, part, source UID) map[string]UID {
 	return withSource(map[string]UID{SubjectTarget: body, SubjectPart: part}, source)

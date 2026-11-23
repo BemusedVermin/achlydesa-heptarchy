@@ -21,7 +21,7 @@ types: {
 	// Press staggers: landing on a body that is winding up cancels the swing it is winding up.
 	"type.press": {
 		name: "text.type.press"
-		on_land: [{do: "interrupt", params: {bodies: "target", when: "winding_up"}}]
+		on_land: [{do: "interrupt", params: {bodies: "target", when: "target.winding_up"}}]
 	}
 	"type.relic": {name: "text.type.relic"}
 	// A name works only on its owner, but it is not refused elsewhere: the swing lands and does
@@ -32,7 +32,7 @@ types: {
 	// Rot also eats a graft on whichever side it lands. A placeholder 2.
 	"type.rot": #Consumable & {
 		_item: "item.salk_dust", name: "text.type.rot"
-		on_land: [{do: "damage", params: {parts: "target_part", amount: "graft ? 2 : 0"}}]
+		on_land: [{do: "damage", params: {parts: "target_part", amount: "target.graft ? 2 : 0"}}]
 	}
 	// Soak is heavy: it adds to the recovery of any form it is loaded into.
 	"type.soak": #Consumable & {_item: "item.lake_water", name: "text.type.soak", recovery: "2"}

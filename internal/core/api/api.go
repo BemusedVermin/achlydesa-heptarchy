@@ -56,6 +56,6 @@ const (
 // content triggers can find who they apply to. A role an event has no entity for is left out.
 type Subjected interface{ Subjects() map[string]UID }
 
-// Chosen events carry the choices of the action that caused them, such as "type": "type.burn", for
-// the formulas of the triggers they fire.
-type Chosen interface{ Choices() map[string]string }
+// Params events carry named values for the formulas of the triggers they fire: the choices of the
+// action that caused them, such as "type": "type.burn", or numbers such as the cells fallen.
+type Params interface{ Params() map[string]string }

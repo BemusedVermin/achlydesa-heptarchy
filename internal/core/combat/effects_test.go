@@ -217,7 +217,7 @@ func TestSever(t *testing.T) {
 	}{
 		{"holds", "true", 1, true},
 		{"false is a no-op", "false", 2, false},
-		{"integrity decides", "integrity > 99", 2, false},
+		{"integrity decides", "target.integrity > 99", 2, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -325,8 +325,8 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 	ctx.Choices = map[string]string{"type": "type.soak"} // the clay core is weak to soak
 	ecs.NewMap[comp.Pos](r.w.ECS).Get(r.reaper).At.Depth = 1
 	// 1 (braced) + 2 (weak) + 4 (height: 3 - 1 is 2, doubled) = 7, only if every field reads right.
-	formula := `("status.braced" in statuses ? 1 : 0) + (rule.weak ? 2 : 0) + (rule.immune ? 100 : 0) + ` +
-		`(locked ? 100 : 0) + (graft ? 100 : 0) + height * 2 + (integrity == max_integrity ? 0 : 100)`
+	formula := `("status.braced" in target.statuses ? 1 : 0) + (rule.weak ? 2 : 0) + (rule.immune ? 100 : 0) + ` +
+		`(target.locked ? 100 : 0) + (target.graft ? 100 : 0) + height * 2 + (target.integrity == target.max_integrity ? 0 : 100)`
 	r.apply(t, ctx, do("damage", "parts", "target_part", "amount", formula))
 	if got := r.integrity(core); got != 8-7 {
 		t.Errorf("integrity = %d, want 1", got)

@@ -427,31 +427,7 @@ func baseEnv(ctx *Context) content.EffectEnv {
 			env.Height = b.At.Depth - a.At.Depth
 		}
 	}
-	if alive(w, ctx.Target) {
-		env.WindingUp = len(timeline.PendingOf(w, w.UIDOf(ctx.Target))) > 0
-		if statuses := ecs.NewMap[comp.Statuses](w.ECS); statuses.Has(ctx.Target) {
-			for _, entry := range statuses.Get(ctx.Target).Active {
-				env.Statuses = append(env.Statuses, string(entry.Status))
-			}
-		}
-	}
-	if alive(w, ctx.TargetPart) {
-		partEnv(ctx, &env)
-	}
 	return env
-}
-
-// partEnv fills in what describes the target part.
-func partEnv(ctx *Context, env *content.EffectEnv) {
-	w := ctx.World
-	parts := ecs.NewMap[comp.Part](w.ECS)
-	if !parts.Has(ctx.TargetPart) {
-		return
-	}
-	part := parts.Get(ctx.TargetPart)
-	env.Integrity, env.MaxIntegrity = part.Integrity, part.MaxIntegrity
-	env.Graft = ecs.NewMap[comp.Graft](w.ECS).Has(ctx.TargetPart)
-	env.Locked = timeline.Locked(w, timeline.Channel{Entity: ctx.TargetPart, Body: ctx.Target})
 }
 
 func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }

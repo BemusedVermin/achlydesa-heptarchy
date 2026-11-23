@@ -275,7 +275,7 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	}
 	return content.ActionEnv{
 		Speed: timeline.Speed(ev.w, p.actor), StepTicks: stepTicks,
-		Distance: ev.distance(p.actor, p.target), Used: len(p.channels), Choice: choices,
+		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
 		Source: effects.SideOf(ev.w, p.actor, sourcePart), Target: effects.SideOf(ev.w, p.target, p.part),
 		Chosen: effects.ChosenRecords(ev.w, choices), Pack: inventory.Usable(ev.w, p.actor, p.target),
 	}, nil

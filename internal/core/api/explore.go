@@ -118,8 +118,8 @@ func (Fell) EventKind() string { return FellKind }
 // Subjects implements [Subjected]: the faller is the target.
 func (f Fell) Subjects() map[string]UID { return map[string]UID{SubjectTarget: f.Body} }
 
-// Choices implements [Chosen]: the cells fallen, for the formulas of the triggers it fires.
-func (f Fell) Choices() map[string]string { return map[string]string{"cells": strconv.Itoa(f.Cells)} }
+// Params implements [Params]: the cells fallen, for the formulas of the triggers it fires.
+func (f Fell) Params() map[string]string { return map[string]string{"cells": strconv.Itoa(f.Cells)} }
 
 // LogText implements [Loggable].
 func (f Fell) LogText() Text {

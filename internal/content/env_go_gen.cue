@@ -35,14 +35,22 @@ package content
 	Part:     #Record
 	Material: #Record
 	Grafts:   int
+
+	// The rest are facts about the body or its part. They are false, 0 or empty when there is none.
+	Integrity:    int
+	MaxIntegrity: int
+	Locked:       bool
+	Graft:        bool
+	Statuses: [...string] @go(,[]string)
+	WindingUp: bool
+	IsParty:   bool
 }
 
 // EffectEnv is everything an effect formula can see. Later tasks add fields deliberately.
 #EffectEnv: {
-	Now:       int64
-	Roll:      float64
-	Distance:  int
-	WindingUp: bool
+	Now:      int64
+	Roll:     float64
+	Distance: int
 
 	// Source is the acting body; its part is the first channel the action occupies that is a part.
 	Source: #BodyEnv
@@ -56,14 +64,7 @@ package content
 
 	// Pack counts, per item ID, the stacks the source's pack can use on the target.
 	Pack: {[string]: int} @go(,map[string]int)
-
-	// The rest describe the target part and body. They are false, 0 or empty when there is none.
-	Integrity:    int
-	MaxIntegrity: int
-	Height:       int
-	Statuses: [...string] @go(,[]string)
-	Locked: bool
-	Graft:  bool
+	Height: int
 	Cells:  int
 }
 
@@ -73,9 +74,8 @@ package content
 	StepTicks: int64
 	Distance:  int
 	Used:      int
-	Choice: {[string]: string} @go(,map[string]string)
-	Source: #BodyEnv
-	Target: #BodyEnv
+	Source:    #BodyEnv
+	Target:    #BodyEnv
 	Chosen: {[string]: #Record} @go(,map[string]Record)
 	Pack: {[string]: int} @go(,map[string]int)
 }
@@ -94,15 +94,8 @@ package content
 	Chosen: {[string]: #Record} @go(,map[string]Record)
 	Pack: {[string]: int} @go(,map[string]int)
 
-	// ImmuneKnown is whether the actor knows what the target part is made of.
-	ImmuneKnown: bool
-
-	// TargetIsParty is whether the target belongs to the party the player commands.
-	TargetIsParty: bool
-
-	// TargetIntegrity is the integrity of the part aimed at, or of the whole body's least part when
-	// no part is aimed at; 0 when there is none.
-	TargetIntegrity: int
+	// MaterialKnown is whether the source knows what the target part is made of.
+	MaterialKnown: bool
 
 	// Windup is the ticks before the action would land.
 	Windup: int64

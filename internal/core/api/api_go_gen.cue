@@ -50,6 +50,6 @@ package api
 // content triggers can find who they apply to. A role an event has no entity for is left out.
 #Subjected: _
 
-// Chosen events carry the choices of the action that caused them, such as "type": "type.burn", for
-// the formulas of the triggers they fire.
-#Chosen: _
+// Params events carry named values for the formulas of the triggers they fire: the choices of the
+// action that caused them, such as "type": "type.burn", or numbers such as the cells fallen.
+#Params: _

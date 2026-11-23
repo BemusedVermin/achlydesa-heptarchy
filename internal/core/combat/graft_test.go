@@ -99,7 +99,7 @@ func remnantField(t *testing.T) (f *field, remnant ecs.Entity) {
 	t.Helper()
 	f = huntField(t, func(b *content.Bundle) {
 		template := b.Templates["template.creature.remnant"]
-		template.Triggers[0].If = rollAlways + " &&integrity > 0"
+		template.Triggers[0].If = rollAlways + " &&target.integrity > 0"
 		b.Templates["template.creature.remnant"] = template
 	})
 	pos := *ecs.NewMap[comp.Pos](f.w.ECS).Get(f.creature())

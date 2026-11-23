@@ -25,7 +25,7 @@ combat: {
 	// How a hunting creature rates what it could do: the higher the better. What a swing takes off
 	// (and so a weakness or an immunity the creature knows of), a kill about to happen, a party
 	// member over anyone else, a quick wind-up, and the high ground. Placeholder numbers.
-	ai_score: "(immune_known && rule.immune ? -100 : rule.hit) + (target_integrity > 0 && rule.hit >= target_integrity ? 4 : 0) + (target_is_party ? 1 : 0) - windup * 0.1 + height * 0.5"
+	ai_score: "(material_known && rule.immune ? -100 : rule.hit) + (target.integrity > 0 && rule.hit >= target.integrity ? 4 : 0) + (target.is_party ? 1 : 0) - windup * 0.1 + height * 0.5"
 }
 
 text: {
