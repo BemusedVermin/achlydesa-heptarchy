@@ -79,6 +79,7 @@ Every subsystem below reuses a library; the last column is all that's left to wr
 | Rumor and dream text | `text/template` | Templates live in content | Nothing |
 | CLI | cobra | `play`, `harness` and other subcommands | Nothing |
 | Dev commands | [Task](https://taskfile.dev) (go-task), run as a Go tool | Pinned in go.mod and run with `go tool task`, so nothing to install; its built-in shell runs the same commands on Windows and Linux. The CUE CLI is a Go tool the same way | The Taskfile |
+| Task front matter | `go.yaml.in/yaml/v3` | Parses the YAML front matter of task files in the agent tools; already in go.sum through Task | Nothing |
 | Logs and metrics | `log/slog`, `encoding/csv` | Structured logs; CSV for harness output | Metric definitions |
 | Testing | `testing`, rapid, native fuzzing, pprof | Property tests for invariants, fuzzed loaders, profiling | The invariants |
 | Architecture checks | golangci-lint with depguard | Fails the build if the core imports a UI package | One rule |

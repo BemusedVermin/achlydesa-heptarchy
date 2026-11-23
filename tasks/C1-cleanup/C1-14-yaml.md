@@ -1,7 +1,7 @@
 ---
 id: C1-14
 title: "May `go.yaml.in/yaml/v3` become a direct dependency?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** Yes.
 
+**Decided by the owner:** yes. `go.yaml.in/yaml/v3` becomes a direct dependency, used for task front matter in agentkit, so malformed front matter is an error instead of being half-read. Applied by C1-25 (the owner's agentkit task).
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: yes. Why: it replaces a hand-rolled parser and is already in go.sum through Task.
