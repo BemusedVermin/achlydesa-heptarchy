@@ -91,10 +91,21 @@ func (w *World) NewIdentified(template api.ContentID) ecs.Entity {
 }
 
 // Despawn removes the entity and its UID index entry. The UID is never reused.
+// Parts still attached to it (comp.PartOf) go too, children first; parts severed earlier are left alone.
 // Despawning a dead entity does nothing.
 func (w *World) Despawn(e ecs.Entity) {
 	if !w.ECS.Alive(e) {
 		return
+	}
+	// Collect before removing: Ark forbids changing the world during a query, and removing the
+	// body first would reset each part's PartOf target to the zero entity.
+	var attached []ecs.Entity
+	query := ecs.NewFilter1[comp.PartOf](w.ECS).Query(ecs.Rel[comp.PartOf](e))
+	for query.Next() {
+		attached = append(attached, query.Entity())
+	}
+	for _, part := range attached {
+		w.Despawn(part)
 	}
 	if w.maps.identity.Has(e) {
 		delete(w.byUID, w.maps.identity.Get(e).UID)
