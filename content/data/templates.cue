@@ -47,13 +47,13 @@ templates: {
 		triggers: [_fallInjury]
 	}
 	// A creature of the soop, all clay. It hunts the party and bites.
-	"template.creature.crawler": {
-		name: "text.template.creature.crawler"
+	"template.creature.moving_clay": {
+		name: "text.template.creature.moving_clay"
 		appearance: {glyph: "c", color: "yellow"}
 		actor: controller: "hunt"
 		actions: ["action.step", "action.strike"]
 		lists: types: ["type.cut"]
-		body:    "body.clay_thing"
+		body:    "body.moving_clay"
 		faction: "faction.deep"
 	}
 	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
@@ -128,6 +128,6 @@ text: {
 	"text.template.creature.beast":   "The beast"
 	"text.template.crawling.remnant_arm": "A crawling arm"
 	"text.template.test.dummy":      "Dummy"
-	"text.template.creature.crawler": "The crawler"
+	"text.template.creature.moving_clay": "The moving clay"
 	"text.template.test.crawler":     "Crawler"
 }

@@ -24,11 +24,11 @@ var update = flag.Bool("update", false, "rewrite the golden files")
 func huntField(t *testing.T, mutate func(*content.Bundle)) *field {
 	t.Helper()
 	return newField(t, "map.test.hall", func(b *content.Bundle) {
-		crawler := b.Templates["template.creature.crawler"]
+		crawler := b.Templates["template.creature.moving_clay"]
 		crawler.Actor = &content.ActorDef{Controller: "hunt"}
 		crawler.Actions = []api.ContentID{"action.step", "action.strike"}
 		crawler.Lists = map[string][]string{"types": {"type.cut"}}
-		b.Templates["template.creature.crawler"] = crawler
+		b.Templates["template.creature.moving_clay"] = crawler
 		for _, id := range []string{"template.person.reaper", "template.person.salken"} {
 			person := b.Templates[id]
 			person.Actions = []api.ContentID{"action.step", "action.strike", "action.sweep"}
@@ -278,7 +278,7 @@ func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 		b.Factions["faction.b"] = content.Faction{Name: "text.faction.deep", HostileTo: []api.ContentID{"faction.a"}}
 		for _, side := range []string{"a", "b"} {
 			faction := api.ContentID("faction." + side)
-			crawler := b.Templates["template.creature.crawler"]
+			crawler := b.Templates["template.creature.moving_clay"]
 			crawler.Faction = &faction
 			b.Templates["template.test.side_"+side] = crawler
 			b.Text["text.template.test.side_"+side] = side
@@ -381,9 +381,9 @@ func optionIDs(v api.View) []string {
 func TestAMaterialIsUnknownUntilASweepLands(t *testing.T) {
 	// A creature that stays put, so the sweep is not cut short by its bite.
 	f := huntField(t, func(b *content.Bundle) {
-		crawler := b.Templates["template.creature.crawler"]
+		crawler := b.Templates["template.creature.moving_clay"]
 		crawler.Actor = &content.ActorDef{Controller: "idle"}
-		b.Templates["template.creature.crawler"] = crawler
+		b.Templates["template.creature.moving_clay"] = crawler
 	})
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)

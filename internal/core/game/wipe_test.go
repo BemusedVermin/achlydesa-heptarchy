@@ -44,7 +44,7 @@ func TestWipeInsideApplyEndsTheCallAndLaterCommandsAreRejected(t *testing.T) {
 			})
 		},
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
-			_, err := w.Spawn("template.creature.crawler", nil)
+			_, err := w.Spawn("template.creature.moving_clay", nil)
 			return err
 		},
 	})

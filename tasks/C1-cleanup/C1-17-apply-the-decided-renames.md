@@ -1,7 +1,7 @@
 ---
 id: C1-17
 title: "Apply the decided renames"
-status: todo
+status: in-progress
 milestone: C1
 kind: debt
 depends_on: [C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11]

@@ -12,7 +12,7 @@ maps: "map.test.hall": content.#MapDef & {
 		".": "terrain.air"
 	}
 	marks: {"@": "party_start", "c": "creature"}
-	spawns: "c": "template.creature.crawler"
+	spawns: "c": "template.creature.moving_clay"
 	layers: [
 		{
 			depth: 0

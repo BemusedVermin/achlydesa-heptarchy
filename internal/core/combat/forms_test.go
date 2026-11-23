@@ -73,7 +73,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 		"victim":  bundle.Templates["template.test.dummy"],
 	}
 	crawler := bundle.Templates["template.test.dummy"]
-	crawler.Body = ptr(api.ContentID("body.crawler"))
+	crawler.Body = ptr(api.ContentID("body.test.crawler"))
 	crawler.Tags = append(slices.Clone(crawler.Tags), "crawls")
 	templates["crawler"] = crawler
 	old := bundle.Templates["template.test.dummy"]

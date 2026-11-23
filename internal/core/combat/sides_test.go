@@ -110,7 +110,7 @@ func (f *field) creature() ecs.Entity {
 	positions := ecs.NewMap[comp.Pos](f.w.ECS)
 	query := ecs.NewFilter1[comp.Identity](f.w.ECS).Query()
 	for query.Next() {
-		if query.Get().Template == "template.creature.crawler" && positions.Get(query.Entity()).Map == mapID {
+		if query.Get().Template == "template.creature.moving_clay" && positions.Get(query.Entity()).Map == mapID {
 			e := query.Entity()
 			query.Close()
 			return e

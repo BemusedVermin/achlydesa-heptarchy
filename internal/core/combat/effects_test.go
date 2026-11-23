@@ -58,7 +58,7 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	}
 	bundle.Text["text.item.test_arm"] = "spare arm"
 	bundle.Text["text.status.braced"] = "braced"
-	bundle.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.crawler"))}
+	bundle.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.test.crawler"))}
 	if mutate != nil {
 		mutate(&bundle)
 	}

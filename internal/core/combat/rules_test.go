@@ -56,9 +56,9 @@ func TestDamageIsEvaluatedPerPart(t *testing.T) {
 func TestChangingTheWeakRuleNeedsNoGoChange(t *testing.T) {
 	r := newRigWith(t, func(b *content.Bundle) {
 		b.Rules["weak"] = brittleWeak
-		maw := b.Parts["part.crawler_maw"]
+		maw := b.Parts["part.test.crawler_maw"]
 		maw.Tags = []string{"brittle"}
-		b.Parts["part.crawler_maw"] = maw
+		b.Parts["part.test.crawler_maw"] = maw
 	})
 	got := soakAll(t, r, "type.soak")
 	if got["torso"] != 2 || got["head"] != 2 || got["legs"] != 1 {
@@ -76,9 +76,9 @@ func TestSwappingContentRecomputesAFormulaAlreadyEvaluated(t *testing.T) {
 		t.Fatal(err)
 	}
 	bundle.Rules["weak"] = brittleWeak
-	maw := bundle.Parts["part.crawler_maw"]
+	maw := bundle.Parts["part.test.crawler_maw"]
 	maw.Tags = []string{"brittle"}
-	bundle.Parts["part.crawler_maw"] = maw
+	bundle.Parts["part.test.crawler_maw"] = maw
 	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
