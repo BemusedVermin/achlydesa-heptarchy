@@ -274,7 +274,7 @@ func TestSeveringAnArmMidWindupCancelsTheSwing(t *testing.T) {
 			canceled = append(canceled, c)
 		}
 	}
-	if len(canceled) != 1 || canceled[0].Kind != "test.swing" || canceled[0].Actor != r.w.UIDOf(r.reaper) {
+	if len(canceled) != 1 || canceled[0].Kind != "test.swing" || canceled[0].Source != r.w.UIDOf(r.reaper) {
 		t.Fatalf("canceled = %+v, want the one swing by the reaper", canceled)
 	}
 	if !r.w.ECS.Alive(other) || len(timeline.PendingOf(r.w, r.w.UIDOf(r.reaper))) != 1 {
@@ -396,12 +396,12 @@ func TestAttachPartFromSevered(t *testing.T) {
 func TestRevealWritesAFactPerPart(t *testing.T) {
 	r := newRig(t)
 	r.apply(t, r.ctx(r.crawler), do(
-		"reveal", "claim", "claim.material", "value", "= target.material.id", "source", "source.sweep",
+		"reveal", "claim", "claim.material", "value", "= target.material.id", "origin", "origin.sweep",
 	))
 	for _, part := range anatomy.Parts(r.w, r.crawler) {
 		fact, ok := knowledge.Best(r.w, r.party, r.w.UIDOf(part), "claim.material")
 		want := ecs.NewMap[comp.Part](r.w.ECS).Get(part).Material
-		if !ok || fact.Value != string(want) || fact.Source != "source.sweep" {
+		if !ok || fact.Value != string(want) || fact.Origin != "origin.sweep" {
 			t.Errorf("fact = %+v, %v; want %s from a sweep", fact, ok, want)
 		}
 	}

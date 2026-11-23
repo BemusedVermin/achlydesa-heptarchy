@@ -147,7 +147,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	tick: int64 @go(Tick)
 }
 
-// Downed marks a protected body that has fallen.
+// Downed marks a protected body that is out of the fight.
 #Downed: {}
 
 // StatusEntry is one status a body is under, and the tick it ends.

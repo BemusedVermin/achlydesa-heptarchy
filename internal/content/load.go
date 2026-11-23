@@ -197,8 +197,8 @@ func (r *Registry) checkIDs() []error {
 			problems = append(problems, err)
 		}
 	}
-	for _, key := range sortedKeys(r.bundle.Sources) {
-		if err := checkID("sources", key, "source"); err != nil {
+	for _, key := range sortedKeys(r.bundle.Origins) {
+		if err := checkID("origins", key, "origin"); err != nil {
 			problems = append(problems, err)
 		}
 	}
@@ -230,7 +230,7 @@ func (r *Registry) checkIDs() []error {
 	return problems
 }
 
-// checkKnowledge checks that claims and sources name existing text, and that every claim has the
+// checkKnowledge checks that claims and origins name existing text, and that every claim has the
 // text that reports it in the log.
 func (r *Registry) checkKnowledge() []error {
 	var problems []error
@@ -246,8 +246,8 @@ func (r *Registry) checkKnowledge() []error {
 			problems = append(problems, fmt.Errorf("claims[%q].value: unknown value kind %q", key, kind))
 		}
 	}
-	for _, key := range sortedKeys(r.bundle.Sources) {
-		check(fmt.Sprintf("sources[%q].name", key), r.bundle.Sources[key].Name)
+	for _, key := range sortedKeys(r.bundle.Origins) {
+		check(fmt.Sprintf("origins[%q].name", key), r.bundle.Origins[key].Name)
 	}
 	return problems
 }

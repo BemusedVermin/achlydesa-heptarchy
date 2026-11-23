@@ -210,7 +210,7 @@ func TestGoldenADodgeStepsOutOfReachBeforeTheSwingLands(t *testing.T) {
 		f.until(20, func() bool { return f.w.Now > swing.Lands })
 		missed := slices.ContainsFunc(f.events, func(e api.Event) bool {
 			m, ok := e.(api.ActionMissed)
-			return ok && m.Actor == uid && m.Tick == swing.Lands
+			return ok && m.Source == uid && m.Tick == swing.Lands
 		})
 		if !missed {
 			t.Error("the swing did not miss the dodging target")

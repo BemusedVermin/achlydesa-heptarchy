@@ -65,7 +65,7 @@ func TestAGraftActsOnItsOwnAndLeavesTheOtherLimbsFree(t *testing.T) {
 	if !f.until(300, func() bool { return len(started) > 0 }) {
 		t.Fatal("the graft never acted on its own")
 	}
-	if started[0].Actor != uid || started[0].Action != "action.strike" {
+	if started[0].Source != uid || started[0].Action != "action.strike" {
 		t.Errorf("started = %+v, want the host's strike", started[0])
 	}
 	if graftFree[0] {
@@ -152,7 +152,7 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	members := f.memberUIDs()
 	var swing *api.ActionStarted
 	f.w.Bus.SubscribeAll("test.crawling_swing", func(_ *sim.World, e api.Event) {
-		if s, ok := e.(api.ActionStarted); ok && s.Actor == uid && swing == nil {
+		if s, ok := e.(api.ActionStarted); ok && s.Source == uid && swing == nil {
 			swing = &s
 		}
 	})

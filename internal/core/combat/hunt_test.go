@@ -57,7 +57,7 @@ func east(c api.Cell, n int) api.Cell {
 // wait lets the body that is deciding wait for the next entry on the timeline.
 func (f *field) wait() []api.Event {
 	f.t.Helper()
-	events, err := f.g.Apply(api.Wait{Actor: f.view().Timeline.Current, Until: api.WaitEvent})
+	events, err := f.g.Apply(api.Wait{Source: f.view().Timeline.Current, Until: api.WaitEvent})
 	if err != nil {
 		f.t.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func (f *field) until(limit int, stop func() bool) bool {
 // started is the first action the body started, from the events so far.
 func (f *field) started(actor api.UID) (api.ActionStarted, bool) {
 	for _, e := range f.events {
-		if s, ok := e.(api.ActionStarted); ok && s.Actor == actor {
+		if s, ok := e.(api.ActionStarted); ok && s.Source == actor {
 			return s, true
 		}
 	}
@@ -89,7 +89,7 @@ func (f *field) started(actor api.UID) (api.ActionStarted, bool) {
 func (f *field) moves(actor api.UID) int {
 	n := 0
 	for _, e := range f.events {
-		if m, ok := e.(api.Moved); ok && m.Actor == actor {
+		if m, ok := e.(api.Moved); ok && m.Source == actor {
 			n++
 		}
 	}
@@ -224,7 +224,7 @@ func TestSteppingOutOfReachBeforeTheSwingLandsMakesItMiss(t *testing.T) {
 	f.until(20, func() bool { return f.w.Now > swing.Lands })
 	var missed bool
 	for _, e := range f.events {
-		if m, ok := e.(api.ActionMissed); ok && m.Actor == uid && m.Tick == swing.Lands {
+		if m, ok := e.(api.ActionMissed); ok && m.Source == uid && m.Tick == swing.Lands {
 			missed = true
 		}
 		if d, ok := e.(api.PartDamaged); ok && d.Source == uid && d.Tick == swing.Lands {
@@ -322,7 +322,7 @@ func TestOptionsAreLegalAndAHandBuiltDoIsRefused(t *testing.T) {
 	// Out of reach: the creature is across the hall.
 	head := f.partOf(creature, "head")
 	far := api.Do{
-		Actor: f.w.UIDOf(member), Action: "action.strike", Target: f.w.UIDOf(creature), TargetPart: f.w.UIDOf(head),
+		Source: f.w.UIDOf(member), Action: "action.strike", Target: f.w.UIDOf(creature), TargetPart: f.w.UIDOf(head),
 		Choices: map[string]string{"type": "type.cut"},
 	}
 	events, err := f.g.Apply(far)
@@ -349,7 +349,7 @@ func TestOptionsAreLegalAndAHandBuiltDoIsRefused(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !has(events, func(e api.ActionStarted) bool { return e.Actor == strike.Actor }) {
+	if !has(events, func(e api.ActionStarted) bool { return e.Source == strike.Source }) {
 		t.Fatalf("the option's own command did not start: %+v", events)
 	}
 	// The arm it used is busy: the same command is refused until it is free.

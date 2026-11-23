@@ -461,7 +461,7 @@ func (ev *evaluator) start(p *plan, autonomous bool) error {
 	}
 	ecs.NewMap[comp.Landing](w.ECS).Add(pending, landing)
 	w.Bus.Publish(api.ActionStarted{
-		Actor: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Lands: w.Now + p.windup,
+		Source: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Lands: w.Now + p.windup,
 		Autonomous: autonomous,
 	})
 	return nil
@@ -520,7 +520,7 @@ func (ev *evaluator) land(p *plan) error {
 func (ev *evaluator) miss(p *plan, reason api.Text) {
 	w := ev.w
 	w.Bus.Publish(api.ActionMissed{
-		Actor: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Reason: reason,
+		Source: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Reason: reason,
 		Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
 			"actor": ev.nameOf(p.actor), "action": w.Content.Render(api.Text{ID: p.def.Name}),
 		}},
@@ -587,7 +587,7 @@ func resolveLanding(w *sim.World, pending ecs.Entity) error {
 		actor, _ := w.ByUID(pend.Actor)
 		def, _ := w.Content.Action(landing.Action)
 		w.Bus.Publish(api.ActionMissed{
-			Actor: pend.Actor, Action: landing.Action, Target: pend.Target, Tick: w.Now, Reason: reason,
+			Source: pend.Actor, Action: landing.Action, Target: pend.Target, Tick: w.Now, Reason: reason,
 			Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
 				"actor": ev.nameOf(actor), "action": w.Content.Render(api.Text{ID: def.Name}),
 			}},

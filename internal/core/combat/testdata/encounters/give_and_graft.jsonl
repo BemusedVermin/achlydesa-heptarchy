@@ -1,4 +1,4 @@
-{"kind":"actions.started","data":{"actor":20,"action":"action.graft","target":32,"tick":0,"lands":6}}
+{"kind":"actions.started","data":{"source":20,"action":"action.graft","target":32,"tick":0,"lands":6}}
 {"kind":"combat.part_attached","data":{"body":32,"part":38,"from":"pack","source":20,"tick":6}}
-{"kind":"timeline.action_landed","data":{"kind":"actions.land","actor":20,"target":32,"tick":6}}
+{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":20,"target":32,"tick":6}}
 {"kind":"effects.channels_readied","data":{"channels":[26],"tick":14}}

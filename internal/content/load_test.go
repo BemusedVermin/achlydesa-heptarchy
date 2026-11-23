@@ -72,16 +72,16 @@ func TestLoadSample(t *testing.T) {
 func TestKnowledgeContentIsChecked(t *testing.T) {
 	data := validData + `
 claims: "claim.material": name: "text.missing_name"
-sources: "source.sweep": name: "text.also_missing"
+origins: "origin.sweep": name: "text.also_missing"
 `
 	_, err := Load(writeData(t, data))
 	if err == nil {
-		t.Fatal("Load accepted claims and sources with missing text")
+		t.Fatal("Load accepted claims and origins with missing text")
 	}
 	for _, want := range []string{
 		`claims["claim.material"].name: text reference "text.missing_name"`,
 		`claims["claim.material"] log text: text reference "text.knowledge.material"`,
-		`sources["source.sweep"].name: text reference "text.also_missing"`,
+		`origins["origin.sweep"].name: text reference "text.also_missing"`,
 	} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error %q lacks %q", err, want)

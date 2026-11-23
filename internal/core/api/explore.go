@@ -96,11 +96,11 @@ const (
 
 // Moved reports that a body stepped from one cell to another.
 type Moved struct {
-	Actor UID    `json:"actor"`
-	Map   MapID  `json:"map"`
-	From  Cell   `json:"from"`
-	To    Cell   `json:"to"`
-	Kind  string `json:"kind"` // one of MoveLevel, MoveUp, MoveDown, MoveDrop
+	Source UID    `json:"source"`
+	Map    MapID  `json:"map"`
+	From   Cell   `json:"from"`
+	To     Cell   `json:"to"`
+	Kind   string `json:"kind"` // one of MoveLevel, MoveUp, MoveDown, MoveDrop
 }
 
 // EventKind implements [Event].
@@ -108,7 +108,7 @@ func (Moved) EventKind() string { return MovedKind }
 
 // Fell reports that a body dropped off a ledge.
 type Fell struct {
-	Actor UID `json:"actor"`
+	Body  UID `json:"body"`
 	Cells int `json:"cells"`
 }
 
@@ -116,7 +116,7 @@ type Fell struct {
 func (Fell) EventKind() string { return FellKind }
 
 // Subjects implements [Subjected]: the faller is the target.
-func (f Fell) Subjects() map[string]UID { return map[string]UID{SubjectTarget: f.Actor} }
+func (f Fell) Subjects() map[string]UID { return map[string]UID{SubjectTarget: f.Body} }
 
 // Choices implements [Chosen]: the cells fallen, for the formulas of the triggers it fires.
 func (f Fell) Choices() map[string]string { return map[string]string{"cells": strconv.Itoa(f.Cells)} }

@@ -1,4 +1,4 @@
 combat.alert_started {"party":1,"hostile":28,"name":"The moving clay","tick":0}
 explore.control_changed {"party":1,"mode":"individual","by":"alert"}
-explore.moved {"actor":28,"map":3,"from":{"hex":{"q":13,"r":10},"depth":0},"to":{"hex":{"q":12,"r":10},"depth":0},"kind":"level"}
-explore.moved {"actor":28,"map":3,"from":{"hex":{"q":12,"r":10},"depth":0},"to":{"hex":{"q":11,"r":10},"depth":0},"kind":"level"}
+explore.moved {"source":28,"map":3,"from":{"hex":{"q":13,"r":10},"depth":0},"to":{"hex":{"q":12,"r":10},"depth":0},"kind":"level"}
+explore.moved {"source":28,"map":3,"from":{"hex":{"q":12,"r":10},"depth":0},"to":{"hex":{"q":11,"r":10},"depth":0},"kind":"level"}

@@ -554,7 +554,7 @@ func TestAThreeCellDropInjuresTheLegsAndAOneCellStepDownDoesNot(t *testing.T) {
 
 	// A fall of one cell is a step down, and the trigger's condition leaves it alone.
 	before = fx.legsIntegrity()
-	fx.w.Bus.Publish(api.Fell{Actor: leader, Cells: 1})
+	fx.w.Bus.Publish(api.Fell{Body: leader, Cells: 1})
 	if _, err := fx.w.Bus.Drain(fx.w); err != nil {
 		t.Fatal(err)
 	}

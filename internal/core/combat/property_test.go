@@ -98,8 +98,8 @@ func (f *fight) observe(w *sim.World, e api.Event) {
 	switch e := e.(type) {
 	case api.ActionStarted:
 		f.started++
-		if body, ok := w.ByUID(e.Actor); ok && ecs.NewMap[comp.Dead](w.ECS).Has(body) {
-			f.fail("dead body %d started %s", e.Actor, e.Action)
+		if body, ok := w.ByUID(e.Source); ok && ecs.NewMap[comp.Dead](w.ECS).Has(body) {
+			f.fail("dead body %d started %s", e.Source, e.Action)
 		}
 	case api.ActionLanded:
 		f.landed++

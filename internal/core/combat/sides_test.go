@@ -379,7 +379,7 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 			t.Errorf("PartyWiped names %d, want the party %d", lost.Party, f.view().Party.UID)
 		}
 	}
-	events, err := f.g.Apply(api.Wait{Actor: 1, Until: api.WaitEvent})
+	events, err := f.g.Apply(api.Wait{Source: 1, Until: api.WaitEvent})
 	if err != nil {
 		t.Fatal(err)
 	}

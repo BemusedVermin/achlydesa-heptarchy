@@ -33,7 +33,7 @@ actions: {
 		on_land: [
 			{do: "damage", params: {parts: "target:all", amount: "rule.graze"}},
 			{do: "reveal", params: {
-				parts: "target:all", claim: "claim.material", value: "= target.material.id", source: "source.sweep"
+				parts: "target:all", claim: "claim.material", value: "= target.material.id", origin: "origin.sweep"
 			}},
 		]
 		tags: ["attack"]

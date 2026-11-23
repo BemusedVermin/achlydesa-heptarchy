@@ -13,7 +13,7 @@ import (
 
 // compareKey orders facts by (Subject, Claim, Source).
 func compareKey(a, b api.Fact) int {
-	return cmp.Or(cmp.Compare(a.Subject, b.Subject), cmp.Compare(a.Claim, b.Claim), cmp.Compare(a.Source, b.Source))
+	return cmp.Or(cmp.Compare(a.Subject, b.Subject), cmp.Compare(a.Claim, b.Claim), cmp.Compare(a.Origin, b.Origin))
 }
 
 // Learn records f for the knower, adding comp.Knowledge if it has none, and stamps it with the
@@ -75,7 +75,7 @@ func better(a, b api.Fact) bool {
 	return cmp.Or(
 		cmp.Compare(b.Confidence, a.Confidence),
 		cmp.Compare(b.Tick, a.Tick),
-		cmp.Compare(a.Source, b.Source),
+		cmp.Compare(a.Origin, b.Origin),
 	) < 0
 }
 

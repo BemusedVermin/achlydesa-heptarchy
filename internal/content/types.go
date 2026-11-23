@@ -19,7 +19,7 @@ type Bundle struct {
 	Maps      map[string]MapDef    `json:"maps"`
 	Start     Start                `json:"start"`
 	Claims    map[string]Claim     `json:"claims"`
-	Sources   map[string]Source    `json:"sources"`
+	Origins   map[string]Origin    `json:"origins"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
@@ -99,8 +99,8 @@ const (
 // ValueKinds lists the non-empty value kinds a claim may name.
 var ValueKinds = []string{ValueMaterial, ValueText}
 
-// Source is where a fact came from, such as a sweep.
-type Source struct {
+// Origin is where a fact came from, such as a sweep.
+type Origin struct {
 	Name api.ContentID `json:"name"` // a text ID
 }
 

@@ -28,9 +28,9 @@ package content
 	Lists: {[string]: [...string]} @go(,map[string][]string)
 }
 
-// Side is what a formula sees of one body: its template, one of its parts, and that part's material.
+// BodyEnv is what a formula sees of one body: its template, one of its parts, and that part's material.
 // A record is empty (ID "") when there's none.
-#Side: {
+#BodyEnv: {
 	Template: #Record
 	Part:     #Record
 	Material: #Record
@@ -45,10 +45,10 @@ package content
 	WindingUp: bool
 
 	// Source is the acting body; its part is the first channel the action occupies that is a part.
-	Source: #Side
+	Source: #BodyEnv
 
 	// Target is the target body and the target part.
-	Target: #Side
+	Target: #BodyEnv
 
 	// Chosen is every choice the action or event carries, as the record its value names. A value
 	// that names no record, such as a direction, is Record{ID: value}.
@@ -74,8 +74,8 @@ package content
 	Distance:  int
 	Used:      int
 	Choice: {[string]: string} @go(,map[string]string)
-	Source: #Side
-	Target: #Side
+	Source: #BodyEnv
+	Target: #BodyEnv
 	Chosen: {[string]: #Record} @go(,map[string]Record)
 	Pack: {[string]: int} @go(,map[string]int)
 }
@@ -83,14 +83,14 @@ package content
 // OfferEnv is what a choice's offer formula sees.
 #OfferEnv: {
 	#Record
-	Source: #Side
+	Source: #BodyEnv
 	Pack: {[string]: int} @go(,map[string]int)
 }
 
 // ScoreEnv is what combat.ai_score sees of one intent a creature could start.
 #ScoreEnv: {
-	Source: #Side
-	Target: #Side
+	Source: #BodyEnv
+	Target: #BodyEnv
 	Chosen: {[string]: #Record} @go(,map[string]Record)
 	Pack: {[string]: int} @go(,map[string]int)
 

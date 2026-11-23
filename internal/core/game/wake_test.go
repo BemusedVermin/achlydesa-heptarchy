@@ -81,7 +81,7 @@ func TestADownedPartyWakesAtItsRestPlaceAfterTheWakeTime(t *testing.T) {
 	if g.Current() == 0 {
 		t.Fatal("nobody is deciding after the wake")
 	}
-	events, err = g.Apply(api.Wait{Actor: g.Current(), Until: api.WaitTicks, Ticks: 1})
+	events, err = g.Apply(api.Wait{Source: g.Current(), Until: api.WaitTicks, Ticks: 1})
 	if err != nil {
 		t.Fatal(err)
 	}

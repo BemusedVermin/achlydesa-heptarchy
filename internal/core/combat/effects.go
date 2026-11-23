@@ -69,9 +69,9 @@ func primitives() []effects.Primitive {
 		},
 		{Name: "raise_max_integrity", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyRaiseMaxIntegrity},
 		{
-			Name: "reveal", Params: []string{"claim", "value", "source"}, Optional: []string{"parts"},
+			Name: "reveal", Params: []string{"claim", "value", "origin"}, Optional: []string{"parts"},
 			Kinds: map[string]effects.Kind{
-				"claim": effects.KindText, "value": effects.KindText, "source": effects.KindText,
+				"claim": effects.KindText, "value": effects.KindText, "origin": effects.KindText,
 				"parts": effects.KindChannels,
 			},
 			VerifyContent: verifyRevealContent, Apply: applyReveal,
@@ -428,9 +428,9 @@ func verifyRevealContent(reg *content.Registry, raw map[string]string) error {
 			return fmt.Errorf("unknown claim %q", claim)
 		}
 	}
-	if source, ok := raw["source"]; ok {
-		if _, found := reg.Source(api.ContentID(source)); !found {
-			return fmt.Errorf("unknown source %q", source)
+	if origin, ok := raw["origin"]; ok {
+		if _, found := reg.Origin(api.ContentID(origin)); !found {
+			return fmt.Errorf("unknown origin %q", origin)
 		}
 	}
 	return nil
@@ -446,15 +446,15 @@ func applyReveal(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
-	source, err := p.String("source")
+	origin, err := p.String("origin")
 	if err != nil {
 		return err
 	}
 	if _, ok := w.Content.Claim(api.ContentID(claim)); !ok {
 		return fmt.Errorf(`parameter "claim": unknown claim %q`, claim)
 	}
-	if _, ok := w.Content.Source(api.ContentID(source)); !ok {
-		return fmt.Errorf(`parameter "source": unknown source %q`, source)
+	if _, ok := w.Content.Origin(api.ContentID(origin)); !ok {
+		return fmt.Errorf(`parameter "origin": unknown origin %q`, origin)
 	}
 	var channels []timeline.Channel
 	if p.Has("parts") {
@@ -479,7 +479,7 @@ func applyReveal(ctx *effects.Context, p effects.Params) error {
 		}
 		knowledge.Learn(w, knower, api.Fact{
 			Subject: w.UIDOf(c.Entity), Claim: api.ContentID(claim), Value: value,
-			Source: api.ContentID(source), Confidence: 1,
+			Origin: api.ContentID(origin), Confidence: 1,
 		})
 	}
 	return nil

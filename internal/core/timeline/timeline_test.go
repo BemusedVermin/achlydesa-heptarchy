@@ -270,7 +270,7 @@ func TestRescheduleBringsADecisionForwardWhenAHookChanges(t *testing.T) {
 		t.Helper()
 		view, _ := fx.view(t)
 		for _, entry := range view.Timeline.Entries {
-			if entry.Kind == "ready" && entry.Actor == fx.w.UIDOf(ai) {
+			if entry.Kind == "ready" && entry.Source == fx.w.UIDOf(ai) {
 				return entry.Tick
 			}
 		}
@@ -388,7 +388,7 @@ func TestWaitUntilThePhaseChanges(t *testing.T) {
 	}
 	if _, err := fx.w.Commands.Dispatch(
 		fx.w,
-		api.Wait{Actor: fx.w.UIDOf(player), Until: api.WaitTicks, Ticks: 7},
+		api.Wait{Source: fx.w.UIDOf(player), Until: api.WaitTicks, Ticks: 7},
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -406,11 +406,11 @@ func TestWaitCommandsRejected(t *testing.T) {
 	}
 	secondUID, firstUID := fx.w.UIDOf(second), fx.w.UIDOf(first)
 	for _, cmd := range []api.Command{
-		api.Wait{Actor: secondUID, Until: api.WaitEvent},
-		api.Wait{Actor: 999, Until: api.WaitPhase},
-		api.Wait{Actor: firstUID, Until: api.WaitTicks, Ticks: 0},
-		api.Wait{Actor: firstUID, Until: api.WaitTicks, Ticks: -3},
-		api.Wait{Actor: firstUID, Until: "forever"},
+		api.Wait{Source: secondUID, Until: api.WaitEvent},
+		api.Wait{Source: 999, Until: api.WaitPhase},
+		api.Wait{Source: firstUID, Until: api.WaitTicks, Ticks: 0},
+		api.Wait{Source: firstUID, Until: api.WaitTicks, Ticks: -3},
+		api.Wait{Source: firstUID, Until: "forever"},
 	} {
 		if _, err := fx.w.Commands.Dispatch(fx.w, cmd); err != nil {
 			t.Fatalf("%+v: %v", cmd, err)
@@ -500,7 +500,7 @@ func TestViewListsVisibleBodiesInWindow(t *testing.T) {
 		if entry.Kind != "ready" || entry.Glyph != "@" || entry.Label != "The Reaper is ready" {
 			t.Errorf("entry = %+v", entry)
 		}
-		got = append(got, decision{entry.Tick, entry.Actor})
+		got = append(got, decision{entry.Tick, entry.Source})
 	}
 	want := []decision{{5, uids[2]}, {5, uids[4]}, {12, uids[0]}}
 	if !reflect.DeepEqual(got, want) {
@@ -634,7 +634,7 @@ func TestUsableChannelsHookDecidesWhichChannelsCount(t *testing.T) {
 			timeline.Reschedule(fx.w, ai)
 			view, _ := fx.view(t)
 			for _, entry := range view.Timeline.Entries {
-				if entry.Kind == "ready" && entry.Actor == fx.w.UIDOf(ai) {
+				if entry.Kind == "ready" && entry.Source == fx.w.UIDOf(ai) {
 					if entry.Tick != tc.want {
 						t.Errorf("ready at %d, want %d", entry.Tick, tc.want)
 					}

@@ -54,7 +54,7 @@ func TestWipeInsideApplyEndsTheCallAndLaterCommandsAreRejected(t *testing.T) {
 	if _, err := g.Apply(wipeCommand{}); err != nil {
 		t.Fatalf("the wiping Apply failed: %v", err)
 	}
-	events, err := g.Apply(api.Wait{Actor: g.Current(), Until: api.WaitTicks, Ticks: 1})
+	events, err := g.Apply(api.Wait{Source: g.Current(), Until: api.WaitTicks, Ticks: 1})
 	if err != nil {
 		t.Fatal(err)
 	}

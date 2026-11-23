@@ -13,8 +13,8 @@ import (
 
 // SideOf is what a formula sees of a body and one of its parts: their records. An entity that is
 // gone, zero or has no such component reads as an empty record.
-func SideOf(w *sim.World, body, part ecs.Entity) content.Side {
-	side := content.Side{
+func SideOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
+	side := content.BodyEnv{
 		Template: content.EmptyRecord(), Part: content.EmptyRecord(), Material: content.EmptyRecord(),
 	}
 	if alive(w, body) {

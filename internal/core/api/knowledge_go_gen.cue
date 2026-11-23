@@ -12,7 +12,7 @@ package api
 	subject:    #UID       @go(Subject)
 	claim:      #ContentID @go(Claim)
 	value:      string     @go(Value)
-	source:     #ContentID @go(Source)
+	origin:     #ContentID @go(Origin)
 	confidence: float64    @go(Confidence)
 	tick:       int64      @go(Tick)
 }

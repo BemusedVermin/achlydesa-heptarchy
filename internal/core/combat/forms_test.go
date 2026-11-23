@@ -183,7 +183,7 @@ func (r *ring) do(segments ...string) []api.Event {
 
 func (r *ring) wait(ticks int64) []api.Event {
 	r.t.Helper()
-	return r.apply(api.Wait{Actor: r.w.UIDOf(r.body("fighter")), Until: api.WaitTicks, Ticks: ticks})
+	return r.apply(api.Wait{Source: r.w.UIDOf(r.body("fighter")), Until: api.WaitTicks, Ticks: ticks})
 }
 
 // part is the body's first attached part of the slot.

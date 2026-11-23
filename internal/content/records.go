@@ -69,8 +69,8 @@ func (r *Registry) collectionIDs(collection string) (map[string]bool, bool) {
 		keys = sortedKeys(r.bundle.Maps)
 	case "claims":
 		keys = sortedKeys(r.bundle.Claims)
-	case "sources":
-		keys = sortedKeys(r.bundle.Sources)
+	case "origins":
+		keys = sortedKeys(r.bundle.Origins)
 	case "parts":
 		keys = sortedKeys(r.bundle.Parts)
 	case "bodies":

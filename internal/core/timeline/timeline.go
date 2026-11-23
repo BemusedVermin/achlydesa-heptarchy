@@ -424,7 +424,7 @@ func (st *state) open(w *sim.World, clk *clock.Clock, body ecs.Entity) error {
 	}
 	st.current, st.hasCurrent = body, true
 	st.pending = true
-	w.Bus.Publish(api.Ready{Actor: w.UIDOf(body), Tick: w.Now})
+	w.Bus.Publish(api.Ready{Source: w.UIDOf(body), Tick: w.Now})
 	if _, err := w.Bus.Drain(w); err != nil {
 		return fmt.Errorf("timeline: ready: %w", err)
 	}

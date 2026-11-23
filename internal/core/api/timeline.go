@@ -15,9 +15,9 @@ const (
 
 // Wait makes the current player body skip deciding until something happens.
 type Wait struct {
-	Actor UID    `json:"actor"`
-	Until string `json:"until"` // WaitTicks, WaitEvent or WaitPhase
-	Ticks int64  `json:"ticks"` // for WaitTicks only; must be above 0
+	Source UID    `json:"source"`
+	Until  string `json:"until"` // WaitTicks, WaitEvent or WaitPhase
+	Ticks  int64  `json:"ticks"` // for WaitTicks only; must be above 0
 }
 
 // CommandKind implements [Command].
@@ -25,15 +25,15 @@ func (Wait) CommandKind() string { return WaitKind }
 
 // Ready reports that a body may decide at Tick.
 type Ready struct {
-	Actor UID   `json:"actor"`
-	Tick  int64 `json:"tick"`
+	Source UID   `json:"source"`
+	Tick   int64 `json:"tick"`
 }
 
 // EventKind implements [Event].
 func (Ready) EventKind() string { return ReadyKind }
 
 // Subjects implements [Subjected]: the body deciding is the source, so its parts' triggers can fire.
-func (e Ready) Subjects() map[string]UID { return map[string]UID{SubjectSource: e.Actor} }
+func (e Ready) Subjects() map[string]UID { return map[string]UID{SubjectSource: e.Source} }
 
 // TimelineView is the shared timeline: who decides now and what comes next.
 type TimelineView struct {
@@ -47,7 +47,7 @@ type TimelineView struct {
 type TimelineEntry struct {
 	Tick   int64  `json:"tick"`
 	Kind   string `json:"kind"` // "ready" or "lands"
-	Actor  UID    `json:"actor"`
+	Source UID    `json:"source"`
 	Glyph  string `json:"glyph"`
 	Color  string `json:"color"`
 	Target UID    `json:"target"` // for "lands"
@@ -63,7 +63,7 @@ const (
 // ActionLanded reports that a pending action has landed and been resolved.
 type ActionLanded struct {
 	Kind   string `json:"kind"` // the resolver's name
-	Actor  UID    `json:"actor"`
+	Source UID    `json:"source"`
 	Target UID    `json:"target"`
 	Tick   int64  `json:"tick"`
 }
@@ -74,7 +74,7 @@ func (ActionLanded) EventKind() string { return ActionLandedKind }
 // ActionCanceled reports that a pending action was removed before it landed.
 type ActionCanceled struct {
 	Kind   string `json:"kind"`
-	Actor  UID    `json:"actor"`
+	Source UID    `json:"source"`
 	Target UID    `json:"target"`
 	Tick   int64  `json:"tick"`
 	Reason Text   `json:"reason"`

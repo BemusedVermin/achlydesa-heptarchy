@@ -257,11 +257,11 @@ func RenderTimelineMarked(t *api.TimelineView, bodies *api.BodiesView, width, se
 				mark = "!"
 			}
 			icon = paint(mark, lookupColor(first.Color), 0, false, false) + " "
-			if hostile[first.Actor] {
+			if hostile[first.Source] {
 				icon = lipgloss.NewStyle().Underline(true).Render(icon[:len(icon)-1]) + " "
 			}
 			for _, e := range entries {
-				if e.Kind == "lands" && members[e.Target] && !members[e.Actor] {
+				if e.Kind == "lands" && members[e.Target] && !members[e.Source] {
 					icon = lipgloss.NewStyle().Bold(true).Foreground(lookupColor("white").color()).
 						Background(lookupColor("red").color()).Render("!") + " "
 					break

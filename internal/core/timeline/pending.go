@@ -70,7 +70,7 @@ func Cancel(w *sim.World, pending ecs.Entity, reason api.ContentID) {
 	p := *st.pendings.Get(pending)
 	w.ECS.RemoveEntity(pending)
 	w.Bus.Publish(api.ActionCanceled{
-		Kind: p.Kind, Actor: p.Actor, Target: p.Target, Tick: w.Now, Reason: api.Text{ID: reason},
+		Kind: p.Kind, Source: p.Actor, Target: p.Target, Tick: w.Now, Reason: api.Text{ID: reason},
 	})
 }
 
@@ -144,7 +144,7 @@ func (st *state) landNext(w *sim.World, clk *clock.Clock) (bool, error) {
 			return false, fmt.Errorf("timeline: resolving %q: %w", p.Kind, err)
 		}
 		w.ECS.RemoveEntity(first)
-		w.Bus.Publish(api.ActionLanded{Kind: p.Kind, Actor: p.Actor, Target: p.Target, Tick: w.Now})
+		w.Bus.Publish(api.ActionLanded{Kind: p.Kind, Source: p.Actor, Target: p.Target, Tick: w.Now})
 	}
 	if _, err := w.Bus.Drain(w); err != nil {
 		return false, fmt.Errorf("timeline: landing %q: %w", p.Kind, err)
@@ -171,7 +171,7 @@ func (st *state) landsEntries(w *sim.World) []api.TimelineEntry {
 		if (!actorOK || !st.visible(w, actor)) && (!targetOK || !st.visible(w, target)) {
 			continue
 		}
-		entry := api.TimelineEntry{Tick: p.Lands, Kind: "lands", Actor: p.Actor, Target: p.Target}
+		entry := api.TimelineEntry{Tick: p.Lands, Kind: "lands", Source: p.Actor, Target: p.Target}
 		if actorOK && appearances.Has(actor) {
 			look := appearances.Get(actor)
 			entry.Glyph, entry.Color = look.Glyph, look.Color

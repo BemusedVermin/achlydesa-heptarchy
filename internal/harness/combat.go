@@ -225,7 +225,7 @@ func (p *FightPolicy) closeIn(steps []api.Option, hostile map[api.UID]bool) (api
 	found := false
 	for _, option := range steps {
 		do := option.Command.(api.Do)
-		from, ok := p.g.PositionOf(do.Actor)
+		from, ok := p.g.PositionOf(do.Source)
 		if !ok {
 			continue
 		}

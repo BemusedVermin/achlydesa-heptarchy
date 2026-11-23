@@ -23,7 +23,7 @@ import (
 	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
 	start: #Start @go(Start)
 	claims: {[string]: #Claim} @go(Claims,map[string]Claim)
-	sources: {[string]: #Source} @go(Sources,map[string]Source)
+	origins: {[string]: #Origin} @go(Origins,map[string]Origin)
 
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	parts: {[string]: #PartTemplate} @go(Parts,map[string]PartTemplate)
@@ -106,8 +106,8 @@ import (
 #ValueMaterial: "material"
 #ValueText:     "text"
 
-// Source is where a fact came from, such as a sweep.
-#Source: {
+// Origin is where a fact came from, such as a sweep.
+#Origin: {
 	name: api.#ContentID @go(Name)
 }
 

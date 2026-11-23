@@ -10,7 +10,7 @@ const (
 // Do makes the current player body start one of its actions. The options of the view carry ready
 // built Do commands; a frontend sends one of those.
 type Do struct {
-	Actor      UID               `json:"actor"`
+	Source     UID               `json:"source"`
 	Action     ContentID         `json:"action"`
 	Channels   []UID             `json:"channels,omitempty"` // the limbs to use; empty lets the core pick the lowest UIDs
 	Target     UID               `json:"target,omitempty"`   // the body aimed at, or 0
@@ -24,7 +24,7 @@ func (Do) CommandKind() string { return DoKind }
 
 // ActionStarted reports that a body began an action that lands later.
 type ActionStarted struct {
-	Actor  UID       `json:"actor"`
+	Source UID       `json:"source"`
 	Action ContentID `json:"action"`
 	Target UID       `json:"target"`
 	Tick   int64     `json:"tick"`
@@ -39,7 +39,7 @@ func (ActionStarted) EventKind() string { return ActionStartedKind }
 // ActionMissed reports that an action landed and did nothing: its target was out of reach, or one of
 // its effects could no longer apply.
 type ActionMissed struct {
-	Actor  UID       `json:"actor"`
+	Source UID       `json:"source"`
 	Action ContentID `json:"action"`
 	Target UID       `json:"target"`
 	Tick   int64     `json:"tick"`

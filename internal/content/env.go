@@ -24,9 +24,9 @@ type Record struct {
 	Lists map[string][]string `expr:"lists"`
 }
 
-// Side is what a formula sees of one body: its template, one of its parts, and that part's material.
+// BodyEnv is what a formula sees of one body: its template, one of its parts, and that part's material.
 // A record is empty (ID "") when there's none.
-type Side struct {
+type BodyEnv struct {
 	Template Record `expr:"template"`
 	Part     Record `expr:"part"`     // the part's template
 	Material Record `expr:"material"` // the part's own material, which a body plan may override
@@ -41,9 +41,9 @@ type EffectEnv struct {
 	WindingUp bool    `expr:"winding_up"` // the target body has a pending action
 
 	// Source is the acting body; its part is the first channel the action occupies that is a part.
-	Source Side `expr:"source"`
+	Source BodyEnv `expr:"source"`
 	// Target is the target body and the target part.
-	Target Side `expr:"target"`
+	Target BodyEnv `expr:"target"`
 	// Chosen is every choice the action or event carries, as the record its value names. A value
 	// that names no record, such as a direction, is Record{ID: value}.
 	Chosen map[string]Record `expr:"chosen"`
@@ -67,8 +67,8 @@ type ActionEnv struct {
 	Distance  int               `expr:"distance"`   // hexes from the actor to its target, or 0
 	Used      int               `expr:"used"`       // how many channels it occupies
 	Choice    map[string]string `expr:"choice"`     // the choices made, by provider name
-	Source    Side              `expr:"source"`     // the actor and the first part it uses
-	Target    Side              `expr:"target"`     // the target body and part
+	Source    BodyEnv           `expr:"source"`     // the actor and the first part it uses
+	Target    BodyEnv           `expr:"target"`     // the target body and part
 	Chosen    map[string]Record `expr:"chosen"`     // the choices made, as the records they name
 	Pack      map[string]int    `expr:"pack"`       // per item, the stacks the actor's pack can use on the target
 }
@@ -76,14 +76,14 @@ type ActionEnv struct {
 // OfferEnv is what a choice's offer formula sees.
 type OfferEnv struct {
 	Record Record         `expr:"record"` // the candidate
-	Source Side           `expr:"source"` // the actor; only its template is filled in
+	Source BodyEnv        `expr:"source"` // the actor; only its template is filled in
 	Pack   map[string]int `expr:"pack"`   // the actor's whole pack: there's no target yet, so bound stacks count
 }
 
 // ScoreEnv is what combat.ai_score sees of one intent a creature could start.
 type ScoreEnv struct {
-	Source Side              `expr:"source"` // the actor and the first part it uses
-	Target Side              `expr:"target"` // the body aimed at and the part
+	Source BodyEnv           `expr:"source"` // the actor and the first part it uses
+	Target BodyEnv           `expr:"target"` // the body aimed at and the part
 	Chosen map[string]Record `expr:"chosen"` // the choices made, as the records they name
 	Pack   map[string]int    `expr:"pack"`   // per item, the stacks the actor's pack can use on the target
 	// ImmuneKnown is whether the actor knows what the target part is made of.

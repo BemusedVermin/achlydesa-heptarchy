@@ -12,7 +12,7 @@ package api
 #AlertEndedKind:   "combat.alert_ended"
 #BodyDiedKind:     "combat.body_died"
 #BodyDownedKind:   "combat.body_downed"
-#PartyWipedKind:    "combat.party_wiped"
+#PartyWipedKind:   "combat.party_wiped"
 
 #SeveredWorn: "worn"
 #SeveredCut:  "cut"

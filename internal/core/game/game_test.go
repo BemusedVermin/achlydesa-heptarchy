@@ -58,7 +58,7 @@ func TestWaitLogsThePhaseAndReturnsToTheActor(t *testing.T) {
 		t.Fatal(err)
 	}
 	actor := g.Current()
-	events, err := g.Apply(api.Wait{Actor: actor, Until: api.WaitTicks, Ticks: 60})
+	events, err := g.Apply(api.Wait{Source: actor, Until: api.WaitTicks, Ticks: 60})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func waits(t *testing.T, cfg game.Config, n int) []api.Command {
 	actor := g.Current()
 	cmds := make([]api.Command, 0, n)
 	for i := 0; i < n; i++ {
-		cmds = append(cmds, api.Wait{Actor: actor, Until: api.WaitTicks, Ticks: int64(1 + (i*37+11)%70)})
+		cmds = append(cmds, api.Wait{Source: actor, Until: api.WaitTicks, Ticks: int64(1 + (i*37+11)%70)})
 	}
 	return cmds
 }
@@ -196,7 +196,7 @@ func TestRejectedCommandIsAnEventNotAnError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	events, err := g.Apply(api.Wait{Actor: g.Current() + 99, Until: api.WaitPhase})
+	events, err := g.Apply(api.Wait{Source: g.Current() + 99, Until: api.WaitPhase})
 	if err != nil {
 		t.Fatal(err)
 	}

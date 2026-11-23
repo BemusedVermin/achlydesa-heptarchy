@@ -42,7 +42,7 @@ text: "text.a": "a"
 		return out
 	}
 	part := recordWith("part.x", "brittle")
-	env := EffectEnv{Target: Side{Part: part, Material: EmptyRecord(), Template: EmptyRecord()}}
+	env := EffectEnv{Target: BodyEnv{Part: part, Material: EmptyRecord(), Template: EmptyRecord()}}
 	if got := run(program, env); got != int64(1) {
 		t.Errorf("brittle part: rule.either = %v, want 1", got)
 	}
