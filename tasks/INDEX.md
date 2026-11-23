@@ -81,7 +81,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M2-06.F2](followups/M2-06.F2-crawls-tag.md) | A crawls tag, so Stand freezes only the crawlers | todo | feature | M2 | M2-06 |
 | [M2-06.F3](followups/M2-06.F3-relic-innate-to-grafts.md) | Relic as innate to grafts | todo | seam | M2 | M2-06 |
 | [M2-06.F4](followups/M2-06.F4-disabled-option-is-information.md) | A disabled option is information: Name and Keepsake on the wrong body | todo | question | unplanned | M2-06 |
-| [M2-06.F5](followups/M2-06.F5-option-labels-name-the-choice.md) | Option labels show a chosen record's ID, not its name | todo | bug | M2 | M2-06 |
+| [M2-06.F5](followups/M2-06.F5-option-labels-name-the-choice.md) | Option labels show a chosen record's ID, not its name | done | bug | M2 | M2-06 |
 | [M2-13.F1](followups/M2-13.F1-cue-schema-tests.md) | Test CUE constraints against the real schema | done | test | unplanned | M2-13 |
 | [M2-01.F1](followups/M2-01.F1-render-fact-values.md) | Render a fact's value as text in the log | done | seam | unplanned | M2-01 |
 | [M1-15.F1](followups/M1-15.F1-timeline-after-load.md) | Rebuild the turn timeline after loading a save | obsolete | seam | M1 | M1-15 |
