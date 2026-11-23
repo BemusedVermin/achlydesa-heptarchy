@@ -21,3 +21,5 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **target**: the body or part acted on, in event fields and in formulas.
 - **origin**: where a fact came from (`origin.sweep`); knowledge's old `Source`.
 - **BodyEnv**: what a formula sees of one body (`content.BodyEnv`, formerly `Side`). A side is a faction.
+- **chosen**: in an action's formulas, the records the player picked (`chosen.<x>.id`).
+- **params**: a trigger event's numbers, such as `cells` (`api.Params`).

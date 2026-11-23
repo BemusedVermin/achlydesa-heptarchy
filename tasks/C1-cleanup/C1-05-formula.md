@@ -1,7 +1,7 @@
 ---
 id: C1-05
 title: "How are the variables in formula environments named?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -33,14 +33,16 @@ The target part's integrity is `integrity` in EffectEnv but `target_integrity` i
 
 **Recommendation:** Regular names. The loader rejects any unknown variable, so stragglers fail loudly.
 
+**Decided by the owner:** regular names. Target facts sit under `target.` in every formula environment (`target.integrity`, `target.locked`, `target.graft`), matching `source.`. `choice` is dropped for `chosen.<x>.id`. `immune_known` becomes `material_known`. `api.Chosen` (a trigger event's numbers) becomes `api.Params`. The loader rejects unknown variables, so a missed rename fails loudly. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: regular names. In the glossary.
