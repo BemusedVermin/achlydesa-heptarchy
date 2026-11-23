@@ -88,11 +88,12 @@ func alert(w *sim.World) error {
 	if !ok {
 		return nil
 	}
-	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
 	calms := ecs.NewMap[comp.Calm](w.ECS)
 	if !calms.Has(party) {
 		calms.Add(party, &comp.Calm{})
 	}
+	// Fetch after Add: adding a component moves the entity, which leaves earlier pointers stale.
+	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
 	calm := calms.Get(party)
 	hostile, seen, err := firstHostileSeen(w, party)
 	if err != nil {
