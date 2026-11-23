@@ -70,7 +70,16 @@ Agents file a follow-up for anything they notice outside their task's scope. The
 - **Index:** add a row to the Follow-ups table in `INDEX.md`.
 - **Questions:** use `kind: question` for design decisions. Give the options, what each costs, and a recommendation. Never settle a game-design question in code.
 
-The owner triages follow-ups: each becomes `todo` in a milestone, gets merged into another task, or is closed with a reason. The owner can also hand triage to an agent as a task (M2-15 is the first): its pull request proposes the decisions, and merging it approves them.
+The owner triages follow-ups: each becomes `todo` in a milestone, gets merged into another task, or is closed with a reason. He can do it by hand, with `/triage` (it marks what no longer applies and asks him about the rest), or by handing an agent a triage task such as M2-15. Either way, the pull request proposes the decisions and merging it approves them. Design questions go through `/decide` instead.
+
+### How a follow-up is triaged
+
+- **Obsolete:** another change already fixed it, it no longer applies, or it duplicates another task. Set `status: obsolete`, and say which change or task in Notes.
+- **`todo` in a milestone:** pick the earliest milestone whose goal, exit criteria or tasks need it; a bug that hurts current work goes in the current milestone. Set `status: todo` and `milestone`, then set `depends_on` so `agentkit ready` offers it at the right time. For a milestone after the current one, depend on the last task of the milestone before it (for M3, that's M2-11).
+- **Folded into another task:** if it fits a task that isn't done yet, add its point to that task's Spec, Deliverables and acceptance criteria. Then set the follow-up to `obsolete`, naming the task.
+- **Not now:** leave it `proposed`.
+
+Record each decision as one line in the follow-up's Notes, such as `Triaged 2026-11-23: todo in M2, because it blocks the M2 exit criteria.`, and change its `INDEX.md` row in the same commit.
 
 ## Writing a task spec
 
