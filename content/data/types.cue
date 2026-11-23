@@ -35,8 +35,14 @@ types: {
 	// Light has its consume and nothing more: it is gone once opened.
 	"type.light": #Consumable & {_item: "item.daylight_jar", name: "text.type.light"}
 	"type.violet": #Consumable & {_item: "item.violet_blood", name: "text.type.violet"}
-	// Like Name, a keepsake on the wrong body is not refused: the swing lands and does nothing.
-	"type.keepsake": #Consumable & {_item: "item.keepsake", name: "text.type.keepsake"}
+	// Like Name, a keepsake on the wrong body is not refused: the swing lands and does nothing. It is
+	// used up when the swing lands, after the form's own effects, not when it starts: rule.unheld reads
+	// the pack, so the keepsake must still be there when the damage is worked out.
+	"type.keepsake": {
+		name: "text.type.keepsake"
+		lists: consumes: ["item.keepsake"]
+		on_land: [{do: "consume", params: {item: "item.keepsake"}}]
+	}
 	"type.lees": #Consumable & {_item: "item.lees", name: "text.type.lees"}
 }
 
