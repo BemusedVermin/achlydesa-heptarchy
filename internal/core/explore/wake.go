@@ -15,12 +15,7 @@ import (
 // SetRestPlace records where the party last rested, which is where it wakes after a wipe. The
 // party starts with the cell it began on, until towns and resting exist to move it.
 func SetRestPlace(w *sim.World, party ecs.Entity, id api.MapID, at api.Cell) {
-	places := ecs.NewMap[comp.RestPlace](w.ECS)
-	if places.Has(party) {
-		*places.Get(party) = comp.RestPlace{Map: id, At: at}
-		return
-	}
-	places.Add(party, &comp.RestPlace{Map: id, At: at})
+	sim.Put(w, party, comp.RestPlace{Map: id, At: at})
 }
 
 // CanWake reports whether the controlled party has a rest place and a downed member to get up. A
@@ -57,8 +52,6 @@ func Wake(w *sim.World) error {
 	downed := ecs.NewMap[comp.Downed](w.ECS)
 	identities := ecs.NewMap[comp.Identity](w.ECS)
 	parts := ecs.NewMap[comp.Part](w.ECS)
-	positions := ecs.NewMap[comp.Pos](w.ECS)
-	trails := ecs.NewMap[comp.Trail](w.ECS)
 	actors := ecs.NewMap[comp.Actor](w.ECS)
 	taken := map[api.Cell]bool{}
 	occupied := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
@@ -78,17 +71,8 @@ func Wake(w *sim.World) error {
 		}
 		taken[at] = true
 		pos := comp.Pos{Map: place.Map, At: at}
-		if positions.Has(member) {
-			*positions.Get(member) = pos
-		} else {
-			positions.Add(member, &pos)
-		}
-		trail := comp.Trail{Last: at}
-		if trails.Has(member) {
-			*trails.Get(member) = trail
-		} else {
-			trails.Add(member, &trail)
-		}
+		sim.Put(w, member, pos)
+		sim.Put(w, member, comp.Trail{Last: at})
 		if !downed.Has(member) {
 			continue
 		}

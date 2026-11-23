@@ -134,7 +134,7 @@ func (ev *evaluator) findBodyTargets(actor ecs.Entity, def content.ActionDef) ([
 	for query.Next() {
 		bodies = append(bodies, query.Entity())
 	}
-	sortByUID(ev.w, bodies)
+	ev.w.SortByUID(bodies)
 	var out []Intent
 	for _, body := range bodies {
 		if body == actor {
@@ -158,20 +158,6 @@ func (ev *evaluator) findBodyTargets(actor ecs.Entity, def content.ActionDef) ([
 	return out, nil
 }
 
-func sortByUID(w *sim.World, entities []ecs.Entity) {
-	slices.SortStableFunc(entities, func(a, b ecs.Entity) int { return cmpUID(w.UIDOf(a), w.UIDOf(b)) })
-}
-
-func cmpUID(a, b api.UID) int {
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
-	}
-	return 0
-}
-
 // orderOptions sorts candidates into option order: the action's key, then its choices, then the
 // target, the part, the direction and the channels, by UID. Every list of intents and options goes
 // through it, so they always agree.
@@ -192,10 +178,10 @@ func orderOptions(w *sim.World, list []candidate) {
 		if c := slices.Compare(a.choiceValues, b.choiceValues); c != 0 {
 			return c
 		}
-		if c := cmpUID(w.UIDOf(a.intent.Target), w.UIDOf(b.intent.Target)); c != 0 {
+		if c := w.CompareUID(a.intent.Target, b.intent.Target); c != 0 {
 			return c
 		}
-		if c := cmpUID(w.UIDOf(a.intent.TargetPart), w.UIDOf(b.intent.TargetPart)); c != 0 {
+		if c := w.CompareUID(a.intent.TargetPart, b.intent.TargetPart); c != 0 {
 			return c
 		}
 		if c := dirOf(a.intent) - dirOf(b.intent); c != 0 {

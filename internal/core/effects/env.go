@@ -17,7 +17,7 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 	env := content.BodyEnv{
 		Template: content.EmptyRecord(), Part: content.EmptyRecord(), Material: content.EmptyRecord(),
 	}
-	if alive(w, body) {
+	if w.Alive(body) {
 		if identities := ecs.NewMap[comp.Identity](w.ECS); identities.Has(body) {
 			env.Template, _ = w.Content.Record(identities.Get(body).Template)
 		}
@@ -34,7 +34,7 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 			}
 		}
 	}
-	if alive(w, part) {
+	if w.Alive(part) {
 		if parts := ecs.NewMap[comp.Part](w.ECS); parts.Has(part) {
 			data := parts.Get(part)
 			env.Part, _ = w.Content.Record(data.Template)

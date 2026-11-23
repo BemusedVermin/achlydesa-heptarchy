@@ -62,7 +62,7 @@ func membersOf(w *sim.World, party ecs.Entity) []ecs.Entity {
 		members = append(members, query.Entity())
 	}
 	rank := map[api.UID]int{}
-	if parties := ecs.NewMap[comp.Party](w.ECS); alive(w, party) && parties.Has(party) {
+	if parties := ecs.NewMap[comp.Party](w.ECS); w.Alive(party) && parties.Has(party) {
 		for i, uid := range parties.Get(party).Order {
 			rank[uid] = i
 		}
@@ -109,8 +109,6 @@ func partyOf(w *sim.World, member ecs.Entity) (ecs.Entity, bool) {
 	return ecs.Entity{}, false
 }
 
-func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
-
 // markSeen records cells a party has seen on a map. cells need not be sorted.
 func markSeen(w *sim.World, party ecs.Entity, id api.MapID, cells []api.Cell) {
 	seen := ecs.NewMap[comp.Seen](w.ECS)
@@ -152,7 +150,7 @@ func mergeCells(a, b []api.Cell) []api.Cell {
 // seenIn returns the cells a party has seen on a map, sorted by depth, then R, then Q.
 func seenIn(w *sim.World, party ecs.Entity, id api.MapID) []api.Cell {
 	seen := ecs.NewMap[comp.Seen](w.ECS)
-	if !alive(w, party) || !seen.Has(party) {
+	if !w.Alive(party) || !seen.Has(party) {
 		return nil
 	}
 	return seen.Get(party).ByMap[id]
@@ -198,7 +196,7 @@ func partySight(w *sim.World, party ecs.Entity) (map[api.MapID]map[api.Cell]bool
 // templateName is the text ID that names a body, "text.template.<template without its prefix>".
 func templateName(w *sim.World, e ecs.Entity) api.Text {
 	identities := ecs.NewMap[comp.Identity](w.ECS)
-	if !alive(w, e) || !identities.Has(e) {
+	if !w.Alive(e) || !identities.Has(e) {
 		return api.Text{ID: "text.template.unknown"}
 	}
 	template := strings.TrimPrefix(string(identities.Get(e).Template), "template.")

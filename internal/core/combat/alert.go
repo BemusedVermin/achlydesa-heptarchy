@@ -40,7 +40,7 @@ func hostileCandidates(w *sim.World) []ecs.Entity {
 			out = append(out, e)
 		}
 	}
-	slices.SortFunc(out, func(a, b ecs.Entity) int { return int(w.UIDOf(a)) - int(w.UIDOf(b)) })
+	w.SortByUID(out)
 	return out
 }
 

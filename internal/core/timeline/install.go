@@ -1,6 +1,7 @@
 package timeline
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"slices"
@@ -122,17 +123,7 @@ func (st *state) visibleEntries(w *sim.World) []api.TimelineEntry {
 		decisions = append(decisions, decision{s.tick, s.e})
 	}
 	slices.SortFunc(decisions, func(a, b decision) int {
-		if a.tick != b.tick {
-			return int(a.tick - b.tick)
-		}
-		ua, ub := w.UIDOf(a.body), w.UIDOf(b.body)
-		switch {
-		case ua < ub:
-			return -1
-		case ua > ub:
-			return 1
-		}
-		return 0
+		return cmp.Or(cmp.Compare(a.tick, b.tick), w.CompareUID(a.body, b.body))
 	})
 	appearances := ecs.NewMap[comp.Appearance](w.ECS)
 	identities := ecs.NewMap[comp.Identity](w.ECS)
@@ -167,7 +158,7 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 	entries := append(st.visibleEntries(w), st.landsEntries(w)...)
 	slices.SortStableFunc(entries, func(a, b api.TimelineEntry) int {
 		if a.Tick != b.Tick {
-			return cmpInt(a.Tick, b.Tick)
+			return cmp.Compare(a.Tick, b.Tick)
 		}
 		// Landings come before decisions at the same tick.
 		switch {

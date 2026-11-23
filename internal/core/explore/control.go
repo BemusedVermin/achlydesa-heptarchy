@@ -124,7 +124,7 @@ func partyControl(w *sim.World) error {
 	for query.Next() {
 		parties = append(parties, query.Entity())
 	}
-	slices.SortFunc(parties, func(a, b ecs.Entity) int { return int(w.UIDOf(a)) - int(w.UIDOf(b)) })
+	w.SortByUID(parties)
 	for _, party := range parties {
 		state := ecs.NewMap[comp.Party](w.ECS).Get(party)
 		if state.Alert != state.AlertSeen {

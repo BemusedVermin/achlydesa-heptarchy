@@ -80,7 +80,7 @@ func Take(w *sim.World, holder ecs.Entity, item api.ContentID, boundTo api.UID, 
 // HolderOf is who keeps the body's inventory: its party when it is a member, otherwise itself. A body
 // that is gone has no holder (the zero entity).
 func HolderOf(w *sim.World, body ecs.Entity) ecs.Entity {
-	if body.IsZero() || !w.ECS.Alive(body) {
+	if !w.Alive(body) {
 		return ecs.Entity{}
 	}
 	members := ecs.NewMap[comp.MemberOf](w.ECS)
@@ -100,7 +100,7 @@ func Usable(w *sim.World, body, target ecs.Entity) map[string]int {
 		return out
 	}
 	var targetUID api.UID
-	if !target.IsZero() && w.ECS.Alive(target) {
+	if w.Alive(target) {
 		targetUID = w.UIDOf(target)
 	}
 	for _, stack := range inventories.Get(holder).Stacks {

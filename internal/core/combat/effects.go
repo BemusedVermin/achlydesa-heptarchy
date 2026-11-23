@@ -1,6 +1,7 @@
 package combat
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"maps"
@@ -111,12 +112,7 @@ func sever(w *sim.World, source, part ecs.Entity, cause string) {
 	ecs.NewMap[comp.PartOf](w.ECS).Remove(part)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if positions.Has(body) {
-		at := *positions.Get(body)
-		if positions.Has(part) {
-			*positions.Get(part) = at
-		} else {
-			positions.Add(part, &at)
-		}
+		sim.Put(w, part, *positions.Get(body))
 	}
 	w.Bus.Publish(
 		api.PartSevered{Body: w.UIDOf(body), Part: w.UIDOf(part), Cause: cause, Source: w.UIDOf(source), Tick: w.Now},
@@ -237,7 +233,7 @@ func applyAddStatus(ctx *effects.Context, p effects.Params) error {
 		active := statuses.Get(body)
 		entry := comp.StatusEntry{Status: api.ContentID(status), Until: until}
 		at, found := slices.BinarySearchFunc(active.Active, entry, func(a, b comp.StatusEntry) int {
-			return compareIDs(a.Status, b.Status)
+			return cmp.Compare(a.Status, b.Status)
 		})
 		if found {
 			active.Active[at].Until = max(active.Active[at].Until, until)
@@ -256,16 +252,6 @@ func applyAddStatus(ctx *effects.Context, p effects.Params) error {
 		)
 	}
 	return nil
-}
-
-func compareIDs(a, b api.ContentID) int {
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
-	}
-	return 0
 }
 
 // expireStatuses removes every status whose tick has come, and the component once none is left.
@@ -330,7 +316,7 @@ func severedNear(w *sim.World, body ecs.Entity) ecs.Entity {
 	if len(found) == 0 {
 		return ecs.Entity{}
 	}
-	return slices.MinFunc(found, func(a, b ecs.Entity) int { return int(w.UIDOf(a)) - int(w.UIDOf(b)) })
+	return slices.MinFunc(found, w.CompareUID)
 }
 
 func checkAttach(ctx *effects.Context, p effects.Params) (bool, api.Text) {

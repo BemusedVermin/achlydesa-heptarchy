@@ -1,6 +1,7 @@
 package combat
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 
@@ -66,7 +67,7 @@ func visibleBodies(w *sim.World, party ecs.Entity) ([]ecs.Entity, error) {
 	for body := range chosen {
 		out = append(out, body)
 	}
-	slices.SortFunc(out, func(a, b ecs.Entity) int { return int(w.UIDOf(a)) - int(w.UIDOf(b)) })
+	w.SortByUID(out)
 	return out, nil
 }
 
@@ -92,10 +93,7 @@ func buildBodies(w *sim.World, v *api.View) error {
 		view.Threats = append(view.Threats, threatsAt(w, member)...)
 	}
 	slices.SortStableFunc(view.Threats, func(a, b api.ThreatView) int {
-		if a.Tick != b.Tick {
-			return int(a.Tick - b.Tick)
-		}
-		return int(a.Attacker) - int(b.Attacker)
+		return cmp.Or(cmp.Compare(a.Tick, b.Tick), cmp.Compare(a.Attacker, b.Attacker))
 	})
 	v.Bodies = view
 	return nil

@@ -1,6 +1,7 @@
 package effects
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 
@@ -122,13 +123,7 @@ func runTriggers(w *sim.World, e api.Event) {
 		}
 	}
 	slices.SortFunc(firings, func(a, b firing) int {
-		if a.uid != b.uid {
-			if a.uid < b.uid {
-				return -1
-			}
-			return 1
-		}
-		return a.order - b.order
+		return cmp.Or(cmp.Compare(a.uid, b.uid), cmp.Compare(a.order, b.order))
 	})
 	var choices map[string]string
 	if withParams, ok := e.(api.Params); ok {

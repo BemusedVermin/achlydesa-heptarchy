@@ -119,13 +119,7 @@ func leaveTimeline(w *sim.World, body ecs.Entity) {
 // makeCorpse draws the body as a corpse.
 func makeCorpse(w *sim.World, body ecs.Entity) {
 	cfg := w.Content.Combat()
-	appearances := ecs.NewMap[comp.Appearance](w.ECS)
-	look := comp.Appearance{Glyph: cfg.CorpseGlyph, Color: cfg.CorpseColor}
-	if appearances.Has(body) {
-		*appearances.Get(body) = look
-	} else {
-		appearances.Add(body, &look)
-	}
+	sim.Put(w, body, comp.Appearance{Glyph: cfg.CorpseGlyph, Color: cfg.CorpseColor})
 }
 
 // checkPartyWiped publishes PartyWiped when the body belonged to the controlled party and every

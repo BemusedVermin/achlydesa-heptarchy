@@ -48,8 +48,6 @@ type modifierFunc func(w *sim.World, in Intent) Modifier
 // why is the reason text for one of this package's own refusals.
 func why(id string) api.Text { return api.Text{ID: api.ContentID("text.actions." + id)} }
 
-func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
-
 // plan is an intent that has been worked out: the content, the channels it takes, and what it costs.
 type plan struct {
 	id       api.ContentID
@@ -110,7 +108,7 @@ func newEvaluator(w *sim.World) *evaluator {
 
 // known lists the actions the body knows, from its template.
 func (ev *evaluator) known(actor ecs.Entity) []api.ContentID {
-	if !alive(ev.w, actor) || !ev.identities.Has(actor) {
+	if !ev.w.Alive(actor) || !ev.identities.Has(actor) {
 		return nil
 	}
 	template, ok := ev.w.Content.Template(ev.identities.Get(actor).Template)
@@ -143,7 +141,7 @@ func (ev *evaluator) sees(source, target ecs.Entity) (bool, error) {
 
 // distance is the hex distance between two bodies on the same map, or 0 when it has no meaning.
 func (ev *evaluator) distance(a, b ecs.Entity) int {
-	if !alive(ev.w, a) || !alive(ev.w, b) || !ev.positions.Has(a) || !ev.positions.Has(b) {
+	if !ev.w.Alive(a) || !ev.w.Alive(b) || !ev.positions.Has(a) || !ev.positions.Has(b) {
 		return 0
 	}
 	pa, pb := ev.positions.Get(a), ev.positions.Get(b)
@@ -157,7 +155,7 @@ func (ev *evaluator) distance(a, b ecs.Entity) int {
 // range, and in sight when the action needs it. The empty Text means yes.
 func (ev *evaluator) reach(actor, target ecs.Entity, def content.ActionDef) (api.Text, error) {
 	w := ev.w
-	if !alive(w, actor) || !alive(w, target) || !ev.positions.Has(actor) || !ev.positions.Has(target) ||
+	if !w.Alive(actor) || !w.Alive(target) || !ev.positions.Has(actor) || !ev.positions.Has(target) ||
 		ev.positions.Get(actor).Map != ev.positions.Get(target).Map {
 		return why("bad_target"), nil
 	}
@@ -178,7 +176,7 @@ func (ev *evaluator) reach(actor, target ecs.Entity, def content.ActionDef) (api
 
 // hasPart reports whether part is one of target's own parts: a channel that is not the body.
 func (ev *evaluator) hasPart(target, part ecs.Entity) bool {
-	if !alive(ev.w, part) || part == target {
+	if !ev.w.Alive(part) || part == target {
 		return false
 	}
 	for _, c := range timeline.Channels(ev.w, target) {
@@ -235,7 +233,7 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 
 // isBody reports whether e is a body: a living entity on the timeline.
 func (ev *evaluator) isBody(e ecs.Entity) bool {
-	return alive(ev.w, e) && ev.actors.Has(e)
+	return ev.w.Alive(e) && ev.actors.Has(e)
 }
 
 // checkChoices checks that the intent made exactly the choices the action asks for, each one offered.
@@ -324,7 +322,7 @@ func (ev *evaluator) modify(p *plan) error {
 // requireFree says whether the channels must be free; the usable hook asks without it.
 func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, error) {
 	w := ev.w
-	if !alive(w, in.Actor) {
+	if !w.Alive(in.Actor) {
 		return nil, why("not_known"), nil
 	}
 	def, ok := w.Content.Action(in.Action)
@@ -530,7 +528,7 @@ func (ev *evaluator) miss(p *plan, reason api.Text) {
 // nameOf is the rendered name of a body, from its template.
 func (ev *evaluator) nameOf(e ecs.Entity) string {
 	name := api.Text{ID: "text.template.unknown"}
-	if alive(ev.w, e) && ev.identities.Has(e) {
+	if ev.w.Alive(e) && ev.identities.Has(e) {
 		name.ID = api.ContentID(
 			"text.template." + strings.TrimPrefix(string(ev.identities.Get(e).Template), "template."),
 		)

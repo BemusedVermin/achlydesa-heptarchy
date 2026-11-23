@@ -17,7 +17,7 @@ import (
 func applyActAlone(ctx *effects.Context, _ effects.Params) error {
 	w := ctx.World
 	part, body := ctx.SourcePart, ctx.Source
-	if part.IsZero() || body.IsZero() || !w.ECS.Alive(part) || !w.ECS.Alive(body) ||
+	if !w.Alive(part) || !w.Alive(body) ||
 		!ecs.NewMap[comp.Graft](w.ECS).Has(part) || bodyOf(w, part) != body {
 		return nil
 	}

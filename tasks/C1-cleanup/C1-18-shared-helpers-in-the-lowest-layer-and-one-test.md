@@ -1,7 +1,7 @@
 ---
 id: C1-18
 title: "Shared helpers in the lowest layer, and one test fixture"
-status: todo
+status: in-progress
 milestone: C1
 kind: debt
 depends_on: [C1-17, C1-13]

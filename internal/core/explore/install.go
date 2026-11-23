@@ -54,7 +54,7 @@ func Install(w *sim.World) error {
 // in transit) report false and step in place.
 func onMap(w *sim.World, body ecs.Entity) (*comp.Pos, *hexmap.Map, bool) {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if !alive(w, body) || !positions.Has(body) {
+	if !w.Alive(body) || !positions.Has(body) {
 		return nil, nil, false
 	}
 	pos := positions.Get(body)
@@ -248,7 +248,7 @@ func visibleBody(w *sim.World, body ecs.Entity) bool {
 	}
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	party, ok := controlledParty(w)
-	if !ok || !alive(w, body) || !positions.Has(body) {
+	if !ok || !w.Alive(body) || !positions.Has(body) {
 		return false
 	}
 	sight, err := partySight(w, party)
