@@ -17,3 +17,7 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **out of the fight**: dead or downed (`outOfFight()`).
 - **party wipe**: every member is out of the fight. It is recoverable: the party wakes where it last rested (`api.PartyWiped`).
 - **lost**: the unrecoverable end, a wipe where the party cannot wake.
+- **source**: the acting body, in event fields and in formulas.
+- **target**: the body or part acted on, in event fields and in formulas.
+- **origin**: where a fact came from (`origin.sweep`); knowledge's old `Source`.
+- **BodyEnv**: what a formula sees of one body (`content.BodyEnv`, formerly `Side`). A side is a faction.
