@@ -32,3 +32,4 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **per-entry**: runs after each timeline entry (`sim.PerEntry`).
 - **systems due**: the timeline's flag that per-entry systems have not yet run (`SystemsDue`).
 - **wild**: the hostile creatures as a side (`faction.wild`). The deep is the place.
+- **text ID**: a record's name is `text.<record id>` and sits beside the record. An engine message is `text.<package>.<event>` in that package's file under `text/`.
