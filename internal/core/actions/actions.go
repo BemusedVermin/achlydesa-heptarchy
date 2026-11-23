@@ -16,6 +16,12 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
+// StepRules are the step limits from the party config: how far a body can climb or drop in one step.
+func StepRules(w *sim.World) hexmap.StepRules {
+	cfg := w.Content.Party()
+	return hexmap.StepRules{MaxStepUp: cfg.MaxStepUp, MaxStepDown: cfg.MaxStepDown, MaxDrop: cfg.MaxDrop}
+}
+
 // landKind is the pending-action kind of an action that lands later.
 const landKind = "actions.land"
 

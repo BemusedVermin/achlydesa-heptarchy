@@ -114,12 +114,11 @@ func TestCellsInSortedAndStable(t *testing.T) {
 	if want := 2 * 19; len(first) != want {
 		t.Fatalf("CellsIn returned %d cells, want %d", len(first), want)
 	}
-	if !slices.IsSortedFunc(first, compareCells) {
+	if !slices.IsSortedFunc(first, CompareCells) {
 		t.Error("CellsIn is not sorted by Depth, R, Q")
 	}
 	for _, c := range first {
-		dq, dr := c.Hex.Q-center.Q, c.Hex.R-center.R
-		if dist := (abs(dq) + abs(dr) + abs(dq+dr)) / 2; dist > 2 {
+		if dist := Distance(c.Hex, center); dist > 2 {
 			t.Errorf("%v is %d hexes from the center", c, dist)
 		}
 	}
@@ -134,11 +133,4 @@ func TestCellsInSortedAndStable(t *testing.T) {
 	if got := m.CellsIn(center, 1, 2, 1); got != nil {
 		t.Errorf("empty depth range gave %v", got)
 	}
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }

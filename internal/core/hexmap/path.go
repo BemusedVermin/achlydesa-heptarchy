@@ -4,7 +4,6 @@ import (
 	"iter"
 
 	"github.com/fzipp/astar"
-	hex "github.com/gravitton/hexagon"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
@@ -25,10 +24,7 @@ func (m *Map) Path(
 	}
 	graph := &walkGraph{m: m, rules: rules, maxNodes: maxNodes, steps: map[[2]api.Cell]Step{}}
 	price := func(a, b api.Cell) float64 { return cost(graph.steps[[2]api.Cell{a, b}]) }
-	heuristic := func(a, b api.Cell) float64 {
-		h := hex.Pt(a.Hex.Q, a.Hex.R).DistanceTo(hex.Pt(b.Hex.Q, b.Hex.R))
-		return float64(h + absInt(a.Depth-b.Depth))
-	}
+	heuristic := func(a, b api.Cell) float64 { return float64(CellDistance(a, b)) }
 	route := astar.FindPath[api.Cell](graph, from, to, price, heuristic)
 	if graph.err != nil {
 		return nil, false, graph.err
@@ -56,21 +52,13 @@ func (g *walkGraph) Neighbours(n api.Cell) iter.Seq[api.Cell] {
 			return
 		}
 		g.expanded++
-		for dir := api.Dir(0); dir < api.DirCount; dir++ {
-			step, ok, err := g.m.Step(n, dir, g.rules)
+		for step, err := range g.m.localSteps(n, g.rules) {
 			if err != nil {
 				g.err = err
 				return
 			}
-			if !ok {
-				continue
-			}
-			to, local := g.m.local(step.To)
-			if !local {
-				continue
-			}
-			g.steps[[2]api.Cell{n, to}] = step
-			if !yield(to) {
+			g.steps[[2]api.Cell{n, step.To.Cell}] = step
+			if !yield(step.To.Cell) {
 				return
 			}
 		}
@@ -92,18 +80,11 @@ func (m *Map) Reachable(
 	for steps := 1; steps <= maxSteps && len(frontier) > 0; steps++ {
 		var next []api.Cell
 		for _, cell := range frontier {
-			for dir := api.Dir(0); dir < api.DirCount; dir++ {
-				step, ok, err := m.Step(cell, dir, rules)
+			for step, err := range m.localSteps(cell, rules) {
 				if err != nil {
 					return nil, err
 				}
-				if !ok {
-					continue
-				}
-				to, local := m.local(step.To)
-				if !local {
-					continue
-				}
+				to := step.To.Cell
 				if _, seen := reached[to]; seen || (allow != nil && !allow(to)) {
 					continue
 				}
@@ -116,9 +97,39 @@ func (m *Map) Reachable(
 	return reached, nil
 }
 
-func absInt(n int) int {
-	if n < 0 {
-		return -n
+// localSteps yields the legal steps from the cell that end on this map, in direction order. A loading error is
+// yielded once, with a zero Step, and ends the sequence.
+func (m *Map) localSteps(from api.Cell, rules StepRules) iter.Seq2[Step, error] {
+	return func(yield func(Step, error) bool) {
+		for dir := range api.Dir(api.DirCount) {
+			step, ok, err := m.Step(from, dir, rules)
+			if err != nil {
+				yield(Step{}, err)
+				return
+			}
+			if !ok {
+				continue
+			}
+			if _, local := m.local(step.To); !local {
+				continue
+			}
+			if !yield(step, nil) {
+				return
+			}
+		}
 	}
-	return n
+}
+
+// DirTo finds the direction of the one legal step from a cell that ends in the target cell on this map.
+func (m *Map) DirTo(from, to api.Cell, rules StepRules) (api.Dir, bool, error) {
+	for dir := range api.Dir(api.DirCount) {
+		step, ok, err := m.Step(from, dir, rules)
+		if err != nil {
+			return 0, false, err
+		}
+		if cell, local := m.local(step.To); ok && local && cell == to {
+			return dir, true, nil
+		}
+	}
+	return 0, false, nil
 }

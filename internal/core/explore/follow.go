@@ -87,16 +87,7 @@ func dirTo(w *sim.World, from comp.Pos, cell api.Cell) (api.Dir, bool, error) {
 	if m == nil {
 		return 0, false, nil
 	}
-	for dir := api.Dir(0); dir < api.DirCount; dir++ {
-		step, can, err := m.Step(from.At, dir, stateOf(w).rules)
-		if err != nil {
-			return 0, false, err
-		}
-		if can && (step.To.Map == 0 || step.To.Map == from.Map) && step.To.Cell == cell {
-			return dir, true, nil
-		}
-	}
-	return 0, false, nil
+	return m.DirTo(from.At, cell, stateOf(w).rules)
 }
 
 // stepTo steps the body one step in a direction, unless somebody stands there or the step is not

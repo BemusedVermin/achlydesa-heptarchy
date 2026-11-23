@@ -182,7 +182,7 @@ func nearest(w *sim.World, m *hexmap.Map, h api.Hex, depths []int, focus int) (d
 		if !ok {
 			continue
 		}
-		distance, bestDistance := abs(depth-focus), abs(best.depth-focus)
+		distance, bestDistance := max(depth-focus, focus-depth), max(best.depth-focus, focus-best.depth)
 		if !found || distance < bestDistance || (distance == bestDistance && depth < best.depth) {
 			best, found = candidate, true
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -30,16 +31,10 @@ func stateOf(w *sim.World) *state {
 	}
 	st := &state{names: map[api.MapID]api.ContentID{}}
 	if w.Content != nil {
-		cfg := w.Content.Party()
-		st.rules = hexmap.StepRules{MaxStepUp: cfg.MaxStepUp, MaxStepDown: cfg.MaxStepDown, MaxDrop: cfg.MaxDrop}
+		st.rules = actions.StepRules(w)
 	}
 	res.Add(st)
 	return st
-}
-
-// compareCells orders cells by depth, then R, then Q.
-func compareCells(a, b api.Cell) int {
-	return cmp.Or(cmp.Compare(a.Depth, b.Depth), cmp.Compare(a.Hex.R, b.Hex.R), cmp.Compare(a.Hex.Q, b.Hex.Q))
 }
 
 // membersOf lists the members of a party in party order: the leader first, each follower behind the
@@ -90,7 +85,7 @@ func markSeen(w *sim.World, party ecs.Entity, id api.MapID, cells []api.Cell) {
 		known.ByMap = map[api.MapID][]api.Cell{}
 	}
 	fresh := slices.Clone(cells)
-	slices.SortFunc(fresh, compareCells)
+	slices.SortFunc(fresh, hexmap.CompareCells)
 	fresh = slices.CompactFunc(fresh, func(a, b api.Cell) bool { return a == b })
 	known.ByMap[id] = mergeCells(known.ByMap[id], fresh)
 }
@@ -100,7 +95,7 @@ func mergeCells(a, b []api.Cell) []api.Cell {
 	out := make([]api.Cell, 0, len(a)+len(b))
 	i, j := 0, 0
 	for i < len(a) && j < len(b) {
-		switch c := compareCells(a[i], b[j]); {
+		switch c := hexmap.CompareCells(a[i], b[j]); {
 		case c < 0:
 			out = append(out, a[i])
 			i++
@@ -283,11 +278,11 @@ func nearestFree(
 			}
 		}
 		if len(free) > 0 {
-			return slices.MinFunc(free, compareCells), nil
+			return slices.MinFunc(free, hexmap.CompareCells), nil
 		}
 		var next []api.Cell
 		for _, cell := range frontier {
-			for dir := api.Dir(0); dir < api.DirCount; dir++ {
+			for dir := range api.Dir(api.DirCount) {
 				step, can, err := m.Step(cell, dir, rules)
 				if err != nil {
 					return api.Cell{}, err
@@ -302,13 +297,6 @@ func nearestFree(
 		frontier = next
 	}
 	return api.Cell{}, fmt.Errorf("explore: no free standable cell within %d steps of the start mark", searchRadius)
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }
 
 // Content check: the terrain a cell shows in the plan view.

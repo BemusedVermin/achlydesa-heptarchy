@@ -182,19 +182,12 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 		if pos.Map != from.Map || !seen[pos.At] || !Hostile(w, body, other) {
 			continue
 		}
-		distance := hexmap.Distance(from.At.Hex, pos.At.Hex) + abs(from.At.Depth-pos.At.Depth)
+		distance := hexmap.CellDistance(from.At, pos.At)
 		if best.IsZero() || distance < bestDistance {
 			best, bestDistance = other, distance
 		}
 	}
 	return best, !best.IsZero(), nil
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }
 
 // stepToward takes the step along the path to the prey, when the step action is startable.
@@ -206,21 +199,17 @@ func stepToward(w *sim.World, body, prey ecs.Entity, startable []actions.Intent)
 	if m == nil || from.Map != to.Map {
 		return nil
 	}
-	cfg := w.Content.Party()
-	rules := hexmap.StepRules{MaxStepUp: cfg.MaxStepUp, MaxStepDown: cfg.MaxStepDown, MaxDrop: cfg.MaxDrop}
+	rules := actions.StepRules(w)
 	route, found, err := m.Path(from.At, to.At, rules, nil, huntPathNodes)
 	if err != nil || !found || len(route) < 2 {
 		return err
 	}
+	dir, can, err := m.DirTo(from.At, route[1], rules)
+	if err != nil || !can {
+		return err
+	}
 	for _, in := range startable {
-		if in.Action != stepID || in.Dir == nil {
-			continue
-		}
-		step, can, err := m.Step(from.At, *in.Dir, rules)
-		if err != nil {
-			return err
-		}
-		if can && (step.To.Map == 0 || step.To.Map == from.Map) && step.To.Cell == route[1] {
+		if in.Action == stepID && in.Dir != nil && *in.Dir == dir {
 			return actions.Start(w, in)
 		}
 	}

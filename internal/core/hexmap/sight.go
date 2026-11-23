@@ -43,11 +43,11 @@ func (m *Map) computeVisible(from api.Cell, radius, depthRange int) ([]api.Cell,
 	candidates := m.CellsIn(from.Hex, radius, from.Depth-depthRange, from.Depth+depthRange)
 	out := make([]api.Cell, 0, len(candidates))
 	for _, target := range candidates {
-		clear, err := m.clearLine(from, target)
+		visible, err := m.clearLine(from, target)
 		if err != nil {
 			return nil, err
 		}
-		if clear {
+		if visible {
 			out = append(out, target)
 		}
 	}
@@ -65,7 +65,7 @@ func (m *Map) clearLine(from, to api.Cell) (bool, error) {
 	lowClear, highClear := true, true // cells at the floor / ceiling of the interpolated depth
 	for i := 1; i < steps; i++ {
 		num := from.Depth*steps + dd*i
-		low := floorDivInt(num, steps)
+		low := floorDiv(num, steps)
 		high := low
 		if num%steps != 0 {
 			high = low + 1
@@ -107,16 +107,12 @@ func (m *Map) opaque(c api.Cell) (bool, error) {
 	return t.Opaque, err
 }
 
-func floorDivInt(a, b int) int {
-	q := a / b
-	if a%b != 0 && (a < 0) != (b < 0) {
-		q--
-	}
-	return q
-}
-
 // Distance is the number of hex steps between two cells of a layer, ignoring depth.
 func Distance(a, b api.Hex) int {
-	dq, dr := a.Q-b.Q, a.R-b.R
-	return (absInt(dq) + absInt(dr) + absInt(dq+dr)) / 2
+	return hex.Pt(a.Q, a.R).DistanceTo(hex.Pt(b.Q, b.R))
+}
+
+// CellDistance is the hex distance between two cells plus their difference in depth.
+func CellDistance(a, b api.Cell) int {
+	return Distance(a.Hex, b.Hex) + max(a.Depth-b.Depth, b.Depth-a.Depth)
 }

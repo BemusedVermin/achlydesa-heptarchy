@@ -124,20 +124,10 @@ func (f *fight) checkInReach(w *sim.World, e api.PartDamaged) {
 		return
 	}
 	from, to := positions.Get(source).At, positions.Get(target).At
-	reach := hexmap.Distance(from.Hex, to.Hex)
-	if from.Depth != to.Depth {
-		reach += abs(from.Depth - to.Depth)
-	}
+	reach := hexmap.CellDistance(from, to)
 	if reach > 1 {
 		f.fail("body %d hit body %d from %d cells away", e.Source, e.Body, reach)
 	}
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }
 
 // check looks at the world between two commands.

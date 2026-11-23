@@ -17,7 +17,7 @@ type ChunkKey struct{ Q, R, Depth int }
 
 // KeyOf is the key of the chunk holding c. It floors, so negative coordinates fall in the right chunk.
 func KeyOf(c api.Cell) ChunkKey {
-	return ChunkKey{Q: floorDiv(c.Hex.Q), R: floorDiv(c.Hex.R), Depth: floorDiv(c.Depth)}
+	return ChunkKey{Q: floorDiv(c.Hex.Q, ChunkSize), R: floorDiv(c.Hex.R, ChunkSize), Depth: floorDiv(c.Depth, ChunkSize)}
 }
 
 // Origin is the lowest cell coordinate in the chunk.
@@ -25,20 +25,17 @@ func (k ChunkKey) Origin() api.Cell {
 	return api.Cell{Hex: api.Hex{Q: k.Q * ChunkSize, R: k.R * ChunkSize}, Depth: k.Depth * ChunkSize}
 }
 
-func floorDiv(n int) int {
-	q := n / ChunkSize
-	if n%ChunkSize < 0 {
+// floorDiv divides rounding toward negative infinity, for a positive divisor.
+func floorDiv(n, divisor int) int {
+	q := n / divisor
+	if n%divisor < 0 {
 		q--
 	}
 	return q
 }
 
 func floorMod(n int) int {
-	m := n % ChunkSize
-	if m < 0 {
-		m += ChunkSize
-	}
-	return m
+	return n - floorDiv(n, ChunkSize)*ChunkSize
 }
 
 // Chunk holds ChunkSize³ cells as indexes into a small terrain palette.
