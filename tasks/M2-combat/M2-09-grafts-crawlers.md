@@ -1,7 +1,7 @@
 ---
 id: M2-09
 title: Graft autonomy and crawling parts
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M2-05, M2-08]
@@ -38,14 +38,22 @@ Grafted parts sometimes act on their own, and parts severed from pre-entropy thi
 
 ## Acceptance criteria
 
-- [ ] With the roll forced to 0 (a test stream), when its host decides, a grafted member's graft starts a swing on its own, and the host's other arms stay free.
-- [ ] Severing a pre-entropy creature's arm with a forced roll turns that arm into a body at its cell, with `Pos`, allegiance `faction.crawling`, and an `Actor` with the `hunt` controller, so it acts on its own.
-- [ ] The party stays on alert while a crawling part outlives its source, until it's dead too.
-- [ ] Rot used on a grafted ally damages the graft.
-- [ ] `go tool task check` passes.
+- [x] With the roll forced to 0 (a test stream), when its host decides, a grafted member's graft starts a swing on its own, and the host's other arms stay free.
+- [x] Severing a pre-entropy creature's arm with a forced roll turns that arm into a body at its cell, with `Pos`, allegiance `faction.crawling`, and an `Actor` with the `hunt` controller, so it acts on its own.
+- [x] The party stays on alert while a crawling part outlives its source, until it's dead too.
+- [x] Rot used on a grafted ally damages the graft.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Grafts shaping out-of-combat choices such as routes (later), and dreams from grafts (M6).
 
 ## Notes
+
+- **`act_alone` lives in `internal/core/combat/graft.go`**, not `effects/primitives.go`: it needs `actions` and the chooser, and `actions` imports `effects`. It restricts the choice to attack-tagged intents on the graft's own channel (a swing, not Give or Graft); drop the tag filter to allow any.
+- **Forced roll:** the `effects` stream cannot be forced, so tests rewrite the trigger's `if` to `roll < 2` (always true), plus `integrity > 0` on the remnant so a worn-out core does not crawl.
+- **Trigger plumbing (outside the list):** `timeline.Ready` is now `Subjected` (source = the deciding body); a trigger with role `source` or `target` also fires for the body's parts that own it in `comp.Triggers`, with `effects.Context.SourcePart` set to that part. `attach_part` from a pack copies the item's trigger IDs onto the part (`content.ItemTriggerIDs`) and records `Graft.Piece`. `actions.StartAutonomous` and `ActionStarted.Autonomous` added. Schemas regenerated.
+- A pack still holding the piece also fires its trigger for the holder (item owner), where `act_alone` does nothing but the roll is drawn.
+- **Rot** is the `on_land` of `type.rot`: `damage target_part, graft ? 2 : 0`. The 2, 0.15 and 0.3 are placeholders.
+- Content added: `item.serilmen_arm`, `part.serilmen_arm`, `template.creature.remnant` (`body.remnant`, old matter), `faction.crawling`. Not in any start scenario or pack.
+- Follow-up filed: M2-09.F1 (crawling parts know no actions, so they cannot yet attack).

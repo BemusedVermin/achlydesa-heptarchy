@@ -32,6 +32,9 @@ type Ready struct {
 // EventKind implements [Event].
 func (Ready) EventKind() string { return ReadyKind }
 
+// Subjects implements [Subjected]: the body deciding is the source, so its parts' triggers can fire.
+func (e Ready) Subjects() map[string]UID { return map[string]UID{SubjectSource: e.Actor} }
+
 // TimelineView is the shared timeline: who decides now and what comes next.
 type TimelineView struct {
 	Now     int64           `json:"now"`

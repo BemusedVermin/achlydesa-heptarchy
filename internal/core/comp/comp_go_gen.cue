@@ -156,7 +156,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 }
 
 // Graft marks a part grown or fitted onto a body that it was not made with.
-#Graft: {}
+#Graft: {
+	piece?: api.#ContentID @go(Piece)
+}
 
 // Allegiance is the side a body fights for.
 #Allegiance: {
