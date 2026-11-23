@@ -262,6 +262,7 @@ The harness tunes the game with data, and the tests guard the invariants the des
 | Fuzzing | Go native fuzzing | The content loader and Expr formulas against malformed input |
 | Content checks | `cue vet` | Every data file against the generated schema |
 | Architecture | golangci-lint depguard | `internal/core` imports no UI package; feature packages import only foundation packages |
+| Shared sample content | `contenttest.Sample` | One cached, immutable registry per test binary; tests that mutate content take a deep copy |
 | Performance | `testing.B`, pprof | Off-screen ticks for a full deep stay fast enough to run 500 seeds overnight |
 
 ## Custom code inventory and build order

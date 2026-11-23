@@ -71,7 +71,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-10](C1-cleanup/C1-10-faction.md) | What is the hostile faction called? | todo | question | S | none |
 | [C1-11](C1-cleanup/C1-11-text.md) | Where does player-facing text live, and how are its IDs shaped? | todo | question | S | none |
 | [C1-12](C1-cleanup/C1-12-frontend.md) | Where does frontend chrome end and game text begin, and which core packages may the tui import? | todo | question | S | none |
-| [C1-13](C1-cleanup/C1-13-cache.md) | May tests share one cached sample registry? | proposed | question | S | none |
+| [C1-13](C1-cleanup/C1-13-cache.md) | May tests share one cached sample registry? | todo | question | S | none |
 | [C1-14](C1-cleanup/C1-14-yaml.md) | May `go.yaml.in/yaml/v3` become a direct dependency? | proposed | question | S | none |
 | [C1-15](C1-cleanup/C1-15-gitcmd.md) | Where does shared git code for the tools go, given agentkit is protected? | proposed | question | S | none |
 | [C1-16](C1-cleanup/C1-16-speed.md) | What should a speed formula that fails at run time do? | proposed | question | S | none |
