@@ -32,10 +32,20 @@ func fightApp(t *testing.T) *tui.App {
 	return nil
 }
 
-// startApp is the sample game at its start, with all of its actions.
+// startApp is the sample game at its start, with all of its actions and a standing crawler: these
+// tests browse menus, and a hunting creature would change what they see.
 func startApp(t *testing.T) *tui.App {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
+	bundle, err := content.LoadBundle(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	crawler := bundle.Templates["template.creature.crawler"]
+	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actions = nil
+	crawler.Lists = nil
+	bundle.Templates["template.creature.crawler"] = crawler
+	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
 	}

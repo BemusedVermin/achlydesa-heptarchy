@@ -16,7 +16,18 @@ const sampleDir = "../../content/data"
 
 func load(t *testing.T) *content.Registry {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
+	bundle, err := content.LoadBundle(sampleDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The sample crawler hunts and kills random walkers, which would end runs early. These tests
+	// count rows, so they keep it standing.
+	crawler := bundle.Templates["template.creature.crawler"]
+	crawler.Actor = &content.ActorDef{Controller: "rest"}
+	crawler.Actions = nil
+	crawler.Lists = nil
+	bundle.Templates["template.creature.crawler"] = crawler
+	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
 	}

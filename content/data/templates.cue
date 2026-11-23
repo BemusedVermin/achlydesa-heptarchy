@@ -46,11 +46,13 @@ templates: {
 		lists: types: _innateTypes
 		triggers: [_fallInjury]
 	}
-	// A clay-cored creature of the soop. It does nothing yet; M2-08 gives it a mind.
+	// A clay-cored creature of the soop. It hunts the party and bites.
 	"template.creature.crawler": {
 		name: "text.template.creature.crawler"
 		appearance: {glyph: "c", color: "yellow"}
-		actor: controller: "rest"
+		actor: controller: "hunt"
+		actions: ["action.step", "action.strike"]
+		lists: types: ["type.cut"]
 		body:    "body.crawler"
 		faction: "faction.deep"
 	}
