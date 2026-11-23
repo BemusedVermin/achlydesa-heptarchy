@@ -79,7 +79,7 @@ func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error)
 		Chosen: effects.ChosenRecords(w, in.Choices), Inventory: inventory.Usable(w, actor, in.Target),
 		Windup: actions.Windup(w, in),
 	}
-	env.Target.IsParty = ecs.NewMap[comp.MemberOf](w.ECS).Has(in.Target) && partyControlled(w, in.Target)
+	env.Target.IsParty = anatomy.InControlledParty(w, in.Target)
 	if parts := ecs.NewMap[comp.Part](w.ECS); !in.TargetPart.IsZero() && parts.Has(in.TargetPart) {
 		_, env.MaterialKnown = knowledge.Best(
 			w, inventory.HolderOf(w, actor), w.UIDOf(in.TargetPart), w.Content.Combat().MaterialClaim,
@@ -90,12 +90,6 @@ func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error)
 		env.Height = positions.Get(in.Target).At.Depth - positions.Get(actor).At.Depth
 	}
 	return w.Content.AIScore(env)
-}
-
-// partyControlled says whether the body belongs to the party the player commands.
-func partyControlled(w *sim.World, body ecs.Entity) bool {
-	party, ok := controlledParty(w)
-	return ok && ecs.NewMap[comp.MemberOf](w.ECS).GetRelation(body) == party
 }
 
 // RegisterChooser makes a chooser available by name. Names are unique.

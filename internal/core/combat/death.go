@@ -60,7 +60,7 @@ func shouldBeOut(w *sim.World, body ecs.Entity) bool {
 // checkBody kills or downs the body when the death rule says so.
 func checkBody(w *sim.World, uid api.UID) {
 	body, ok := w.ByUID(uid)
-	if !ok || !ecs.NewMap[comp.Body](w.ECS).Has(body) || outOfFight(w, body) || !shouldBeOut(w, body) {
+	if !ok || !ecs.NewMap[comp.Body](w.ECS).Has(body) || anatomy.OutOfFight(w, body) || !shouldBeOut(w, body) {
 		return
 	}
 	leaveTimeline(w, body)
@@ -79,29 +79,19 @@ func checkBody(w *sim.World, uid api.UID) {
 // handOverLead gives the lead to the first member in party order still standing when the leader
 // is out of the fight, so that somebody is always deciding for the party in follow mode.
 func handOverLead(w *sim.World, body ecs.Entity) {
-	memberOf := ecs.NewMap[comp.MemberOf](w.ECS)
-	if !memberOf.Has(body) {
+	party, ok := anatomy.PartyOf(w, body)
+	if !ok {
 		return
 	}
-	party := memberOf.GetRelation(body)
 	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
 	if state.Leader != w.UIDOf(body) {
 		return
 	}
 	for _, uid := range state.Order {
-		next, ok := w.ByUID(uid)
-		if !ok || outOfFight(w, next) {
-			continue
+		if next, ok := w.ByUID(uid); ok && !anatomy.OutOfFight(w, next) {
+			anatomy.SetLeader(w, party, uid)
+			return
 		}
-		order := []api.UID{uid}
-		for _, other := range state.Order {
-			if other != uid {
-				order = append(order, other)
-			}
-		}
-		state.Order, state.Leader = order, uid
-		w.Bus.Publish(api.LeaderChanged{Party: w.UIDOf(party), Leader: uid, Name: nameOf(w, next)})
-		return
 	}
 }
 
@@ -138,6 +128,6 @@ func checkPartyWiped(w *sim.World, body ecs.Entity) {
 
 // PartyWiped reports whether the controlled party has members and all of them are dead or downed.
 func PartyWiped(w *sim.World) bool {
-	party, ok := controlledParty(w)
+	party, ok := anatomy.ControlledParty(w)
 	return ok && len(anatomy.Members(w, party)) > 0 && len(livingMembers(w, party)) == 0
 }

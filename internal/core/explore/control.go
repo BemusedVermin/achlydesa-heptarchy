@@ -6,6 +6,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -46,7 +47,7 @@ func rejectCommand(w *sim.World, kind, reason string) {
 
 // commandedParty returns the party the player commands when it has the UID.
 func commandedParty(w *sim.World, uid api.UID) (ecs.Entity, bool) {
-	party, ok := controlledParty(w)
+	party, ok := anatomy.ControlledParty(w)
 	if !ok || uid == 0 || w.UIDOf(party) != uid {
 		return ecs.Entity{}, false
 	}
@@ -93,7 +94,7 @@ func handleLead(w *sim.World, cmd api.Lead) (int64, error) {
 		rejectCommand(w, cmd.CommandKind(), "text.explore.not_member")
 		return 0, nil
 	}
-	if outOfFight(w, member) {
+	if anatomy.OutOfFight(w, member) {
 		rejectCommand(w, cmd.CommandKind(), "text.explore.out_of_fight")
 		return 0, nil
 	}
@@ -102,16 +103,7 @@ func handleLead(w *sim.World, cmd api.Lead) (int64, error) {
 		rejectCommand(w, cmd.CommandKind(), "text.explore.already_leads")
 		return 0, nil
 	}
-	order := []api.UID{cmd.Member}
-	for _, e := range membersOf(w, party) {
-		if uid := w.UIDOf(e); uid != cmd.Member {
-			order = append(order, uid)
-		}
-	}
-	state.Order, state.Leader = order, cmd.Member
-	w.Bus.Publish(api.LeaderChanged{
-		Party: cmd.Party, Leader: cmd.Member, Name: w.Content.Render(templateName(w, member)),
-	})
+	anatomy.SetLeader(w, party, cmd.Member)
 	applyControllers(w, party)
 	return 0, nil
 }
@@ -204,7 +196,7 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 	}
 	for _, member := range members {
 		uid := w.UIDOf(member)
-		if uid == state.Leader || outOfFight(w, member) {
+		if uid == state.Leader || anatomy.OutOfFight(w, member) {
 			continue
 		}
 		v.Options = append(v.Options, api.Option{
@@ -218,9 +210,4 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 		})
 	}
 	return nil
-}
-
-// outOfFight reports whether a body is dead or downed, and so cannot lead.
-func outOfFight(w *sim.World, body ecs.Entity) bool {
-	return ecs.NewMap[comp.Dead](w.ECS).Has(body) || ecs.NewMap[comp.Downed](w.ECS).Has(body)
 }

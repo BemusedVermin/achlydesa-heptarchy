@@ -73,7 +73,7 @@ func visibleBodies(w *sim.World, party ecs.Entity) ([]ecs.Entity, error) {
 
 // buildBodies fills the bodies section of the view.
 func buildBodies(w *sim.World, v *api.View) error {
-	party, ok := controlledParty(w)
+	party, ok := anatomy.ControlledParty(w)
 	if !ok {
 		return nil
 	}

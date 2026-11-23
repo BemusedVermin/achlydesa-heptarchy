@@ -7,6 +7,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
@@ -17,7 +18,7 @@ import (
 // focusOf returns the party the player commands, its members, and the member the view is centered
 // on: the current actor if it is a member, otherwise the leader.
 func focusOf(w *sim.World) (party ecs.Entity, members []ecs.Entity, focus ecs.Entity, ok bool) {
-	party, ok = controlledParty(w)
+	party, ok = anatomy.ControlledParty(w)
 	if !ok {
 		return ecs.Entity{}, nil, ecs.Entity{}, false
 	}

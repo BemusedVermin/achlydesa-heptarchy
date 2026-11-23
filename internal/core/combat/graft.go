@@ -6,6 +6,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
@@ -21,7 +22,7 @@ func applyActAlone(ctx *effects.Context, _ effects.Params) error {
 		!ecs.NewMap[comp.Graft](w.ECS).Has(part) || bodyOf(w, part) != body {
 		return nil
 	}
-	if outOfFight(w, body) {
+	if anatomy.OutOfFight(w, body) {
 		return nil
 	}
 	cfg := w.Content.Combat()

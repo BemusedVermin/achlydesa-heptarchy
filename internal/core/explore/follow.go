@@ -6,6 +6,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -67,7 +68,7 @@ func (follower) Decide(w *sim.World, body ecs.Entity) error {
 
 // memberAhead is the member just before body in the party order.
 func memberAhead(w *sim.World, body ecs.Entity) (ecs.Entity, bool) {
-	party, ok := partyOf(w, body)
+	party, ok := anatomy.PartyOf(w, body)
 	if !ok {
 		return ecs.Entity{}, false
 	}

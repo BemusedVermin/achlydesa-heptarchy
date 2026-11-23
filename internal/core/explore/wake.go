@@ -21,7 +21,7 @@ func SetRestPlace(w *sim.World, party ecs.Entity, id api.MapID, at api.Cell) {
 // CanWake reports whether the controlled party has a rest place and a downed member to get up. A
 // party of the dead only has nothing to wake.
 func CanWake(w *sim.World) bool {
-	party, ok := controlledParty(w)
+	party, ok := anatomy.ControlledParty(w)
 	if !ok || !ecs.NewMap[comp.RestPlace](w.ECS).Has(party) {
 		return false
 	}
@@ -42,7 +42,7 @@ func Wake(w *sim.World) error {
 	if !CanWake(w) {
 		return nil
 	}
-	party, _ := controlledParty(w)
+	party, _ := anatomy.ControlledParty(w)
 	place := *ecs.NewMap[comp.RestPlace](w.ECS).Get(party)
 	m := w.Maps.Get(place.Map)
 	if m == nil {
@@ -109,7 +109,7 @@ func leadFromStanding(w *sim.World, party ecs.Entity) {
 	}
 	for _, uid := range state.Order {
 		if next, ok := w.ByUID(uid); ok && !dead.Has(next) {
-			state.Leader = uid
+			anatomy.SetLeader(w, party, uid)
 			return
 		}
 	}

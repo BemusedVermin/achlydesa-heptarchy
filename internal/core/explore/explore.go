@@ -10,6 +10,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
@@ -42,25 +43,10 @@ func compareCells(a, b api.Cell) int {
 	return cmp.Or(cmp.Compare(a.Depth, b.Depth), cmp.Compare(a.Hex.R, b.Hex.R), cmp.Compare(a.Hex.Q, b.Hex.Q))
 }
 
-// controlledParty returns the party the player commands.
-func controlledParty(w *sim.World) (ecs.Entity, bool) {
-	query := ecs.NewFilter1[comp.Controlled](w.ECS).Query()
-	for query.Next() {
-		e := query.Entity()
-		query.Close()
-		return e, true
-	}
-	return ecs.Entity{}, false
-}
-
 // membersOf lists the members of a party in party order: the leader first, each follower behind the
 // member it follows. Anyone the order does not name comes last, by UID.
 func membersOf(w *sim.World, party ecs.Entity) []ecs.Entity {
-	var members []ecs.Entity
-	query := ecs.NewFilter1[comp.MemberOf](w.ECS).Query(ecs.Rel[comp.MemberOf](party))
-	for query.Next() {
-		members = append(members, query.Entity())
-	}
+	members := anatomy.Members(w, party)
 	rank := map[api.UID]int{}
 	if parties := ecs.NewMap[comp.Party](w.ECS); w.Alive(party) && parties.Has(party) {
 		for i, uid := range parties.Get(party).Order {
@@ -73,9 +59,7 @@ func membersOf(w *sim.World, party ecs.Entity) []ecs.Entity {
 		}
 		return len(rank)
 	}
-	slices.SortFunc(members, func(a, b ecs.Entity) int {
-		return cmp.Or(cmp.Compare(rankOf(a), rankOf(b)), cmp.Compare(w.UIDOf(a), w.UIDOf(b)))
-	})
+	slices.SortStableFunc(members, func(a, b ecs.Entity) int { return cmp.Compare(rankOf(a), rankOf(b)) })
 	return members
 }
 
@@ -94,19 +78,6 @@ func bodyAt(w *sim.World, mapID api.MapID, cell api.Cell, except ecs.Entity) (ec
 		}
 	}
 	return found, !found.IsZero()
-}
-
-// partyOf returns the party a member belongs to.
-func partyOf(w *sim.World, member ecs.Entity) (ecs.Entity, bool) {
-	query := ecs.NewFilter1[comp.MemberOf](w.ECS).Query()
-	for query.Next() {
-		if query.Entity() == member {
-			party := query.GetRelation(0)
-			query.Close()
-			return party, true
-		}
-	}
-	return ecs.Entity{}, false
 }
 
 // markSeen records cells a party has seen on a map. cells need not be sorted.

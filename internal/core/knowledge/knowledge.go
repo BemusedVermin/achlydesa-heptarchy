@@ -6,6 +6,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -34,7 +35,7 @@ func Learn(w *sim.World, knower ecs.Entity, f api.Fact) {
 		facts.Facts = slices.Insert(facts.Facts, at, f)
 	}
 	w.Bus.Publish(api.FactLearned{Knower: w.UIDOf(knower), Fact: f})
-	if controlled(w, knower) {
+	if anatomy.InControlledParty(w, knower) {
 		noticed := api.FactNoticed{Fact: f}
 		if w.Content != nil {
 			noticed.Shown = w.Content.RenderValue(f.Claim, f.Value)
@@ -85,19 +86,4 @@ func facts(w *sim.World, knower ecs.Entity) []api.Fact {
 		return nil
 	}
 	return known.Get(knower).Facts
-}
-
-// controlled says whether the knower is the controlled party or one of its members.
-func controlled(w *sim.World, knower ecs.Entity) bool {
-	if !w.ECS.Alive(knower) {
-		return false
-	}
-	marks := ecs.NewMap[comp.Controlled](w.ECS)
-	if marks.Has(knower) {
-		return true
-	}
-	if members := ecs.NewMap[comp.MemberOf](w.ECS); members.Has(knower) {
-		return marks.Has(members.GetRelation(knower))
-	}
-	return false
 }

@@ -1,7 +1,6 @@
 package combat
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -15,20 +14,9 @@ import (
 // alertSystem is the name of the per-entry system that raises and ends the alert.
 const alertSystem = "combat.alert"
 
-// controlledParty returns the party the player commands.
-func controlledParty(w *sim.World) (ecs.Entity, bool) {
-	query := ecs.NewFilter1[comp.Controlled](w.ECS).Query()
-	for query.Next() {
-		party := query.Entity()
-		query.Close()
-		return party, true
-	}
-	return ecs.Entity{}, false
-}
-
 // livingMembers lists the members of a party that are neither dead nor downed, by UID.
 func livingMembers(w *sim.World, party ecs.Entity) []ecs.Entity {
-	return slices.DeleteFunc(anatomy.Members(w, party), func(e ecs.Entity) bool { return outOfFight(w, e) })
+	return slices.DeleteFunc(anatomy.Members(w, party), func(e ecs.Entity) bool { return anatomy.OutOfFight(w, e) })
 }
 
 // hostileCandidates lists every standing body with an allegiance, by UID.
@@ -36,7 +24,7 @@ func hostileCandidates(w *sim.World) []ecs.Entity {
 	var out []ecs.Entity
 	query := ecs.NewFilter2[comp.Pos, comp.Allegiance](w.ECS).Query()
 	for query.Next() {
-		if e := query.Entity(); !outOfFight(w, e) {
+		if e := query.Entity(); !anatomy.OutOfFight(w, e) {
 			out = append(out, e)
 		}
 	}
@@ -46,7 +34,6 @@ func hostileCandidates(w *sim.World) []ecs.Entity {
 
 // firstHostileSeen finds the hostile body with the lowest UID that any living member can see.
 func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) {
-	cfg := w.Content.Combat()
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	candidates := hostileCandidates(w)
 	var first ecs.Entity
@@ -55,17 +42,9 @@ func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) 
 			continue
 		}
 		from := *positions.Get(member)
-		m := w.Maps.Get(from.Map)
-		if m == nil {
-			continue
-		}
-		cells, err := m.Visible(from.At, cfg.SightRadius, cfg.SightDepth)
+		visible, err := seenCells(w, from)
 		if err != nil {
-			return ecs.Entity{}, false, fmt.Errorf("combat: alert: sight: %w", err)
-		}
-		visible := make(map[api.Cell]bool, len(cells))
-		for _, cell := range cells {
-			visible[cell] = true
+			return ecs.Entity{}, false, err
 		}
 		for _, other := range candidates {
 			pos := positions.Get(other)
@@ -84,7 +63,7 @@ func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) 
 // alert raises the controlled party's alert while a hostile is in sight, and ends it once the
 // calm spell has passed.
 func alert(w *sim.World) error {
-	party, ok := controlledParty(w)
+	party, ok := anatomy.ControlledParty(w)
 	if !ok {
 		return nil
 	}

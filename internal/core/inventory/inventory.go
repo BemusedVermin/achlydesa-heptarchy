@@ -9,6 +9,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -83,9 +84,8 @@ func HolderOf(w *sim.World, body ecs.Entity) ecs.Entity {
 	if !w.Alive(body) {
 		return ecs.Entity{}
 	}
-	members := ecs.NewMap[comp.MemberOf](w.ECS)
-	if members.Has(body) {
-		return members.GetRelation(body)
+	if party, ok := anatomy.PartyOf(w, body); ok {
+		return party
 	}
 	return body
 }

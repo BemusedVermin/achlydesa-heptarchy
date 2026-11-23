@@ -28,11 +28,6 @@ func lists(w *sim.World, faction, other api.ContentID) bool {
 	return ok && slices.Contains(def.HostileTo, other)
 }
 
-// outOfFight reports whether a body is dead or downed.
-func outOfFight(w *sim.World, body ecs.Entity) bool {
-	return ecs.NewMap[comp.Dead](w.ECS).Has(body) || ecs.NewMap[comp.Downed](w.ECS).Has(body)
-}
-
 // nameOf is the text of a body's name, "text.template.<template without its prefix>".
 func nameOf(w *sim.World, e ecs.Entity) string {
 	identities := ecs.NewMap[comp.Identity](w.ECS)
