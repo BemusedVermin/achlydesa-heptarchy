@@ -51,6 +51,8 @@ parts: {
 		material:  "material.old_matter"
 		integrity: 4
 		grants: [{kind: "action", value: 1}]
+		// Cut off, it crawls off and fights as this.
+		crawls_as: "template.crawling.remnant_arm"
 	}
 	"part.remnant_core": {
 		name:      "text.part.core"

@@ -71,6 +71,15 @@ templates: {
 			do: [{do: "spawn_from_part", params: {faction: "faction.crawling", controller: "hunt"}}]
 		}]
 	}
+	// What a remnant's arm fights as once it crawls off (its part's crawls_as): the arm is its whole
+	// body, so it has none of its own, and spawn_from_part gives its faction and controller. Strike
+	// only, with Cut, until the design says what else a crawling part can do (M2-09.F1.F1).
+	"template.crawling.remnant_arm": {
+		name: "text.template.crawling.remnant_arm"
+		appearance: {glyph: "a", color: "magenta"}
+		actions: ["action.strike"]
+		lists: types: ["type.cut"]
+	}
 	// A human body with no controller of its own, for tests to swing at.
 	"template.test.dummy": {
 		name: "text.template.test.dummy"
@@ -103,6 +112,7 @@ templates: {
 
 text: {
 	"text.template.creature.remnant": "The remnant"
+	"text.template.crawling.remnant_arm": "A crawling arm"
 	"text.template.test.dummy":      "Dummy"
 	"text.template.creature.crawler": "The crawler"
 	"text.template.test.crawler":     "Crawler"

@@ -79,9 +79,10 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M2-09.F1.F1](followups/M2-09.F1.F1-what-a-crawling-part-can-do.md) | What can a crawling part do? | proposed | question | M2 | M2-09.F1 |
 | [M2-10.F2](followups/M2-10.F2-agentkit-afteredit-windows-path.md) | Fix TestAfterEditWithGolangciLint on Windows paths | done | bug | unplanned | M2-10 |
 | [M2-10.F1](followups/M2-10.F1-fight-to-the-end-test.md) | Test a whole fight on the map screen, to the party resuming follow | todo | test | M2 | M2-10 |
-| [M2-09.F1](followups/M2-09.F1-crawling-parts-know-no-actions.md) | Give a crawling part the actions to fight with | todo | seam | M2 | M2-09 |
+| [M2-09.F1](followups/M2-09.F1-crawling-parts-know-no-actions.md) | Give a crawling part the actions to fight with | done | seam | M2 | M2-09 |
 | [M2-08.F2](followups/M2-08.F2-alert-started-twice.md) | AlertStarted is published twice for one alert | done | bug | M2 | M2-08 |
 | [M2-08.F1](followups/M2-08.F1-sample-crawler-hunts.md) | Make the sample crawler hunt | done | content | M2 | M2-08 |
 | [M2-07.F1.F1](followups/M2-07.F1.F1-wake-after-wipe.md) | Wake at the last rest town after a party wipe | todo | feature | M3 | M2-07.F1 |
