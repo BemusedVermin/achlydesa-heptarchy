@@ -59,22 +59,22 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| [C1-01](C1-cleanup/C1-01-clay.md) | What do we call the clay creature that moves, and the body Stand freezes? | todo | question | S | none |
-| [C1-02](C1-cleanup/C1-02-graft.md) | Is an own severed part that is put back a graft? | todo | question | S | none |
-| [C1-03](C1-cleanup/C1-03-down.md) | Which words for being out of the fight, for dropping, and for a wipe? | todo | question | S | none |
-| [C1-04](C1-cleanup/C1-04-actor.md) | How are the acting body, the body acted on, a fact's origin and a formula's subject named? | todo | question | M | none |
-| [C1-05](C1-cleanup/C1-05-formula.md) | How are the variables in formula environments named? | todo | question | S | none |
-| [C1-06](C1-cleanup/C1-06-form.md) | What are "form", "action", "move" and "type"? | todo | question | S | none |
-| [C1-07](C1-cleanup/C1-07-still.md) | What is the controller for a creature that keeps still called? | todo | question | S | none |
-| [C1-08](C1-cleanup/C1-08-pack.md) | Is it a pack or an inventory? | todo | question | S | none |
-| [C1-09](C1-cleanup/C1-09-turn.md) | What do "turn", "per-turn" and "pending" mean? | todo | question | S | none |
-| [C1-10](C1-cleanup/C1-10-faction.md) | What is the hostile faction called? | todo | question | S | none |
-| [C1-11](C1-cleanup/C1-11-text.md) | Where does player-facing text live, and how are its IDs shaped? | todo | question | S | none |
-| [C1-12](C1-cleanup/C1-12-frontend.md) | Where does frontend chrome end and game text begin, and which core packages may the tui import? | todo | question | S | none |
-| [C1-13](C1-cleanup/C1-13-cache.md) | May tests share one cached sample registry? | todo | question | S | none |
-| [C1-14](C1-cleanup/C1-14-yaml.md) | May `go.yaml.in/yaml/v3` become a direct dependency? | todo | question | S | none |
-| [C1-15](C1-cleanup/C1-15-gitcmd.md) | Where does shared git code for the tools go, given agentkit is protected? | todo | question | S | none |
-| [C1-16](C1-cleanup/C1-16-speed.md) | What should a speed formula that fails at run time do? | todo | question | S | none |
+| [C1-01](C1-cleanup/C1-01-clay.md) | What do we call the clay creature that moves, and the body Stand freezes? | done | question | S | none |
+| [C1-02](C1-cleanup/C1-02-graft.md) | Is an own severed part that is put back a graft? | done | question | S | none |
+| [C1-03](C1-cleanup/C1-03-down.md) | Which words for being out of the fight, for dropping, and for a wipe? | done | question | S | none |
+| [C1-04](C1-cleanup/C1-04-actor.md) | How are the acting body, the body acted on, a fact's origin and a formula's subject named? | done | question | M | none |
+| [C1-05](C1-cleanup/C1-05-formula.md) | How are the variables in formula environments named? | done | question | S | none |
+| [C1-06](C1-cleanup/C1-06-form.md) | What are "form", "action", "move" and "type"? | done | question | S | none |
+| [C1-07](C1-cleanup/C1-07-still.md) | What is the controller for a creature that keeps still called? | done | question | S | none |
+| [C1-08](C1-cleanup/C1-08-pack.md) | Is it a pack or an inventory? | done | question | S | none |
+| [C1-09](C1-cleanup/C1-09-turn.md) | What do "turn", "per-turn" and "pending" mean? | done | question | S | none |
+| [C1-10](C1-cleanup/C1-10-faction.md) | What is the hostile faction called? | done | question | S | none |
+| [C1-11](C1-cleanup/C1-11-text.md) | Where does player-facing text live, and how are its IDs shaped? | done | question | S | none |
+| [C1-12](C1-cleanup/C1-12-frontend.md) | Where does frontend chrome end and game text begin, and which core packages may the tui import? | done | question | S | none |
+| [C1-13](C1-cleanup/C1-13-cache.md) | May tests share one cached sample registry? | done | question | S | none |
+| [C1-14](C1-cleanup/C1-14-yaml.md) | May `go.yaml.in/yaml/v3` become a direct dependency? | done | question | S | none |
+| [C1-15](C1-cleanup/C1-15-gitcmd.md) | Where does shared git code for the tools go, given agentkit is protected? | done | question | S | none |
+| [C1-16](C1-cleanup/C1-16-speed.md) | What should a speed formula that fails at run time do? | done | question | S | none |
 | [C1-17](C1-cleanup/C1-17-apply-the-decided-renames.md) | Apply the decided renames | todo | debt | L | C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11 |
 | [C1-18](C1-cleanup/C1-18-shared-helpers-in-the-lowest-layer-and-one-test.md) | Shared helpers in the lowest layer, and one test fixture | todo | debt | L | C1-17, C1-13 |
 | [C1-19](C1-cleanup/C1-19-content-area-duplication-tests-comments.md) | Content area: duplication, tests, comments | todo | debt | L | C1-18 |

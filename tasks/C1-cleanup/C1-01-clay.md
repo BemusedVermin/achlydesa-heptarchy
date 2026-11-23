@@ -1,7 +1,7 @@
 ---
 id: C1-01
 title: "What do we call the clay creature that moves, and the body Stand freezes?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

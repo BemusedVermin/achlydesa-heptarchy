@@ -1,7 +1,7 @@
 ---
 id: C1-03
 title: "Which words for being out of the fight, for dropping, and for a wipe?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

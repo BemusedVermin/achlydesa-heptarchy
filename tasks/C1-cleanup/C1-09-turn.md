@@ -1,7 +1,7 @@
 ---
 id: C1-09
 title: "What do 'turn', 'per-turn' and 'pending' mean?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

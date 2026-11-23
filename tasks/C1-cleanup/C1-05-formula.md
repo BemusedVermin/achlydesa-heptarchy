@@ -1,7 +1,7 @@
 ---
 id: C1-05
 title: "How are the variables in formula environments named?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

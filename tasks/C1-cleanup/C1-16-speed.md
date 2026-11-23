@@ -1,7 +1,7 @@
 ---
 id: C1-16
 title: "What should a speed formula that fails at run time do?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

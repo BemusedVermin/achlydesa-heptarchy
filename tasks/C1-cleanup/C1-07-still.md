@@ -1,7 +1,7 @@
 ---
 id: C1-07
 title: "What is the controller for a creature that keeps still called?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

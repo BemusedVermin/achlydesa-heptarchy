@@ -1,7 +1,7 @@
 ---
 id: C1-13
 title: "May tests share one cached sample registry?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

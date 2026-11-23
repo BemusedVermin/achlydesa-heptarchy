@@ -1,7 +1,7 @@
 ---
 id: C1-04
 title: "How are the acting body, the body acted on, a fact's origin and a formula's subject named?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

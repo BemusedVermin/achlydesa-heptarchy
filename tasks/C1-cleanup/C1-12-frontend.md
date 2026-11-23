@@ -1,7 +1,7 @@
 ---
 id: C1-12
 title: "Where does frontend chrome end and game text begin, and which core packages may the tui import?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

@@ -1,7 +1,7 @@
 ---
 id: C1-14
 title: "May `go.yaml.in/yaml/v3` become a direct dependency?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []
