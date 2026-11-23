@@ -40,6 +40,7 @@ func installSides(w *sim.World) error {
 		return err
 	}
 	effects.SetHostile(w, Hostile)
+	timeline.SetHalt(w, PartyLost)
 	sim.Subscribe(w.Bus, "combat.death", onPartDamaged)
 	sim.Subscribe(w.Bus, "combat.death_severed", onPartSevered)
 	return w.Systems.Register(sim.System{Name: alertSystem, Cadence: sim.PerTurn, Run: alert})
