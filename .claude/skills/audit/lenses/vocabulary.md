@@ -3,7 +3,7 @@
 Goal: one clear, concise name for each concept of the game and of its code, used the same way in the docs, the content, the Go code and the text players read. The owner decides the names; you find the problems and propose.
 
 1. **Collect the names in use** from:
-   - `docs/game-design.md`, `docs/go-technical-design.md` and `docs/glossary.md` (if it exists);
+   - `docs/game-design.md`, `docs/go-technical-design.md`, and `docs/glossary.md` and `docs/content-guide.md` if they exist;
    - content IDs and field names in `content/data`;
    - exported Go identifiers (`go doc -all <package>`, or read the code);
    - player-facing text in `text.cue`;

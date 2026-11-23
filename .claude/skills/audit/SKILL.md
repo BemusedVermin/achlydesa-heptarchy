@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Audit the codebase between milestones for comment bloat, duplication, vocabulary, library use and Go and CUE conventions, and file the cleanup as a C<n> milestone of proposed tasks. "/audit lock-in" turns a finished cleanup's decisions into lint rules and rules for agents. Use when the owner wants a code audit or a cleanup pass.
+description: Audit the codebase between milestones for comment bloat, duplication, low-value tests, vocabulary, library use and Go and CUE conventions, and file the cleanup as a C<n> milestone of proposed tasks. "/audit lock-in" turns a finished cleanup's decisions into lint rules and rules for agents. Use when the owner wants a code audit or a cleanup pass.
 argument-hint: "[lock-in]"
 disable-model-invocation: true
 ---
@@ -42,7 +42,8 @@ Regroup when packages have grown or appeared since.
 
 Start them all at once, in the background, each a `code-auditor` agent:
 
-- **One per area,** with the lenses `comments`, `duplication`, `libraries` and `conventions`. The prompt is just: `Audit <area name>: <its packages and folders>. Lenses: comments, duplication, libraries, conventions.`
+- **One per area,** with the lenses `comments`, `duplication`, `tests`, `libraries` and `conventions`. The prompt is just: `Audit <area name>: <its packages and folders>. Lenses: comments, duplication, tests, libraries, conventions.`
+  The content area's auditor also gets the `content-guide` lens.
 - **One for vocabulary,** across the whole codebase and the docs: `Audit the vocabulary of the whole codebase and docs. Lens: vocabulary.`
 
 Say what you started. Wait for every report.
@@ -58,10 +59,12 @@ Say what you started. Wait for every report.
 4. **Tasks** (`kind: debt`), in this order:
    - **Renames.** One task per contested name, depending on its question, and each depending on the rename before it, so they run one at a time. Agents rename Go identifiers with `gopls rename`, never by hand, and content IDs everywhere they appear.
    - **Duplication and libraries.** One task per area, or per cross-area finding, each depending on the last rename.
-   - **Comments.** One task per area, depending on that area's duplication task, so they run once the code has settled. The task quotes the comments lens's policy and the auditor's examples.
+   - **Tests.** One task per area: delete, shrink or merge the tests the auditor flagged. Each depends on that area's duplication task, since tests follow the code they test.
+   - **Comments.** One task per area, depending on that area's tests task, so they run once the code and tests have settled. The task quotes the comments lens's policy and the auditor's examples.
+   - **Content guide.** If `docs/content-guide.md` doesn't exist, one task to write it. If it exists and the content auditor found gaps, one task to update it. It depends on the last rename and on the content area's comments task, so it describes names and content that have settled. Its Spec takes the content-guide lens's description of what the guide covers. It changes only `docs/`, so its criteria are: every file, ID and command it names exists, its terms match the glossary, and `go tool task content` passes.
    - **Lock-in.** Last, depending on every other task. Its Spec says to run `/audit lock-in` in the owner's session, because it changes files agents can't touch.
 5. **Every cleanup task's acceptance criteria** include:
-   - `go tool task same-behavior` passes. For a rename, add `-- --rename old=new` for each rename it makes, all listed in the task.
+   - `go tool task same-behavior` passes. For a rename, add `-- --rename old=new` for each rename it makes, all listed in the task. A tests task instead shows that it changed only `_test.go` files and `testdata/`, since deleting a golden test removes its golden files.
    - `go tool task check` passes.
    - The task's findings, one per line, each resolved.
 
@@ -94,8 +97,8 @@ Tell the owner in three or four lines: how many tasks and questions, the pull re
 Run when every other task of the latest `C<n>` is done or obsolete. On a new branch from `origin/master` named `setup/C<n>-lock-in`:
 
 1. **Lint rules.** For each "Lint:" rule the auditors named, and each convention the owner decided, try enabling it in `.golangci.yml`. Keep it if `golangci-lint run` passes on the code. If it doesn't, fix the few remaining cases, or leave the rule off and say why.
-2. **`AGENTS.md`.** Add the decided conventions to Style. Add `docs/glossary.md` to "Read before touching code" if it isn't there.
-3. **`.claude/rules/`.** Add each area's conventions to its rule file, and point the rule files at the glossary.
+2. **`AGENTS.md`.** Add the decided conventions to Style. Add `docs/glossary.md`, and `docs/content-guide.md` once it exists, to "Read before touching code" if they aren't there.
+3. **`.claude/rules/`.** Add each area's conventions to its rule file, and point the rule files at the glossary. Point `content.md` at the content guide.
 4. **Lens files.** Add what this round found and locked in, so the next audit checks those first and doesn't report them again.
 5. **The lock-in task.** Set it to `done`, with Notes listing what changed. Change its `INDEX.md` row in the same commit.
 
