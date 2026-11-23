@@ -50,7 +50,7 @@ func TestFindingsIn(t *testing.T) {
 	got := findingsIn(output, "internal/core/actions/options.go")
 	want := []string{
 		"internal/core/actions/options.go:12:3: Error return value is not checked (errcheck)",
-		`internal\core\actions\options.go:30:1: unused variable (unused)`,
+		"internal/core/actions/options.go:30:1: unused variable (unused)",
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("findingsIn = %q, want %q", got, want)
