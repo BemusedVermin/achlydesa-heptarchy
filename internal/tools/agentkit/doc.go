@@ -9,6 +9,9 @@
 //	              stays fast; CI runs the full check on every pull request
 //	protect       before a file edit: on task/ branches, refuses edits to the rules agents work
 //	              under and to the checks themselves (the design docs in docs/ stay editable)
+//	after-edit    after a file edit: formats an edited Go file with golangci-lint fmt, lints its
+//	              package, and shows the agent the findings in that file. It never blocks, and
+//	              does nothing when golangci-lint isn't installed
 //	ready         lists the tasks an agent can start now, from the task files' front matter
 //	clean-worktrees
 //	              removes the worktrees in .claude/worktrees that hold nothing unsaved (their work

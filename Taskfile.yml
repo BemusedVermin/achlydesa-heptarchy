@@ -38,7 +38,8 @@ tasks:
       - sh: command -v golangci-lint
         msg: "golangci-lint is not on the PATH; install it from https://golangci-lint.run/welcome/install/"
     cmds:
-      - golangci-lint run
+      # Agents run in parallel, so don't refuse to run beside another golangci-lint.
+      - golangci-lint run --allow-parallel-runners
 
   schema:
     desc: Regenerate the CUE schemas (*_go_gen.cue) from the Go content structs

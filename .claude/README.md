@@ -10,11 +10,12 @@ This folder sets up Claude Code so that agents can take tasks from `tasks/` and 
 | `skills/do-task/` | `/do-task <ID>`: the whole workflow, from a fresh branch to an open PR. |
 | `skills/next-tasks/` | `/next-tasks`: what can start now, and what can run side by side. |
 | `skills/run-tasks/` | `/run-tasks [IDs or N]`: starts one implementer agent per task, in parallel. |
+| `skills/decide/` | `/decide`: asks you the open design questions as multiple choice, then records your answers in the task files and the design doc, in one PR. |
 | `skills/file-followup/` | How agents file follow-ups (used by do-task). |
-| `agents/task-implementer.md` | A Sonnet agent that does one task in its own worktree. |
+| `agents/task-implementer.md` | An agent that does one task in its own worktree: Sonnet, or Opus for `size: L` and `kind: seam` tasks when `/run-tasks` starts it. |
 | `agents/task-reviewer.md` | A read-only Opus agent that reviews a task's diff against its spec and `AGENTS.md`. |
 | `rules/` | Detail on top of `AGENTS.md` that loads only when Claude reads or edits matching files: `core.md` (`internal/core`), `content.md` (`content/`, `internal/content`), `frontend.md` (`internal/frontend`) and `tasks.md` (`tasks/`). |
-| `../internal/tools/agentkit/` | The hooks' code (Go, with tests), plus the `ready` helper. |
+| `../internal/tools/agentkit/` | The hooks' code (Go, with tests), plus the `ready` and `clean-worktrees` helpers. |
 
 `settings.local.json` (your own approvals) and `worktrees/` are gitignored. Everything else here is committed, because cloud sessions and worktrees only see what's in git.
 
@@ -29,6 +30,8 @@ The rules are guidance; `AGENTS.md` stays the full rulebook, because other codin
 | throw away uncommitted work (`reset --hard`, `clean -f`, `checkout -- .`, `restore .`, `stash clear`) | guard hook |
 | edit `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or the hooks on a `task/` branch | protect hook (agents file a follow-up instead). The design docs in `docs/` stay editable |
 | touch your main checkout from a worktree | Claude Code's own worktree isolation |
+
+One more hook helps rather than refuses: after every edit to a Go file, the after-edit hook formats the file with the repo's formatters and lints its package. The agent sees any lint findings in that file straight away, instead of at the check. If golangci-lint isn't installed, it does nothing.
 
 Edits are accepted automatically, and the usual go, git and gh commands run without asking. Anything else asks you first.
 
@@ -58,6 +61,8 @@ Or type `/next-tasks` in a Claude session, which also tells you which ready task
 claude --worktree M2-06 "/do-task M2-06"
 ```
 
+For a `size: L` or `kind: seam` task, add `--model opus`: those are where a weaker first draft costs the most.
+
 `--worktree M2-06` gives the session its own copy of the repo under `.claude\worktrees\M2-06`, made fresh from GitHub's master, so it can't collide with anything else. The agent branches to `task/M2-06-...`, implements, runs the check, gets a review, and opens the PR. Answer it if it asks you something.
 
 When you exit, Claude asks whether to keep the worktree. Once the PR is open, the work is on GitHub, so remove it.
@@ -77,7 +82,11 @@ Or let one session fan the work out:
 claude
 ```
 
-Then type `/run-tasks M2-06 M2-12`, or `/run-tasks 3` for the first three ready tasks. Each task gets a `task-implementer` agent in its own worktree, running in the background, and the session reports each PR as it lands. It won't start two tasks that change the same files.
+Then type `/run-tasks M2-06 M2-12`, or `/run-tasks 3` for the first three ready tasks. Each task gets a `task-implementer` agent in its own worktree, running in the background, and the session reports each PR as it lands. It won't start two tasks that change the same files. Large tasks and seams run on Opus, the rest on Sonnet.
+
+### Answer design questions
+
+Type `/decide` in any session, including one in the Code tab on your phone. It asks you each open design question as multiple choice, with its recommendation first and "Not now" last. Your answers go into the task files and `docs/game-design.md` in one PR, and the questions with work left become `todo` for an agent.
 
 ### In the cloud
 
@@ -98,7 +107,7 @@ The cloud caches what the script installs, so later sessions start with it. Keep
 
 ### Review and merge
 
-1. Read the PR on GitHub. CI runs `go tool task check` again.
+1. Read the PR on GitHub. CI runs `go tool task check` again. CI also posts a comment on the PR, edited in place on each push, listing the slowest test packages next to master's times. It flags, without failing, any package over 30 seconds or at least twice as slow as on master.
 2. For a second opinion, ask in any Claude session: `Use the task-reviewer agent on PR #45 for task M2-06.`
 3. To ask for changes, start a session and describe them:
 
