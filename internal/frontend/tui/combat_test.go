@@ -346,8 +346,8 @@ func TestOverlayMarksThreatsAndTimeline(t *testing.T) {
 		t.Errorf("no landing count next to the threatened member:\n%s", out)
 	}
 	tl := &api.TimelineView{Now: 10, Window: 5, Entries: []api.TimelineEntry{
-		{Tick: 11, Kind: "ready", Source: 2, Glyph: "b", Color: "red"},
-		{Tick: 13, Kind: "lands", Source: 2, Target: 1, Glyph: "b", Color: "red"},
+		{Tick: 11, Kind: api.EntryReady, Source: 2, Glyph: "b", Color: "red"},
+		{Tick: 13, Kind: api.EntryLands, Source: 2, Target: 1, Glyph: "b", Color: "red"},
 	}}
 	golden(t, "timeline_marked", tui.RenderTimelineMarked(tl, bodies, 20, 0))
 }

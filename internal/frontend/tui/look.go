@@ -14,8 +14,8 @@ type lookState struct {
 // hexDelta is how each step option moves a cursor. Drawing a cursor needs only this much of the
 // map's geometry; whether anything can step there is the core's business and not asked here.
 var hexDelta = map[string]api.Hex{
-	"step/e": {Q: 1}, "step/ne": {Q: 1, R: -1}, "step/nw": {R: -1},
-	"step/w": {Q: -1}, "step/sw": {Q: -1, R: 1}, "step/se": {R: 1},
+	api.StepOption("e"): {Q: 1}, api.StepOption("ne"): {Q: 1, R: -1}, api.StepOption("nw"): {R: -1},
+	api.StepOption("w"): {Q: -1}, api.StepOption("sw"): {Q: -1, R: 1}, api.StepOption("se"): {R: 1},
 }
 
 func (l *lookState) move(option string) {

@@ -73,10 +73,6 @@ func currentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) {
 	return e, stateOf(w).actors.Get(e).Controller == PlayerController
 }
 
-func reject(w *sim.World, kind string, reason api.ContentID) {
-	w.Bus.Publish(api.Rejected{Command: kind, Reason: api.Text{ID: reason}})
-}
-
 // nextPhaseBoundary is the tick at which the phase after the current one starts.
 func nextPhaseBoundary(w *sim.World, clk *clock.Clock) int64 {
 	return w.Now - clk.TickInPhase(w.Now) + clk.PhaseTicks(clk.Phase(w.Now))
@@ -85,7 +81,7 @@ func nextPhaseBoundary(w *sim.World, clk *clock.Clock) int64 {
 func handleWait(w *sim.World, clk *clock.Clock, cmd api.Wait) (int64, error) {
 	body, ok := currentPlayer(w, cmd.Source)
 	if !ok {
-		reject(w, cmd.CommandKind(), "text.timeline.not_current")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.timeline.not_current"))
 		return 0, nil
 	}
 	st := stateOf(w)
@@ -97,7 +93,7 @@ func handleWait(w *sim.World, clk *clock.Clock, cmd api.Wait) (int64, error) {
 	case cmd.Until == api.WaitPhase:
 		st.waitUntil(w, body, nextPhaseBoundary(w, clk))
 	default:
-		reject(w, cmd.CommandKind(), "text.timeline.bad_wait")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.timeline.bad_wait"))
 	}
 	return 0, nil
 }
@@ -130,7 +126,7 @@ func (st *state) visibleEntries(w *sim.World) []api.TimelineEntry {
 		if d.tick > w.Now+st.cfg.WindowTicks || !st.visible(w, d.body) {
 			continue
 		}
-		entry := api.TimelineEntry{Tick: d.tick, Kind: "ready", Source: w.UIDOf(d.body)}
+		entry := api.TimelineEntry{Tick: d.tick, Kind: api.EntryReady, Source: w.UIDOf(d.body)}
 		if appearances.Has(d.body) {
 			look := appearances.Get(d.body)
 			entry.Glyph, entry.Color = look.Glyph, look.Color
@@ -154,9 +150,9 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 		}
 		// Landings come before decisions at the same tick.
 		switch {
-		case a.Kind == "lands" && b.Kind != "lands":
+		case a.Kind == api.EntryLands && b.Kind != api.EntryLands:
 			return -1
-		case a.Kind != "lands" && b.Kind == "lands":
+		case a.Kind != api.EntryLands && b.Kind == api.EntryLands:
 			return 1
 		}
 		return 0
@@ -176,13 +172,13 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 	phaseName := w.Content.Render(api.Text{ID: next.Name})
 	v.Options = append(v.Options,
 		api.Option{
-			ID:      "wait/event",
+			ID:      api.OptionWaitEvent,
 			Label:   w.Content.Render(api.Text{ID: "text.timeline.wait_event"}),
 			Command: api.Wait{Source: view.Current, Until: api.WaitEvent},
 			Enabled: true,
 		},
 		api.Option{
-			ID: "wait/phase",
+			ID: api.OptionWaitPhase,
 			Label: w.Content.Render(api.Text{
 				ID:   "text.timeline.wait_phase",
 				Args: map[string]string{"phase": phaseName},

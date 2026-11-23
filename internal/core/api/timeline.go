@@ -46,7 +46,7 @@ type TimelineView struct {
 // TimelineEntry is one thing on the timeline.
 type TimelineEntry struct {
 	Tick   int64  `json:"tick"`
-	Kind   string `json:"kind"` // "ready" or "lands"
+	Kind   string `json:"kind"` // EntryReady or EntryLands
 	Source UID    `json:"source"`
 	Glyph  string `json:"glyph"`
 	Color  string `json:"color"`

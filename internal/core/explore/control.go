@@ -2,7 +2,6 @@ package explore
 
 import (
 	"slices"
-	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -41,10 +40,6 @@ func installControl(w *sim.World) error {
 	})
 }
 
-func rejectCommand(w *sim.World, kind, reason string) {
-	w.Bus.Publish(api.Rejected{Command: kind, Reason: api.Text{ID: api.ContentID(reason)}})
-}
-
 // commandedParty returns the party the player commands when it has the UID.
 func commandedParty(w *sim.World, uid api.UID) (ecs.Entity, bool) {
 	party, ok := anatomy.ControlledParty(w)
@@ -71,10 +66,10 @@ func handleControl(w *sim.World, cmd api.Control) (int64, error) {
 	party, ok := commandedParty(w, cmd.Party)
 	switch {
 	case !ok:
-		rejectCommand(w, cmd.CommandKind(), "text.explore.bad_party")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.explore.bad_party"))
 		return 0, nil
 	case cmd.Mode != api.ControlFollow && cmd.Mode != api.ControlIndividual:
-		rejectCommand(w, cmd.CommandKind(), "text.explore.bad_mode")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.explore.bad_mode"))
 		return 0, nil
 	}
 	setControl(w, party, cmd.Mode, api.ControlByPlayer)
@@ -86,21 +81,21 @@ func handleControl(w *sim.World, cmd api.Control) (int64, error) {
 func handleLead(w *sim.World, cmd api.Lead) (int64, error) {
 	party, ok := commandedParty(w, cmd.Party)
 	if !ok {
-		rejectCommand(w, cmd.CommandKind(), "text.explore.bad_party")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.explore.bad_party"))
 		return 0, nil
 	}
 	member, found := w.ByUID(cmd.Member)
 	if !found || !slices.Contains(membersOf(w, party), member) {
-		rejectCommand(w, cmd.CommandKind(), "text.explore.not_member")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.explore.not_member"))
 		return 0, nil
 	}
 	if anatomy.OutOfFight(w, member) {
-		rejectCommand(w, cmd.CommandKind(), "text.explore.out_of_fight")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.explore.out_of_fight"))
 		return 0, nil
 	}
 	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
 	if state.Leader == cmd.Member {
-		rejectCommand(w, cmd.CommandKind(), "text.explore.already_leads")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.explore.already_leads"))
 		return 0, nil
 	}
 	anatomy.SetLeader(w, party, cmd.Member)
@@ -181,14 +176,14 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 	partyUID := w.UIDOf(party)
 	if state.Control == api.ControlFollow {
 		v.Options = append(v.Options, api.Option{
-			ID:      "control/" + api.ControlIndividual,
+			ID:      api.ControlOption(api.ControlIndividual),
 			Label:   w.Content.Render(api.Text{ID: "text.explore.control_individual"}),
 			Command: api.Control{Party: partyUID, Mode: api.ControlIndividual},
 			Enabled: true,
 		})
 	} else {
 		v.Options = append(v.Options, api.Option{
-			ID:      "control/" + api.ControlFollow,
+			ID:      api.ControlOption(api.ControlFollow),
 			Label:   w.Content.Render(api.Text{ID: "text.explore.control_follow"}),
 			Command: api.Control{Party: partyUID, Mode: api.ControlFollow},
 			Enabled: true,
@@ -200,7 +195,7 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 			continue
 		}
 		v.Options = append(v.Options, api.Option{
-			ID: "lead/" + strconv.FormatUint(uint64(uid), 10),
+			ID: api.LeadOption(uid),
 			Label: w.Content.Render(api.Text{
 				ID:   "text.explore.lead_with",
 				Args: map[string]string{"name": w.Content.Render(templateName(w, member))},

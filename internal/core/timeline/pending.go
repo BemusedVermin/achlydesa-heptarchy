@@ -159,7 +159,7 @@ func (st *state) landsEntries(w *sim.World) []api.TimelineEntry {
 		if (!actorOK || !st.visible(w, actor)) && (!targetOK || !st.visible(w, target)) {
 			continue
 		}
-		entry := api.TimelineEntry{Tick: p.Lands, Kind: "lands", Source: p.Actor, Target: p.Target}
+		entry := api.TimelineEntry{Tick: p.Lands, Kind: api.EntryLands, Source: p.Actor, Target: p.Target}
 		if actorOK && appearances.Has(actor) {
 			look := appearances.Get(actor)
 			entry.Glyph, entry.Color = look.Glyph, look.Color

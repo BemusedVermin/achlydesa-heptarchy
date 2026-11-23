@@ -19,7 +19,7 @@ func landsOf(t testing.TB, g *game.Game) []api.TimelineEntry {
 	}
 	var lands []api.TimelineEntry
 	for _, entry := range view.Timeline.Entries {
-		if entry.Kind == "lands" {
+		if entry.Kind == api.EntryLands {
 			lands = append(lands, entry)
 		}
 	}

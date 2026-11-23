@@ -2,8 +2,6 @@ package tui
 
 import (
 	"slices"
-	"strconv"
-	"strings"
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
@@ -42,13 +40,16 @@ func DefaultKeyMap() KeyMap {
 	}
 	return KeyMap{
 		moves: []binding{
-			move("q", "step/nw"), move("e", "step/ne"), move("a", "step/w"),
-			move("d", "step/e"), move("z", "step/sw"), move("c", "step/se"),
+			move("q", api.StepOption("nw")), move("e", api.StepOption("ne")), move("a", api.StepOption("w")),
+			move("d", api.StepOption("e")), move("z", api.StepOption("sw")), move("c", api.StepOption("se")),
 		},
 		up:        key.NewBinding(key.WithKeys("w"), key.WithHelp("w", "up")),
 		down:      key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "down")),
-		waitEvent: binding{key.NewBinding(key.WithKeys("."), key.WithHelp(".", "wait")), "wait/event"},
-		waitPhase: binding{key.NewBinding(key.WithKeys(","), key.WithHelp(",", "wait to next phase")), "wait/phase"},
+		waitEvent: binding{key.NewBinding(key.WithKeys("."), key.WithHelp(".", "wait")), api.OptionWaitEvent},
+		waitPhase: binding{
+			key.NewBinding(key.WithKeys(","), key.WithHelp(",", "wait to next phase")),
+			api.OptionWaitPhase,
+		},
 		nextLead:  key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "next leader")),
 		control:   key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "lead or follow")),
 		prevTick:  key.NewBinding(key.WithKeys("["), key.WithHelp("[ ]", "pick tick")),
@@ -91,9 +92,9 @@ func (k KeyMap) OptionFor(msg tea.KeyPressMsg, v api.View) (string, bool) {
 // straight up or down, so the party alternates two diagonals. The first press after another move
 // (last empty) prefers the east diagonal; otherwise the diagonal that was not just used goes first.
 func VerticalOptions(up bool, last string) [2]string {
-	east, west := "step/se", "step/sw"
+	east, west := api.StepOption("se"), api.StepOption("sw")
 	if up {
-		east, west = "step/ne", "step/nw"
+		east, west = api.StepOption("ne"), api.StepOption("nw")
 	}
 	if last == east {
 		return [2]string{west, east}
@@ -124,32 +125,30 @@ func VerticalOption(v api.View, up bool, last string) (string, bool) {
 // nextLeadOption picks the member after the leader in a fixed (UID) order, wrapping, so that
 // repeated presses visit every member even though leading reorders the party.
 func nextLeadOption(v api.View) (string, bool) {
-	var uids []uint64
+	var uids []api.UID
 	for _, o := range v.Options {
-		if rest, ok := strings.CutPrefix(o.ID, "lead/"); ok {
-			if uid, err := strconv.ParseUint(rest, 10, 64); err == nil {
-				uids = append(uids, uid)
-			}
+		if uid, ok := api.ParseLeadOption(o.ID); ok {
+			uids = append(uids, uid)
 		}
 	}
 	if len(uids) == 0 {
 		return "", false
 	}
 	slices.Sort(uids)
-	var leader uint64
+	var leader api.UID
 	if v.Party != nil {
 		for _, m := range v.Party.Members {
 			if m.Leader {
-				leader = uint64(m.UID)
+				leader = m.UID
 			}
 		}
 	}
 	for _, uid := range uids {
 		if uid > leader {
-			return "lead/" + strconv.FormatUint(uid, 10), true
+			return api.LeadOption(uid), true
 		}
 	}
-	return "lead/" + strconv.FormatUint(uids[0], 10), true
+	return api.LeadOption(uids[0]), true
 }
 
 // HelpBindings are the bindings to list on the help line: those whose options are present.
@@ -158,7 +157,8 @@ func (k KeyMap) HelpBindings(v api.View) []key.Binding {
 	if slices.ContainsFunc(k.moves, func(b binding) bool { return hasOption(v, b.option) }) {
 		out = append(out, key.NewBinding(key.WithHelp("q e a d z c", "move")))
 	}
-	if hasOption(v, "step/ne") || hasOption(v, "step/nw") || hasOption(v, "step/se") || hasOption(v, "step/sw") {
+	if hasOption(v, api.StepOption("ne")) || hasOption(v, api.StepOption("nw")) || hasOption(v, api.StepOption("se")) ||
+		hasOption(v, api.StepOption("sw")) {
 		out = append(out, key.NewBinding(key.WithHelp("w s", "up down")))
 	}
 	if hasOption(v, k.waitEvent.option) {
@@ -170,7 +170,7 @@ func (k KeyMap) HelpBindings(v api.View) []key.Binding {
 	if _, ok := nextLeadOption(v); ok {
 		out = append(out, k.nextLead)
 	}
-	if hasOption(v, "control/"+api.ControlIndividual) || hasOption(v, "control/"+api.ControlFollow) {
+	if hasOption(v, api.ControlOption(api.ControlIndividual)) || hasOption(v, api.ControlOption(api.ControlFollow)) {
 		out = append(out, k.control)
 	}
 	if len(buildMenu(v.Options).children) > 0 {

@@ -167,11 +167,11 @@ func TestRenderMapSmallPaneScrollsToTheParty(t *testing.T) {
 
 func TestRenderTimeline(t *testing.T) {
 	tl := &api.TimelineView{Now: 10, Window: 6, Entries: []api.TimelineEntry{
-		{Tick: 10, Kind: "ready", Glyph: "@", Color: "red"},
-		{Tick: 12, Kind: "ready", Glyph: "@", Color: "cyan"},
-		{Tick: 12, Kind: "lands", Glyph: "r", Color: "red"},
-		{Tick: 12, Kind: "ready", Glyph: "r", Color: "red"},
-		{Tick: 15, Kind: "lands", Glyph: "r", Color: "red"},
+		{Tick: 10, Kind: api.EntryReady, Glyph: "@", Color: "red"},
+		{Tick: 12, Kind: api.EntryReady, Glyph: "@", Color: "cyan"},
+		{Tick: 12, Kind: api.EntryLands, Glyph: "r", Color: "red"},
+		{Tick: 12, Kind: api.EntryReady, Glyph: "r", Color: "red"},
+		{Tick: 15, Kind: api.EntryLands, Glyph: "r", Color: "red"},
 	}}
 	golden(t, "timeline", tui.RenderTimeline(tl, 40, 2))
 	if got := len(tui.EntriesAt(tl, 2)); got != 3 {

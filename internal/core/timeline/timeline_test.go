@@ -270,7 +270,7 @@ func TestRescheduleBringsADecisionForwardWhenAHookChanges(t *testing.T) {
 		t.Helper()
 		view, _ := fx.view(t)
 		for _, entry := range view.Timeline.Entries {
-			if entry.Kind == "ready" && entry.Source == fx.w.UIDOf(ai) {
+			if entry.Kind == api.EntryReady && entry.Source == fx.w.UIDOf(ai) {
 				return entry.Tick
 			}
 		}
@@ -497,7 +497,7 @@ func TestViewListsVisibleBodiesInWindow(t *testing.T) {
 	}
 	var got []decision
 	for _, entry := range view.Timeline.Entries {
-		if entry.Kind != "ready" || entry.Glyph != "@" || entry.Label != "The Reaper is ready" {
+		if entry.Kind != api.EntryReady || entry.Glyph != "@" || entry.Label != "The Reaper is ready" {
 			t.Errorf("entry = %+v", entry)
 		}
 		got = append(got, decision{entry.Tick, entry.Source})
@@ -634,7 +634,7 @@ func TestUsableChannelsHookDecidesWhichChannelsCount(t *testing.T) {
 			timeline.Reschedule(fx.w, ai)
 			view, _ := fx.view(t)
 			for _, entry := range view.Timeline.Entries {
-				if entry.Kind == "ready" && entry.Source == fx.w.UIDOf(ai) {
+				if entry.Kind == api.EntryReady && entry.Source == fx.w.UIDOf(ai) {
 					if entry.Tick != tc.want {
 						t.Errorf("ready at %d, want %d", entry.Tick, tc.want)
 					}

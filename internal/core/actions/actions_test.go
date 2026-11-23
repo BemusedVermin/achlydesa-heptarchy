@@ -367,7 +367,7 @@ func TestWindupHitsWhenTargetStaysInRange(t *testing.T) {
 	fx.apply(fx.option("swing/").Command)
 	label := ""
 	for _, entry := range fx.view().Timeline.Entries {
-		if entry.Kind == "lands" {
+		if entry.Kind == api.EntryLands {
 			label = entry.Label
 		}
 	}
