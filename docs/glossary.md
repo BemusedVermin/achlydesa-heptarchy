@@ -11,3 +11,4 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 ## Code
 
 - **pending**: an action in flight (`comp.Pending`).
+- **moving clay**: clay that has held the dead long enough to move. In content it is `moving_clay`; "crawl" means only the `crawls` tag and crawling parts.
