@@ -1,10 +1,10 @@
-# Monthly, one grouped pull request per ecosystem, to keep the noise down.
+# Weekly, one grouped pull request per ecosystem.
 version: 2
 updates:
   - package-ecosystem: gomod
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     groups:
       go-modules:
         patterns: ["*"]
@@ -15,7 +15,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     groups:
       actions:
         patterns: ["*"]
