@@ -8,6 +8,6 @@ text: {
 	"text.combat.actor_gone":      "It was out of the fight before it could act."
 	"text.combat.party_wiped":     "The party is wiped out."
 	"text.combat.severed":         "The part was cut away."
-	"text.combat.inventory_short":      "The inventory has no {{.item}}."
+	"text.combat.inventory_short": "The inventory has no {{.item}}."
 	"text.combat.no_severed_part": "There is no severed part to fit."
 }

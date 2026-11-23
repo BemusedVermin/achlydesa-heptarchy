@@ -13,9 +13,9 @@ import (
 
 // Outcomes of a fight.
 const (
-	OutcomeNone = ""     // still going, or never began
-	OutcomeWon  = "won"  // a hostile died and none is left in sight
-	OutcomeLost = "lost" // every member of the party was wiped out
+	OutcomeNone  = ""      // still going, or never began
+	OutcomeWon   = "won"   // a hostile died and none is left in sight
+	OutcomeWiped = "wiped" // every member of the party was wiped out
 )
 
 // Binder is implemented by a policy that needs the game it plays, such as to look up what a part
@@ -88,7 +88,7 @@ func (t *tracker) observe(events []api.Event, view api.View) {
 			}
 		case api.PartyWiped:
 			if t.outcome == OutcomeNone {
-				t.outcome, t.end = OutcomeLost, e.Tick
+				t.outcome, t.end = OutcomeWiped, e.Tick
 			}
 		}
 	}

@@ -527,7 +527,7 @@ func TestStandBracesDelaysTheCrawlersAndLeavesTheStanderFree(t *testing.T) {
 	}
 }
 
-func TestGraftNeedsAGraftableAllyAndAPieceFromThePack(t *testing.T) {
+func TestGraftNeedsAGraftableAllyAndAPieceFromTheInventory(t *testing.T) {
 	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "stone": -1})
 	fighter, victim := r.body("fighter"), r.body("victim")
 	for _, id := range r.optionIDs() {

@@ -86,7 +86,7 @@ func TestTake(t *testing.T) {
 	}
 }
 
-func TestCountOfAnEntityWithNoPackIsZero(t *testing.T) {
+func TestCountOfAnEntityWithNoInventoryIsZero(t *testing.T) {
 	w := sim.NewWorld(1)
 	holder := newHolder(w)
 	if got := inventory.Count(w, holder, "item.coal", 0); got != 0 {
@@ -174,7 +174,7 @@ func partyOf(t *testing.T, w *sim.World) ecs.Entity {
 	return query.Entity()
 }
 
-func TestPartyStartsWithConsumablesAndSaveKeepsThePack(t *testing.T) {
+func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
 	reg, err := content.Load(contentDir)
 	if err != nil {
 		t.Fatal(err)

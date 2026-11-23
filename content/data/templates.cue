@@ -12,9 +12,9 @@ _fallInjury: {
 	do: [{do: "damage", params: {parts: "target:legs", amount: "cells - 1"}}]
 }
 
-// What a person knows: the seven forms (tagged form in forms.cue) and a step, and the types innate to a body. The design gives everyone
-// Cut and Name, and the Reaper Press (the thrukk grip). Relic is innate to grafts: the type choice
-// offers it to a body that carries one.
+// What a person knows: the seven forms (tagged form in forms.cue), a step, and the types innate to a
+// body. The design gives everyone Cut and Name, and the Reaper Press (the thrukk grip). Relic is
+// innate to grafts: the type choice offers it to a body that carries one.
 _actions: [
 	"action.step", "action.strike", "action.sweep", "action.sever", "action.pin", "action.stand",
 	"action.give", "action.graft",

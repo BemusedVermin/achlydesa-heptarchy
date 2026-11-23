@@ -20,15 +20,15 @@ import (
 
 var update = flag.Bool("update", false, "rewrite the golden files")
 
-// huntField is the hall with a hunting crawler, and a party that can fight.
+// huntField is the hall with a hunting moving clay, and a party that can fight.
 func huntField(t *testing.T, mutate func(*content.Bundle)) *field {
 	t.Helper()
 	return newField(t, "map.test.hall", func(b *content.Bundle) {
-		crawler := b.Templates["template.creature.moving_clay"]
-		crawler.Actor = &content.ActorDef{Controller: "hunt"}
-		crawler.Actions = []api.ContentID{"action.step", "action.strike"}
-		crawler.Lists = map[string][]string{"types": {"type.cut"}}
-		b.Templates["template.creature.moving_clay"] = crawler
+		movingClay := b.Templates["template.creature.moving_clay"]
+		movingClay.Actor = &content.ActorDef{Controller: "hunt"}
+		movingClay.Actions = []api.ContentID{"action.step", "action.strike"}
+		movingClay.Lists = map[string][]string{"types": {"type.cut"}}
+		b.Templates["template.creature.moving_clay"] = movingClay
 		for _, id := range []string{"template.person.reaper", "template.person.salken"} {
 			person := b.Templates[id]
 			person.Actions = []api.ContentID{"action.step", "action.strike", "action.sweep"}
@@ -132,7 +132,7 @@ func (f *field) memberUIDs() []api.UID {
 	return out
 }
 
-func (f *field) crawlerStarted(uid api.UID) bool {
+func (f *field) movingClayStarted(uid api.UID) bool {
 	_, ok := f.started(uid)
 	return ok
 }
@@ -142,7 +142,7 @@ func TestAHunterClosesInOverSeveralStepsAndBites(t *testing.T) {
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -5))
-	if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 		t.Fatal("the creature never attacked")
 	}
 	if got := f.moves(uid); got < 3 {
@@ -162,7 +162,7 @@ func TestThreatsListTheSwingUntilItLandsOrMisses(t *testing.T) {
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -5))
-	if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 		t.Fatal("the creature never attacked")
 	}
 	swing, _ := f.started(uid)
@@ -208,7 +208,7 @@ func TestSteppingOutOfReachBeforeTheSwingLandsMakesItMiss(t *testing.T) {
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -4))
-	if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 		t.Fatal("the creature never attacked")
 	}
 	swing, _ := f.started(uid)
@@ -279,11 +279,11 @@ func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 		b.Text["text.faction.a"], b.Text["text.faction.b"] = "a", "b"
 		for _, side := range []string{"a", "b"} {
 			faction := api.ContentID("faction." + side)
-			crawler := b.Templates["template.creature.moving_clay"]
-			crawler.Faction = &faction
+			movingClay := b.Templates["template.creature.moving_clay"]
+			movingClay.Faction = &faction
 			textID := api.ContentID("text.template.test.side_" + side)
-			crawler.Name = &textID
-			b.Templates["template.test.side_"+side] = crawler
+			movingClay.Name = &textID
+			b.Templates["template.test.side_"+side] = movingClay
 			b.Text["text.template.test.side_"+side] = side
 		}
 	})
@@ -384,9 +384,9 @@ func optionIDs(v api.View) []string {
 func TestAMaterialIsUnknownUntilASweepLands(t *testing.T) {
 	// A creature that stays put, so the sweep is not cut short by its bite.
 	f := huntField(t, func(b *content.Bundle) {
-		crawler := b.Templates["template.creature.moving_clay"]
-		crawler.Actor = &content.ActorDef{Controller: "idle"}
-		b.Templates["template.creature.moving_clay"] = crawler
+		movingClay := b.Templates["template.creature.moving_clay"]
+		movingClay.Actor = &content.ActorDef{Controller: "idle"}
+		b.Templates["template.creature.moving_clay"] = movingClay
 	})
 	creature := f.creature()
 	uid := f.w.UIDOf(creature)

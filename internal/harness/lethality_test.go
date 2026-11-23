@@ -65,12 +65,12 @@ func TestLethalityTargets(t *testing.T) {
 	}
 	blind := playFights(t, reg, func() harness.Policy { return harness.NewBlindPolicy(reg) })
 	informed := playFights(t, reg, func() harness.Policy { return harness.NewInformedPolicy(reg) })
-	t.Logf("blind: lost %.2f won %.2f undecided %.2f, median %d ticks", share(blind, harness.OutcomeLost),
+	t.Logf("blind: wiped %.2f won %.2f undecided %.2f, median %d ticks", share(blind, harness.OutcomeWiped),
 		share(blind, harness.OutcomeWon), share(blind, harness.OutcomeNone), median(blind))
-	t.Logf("informed: lost %.2f won %.2f undecided %.2f, median %d ticks", share(informed, harness.OutcomeLost),
+	t.Logf("informed: wiped %.2f won %.2f undecided %.2f, median %d ticks", share(informed, harness.OutcomeWiped),
 		share(informed, harness.OutcomeWon), share(informed, harness.OutcomeNone), median(informed))
-	if got := share(blind, harness.OutcomeLost); got < 0.60 {
-		t.Errorf("a blind party lost %.0f%% of fights, want at least 60%%", got*100)
+	if got := share(blind, harness.OutcomeWiped); got < 0.60 {
+		t.Errorf("a blind party was wiped out in %.0f%% of fights, want at least 60%%", got*100)
 	}
 	if got := share(informed, harness.OutcomeWon); got < 0.80 {
 		t.Errorf("an informed party won %.0f%% of fights, want at least 80%%", got*100)

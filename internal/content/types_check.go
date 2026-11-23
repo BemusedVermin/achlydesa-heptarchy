@@ -190,7 +190,7 @@ func (r *Registry) compileMods(path string, id api.ContentID, mods Mods) []error
 }
 
 // refusalText is the reason a mod refuses an action when it names none.
-var refusalText api.ContentID = "text.action.requires"
+var refusalText api.ContentID = "text.actions.requires"
 
 // Mods returns what the type or item changes about an action it is chosen for.
 func (r *Registry) Mods(id api.ContentID) (Mods, bool) {

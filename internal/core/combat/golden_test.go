@@ -198,7 +198,7 @@ func TestGoldenADodgeStepsOutOfReachBeforeTheSwingLands(t *testing.T) {
 	uid := f.w.UIDOf(creature)
 	f.moveParty(east(f.at(creature), -4))
 	fieldEncounter(t, "dodge", f, func() {
-		if !f.until(300, func() bool { return f.crawlerStarted(uid) }) {
+		if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
 			t.Fatal("the creature never attacked")
 		}
 		swing, _ := f.started(uid)

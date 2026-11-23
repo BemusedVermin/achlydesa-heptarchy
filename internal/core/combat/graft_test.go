@@ -277,3 +277,26 @@ func TestRotEatsAGraftOnEitherSide(t *testing.T) {
 		}
 	}
 }
+
+func TestAReattachedLimbIsNotAGraftForRelicOrRot(t *testing.T) {
+	r := newRig(t)
+	rot, ok := r.w.Content.Type("type.rot")
+	if !ok {
+		t.Fatal("no rot")
+	}
+	arm := r.partsOf(r.reaper, "arm")[0]
+	ctx := r.ctx(r.reaper)
+	ctx.TargetPart = arm
+	r.apply(t, ctx, do("sever", "parts", "target_part"))
+	r.apply(t, r.ctx(r.reaper), do("attach_part", "from", "severed"))
+	if got := effects.BodyEnvOf(r.w, r.reaper, arm); got.Grafts != 0 || got.Graft {
+		t.Errorf("a reattached limb counts as a graft: grafts = %d, graft = %v", got.Grafts, got.Graft)
+	}
+	before := ecs.NewMap[comp.Part](r.w.ECS).Get(arm).Integrity
+	ctx = r.ctx(r.reaper)
+	ctx.TargetPart = arm
+	r.apply(t, ctx, rot.OnLand...)
+	if got := ecs.NewMap[comp.Part](r.w.ECS).Get(arm).Integrity; got != before {
+		t.Errorf("Rot ate a reattached limb: integrity %d, want %d", got, before)
+	}
+}

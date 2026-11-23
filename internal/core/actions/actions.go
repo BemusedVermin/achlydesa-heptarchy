@@ -46,7 +46,7 @@ type Validator func(w *sim.World, in Intent) (ok bool, reason api.Text)
 type modifierFunc func(w *sim.World, in Intent) Modifier
 
 // why is the reason text for one of this package's own refusals.
-func why(id string) api.Text { return api.Text{ID: api.ContentID("text.action." + id)} }
+func why(id string) api.Text { return api.Text{ID: api.ContentID("text.actions." + id)} }
 
 func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
 
@@ -276,7 +276,7 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	return content.ActionEnv{
 		Speed: timeline.Speed(ev.w, p.actor), StepTicks: stepTicks,
 		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
-		Source: effects.SideOf(ev.w, p.actor, sourcePart), Target: effects.SideOf(ev.w, p.target, p.part),
+		Source: effects.BodyEnvOf(ev.w, p.actor, sourcePart), Target: effects.BodyEnvOf(ev.w, p.target, p.part),
 		Chosen: effects.ChosenRecords(ev.w, choices), Inventory: inventory.Usable(ev.w, p.actor, p.target),
 	}, nil
 }
@@ -521,7 +521,7 @@ func (ev *evaluator) miss(p *plan, reason api.Text) {
 	w := ev.w
 	w.Bus.Publish(api.ActionMissed{
 		Source: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Reason: reason,
-		Line: api.Text{ID: "text.action.missed", Args: map[string]string{
+		Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
 			"actor": ev.nameOf(p.actor), "action": w.Content.Render(api.Text{ID: p.def.Name}),
 		}},
 	})
@@ -588,7 +588,7 @@ func resolveLanding(w *sim.World, pending ecs.Entity) error {
 		def, _ := w.Content.Action(landing.Action)
 		w.Bus.Publish(api.ActionMissed{
 			Source: pend.Actor, Action: landing.Action, Target: pend.Target, Tick: w.Now, Reason: reason,
-			Line: api.Text{ID: "text.action.missed", Args: map[string]string{
+			Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
 				"actor": ev.nameOf(actor), "action": w.Content.Render(api.Text{ID: def.Name}),
 			}},
 		})
@@ -605,9 +605,9 @@ func labelLanding(w *sim.World, pending ecs.Entity) string {
 	def, _ := w.Content.Action(landing.Action)
 	actor, _ := w.ByUID(pend.Actor)
 	args := map[string]string{"actor": ev.nameOf(actor), "action": w.Content.Render(api.Text{ID: def.Name})}
-	id := api.ContentID("text.action.lands")
+	id := api.ContentID("text.actions.lands")
 	if target, ok := w.ByUID(pend.Target); ok && target != actor {
-		id, args["target"] = "text.action.lands_on", ev.nameOf(target)
+		id, args["target"] = "text.actions.lands_on", ev.nameOf(target)
 	}
 	return w.Content.Render(api.Text{ID: id, Args: args})
 }

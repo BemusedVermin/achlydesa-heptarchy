@@ -333,7 +333,7 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 	}
 }
 
-func TestAttachPartFromThePack(t *testing.T) {
+func TestAttachPartFromTheInventory(t *testing.T) {
 	r := newRig(t)
 	target := anatomy.Members(r.w, r.party)[1]
 	attach := do("attach_part", "from", "inventory", "item", "item.test_arm")

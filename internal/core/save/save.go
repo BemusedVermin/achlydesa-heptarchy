@@ -41,7 +41,7 @@ type Snapshot struct {
 	// RNG is the state of each named random stream.
 	RNG     map[string][]byte `json:"rng"`
 	NextUID api.UID           `json:"next_uid"`
-	// Timeline is the timeline and the deciding body, which live outside the ECS components.
+	// Timeline is the queued entries and the deciding body, which live outside the ECS components.
 	Timeline timeline.Saved `json:"timeline"`
 	// MapEdits lists each map's edits. Maps themselves are rebuilt from content on load.
 	MapEdits map[api.MapID][]MapEdit `json:"map_edits"`

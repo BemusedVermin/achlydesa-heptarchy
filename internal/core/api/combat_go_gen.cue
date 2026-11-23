@@ -28,7 +28,7 @@ package api
 	integrity: int  @go(Integrity)
 
 	// Chosen is every choice of the action that dealt the damage, such as "type": "type.cut"; the
-	// Choices method returns it, so trigger formulas see it as chosen.
+	// Params method returns it, so trigger formulas see it as chosen.
 	choices?: {[string]: string} @go(Chosen,map[string]string)
 
 	// Source is the body that acted, or zero when nothing did.

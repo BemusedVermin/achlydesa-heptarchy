@@ -66,7 +66,7 @@ type ChoiceDef struct {
 // piece held for a graft. Formulas are Expr over ActionEnv.
 type Mods struct {
 	Requires string        `json:"requires,omitempty"` // false refuses the action, with Refusal as the reason
-	Refusal  api.ContentID `json:"refusal,omitempty"`  // a text ID; empty means text.action.requires
+	Refusal  api.ContentID `json:"refusal,omitempty"`  // a text ID; empty means text.actions.requires
 	Windup   string        `json:"windup,omitempty"`   // ticks added to the wind-up
 	Recovery string        `json:"recovery,omitempty"` // ticks added to the recovery
 	OnStart  []EffectRef   `json:"on_start,omitempty"`

@@ -200,7 +200,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 func (fx *fixture) addHooks(w *sim.World) {
 	actions.AddValidator(w, func(_ *sim.World, in actions.Intent) (bool, api.Text) {
 		if in.Choices["type"] == "type.a" {
-			return false, api.Text{ID: "text.action.requires"}
+			return false, api.Text{ID: "text.actions.requires"}
 		}
 		return true, api.Text{}
 	})
@@ -469,7 +469,7 @@ func TestEveryOptionValidatesAndABusyChannelIsRejected(t *testing.T) {
 	fx.apply(do)
 	events := fx.apply(do) // the same arm again
 	rejected, ok := find[api.Rejected](events)
-	if !ok || rejected.Reason.ID != "text.action.channels_busy" {
+	if !ok || rejected.Reason.ID != "text.actions.channels_busy" {
 		t.Errorf("a Do on a busy channel gave %v, want Rejected for busy channels", events)
 	}
 	other := do
@@ -502,7 +502,7 @@ func TestChoicesHooksAndOptionOrder(t *testing.T) {
 	bad := api.Do{
 		Source: fx.uid(fx.fighter), Action: "action.test.load", Choices: map[string]string{"type": "type.zzz"},
 	}
-	if rejected, ok := find[api.Rejected](fx.apply(bad)); !ok || rejected.Reason.ID != "text.action.bad_choice" {
+	if rejected, ok := find[api.Rejected](fx.apply(bad)); !ok || rejected.Reason.ID != "text.actions.bad_choice" {
 		t.Errorf("an unoffered choice was not rejected as bad_choice")
 	}
 	fx.apply(b.Command)

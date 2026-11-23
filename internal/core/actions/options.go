@@ -326,7 +326,7 @@ func (ev *evaluator) label(cand candidate, p *plan) string {
 	in := cand.intent
 	var detail []string
 	if in.Dir != nil {
-		detail = append(detail, w.Content.Render(api.Text{ID: api.ContentID("text.action.dir." + dirNames[*in.Dir])}))
+		detail = append(detail, w.Content.Render(api.Text{ID: api.ContentID("text.actions.dir." + dirNames[*in.Dir])}))
 	}
 	for _, value := range cand.choiceValues {
 		detail = append(detail, ev.valueName(value))
@@ -338,9 +338,9 @@ func (ev *evaluator) label(cand candidate, p *plan) string {
 		"name": w.Content.Render(api.Text{ID: p.def.Name}), "detail": strings.Join(detail, ", "),
 		"lands": strconv.FormatInt(p.windup, 10), "busy": strconv.FormatInt(p.windup+p.recovery, 10),
 	}
-	id := api.ContentID("text.action.option")
+	id := api.ContentID("text.actions.option")
 	if len(detail) > 0 {
-		id = "text.action.option_with"
+		id = "text.actions.option_with"
 	}
 	return w.Content.Render(api.Text{ID: id, Args: args})
 }

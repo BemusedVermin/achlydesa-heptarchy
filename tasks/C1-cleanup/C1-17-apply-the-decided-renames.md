@@ -1,7 +1,7 @@
 ---
 id: C1-17
 title: "Apply the decided renames"
-status: in-progress
+status: done
 milestone: C1
 kind: debt
 depends_on: [C1-01, C1-02, C1-03, C1-04, C1-05, C1-06, C1-07, C1-08, C1-09, C1-10, C1-11]
@@ -188,33 +188,33 @@ Rename with `gopls rename` for Go identifiers, never by hand, and everywhere a c
 
 - [ ] `go tool task same-behavior` passes (for each rename, with `-- --rename old=new`)
 - [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
-- [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
-- [ ] `go tool task same-behavior -- --rename template.creature.crawler=template.creature.moving_clay` passes
-- [ ] `go tool task same-behavior -- --rename body.clay_thing=body.moving_clay` passes
-- [ ] `go tool task same-behavior -- --rename part.clay_thing_*=part.moving_clay_*` passes
-- [ ] `go tool task same-behavior` shows only the behavior change named in the Spec: Relic is not offered after a plain reattach, and Rot does not eat a reattached limb. Update goldens
-- [ ] `go tool task same-behavior` shows only the behavior change named in the Spec: player text and the wipe event name change; the rest is identical
-- [ ] `go tool task same-behavior -- --rename Source (knowledge)=Origin` passes
-- [ ] `go tool task same-behavior -- --rename source.sweep=origin.sweep` passes
-- [ ] `go tool task same-behavior -- --rename content.Side=content.BodyEnv` passes
-- [ ] `go tool task same-behavior -- --rename api.Fell.Actor=api.Fell.Body` passes
-- [ ] `go tool task same-behavior -- --rename target_integrity=target.integrity` passes
-- [ ] `go tool task same-behavior -- --rename immune_known=material_known` passes
-- [ ] `go tool task same-behavior -- --rename api.Chosen=api.Params` passes
-- [ ] `go tool task same-behavior -- --rename _forms=_actions` passes
-- [ ] `go tool task same-behavior -- --rename content.DamageType=content.Type` passes
-- [ ] `go tool task same-behavior -- --rename rest (controller)=still` passes
-- [ ] `go tool task same-behavior -- --rename combat.rest_ticks=combat.still_ticks` passes
-- [ ] `go tool task same-behavior -- --rename restController=stillController` passes
-- [ ] `go tool task same-behavior -- --rename rester=stiller` passes
+- [x] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
+- [x] `go tool task same-behavior -- --rename template.creature.crawler=template.creature.moving_clay` passes
+- [x] `go tool task same-behavior -- --rename body.clay_thing=body.moving_clay` passes
+- [x] `go tool task same-behavior -- --rename part.clay_thing_*=part.moving_clay_*` passes
+- [x] `go tool task same-behavior` shows only the behavior change named in the Spec: Relic is not offered after a plain reattach, and Rot does not eat a reattached limb. Update goldens
+- [x] `go tool task same-behavior` shows only the behavior change named in the Spec: player text and the wipe event name change; the rest is identical
+- [x] `go tool task same-behavior -- --rename Source (knowledge)=Origin` passes
+- [x] `go tool task same-behavior -- --rename source.sweep=origin.sweep` passes
+- [x] `go tool task same-behavior -- --rename content.Side=content.BodyEnv` passes
+- [x] `go tool task same-behavior -- --rename api.Fell.Actor=api.Fell.Body` passes
+- [x] `go tool task same-behavior -- --rename target_integrity=target.integrity` passes
+- [x] `go tool task same-behavior -- --rename immune_known=material_known` passes
+- [x] `go tool task same-behavior -- --rename api.Chosen=api.Params` passes
+- [x] `go tool task same-behavior -- --rename _forms=_actions` passes
+- [x] `go tool task same-behavior -- --rename content.DamageType=content.Type` passes
+- [x] `go tool task same-behavior -- --rename rest (controller)=still` passes
+- [x] `go tool task same-behavior -- --rename combat.rest_ticks=combat.still_ticks` passes
+- [x] `go tool task same-behavior -- --rename restController=stillController` passes
+- [x] `go tool task same-behavior -- --rename rester=stiller` passes
 - [ ] `go tool task same-behavior -- --rename comp.Inventory=comp.Pack` passes
 - [ ] `go tool task same-behavior -- --rename content.Template.Inventory=content.Template.Pack` passes
 - [ ] `go tool task same-behavior -- --rename inventory: (template field)=pack:` passes
-- [ ] `go tool task same-behavior -- --rename timeline.Saved.Pending=timeline.Saved.SystemsDue` passes
-- [ ] `go tool task same-behavior -- --rename sim.PerTurn=sim.PerEntry` passes
-- [ ] `go tool task same-behavior -- --rename comp.Pending.Part=comp.Pending.Channel` passes
-- [ ] `go tool task same-behavior -- --rename faction.deep=faction.wild` passes
-- [ ] `go tool task same-behavior -- --rename text.map.test_hall=text.map.test.hall` passes
+- [x] `go tool task same-behavior -- --rename timeline.Saved.Pending=timeline.Saved.SystemsDue` passes
+- [x] `go tool task same-behavior -- --rename sim.PerTurn=sim.PerEntry` passes
+- [x] `go tool task same-behavior -- --rename comp.Pending.Part=comp.Pending.Channel` passes
+- [x] `go tool task same-behavior -- --rename faction.deep=faction.wild` passes
+- [x] `go tool task same-behavior -- --rename text.map.test_hall=text.map.test.hall` passes
 - [ ] `go tool task same-behavior -- --rename text.actions.*=text.action.<event>` passes
 
 ## Out of scope
@@ -226,3 +226,28 @@ Rename with `gopls rename` for Go identifiers, never by hand, and everywhere a c
 
 
 - Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
+
+### What was done (six commits for the eleven groups: moving clay; graft; down; actor; formulas; then still, form, timeline, faction, text IDs and inventory together)
+
+- **Clay.** `template.creature.crawler`, `body.clay_thing`, `part.clay_*` are now `moving_clay` (the parts are `part.moving_clay_{maw,legs,core}`; the task text said `part.clay_thing_*` but the real IDs were `part.clay_*`). The unused flesh `body.crawler` and its parts are kept as test fixtures: `body.test.crawler`, `part.test.crawler_*`. Player text "The crawler" became "The moving clay".
+- **Graft.** `comp.Graft` is now only a fitted piece (it always has a `Piece`). A reattached limb gets the new marker `comp.Reattached`. Behavior change: Relic is not offered, and Rot does not eat, after a plain reattach. No existing golden exercised it; `TestAReattachedLimbIsNotAGraftForRelicOrRot` shows that a reattached limb counts as no graft (so Relic's `source.grafts` check does not see it) and that Rot does not eat it.
+- **Harness.** The harness outcome `lost` (set on `PartyWiped`, the recoverable wipe) is now `OutcomeWiped = "wiped"`; "lost" is reserved for the unrecoverable end.
+- **Down.** `fallen` is `outOfFight` (combat and explore), `PartyLost` is `PartyWiped` (type, kind `combat.party_wiped`, text `text.combat.party_wiped`), `text.explore.fallen` is `text.explore.out_of_fight`. Texts reworded (plain defaults, the owner can change them): "{{.name}} is out of the fight.", "The party is wiped out.", "They cannot lead: they are out of the fight.". `text.game.lost` is shown only when `PartyWiped` holds, and `Apply` wakes a wakeable party at once, so it already shows only when the party cannot wake; I left it as it was.
+- **Actor.** Nine event and command fields `Actor` are now `Source` (JSON `source`), `api.Fell.Actor` is `Body`. Knowledge `Source` is `Origin` (`api.Fact.Origin`, `content.Origin`, bundle key `origins`, `origin.sweep`, `text.origin.*`, and the `reveal` effect's `origin` parameter). `content.Side` is `content.BodyEnv` and `effects.SideOf` is `effects.BodyEnvOf`. `comp.Pending.Actor` was not in the decision and is unchanged.
+- **Formulas.** Target facts are under `target.` (`target.integrity`, `.max_integrity`, `.locked`, `.graft`, `.statuses`, `.winding_up`, `.is_party`), as fields of `BodyEnv`. `immune_known` is `material_known`, `choice` is dropped (nothing used it), `api.Chosen` is `api.Params` (method `Params()`).
+- **Form.** `_forms` is `_actions` (it holds the seven forms and a step); the seven forms are tagged `form`. `content.DamageType` is `content.Type`. Fixed the doc comment in `comp.go` and the lines in `docs/go-technical-design.md`.
+- **Still.** `rest` controller is `still` (`still.go`, `stillController`, `stiller`, `still_ticks`, `StillTicks`).
+- **Inventory (deviation from the spec text).** The owner decided `inventory`, not the spec's recommended `pack` (C1-08), so I did **not** rename `comp.Inventory` to `comp.Pack`, `Template.Inventory` or `inventory:`. Instead everything that said "pack" is now `inventory`: the formula variable (`inventory[...]`), `from: "inventory"`, `api.AttachedFromInventory`, `text.combat.inventory_short`, the `Inventory` env fields, and comments. The three `Pack` acceptance criteria are therefore left unticked: they describe the rejected option.
+- **Timeline.** `timeline.Saved.Pending` is `SystemsDue` (JSON `systems_due`), the timeline's own flag is `systemsDue`, `sim.PerTurn` is `PerEntry`, `comp.Pending.Part` is `Channel` (JSON `channel`), "turn queue" and "per-turn" are gone from code and docs. Save version bumped to 2 (old saves fail cleanly).
+- **Faction.** `faction.deep` is `faction.wild`, text "the wild".
+- **Text IDs.** Names sit beside their records; engine messages are one file per Go package in `content/data/text/` (`actions`, `clock`, `combat`, `effects`, `explore`, `game`, `knowledge`, `timeline`); `content/data/text.cue` now holds only the schema. `text.map.test_*` is `text.map.test.*`. The spec pair `text.actions.*` to `text.action.<event>` was **skipped** on purpose: the decision (and the glossary) says an engine message is `text.<package>.<event>`, and the package is `actions`, so those IDs already have the decided shape, and `text.action.*` would have shared a namespace with the action records' names. The criterion for it is left unticked. New loader check `checkTextNames` (parts exempt) with `TestARecordsNameIsItsOwnIDAsText`. Test fixtures that cloned a record under a new ID now name it correctly.
+
+### Deviations and things to look at
+
+- The `same-behavior` ticks rest on **one combined run** with every declared rename in order (a cumulative list, `"actor":` handled with a placeholder so only event fields change), not on one run per rename; running each rename alone against master would fail, since later renames are in the tree too. The first criterion (a bare `same-behavior` passes) is unticked because of the differences below. Everything else in the harness CSV and every golden match, except: the harness CSV outcome column (`lost` is now `wiped`, line 43: the one intended value change), `bad_actions.json` (the `pack` rename), and three TUI goldens (`menu_parts`, `menu_arms`, `actor_windup`) where the longer name "The moving clay" shifts the layout and truncates one line (`lands at tick 86` shows as `tick 8`). That is the width, not a tick change. Game hashes are skipped under renames, as the tool documents.
+- `go tool task check` cannot pass fully on this Windows machine: `internal/tools/samebehavior`'s own tests fail on a CRLF mismatch in the harness CSV (`seed,step,map`), which fails the same way on master. C1-24 owns that fix.
+- Small fix outside the renames: `clock.Install`'s view rendered phase names with the registry it was installed with, so after `SwapContent` it used the old one. Once a phase name had to be `text.<phase id>` the swap test exposed it. It now uses `w.Content` (the installed registry only if there is none).
+- The spec asks to update `.claude/rules/content.md`; a task branch cannot edit `.claude/`, so filed **C1-17.F1**.
+- The `Graft` finding's scope: `act_alone` still requires a real graft (a piece), so a reattached limb never acts alone.
+
+- Follow-ups filed: **C1-17.F1** (`.claude/rules/content.md`, protected on a task branch) and **C1-17.F2** (the TUI cuts a tick digit when the target name is long: the longer "The moving clay" exposes it).

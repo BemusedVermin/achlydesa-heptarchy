@@ -42,7 +42,7 @@ func TestEachCreatureOfTheDenSpawnsAndFightsBack(t *testing.T) {
 			if creature == 0 {
 				t.Fatalf("no %s in the den", template)
 			}
-			if !f.until(3000, func() bool { return f.crawlerStarted(creature) }) {
+			if !f.until(3000, func() bool { return f.movingClayStarted(creature) }) {
 				t.Errorf("the %s never swung at the party", template)
 			}
 		})

@@ -32,7 +32,7 @@ func fightApp(t *testing.T) *tui.App {
 	return nil
 }
 
-// startApp is the sample game at its start, with all of its actions and a standing crawler: these
+// startApp is the sample game at its start, with all of its actions and a standing moving clay: these
 // tests browse menus, and a hunting creature would change what they see.
 func startApp(t *testing.T) *tui.App {
 	t.Helper()
@@ -40,11 +40,11 @@ func startApp(t *testing.T) *tui.App {
 	if err != nil {
 		t.Fatal(err)
 	}
-	crawler := bundle.Templates["template.creature.moving_clay"]
-	crawler.Actor = &content.ActorDef{Controller: "still"}
-	crawler.Actions = nil
-	crawler.Lists = nil
-	bundle.Templates["template.creature.moving_clay"] = crawler
+	movingClay := bundle.Templates["template.creature.moving_clay"]
+	movingClay.Actor = &content.ActorDef{Controller: "still"}
+	movingClay.Actions = nil
+	movingClay.Lists = nil
+	bundle.Templates["template.creature.moving_clay"] = movingClay
 	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
@@ -352,7 +352,7 @@ func TestOverlayMarksThreatsAndTimeline(t *testing.T) {
 	golden(t, "timeline_marked", tui.RenderTimelineMarked(tl, bodies, 20, 0))
 }
 
-// huntingApp is the sample game as shipped: the crawler hunts and fights back.
+// huntingApp is the sample game as shipped: the moving clay hunts and fights back.
 func huntingApp(t *testing.T) *tui.App {
 	t.Helper()
 	reg, err := content.Load(sampleDir)
@@ -415,6 +415,6 @@ func TestWholeFightEndsAndTheMapResumesFollow(t *testing.T) {
 		t.Errorf("control = %q, want follow", app.Mode())
 	}
 	if !sawThreat {
-		t.Error("the hunting crawler never showed a threat")
+		t.Error("the hunting movingClay never showed a threat")
 	}
 }

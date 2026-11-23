@@ -78,7 +78,7 @@ func (ev *evaluator) offeredValues(name string, actor ecs.Entity) ([]string, err
 		held = inventory.Usable(ev.w, actor, ecs.Entity{})
 		ev.inventory[actor] = held
 	}
-	source := effects.SideOf(ev.w, actor, ecs.Entity{})
+	source := effects.BodyEnvOf(ev.w, actor, ecs.Entity{})
 	values := []string{}
 	for _, id := range reg.ChoiceRecords(name) {
 		record, _ := reg.Record(id)
