@@ -107,7 +107,7 @@ Once a milestone's tasks are merged, and nothing else is running:
 1. `/audit` starts a `code-auditor` per area of the code, plus one for vocabulary, and files what they find as a cleanup milestone (`tasks/C1-cleanup/`, then `C2`, ...) in one PR. Names it isn't sure of, and new libraries, become questions.
 2. `/decide` settles those questions. Names go into `docs/glossary.md`.
 3. `/triage` accepts, merges or drops the cleanup tasks.
-4. `/run-tasks` does them. Renames run one at a time, then duplication and libraries per area, then tests per area, then comments per area, then the content guide (written on the first audit, checked for drift after). Each task proves it changed nothing with `go tool task same-behavior`.
+4. `/run-tasks` does them. Renames run one at a time, then duplication and libraries per area, then tests per area, then comments per area, then the content guide (written on the first audit, checked for drift after). Each task proves it changed nothing with `go tool task check-pr`, which CI runs again on the PR.
 5. `/audit lock-in`, in your session, turns what was decided into lint rules, AGENTS.md style and rule files, so the next audit finds less.
 
 The auditors run on Opus, seven at a time, so an audit uses a fair share of your plan.

@@ -10,13 +10,15 @@ import (
 	"strings"
 )
 
-// taskFile is what ready needs from a task file's front matter.
+// taskFile is what ready and check-pr need from a task file's front matter.
 type taskFile struct {
 	id        string
 	title     string
 	status    string
+	kind      string
 	dependsOn []string
-	path      string // slash-separated, relative to the repository root
+	renames   []string // old=new pairs a cleanup rename task makes
+	path      string   // slash-separated, relative to the repository root
 }
 
 // parseFrontMatter reads the YAML front matter at the start of a task file: flat "key: value"
@@ -103,7 +105,9 @@ func loadTasks(root string) ([]taskFile, error) {
 			id:        fields["id"],
 			title:     fields["title"],
 			status:    fields["status"],
+			kind:      fields["kind"],
 			dependsOn: parseList(fields["depends_on"]),
+			renames:   parseList(fields["renames"]),
 			path:      filepath.ToSlash(relative),
 		})
 		return nil

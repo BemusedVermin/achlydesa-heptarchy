@@ -36,7 +36,9 @@ func newRepo(t *testing.T) string {
 		t.Skip("git is not installed")
 	}
 	dir := t.TempDir()
-	for _, args := range [][]string{{"init", "-q", "-b", "master"}} {
+	// autocrlf off: Windows runners turn it on, and the stand-in harness reads checked-out files, so
+	// the base's copies would gain CRs that the real harness's output never has.
+	for _, args := range [][]string{{"init", "-q", "-b", "master"}, {"config", "core.autocrlf", "false"}} {
 		if _, err := git(dir, args...); err != nil {
 			t.Fatal(err)
 		}

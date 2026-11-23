@@ -13,6 +13,9 @@
 //	              package, and shows the agent the findings in that file. It never blocks, and
 //	              does nothing when golangci-lint isn't installed
 //	ready         lists the tasks an agent can start now, from the task files' front matter
+//	check-pr      checks a branch's task bookkeeping: INDEX.md matches the task files, a task
+//	              branch's task is done or blocked, and a cleanup task changed no behavior
+//	              (or, for a tests task, only tests). CI runs it on every pull request
 //	clean-worktrees
 //	              removes the worktrees in .claude/worktrees that hold nothing unsaved (their work
 //	              is pushed or already in master), then the leftover worktree- and task/ branches

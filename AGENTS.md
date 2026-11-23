@@ -17,6 +17,7 @@ Every development command is a task in `Taskfile.yml`, run through Go so nothing
 - Pass arguments after `--`: `go tool task test -- -run TestName ./internal/core/sim`
 - Regenerate CUE schemas after changing content structs: `go tool task schema`
 - Show a refactor changed no behavior: `go tool task same-behavior` (renames: `-- --rename old=new`)
+- Check this branch's task bookkeeping, as CI does on every pull request: `go tool task check-pr`
 - Play: `go tool task run -- play --seed 1`
 - List them all: `go tool task --list`
 

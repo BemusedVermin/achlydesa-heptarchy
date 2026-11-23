@@ -19,7 +19,8 @@ const (
 
 // errUsage reports a command line agentkit doesn't understand.
 var errUsage = errors.New(
-	"usage: agentkit guard | protect | after-edit | ready | clean-worktrees [--dry-run] [--no-fetch]")
+	"usage: agentkit guard | protect | after-edit | ready | check-pr [--branch B] [--base origin/master] | " +
+		"clean-worktrees [--dry-run] [--no-fetch]")
 
 // hookInput is the part of Claude Code's PreToolUse and PostToolUse hook input that the hooks read.
 type hookInput struct {
@@ -39,7 +40,7 @@ func main() {
 
 // run runs a subcommand and returns the exit status.
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	if len(args) == 0 || (len(args) > 1 && args[0] != "clean-worktrees") {
+	if len(args) == 0 || (len(args) > 1 && args[0] != "clean-worktrees" && args[0] != "check-pr") {
 		warn(stderr, errUsage)
 		return exitFailed
 	}
@@ -65,6 +66,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			return exitFailed
 		}
 		return exitOK
+	case "check-pr":
+		return runCheckPR(args[1:], stdout, stderr)
 	case "clean-worktrees":
 		return runCleanWorktrees(args[1:], stdout, stderr)
 	default:
