@@ -27,6 +27,9 @@ package api
 	target: #UID       @go(Target)
 	tick:   int64      @go(Tick)
 	lands:  int64      @go(Lands)
+
+	// Autonomous says a grafted part started the action on its own, not its host's controller.
+	autonomous?: bool @go(Autonomous)
 }
 
 // ActionMissed reports that an action landed and did nothing: its target was out of reach, or one of

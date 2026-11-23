@@ -29,7 +29,11 @@ types: {
 	// Speaking it in the deep using it up is a trigger (M2-05).
 	"type.name": {name: "text.type.name"}
 	"type.burn": #Consumable & {_item: "item.coal", name: "text.type.burn"}
-	"type.rot": #Consumable & {_item: "item.salk_dust", name: "text.type.rot"}
+	// Rot also eats a graft on whichever side it lands. A placeholder 2.
+	"type.rot": #Consumable & {
+		_item: "item.salk_dust", name: "text.type.rot"
+		on_land: [{do: "damage", params: {parts: "target_part", amount: "graft ? 2 : 0"}}]
+	}
 	// Soak is heavy: it adds to the recovery of any form it is loaded into.
 	"type.soak": #Consumable & {_item: "item.lake_water", name: "text.type.soak", recovery: "2"}
 	// Light has its consume and nothing more: it is gone once opened.

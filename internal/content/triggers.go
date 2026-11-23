@@ -66,6 +66,15 @@ func (r *Registry) TemplateTriggerIDs(template api.ContentID) []string {
 	return ids
 }
 
+// ItemTriggerIDs lists the IDs of an item's triggers, or none.
+func (r *Registry) ItemTriggerIDs(item api.ContentID) []string {
+	var ids []string
+	for i := range r.bundle.Items[string(item)].Triggers {
+		ids = append(ids, TriggerID(item, i))
+	}
+	return ids
+}
+
 // checkTriggers checks each trigger's role and effects, and compiles its condition. Whether the
 // event kind exists is for the game to check: only it knows which kinds are registered.
 func (r *Registry) checkTriggers() []error {

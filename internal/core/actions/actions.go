@@ -415,10 +415,24 @@ func Start(w *sim.World, in Intent) error {
 	case p == nil || reason.ID != "":
 		return fmt.Errorf("actions: cannot start %s: %s", in.Action, w.Content.Render(reason))
 	}
-	return ev.start(p)
+	return ev.start(p, false)
 }
 
-func (ev *evaluator) start(p *plan) error {
+// StartAutonomous is Start for an action a graft takes on its own: the same checks and wind-up,
+// and the ActionStarted event says it was autonomous.
+func StartAutonomous(w *sim.World, in Intent) error {
+	ev := newEvaluator(w)
+	p, reason, err := ev.evaluate(in, true)
+	switch {
+	case err != nil:
+		return err
+	case p == nil || reason.ID != "":
+		return fmt.Errorf("actions: cannot start %s: %s", in.Action, w.Content.Render(reason))
+	}
+	return ev.start(p, true)
+}
+
+func (ev *evaluator) start(p *plan, autonomous bool) error {
 	w := ev.w
 	if err := effects.Apply(p.context(w), p.onStart); err != nil {
 		return fmt.Errorf("actions: %s: %w", p.id, err)
@@ -448,6 +462,7 @@ func (ev *evaluator) start(p *plan) error {
 	ecs.NewMap[comp.Landing](w.ECS).Add(pending, landing)
 	w.Bus.Publish(api.ActionStarted{
 		Actor: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Lands: w.Now + p.windup,
+		Autonomous: autonomous,
 	})
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -76,6 +77,14 @@ type firing struct {
 	uid     api.UID
 	site    content.TriggerSite
 	order   int // the site's place in the index, for a stable order among one carrier's triggers
+	// viaPart says the carrier is a part of the subject's body, not the subject itself.
+	viaPart bool
+}
+
+// ownsTrigger says whether the entity's own trigger list holds the site, as a graft's does.
+func ownsTrigger(w *sim.World, e ecs.Entity, site content.TriggerSite) bool {
+	triggers := ecs.NewMap[comp.Triggers](w.ECS)
+	return triggers.Has(e) && slices.Contains(triggers.Get(e).IDs, site.ID)
 }
 
 // runTriggers applies the triggers that listen for e. Matches fire in UID order of the entity that
@@ -94,8 +103,21 @@ func runTriggers(w *sim.World, e api.Event) {
 	for order, site := range sites {
 		for _, uid := range roleUIDs(subjects, site.Trigger.Role) {
 			carrier, alive := w.ByUID(uid)
-			if alive && carries(w, carrier, site) {
+			if !alive {
+				continue
+			}
+			if carries(w, carrier, site) {
 				firings = append(firings, firing{carrier: carrier, uid: uid, site: site, order: order})
+			}
+			// A part that carries the trigger itself (a graft) answers for its body's roles.
+			if site.Trigger.Role == content.RoleSource || site.Trigger.Role == content.RoleTarget {
+				for _, part := range anatomy.Parts(w, carrier) {
+					if ownsTrigger(w, part, site) {
+						firings = append(firings, firing{
+							carrier: part, uid: w.UIDOf(part), site: site, order: order, viaPart: true,
+						})
+					}
+				}
 			}
 		}
 	}
@@ -117,6 +139,9 @@ func runTriggers(w *sim.World, e api.Event) {
 		ctx.Source = entityOf(w, subjects[api.SubjectSource])
 		ctx.Target = entityOf(w, subjects[api.SubjectTarget])
 		ctx.TargetPart = entityOf(w, subjects[api.SubjectPart])
+		if f.viaPart && f.site.Trigger.Role == content.RoleSource {
+			ctx.SourcePart = f.carrier
+		}
 		if err := fire(ctx, f.site.Trigger); err != nil {
 			w.Bus.Fail(fmt.Errorf("effects: trigger %s: %w", f.site.Path, err))
 			return

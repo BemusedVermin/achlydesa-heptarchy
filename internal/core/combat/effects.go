@@ -80,6 +80,7 @@ func primitives() []effects.Primitive {
 			Name: "consume", Params: []string{"item"}, Kinds: map[string]effects.Kind{"item": effects.KindText},
 			VerifyContent: verifyConsumeContent, Apply: applyConsume, Check: checkConsume,
 		},
+		{Name: "act_alone", Apply: applyActAlone},
 		{
 			Name: "spawn_from_part", Params: []string{"faction", "controller"},
 			Kinds:         map[string]effects.Kind{"faction": effects.KindText, "controller": effects.KindText},
@@ -368,7 +369,19 @@ func applyAttach(ctx *effects.Context, p effects.Params) error {
 	}
 	ecs.NewMap[comp.PartOf](w.ECS).Add(part, &comp.PartOf{}, body)
 	if grafts := ecs.NewMap[comp.Graft](w.ECS); !grafts.Has(part) {
-		grafts.Add(part, &comp.Graft{})
+		graft := &comp.Graft{}
+		if from == api.AttachedFromPack {
+			item, err := p.String("item")
+			if err != nil {
+				return err
+			}
+			graft.Piece = api.ContentID(item)
+			// The piece's triggers now belong to the part, so they fire for it and not its holder.
+			if ids := w.Content.ItemTriggerIDs(graft.Piece); len(ids) > 0 {
+				ecs.NewMap[comp.Triggers](w.ECS).Add(part, &comp.Triggers{IDs: ids})
+			}
+		}
+		grafts.Add(part, graft)
 	}
 	w.Bus.Publish(
 		api.PartAttached{
