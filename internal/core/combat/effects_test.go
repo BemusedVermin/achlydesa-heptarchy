@@ -385,6 +385,9 @@ func TestAttachPartFromSevered(t *testing.T) {
 	if ecs.NewMap[comp.Pos](r.w.ECS).Has(arm) {
 		t.Error("an attached part kept a position")
 	}
+	if ecs.NewMap[comp.Graft](r.w.ECS).Has(arm) || !ecs.NewMap[comp.Reattached](r.w.ECS).Has(arm) {
+		t.Error("a reattached limb should be marked Reattached and not be a graft")
+	}
 	if ok, reason := effects.Check(r.ctx(r.crawler), []content.EffectRef{attach}); ok || reason.ID == "" {
 		t.Errorf("nothing is left to attach, but check = %v, %+v", ok, reason)
 	}

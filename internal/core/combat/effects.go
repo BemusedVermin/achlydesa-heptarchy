@@ -368,18 +368,21 @@ func applyAttach(ctx *effects.Context, p effects.Params) error {
 		}
 	}
 	ecs.NewMap[comp.PartOf](w.ECS).Add(part, &comp.PartOf{}, body)
-	if grafts := ecs.NewMap[comp.Graft](w.ECS); !grafts.Has(part) {
-		graft := &comp.Graft{}
-		if from == api.AttachedFromPack {
-			item, err := p.String("item")
-			if err != nil {
-				return err
-			}
-			graft.Piece = api.ContentID(item)
-			// The piece's triggers now belong to the part, so they fire for it and not its holder.
-			if ids := w.Content.ItemTriggerIDs(graft.Piece); len(ids) > 0 {
-				ecs.NewMap[comp.Triggers](w.ECS).Add(part, &comp.Triggers{IDs: ids})
-			}
+	grafts, reattached := ecs.NewMap[comp.Graft](w.ECS), ecs.NewMap[comp.Reattached](w.ECS)
+	switch {
+	case from == api.AttachedFromSevered:
+		if !grafts.Has(part) && !reattached.Has(part) {
+			reattached.Add(part, &comp.Reattached{})
+		}
+	case !grafts.Has(part):
+		item, err := p.String("item")
+		if err != nil {
+			return err
+		}
+		graft := &comp.Graft{Piece: api.ContentID(item)}
+		// The piece's triggers now belong to the part, so they fire for it and not its holder.
+		if ids := w.Content.ItemTriggerIDs(graft.Piece); len(ids) > 0 {
+			ecs.NewMap[comp.Triggers](w.ECS).Add(part, &comp.Triggers{IDs: ids})
 		}
 		grafts.Add(part, graft)
 	}

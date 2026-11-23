@@ -162,10 +162,13 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	active: [...#StatusEntry] @go(Active,[]StatusEntry)
 }
 
-// Graft marks a part grown or fitted onto a body that it was not made with.
+// Graft marks a fitted piece of Serilmen. A body's own severed part put back is a Reattached, not a graft.
 #Graft: {
-	piece?: api.#ContentID @go(Piece)
+	piece: api.#ContentID @go(Piece)
 }
+
+// Reattached marks a body's own severed part that was put back. Unlike a Graft, Relic and Rot ignore it.
+#Reattached: {}
 
 // Allegiance is the side a body fights for.
 #Allegiance: {

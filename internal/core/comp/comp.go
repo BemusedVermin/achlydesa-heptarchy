@@ -167,10 +167,13 @@ type Statuses struct {
 	Active []StatusEntry `json:"active"`
 }
 
-// Graft marks a part grown or fitted onto a body that it was not made with.
+// Graft marks a fitted piece of Serilmen. A body's own severed part put back is a Reattached, not a graft.
 type Graft struct {
-	Piece api.ContentID `json:"piece,omitempty"` // the item it came from, or empty for a reattached limb
+	Piece api.ContentID `json:"piece"` // the item it came from
 }
+
+// Reattached marks a body's own severed part that was put back. Unlike a Graft, Relic and Rot ignore it.
+type Reattached struct{}
 
 // Allegiance is the side a body fights for.
 type Allegiance struct {
@@ -210,6 +213,7 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Inventory](world)
 	ecs.ComponentID[Statuses](world)
 	ecs.ComponentID[Graft](world)
+	ecs.ComponentID[Reattached](world)
 	ecs.ComponentID[Allegiance](world)
 	ecs.ComponentID[Triggers](world)
 	ecs.ComponentID[Calm](world)
