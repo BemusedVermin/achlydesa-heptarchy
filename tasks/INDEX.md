@@ -50,6 +50,8 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
 | [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
+| [M2-14](M2-combat/M2-14-step-speed.md) | Make a game step fast again after the seven forms | todo | bug | M | M2-06 |
+| [M2-15](M2-combat/M2-15-triage-followups.md) | Triage the open follow-ups into milestones | todo | debt | S | none |
 
 ## Later milestones (outlines)
 
@@ -73,7 +75,7 @@ Milestones for after the MVP (M1 to M7). None starts before the MVP is done, and
 
 ## Follow-ups
 
-Filed by agents while working (see the Follow-ups section of [README.md](README.md)). The owner triages each into a milestone, merges it into another task, or closes it.
+Filed by agents while working (see the Follow-ups section of [README.md](README.md)). The owner triages each into a milestone, merges it into another task, or closes it, either directly or through a triage task such as M2-15.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
