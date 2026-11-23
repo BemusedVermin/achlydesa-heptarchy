@@ -57,6 +57,16 @@ func TestTypeChoiceComesFromContent(t *testing.T) {
 	}
 }
 
+func TestLabelNamesTheChosenRecord(t *testing.T) {
+	fx := newFixture(t, 1, opts{
+		actions: []api.ContentID{"action.test.load"}, contentChoices: true, mutate: withWater,
+	})
+	label := fx.option("load/type.cut").Label
+	if !strings.Contains(label, "Cut") || strings.Contains(label, "type.cut") {
+		t.Errorf("label = %q, want the type's name \"Cut\", not its ID", label)
+	}
+}
+
 func TestChosenRecordsChangeTheAction(t *testing.T) {
 	var log []string
 	fx := newFixture(t, 1, opts{
