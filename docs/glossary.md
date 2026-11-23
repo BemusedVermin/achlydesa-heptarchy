@@ -31,3 +31,4 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **timeline**: the shared queue of entries (what was once called the turn queue).
 - **per-entry**: runs after each timeline entry (`sim.PerEntry`).
 - **systems due**: the timeline's flag that per-entry systems have not yet run (`SystemsDue`).
+- **wild**: the hostile creatures as a side (`faction.wild`). The deep is the place.

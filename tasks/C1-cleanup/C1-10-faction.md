@@ -1,7 +1,7 @@
 ---
 id: C1-10
 title: "What is the hostile faction called?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -33,14 +33,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** `faction.wild`. The player-facing name is the owner's.
 
+**Decided by the owner:** `faction.wild`. `faction.deep` is renamed, so the hostile creatures as a side no longer share a name with the place. The player-facing text for it is chosen by the applying task (a plain default, noted) and can be changed by the owner. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: `faction.wild`. In the glossary.
