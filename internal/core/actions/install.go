@@ -63,7 +63,7 @@ func Install(w *sim.World) error {
 	if err != nil {
 		return err
 	}
-	timeline.SetUsable(w, usable)
+	timeline.SetUsableChannels(w, usableChannels)
 	// Options come after the timeline's own, which are the waits.
 	err = w.Views.Register(sim.ViewBuilder{Name: "actions", After: []string{"timeline"}, Build: buildOptions})
 	if err != nil {

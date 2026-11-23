@@ -84,7 +84,8 @@ func (p *plan) context(w *sim.World) *effects.Context {
 }
 
 // evaluator works out intents. It caches what one operation asks again and again, such as who sees
-// whom, so it must not outlive the operation: the world may change between operations.
+// whom, what targets an action has and which values a choice offers, so it must not outlive the
+// operation: the world may change between operations.
 type evaluator struct {
 	w          *sim.World
 	st         *state
@@ -93,6 +94,8 @@ type evaluator struct {
 	actors     *ecs.Map[comp.Actor]
 	sight      map[ecs.Entity]map[ecs.Entity]bool
 	pack       map[ecs.Entity]map[string]int // each actor's whole pack, for choice offers
+	targetMemo map[targetKey][]Intent        // body targets, by what decides them
+	valueMemo  map[valueKey][]string         // offered choice values, by choice and actor
 }
 
 func newEvaluator(w *sim.World) *evaluator {
@@ -592,4 +595,19 @@ func labelLanding(w *sim.World, pending ecs.Entity) string {
 		id, args["target"] = "text.actions.lands_on", ev.nameOf(target)
 	}
 	return w.Content.Render(api.Text{ID: id, Args: args})
+}
+
+// targetKey is what decides the body targets an action offers: the actor, the kind of target, the
+// range and whether the target must be in sight.
+type targetKey struct {
+	actor  ecs.Entity
+	target string
+	rng    int
+	sight  bool
+}
+
+// valueKey names one choice's offered values for one actor.
+type valueKey struct {
+	actor ecs.Entity
+	name  string
 }

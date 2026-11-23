@@ -609,3 +609,33 @@ func TestGameNewRejectsActionsContentCannotRun(t *testing.T) {
 		})
 	}
 }
+
+func TestBatchUsableHookAgreesWithTheChannelByChannelTest(t *testing.T) {
+	for _, dummyQ := range []int{1, 9} {
+		fx := newFixture(t, 1, opts{
+			actions: []api.ContentID{"action.step", "action.test.swing"}, dummyQ: dummyQ, hooks: true,
+		})
+		for step := 0; step < 6; step++ {
+			for _, body := range []ecs.Entity{fx.fighter, fx.dummy} {
+				channels := timeline.Channels(fx.w, body)
+				got := actions.UsableChannels(fx.w, body, channels)
+				for i, c := range channels {
+					if want := actions.UsableOneByOne(fx.w, body, c); got[i] != want {
+						t.Errorf("dummyQ %d step %d channel %d: batch %v, one by one %v", dummyQ, step, i, got[i], want)
+					}
+				}
+			}
+			var next *api.Option
+			for _, option := range fx.view().Options {
+				if option.Enabled {
+					next = &option
+					break
+				}
+			}
+			if next == nil {
+				break
+			}
+			fx.apply(next.Command)
+		}
+	}
+}

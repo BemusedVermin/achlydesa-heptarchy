@@ -596,3 +596,52 @@ func TestOrderMatchesSort(t *testing.T) {
 		}
 	})
 }
+
+func TestUsableChannelsHookDecidesWhichChannelsCount(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		hook  func(cs []timeline.Channel, arm ecs.Entity) []bool
+		reset bool
+		want  int64
+	}{
+		{"the arm only", func(cs []timeline.Channel, arm ecs.Entity) []bool {
+			out := make([]bool, len(cs))
+			for i, c := range cs {
+				out[i] = c.Entity == arm
+			}
+			return out
+		}, false, 9},
+		{"neither counts, so both do", func(cs []timeline.Channel, _ ecs.Entity) []bool { return make([]bool, len(cs)) }, false, 4},
+		{"a miscounting hook is ignored", func([]timeline.Channel, ecs.Entity) []bool { return nil }, false, 4},
+		{"SetUsable replaces the hook", func(cs []timeline.Channel, _ ecs.Entity) []bool { return make([]bool, len(cs)) }, true, 4},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			fx := newFixture(t, 1)
+			ai := fx.spawn(t, timeline.IdleController, 2)
+			arm := twoChannels(t, fx, ai)
+			timeline.SetUsableChannels(fx.w, func(_ *sim.World, _ ecs.Entity, cs []timeline.Channel) []bool {
+				return tc.hook(cs, arm.Entity)
+			})
+			if tc.reset {
+				timeline.SetUsable(fx.w, func(*sim.World, ecs.Entity, timeline.Channel) bool { return true })
+			}
+			if err := timeline.Occupy(fx.w, fx.bodyChannel(ai), 4); err != nil {
+				t.Fatal(err)
+			}
+			if err := timeline.Occupy(fx.w, arm, 9); err != nil {
+				t.Fatal(err)
+			}
+			timeline.Reschedule(fx.w, ai)
+			view, _ := fx.view(t)
+			for _, entry := range view.Timeline.Entries {
+				if entry.Kind == "ready" && entry.Actor == fx.w.UIDOf(ai) {
+					if entry.Tick != tc.want {
+						t.Errorf("ready at %d, want %d", entry.Tick, tc.want)
+					}
+					return
+				}
+			}
+			t.Fatal("the body is not on the timeline")
+		})
+	}
+}

@@ -70,6 +70,7 @@ type state struct {
 	cfg         content.TimelineConfig
 	channels    func(w *sim.World, body ecs.Entity) []Channel
 	usable      func(w *sim.World, body ecs.Entity, c Channel) bool
+	usableAll   func(w *sim.World, body ecs.Entity, channels []Channel) []bool
 	speed       func(w *sim.World, body ecs.Entity) int
 	visible     func(w *sim.World, body ecs.Entity) bool
 	controllers map[string]Controller
@@ -176,8 +177,15 @@ func StepTicks(w *sim.World, body ecs.Entity) (int64, error) {
 func (st *state) decisionTick(w *sim.World, body ecs.Entity) int64 {
 	channels := Channels(w, body)
 	usable := make([]Channel, 0, len(channels))
-	for _, c := range channels {
-		if st.usable(w, body, c) {
+	var flags []bool
+	if st.usableAll != nil {
+		flags = st.usableAll(w, body, channels)
+		if len(flags) != len(channels) {
+			flags = nil // a hook that miscounts is ignored; fall back to the per-channel test
+		}
+	}
+	for i, c := range channels {
+		if (flags != nil && flags[i]) || (flags == nil && st.usable(w, body, c)) {
 			usable = append(usable, c)
 		}
 	}
