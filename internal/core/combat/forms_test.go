@@ -74,6 +74,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	}
 	crawler := bundle.Templates["template.test.dummy"]
 	crawler.Body = ptr(api.ContentID("body.crawler"))
+	crawler.Tags = append(slices.Clone(crawler.Tags), "crawls")
 	templates["crawler"] = crawler
 	old := bundle.Templates["template.test.dummy"]
 	old.Body = ptr(api.ContentID("body.test.old"))
@@ -473,9 +474,9 @@ func TestPressCancelsTheSwingOfABodyWindingUp(t *testing.T) {
 	}
 }
 
-func TestStandBracesDelaysTheOthersAndLeavesTheStanderFree(t *testing.T) {
-	r := newRing(t, map[string]int{"fighter": 0, "victim": 1})
-	fighter, victim := r.body("fighter"), r.body("victim")
+func TestStandBracesDelaysTheCrawlersAndLeavesTheStanderFree(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "crawler": -1})
+	fighter, victim, crawler := r.body("fighter"), r.body("victim"), r.body("crawler")
 	arm := timeline.Channel{Entity: r.part(fighter, "arm"), Body: fighter}
 	if err := timeline.Occupy(r.w, arm, 30); err != nil {
 		t.Fatal(err)
@@ -484,8 +485,11 @@ func TestStandBracesDelaysTheOthersAndLeavesTheStanderFree(t *testing.T) {
 	if !timeline.Free(r.w, arm) {
 		t.Error("Stand did not ready the arm")
 	}
-	if got := r.busyChannels(victim); got == 0 {
-		t.Error("Stand did not delay the other body")
+	if got := r.busyChannels(crawler); got == 0 {
+		t.Error("Stand did not delay the crawler")
+	}
+	if got := r.busyChannels(victim); got != 0 {
+		t.Errorf("Stand delayed a body that does not crawl: %d busy channels", got)
 	}
 	held := ecs.NewMap[comp.Statuses](r.w.ECS)
 	if !held.Has(fighter) || held.Get(fighter).Active[0].Status != "status.standing" {

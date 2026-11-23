@@ -37,11 +37,11 @@ The task file is the source of truth for status. `INDEX.md` mirrors it, so updat
 | Status | Meaning | Who sets it |
 | --- | --- | --- |
 | `proposed` | Filed as a follow-up, not yet triaged | The agent that filed it |
-| `todo` | Ready to start once its dependencies are done | The owner |
+| `todo` | Ready to start once its dependencies are done | The owner, or a triage task the owner assigned |
 | `in-progress` | Someone is on it | The implementer |
 | `blocked` | Can't continue; Notes say why and link the blocker | The implementer |
 | `done` | Acceptance criteria met and the PR is open; merging the PR completes the task | The implementer |
-| `obsolete` | Another task made it unnecessary; Notes say which | The owner |
+| `obsolete` | Another task made it unnecessary; Notes say which | The owner, or a triage task the owner assigned |
 
 ## Picking a task
 
@@ -51,14 +51,14 @@ Take the lowest-numbered `todo` task whose `depends_on` are all `done`. Tasks in
 
 ## Running agents
 
-Claude Code is set up to run agents on tasks: `/do-task <ID>` takes one task to an open pull request, and `/run-tasks` runs several in parallel worktrees. Guardrails stop agents from committing to master, force-pushing, merging, throwing work away, or pushing before the check passes. How to use it, and what each guardrail does: [../.claude/README.md](../.claude/README.md).
+Claude Code is set up to run agents on tasks: `/do-task <ID>` takes one task to an open pull request, and `/run-tasks` runs several in parallel worktrees. Guardrails stop agents from committing to master, force-pushing, merging, or throwing work away. How to use it, and what each guardrail does: [../.claude/README.md](../.claude/README.md).
 
 ## Definition of done
 
 - Every acceptance criterion is met and ticked in the task file.
 - `go tool task check` passes: formatting, `go vet`, tests, lint and content. Until M1-01 lands, run `go build ./...`, `go test ./...` and `golangci-lint run` by hand.
 - New packages have a `doc.go`; new exported identifiers have doc comments.
-- If the work changed a decision in `docs/go-technical-design.md`, a follow-up says what the doc should now say. Agents don't edit `docs/`: the owner keeps it in step with the design doc.
+- If the work changed what `docs/game-design.md` or `docs/go-technical-design.md` says, the doc is updated in the same pull request.
 - The Notes section lists assumptions, deviations, files touched outside the Deliverables, and follow-ups filed.
 
 ## Follow-ups
@@ -70,7 +70,7 @@ Agents file a follow-up for anything they notice outside their task's scope. The
 - **Index:** add a row to the Follow-ups table in `INDEX.md`.
 - **Questions:** use `kind: question` for design decisions. Give the options, what each costs, and a recommendation. Never settle a game-design question in code.
 
-The owner triages follow-ups: each becomes `todo` in a milestone, gets merged into another task, or is closed with a reason.
+The owner triages follow-ups: each becomes `todo` in a milestone, gets merged into another task, or is closed with a reason. The owner can also hand triage to an agent as a task (M2-15 is the first): its pull request proposes the decisions, and merging it approves them.
 
 ## Writing a task spec
 

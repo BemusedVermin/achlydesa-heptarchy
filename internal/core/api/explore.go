@@ -147,6 +147,10 @@ type PartyView struct {
 	// hex, never a depth.
 	Hex     Hex          `json:"hex"`
 	Members []MemberView `json:"members"` // in party order
+	// Control is ControlFollow or ControlIndividual.
+	Control string `json:"control"`
+	// Alert is whether a hostile is in sight.
+	Alert bool `json:"alert"`
 }
 
 // MemberView is one member of the party.

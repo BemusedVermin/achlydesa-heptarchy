@@ -31,8 +31,12 @@ const (
 
 var bodySets = []BodySet{BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, BodiesOthers, BodiesEveryone}
 
-// BodySelector is a parsed body selector.
-type BodySelector struct{ Set BodySet }
+// BodySelector is a parsed body selector: a set of bodies, optionally narrowed to those whose
+// template carries a tag, written <set>[<tag>] such as others[crawls].
+type BodySelector struct {
+	Set BodySet
+	Tag string // when set, only bodies whose template has this tag
+}
 
 // ChannelSelector is a parsed channel selector: the action's own channels, the target part, or the
 // channels of some bodies that carry a tag.
@@ -43,13 +47,21 @@ type ChannelSelector struct {
 	Tag        string // "all" matches every channel
 }
 
-// ParseBodies parses a body selector: self, target, allies, enemies, others or everyone.
+// ParseBodies parses a body selector: self, target, allies, enemies, others or everyone, each
+// optionally followed by a template tag in brackets, such as others[crawls].
 func ParseBodies(src string) (BodySelector, error) {
-	set := BodySet(src)
+	name, tag := src, ""
+	if open := strings.IndexByte(src, '['); open >= 0 {
+		if !strings.HasSuffix(src, "]") || !validTag(src[open+1:len(src)-1]) {
+			return BodySelector{}, fmt.Errorf("bad body selector %q: want <set>[<tag>] with a lower-case tag", src)
+		}
+		name, tag = src[:open], src[open+1:len(src)-1]
+	}
+	set := BodySet(name)
 	if !slices.Contains(bodySets, set) {
 		return BodySelector{}, fmt.Errorf("bad body selector %q: want one of %v", src, bodySets)
 	}
-	return BodySelector{Set: set}, nil
+	return BodySelector{Set: set, Tag: tag}, nil
 }
 
 // ParseChannels parses a channel selector: used, target_part, or <bodies>:<tag>, such as target:all,
@@ -121,6 +133,11 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 				}
 			}
 		}
+	}
+	if s.Tag != "" {
+		out = slices.DeleteFunc(out, func(body ecs.Entity) bool {
+			return !slices.Contains(SideOf(w, body, ecs.Entity{}).Template.Tags, s.Tag)
+		})
 	}
 	sortByUID(w, out)
 	return out, nil

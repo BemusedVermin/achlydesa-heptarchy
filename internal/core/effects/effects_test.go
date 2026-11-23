@@ -279,10 +279,25 @@ func TestMalformedSelectors(t *testing.T) {
 			t.Errorf("ParseChannels(%q) succeeded, want an error", src)
 		}
 	}
-	for _, src := range []string{"", "target:arm", "Self", "used"} {
+	for _, src := range []string{"", "target:arm", "Self", "used", "others[", "others[]", "others[Crawls]", "[crawls]"} {
 		if _, err := effects.ParseBodies(src); err == nil {
 			t.Errorf("ParseBodies(%q) succeeded, want an error", src)
 		}
+	}
+}
+
+func TestBodySelectorNarrowsByTemplateTag(t *testing.T) {
+	fx := newFixture(t)
+	sel, err := effects.ParseBodies("others[nosuchtag]")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, err := sel.Resolve(fx.ctx()); err != nil || len(got) != 0 {
+		t.Errorf("others[nosuchtag] = %v, %v; want none", got, err)
+	}
+	sel, _ = effects.ParseBodies("others[graftable]")
+	if got, err := sel.Resolve(fx.ctx()); err != nil || len(got) != 2 {
+		t.Errorf("others[graftable] = %v, %v; want the two others in sight", got, err)
 	}
 }
 

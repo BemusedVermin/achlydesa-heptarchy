@@ -45,11 +45,13 @@ Brief: [M2-combat/README.md](M2-combat/README.md)
 | [M2-12](M2-combat/M2-12-hot-reload.md) | Content hot reload in dev builds | done | feature | S | M1-11, M1-13 |
 | [M2-13](M2-combat/M2-13-rules-as-content.md) | Rules as content: records, rules and choices in CUE | done | seam | L | M2-05, M2-12 |
 | [M2-06](M2-combat/M2-06-forms-moves.md) | The seven forms as actions, with types and timing | done | content | M | M2-13 |
-| [M2-07](M2-combat/M2-07-hostility-alert-death.md) | Hostility, alert and death | todo | feature | M | M2-06 |
+| [M2-07](M2-combat/M2-07-hostility-alert-death.md) | Hostility, alert and death | done | feature | M | M2-06 |
 | [M2-08](M2-combat/M2-08-act-options-controller.md) | The bodies view and the creature controller | todo | feature | M | M2-07 |
 | [M2-09](M2-combat/M2-09-grafts-crawlers.md) | Graft autonomy and crawling parts | todo | feature | S | M2-05, M2-08 |
 | [M2-10](M2-combat/M2-10-action-menu.md) | Action menu and look mode on the map screen | todo | feature | M | M2-08 |
 | [M2-11](M2-combat/M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | todo | test | M | M2-09 |
+| [M2-14](M2-combat/M2-14-step-speed.md) | Make a game step fast again after the seven forms | todo | bug | M | M2-06 |
+| [M2-15](M2-combat/M2-15-triage-followups.md) | Triage the open follow-ups into milestones | todo | debt | S | none |
 
 ## Later milestones (outlines)
 
@@ -73,13 +75,16 @@ Milestones for after the MVP (M1 to M7). None starts before the MVP is done, and
 
 ## Follow-ups
 
-Filed by agents while working (see the Follow-ups section of [README.md](README.md)). The owner triages each into a milestone, merges it into another task, or closes it.
+Filed by agents while working (see the Follow-ups section of [README.md](README.md)). The owner triages each into a milestone, merges it into another task, or closes it, either directly or through a triage task such as M2-15.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M2-06.F1.F1](followups/M2-06.F1.F1-forms-doc-strike-sever.md) | Update the forms table in the game design for Strike and Sever | proposed | debt | unplanned | M2-06.F1 |
+| [M2-06.F1.F1](followups/M2-06.F1.F1-forms-doc-strike-sever.md) | Update the forms table in the game design for Strike and Sever | done | debt | unplanned | M2-06.F1 |
 | [M2-06.F1](followups/M2-06.F1-strike-sever-weakness.md) | Should Strike and Sever differ on a weakness the way these placeholders do? | done | question | unplanned | M2-06 |
-| [M2-06.F2](followups/M2-06.F2-crawls-tag.md) | A crawls tag, so Stand freezes only the crawlers | todo | feature | M2 | M2-06 |
+| [M2-07.F3](followups/M2-07.F3-wipe-inside-apply.md) | Stop the timeline when the party is wiped inside an Apply | proposed | bug | M2 | M2-07 |
+| [M2-07.F1](followups/M2-07.F1-party-wipe-story.md) | What does a party wipe mean for the story? | proposed | question | unplanned | M2-07 |
+| [M2-07.F2](followups/M2-07.F2-idle-bodies-ping-pong.md) | Idle bodies waiting on each other move time on a tick at a time | proposed | bug | M2 | M2-07 |
+| [M2-06.F2](followups/M2-06.F2-crawls-tag.md) | A crawls tag, so Stand freezes only the crawlers | done | feature | M2 | M2-06 |
 | [M2-06.F3](followups/M2-06.F3-relic-innate-to-grafts.md) | Relic as innate to grafts | todo | seam | M2 | M2-06 |
 | [M2-06.F4](followups/M2-06.F4-disabled-option-is-information.md) | A disabled option is information: Name and Keepsake on the wrong body | todo | question | unplanned | M2-06 |
 | [M2-06.F5](followups/M2-06.F5-option-labels-name-the-choice.md) | Option labels show a chosen record's ID, not its name | done | bug | M2 | M2-06 |

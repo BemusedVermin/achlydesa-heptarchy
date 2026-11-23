@@ -34,7 +34,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	// just before it. Spawning fills it from the party template.
 	order: [...api.#UID] @go(Order,[]api.UID)
 
-	// Alert is set by the danger check (M2-07) and is always false until then.
+	// Alert is set by the combat package while a hostile is in sight, and cleared after a calm spell.
 	alert: bool @go(Alert)
 
 	// Control is api.ControlFollow or api.ControlIndividual.
@@ -45,6 +45,11 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 	// AlertSeen is the last Alert value the party_control system acted on.
 	alert_seen: bool @go(AlertSeen)
+}
+
+// Calm is when the controlled party last had a hostile in sight. It sits on the party entity.
+#Calm: {
+	since: int64 @go(Since)
 }
 
 // Trail is the cell a party member left on its most recent step, which the member behind it steps

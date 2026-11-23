@@ -8,6 +8,11 @@ package api
 #PartSeveredKind:  "combat.part_severed"
 #PartAttachedKind: "combat.part_attached"
 #StatusAddedKind:  "combat.status_added"
+#AlertStartedKind: "combat.alert_started"
+#AlertEndedKind:   "combat.alert_ended"
+#BodyDiedKind:     "combat.body_died"
+#BodyDownedKind:   "combat.body_downed"
+#PartyLostKind:    "combat.party_lost"
 
 #SeveredWorn: "worn"
 #SeveredCut:  "cut"
@@ -62,4 +67,44 @@ package api
 	// Source is the body that acted, or zero when nothing did.
 	source?: #UID  @go(Source)
 	tick:    int64 @go(Tick)
+}
+
+// AlertStarted reports that the controlled party has a hostile body in sight.
+#AlertStarted: {
+	party: #UID @go(Party)
+
+	// Hostile is the first hostile seen, the one with the lowest UID, and Name its rendered name.
+	hostile: #UID   @go(Hostile)
+	name:    string @go(Name)
+	tick:    int64  @go(Tick)
+}
+
+// AlertEnded reports that the party has been out of sight of every hostile for the calm spell.
+#AlertEnded: {
+	party: #UID  @go(Party)
+	tick:  int64 @go(Tick)
+}
+
+// BodyDied reports that a body died. It stays where it fell, as a corpse.
+#BodyDied: {
+	body: #UID @go(Body)
+
+	// Name is the body's rendered name.
+	name: string @go(Name)
+	tick: int64  @go(Tick)
+}
+
+// BodyDowned reports that a protected body fell instead of dying.
+#BodyDowned: {
+	body: #UID @go(Body)
+
+	// Name is the body's rendered name.
+	name: string @go(Name)
+	tick: int64  @go(Tick)
+}
+
+// PartyLost reports that every member of the controlled party is dead or downed.
+#PartyLost: {
+	party: #UID  @go(Party)
+	tick:  int64 @go(Tick)
 }
