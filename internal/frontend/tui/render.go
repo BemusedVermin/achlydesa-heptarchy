@@ -85,12 +85,18 @@ type drawn struct {
 	below      int
 	remembered bool
 	bold       bool
+	mark       mark
 }
 
 // RenderMap draws the plan view in double-width layout: hex (q, r) is at column 2q+r, row r. The
 // result is exactly height lines of width columns. When the map is larger than the pane it is
 // scrolled to center on the party. Depth shows only as shading relative to the party.
 func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string {
+	return RenderMapOverlay(m, party, MapOverlay{}, width, height)
+}
+
+// RenderMapOverlay is [RenderMap] with the combat overlay drawn on it.
+func RenderMapOverlay(m *api.MapView, party *api.PartyView, overlay MapOverlay, width, height int) string {
 	if width < 1 || height < 1 {
 		return ""
 	}
@@ -111,7 +117,15 @@ func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string {
 	if m != nil {
 		for _, cell := range m.Cells {
 			extend(cell.Hex)
-			place(cell.Hex, drawn{glyphOf(cell.Glyph), lookupColor(cell.Color), cell.Below, !cell.Visible, false})
+			place(
+				cell.Hex,
+				drawn{
+					glyph:      glyphOf(cell.Glyph),
+					color:      lookupColor(cell.Color),
+					below:      cell.Below,
+					remembered: !cell.Visible,
+				},
+			)
 		}
 		members := map[api.UID]bool{}
 		current := map[api.UID]bool{}
@@ -132,9 +146,31 @@ func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string {
 				if e.Color != "" {
 					ink = lookupColor(e.Color)
 				}
-				place(e.Hex, drawn{glyphOf(e.Glyph), ink, e.Below, false, current[e.UID]})
+				d := drawn{glyph: glyphOf(e.Glyph), color: ink, below: e.Below, bold: current[e.UID]}
+				if e.UID == overlay.Target && overlay.Target != 0 {
+					d.mark = markTarget
+				}
+				if ticks, ok := overlay.Threats[e.UID]; ok {
+					if d.mark == markNone {
+						d.mark = markThreat
+					}
+					grid[[2]int{2*e.Hex.Q + e.Hex.R + 1, e.Hex.R}] = drawn{
+						glyph: plural(int(min(ticks, 10))), color: lookupColor("red"), bold: true,
+					}
+				}
+				place(e.Hex, d)
 			}
 		}
+	}
+	if overlay.Cursor != nil {
+		extend(*overlay.Cursor)
+		key := [2]int{2*overlay.Cursor.Q + overlay.Cursor.R, overlay.Cursor.R}
+		d, ok := grid[key]
+		if !ok {
+			d = drawn{glyph: " ", color: neutral}
+		}
+		d.mark = markCursor
+		grid[key] = d
 	}
 	originCol, originRow := minCol, minRow
 	if maxCol-minCol+1 > width || maxRow-minRow+1 > height {
@@ -154,7 +190,7 @@ func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string {
 		var line strings.Builder
 		for x := range width {
 			if d, ok := grid[[2]int{originCol + x, originRow + y}]; ok {
-				line.WriteString(paint(d.glyph, d.color, d.below, d.remembered, d.bold))
+				line.WriteString(d.mark.apply(paint(d.glyph, d.color, d.below, d.remembered, d.bold)))
 			} else {
 				line.WriteByte(' ')
 			}
@@ -197,6 +233,18 @@ func EntriesAt(t *api.TimelineView, offset int) []api.TimelineEntry {
 // for a decision, "!" for something landing, in the actor's color), the second "+N" when more
 // share the tick, and the third a ruler. selected is the offset of the chosen tick, or -1.
 func RenderTimeline(t *api.TimelineView, width, selected int) string {
+	return RenderTimelineMarked(t, nil, width, selected)
+}
+
+// RenderTimelineMarked is [RenderTimeline] with combat marks: a hostile body's entry is
+// underlined, and a tick where something lands on a party member shows a red "!" instead.
+func RenderTimelineMarked(t *api.TimelineView, bodies *api.BodiesView, width, selected int) string {
+	hostile, members := map[api.UID]bool{}, map[api.UID]bool{}
+	if bodies != nil {
+		for _, b := range bodies.Bodies {
+			hostile[b.UID], members[b.UID] = b.Hostile, b.Member
+		}
+	}
 	ticks := TimelineTicks(t, width)
 	icons, counts, ruler := make([]string, 0, ticks), make([]string, 0, ticks), make([]string, 0, ticks)
 	for offset := range ticks {
@@ -209,6 +257,16 @@ func RenderTimeline(t *api.TimelineView, width, selected int) string {
 				mark = "!"
 			}
 			icon = paint(mark, lookupColor(first.Color), 0, false, false) + " "
+			if hostile[first.Actor] {
+				icon = lipgloss.NewStyle().Underline(true).Render(icon[:len(icon)-1]) + " "
+			}
+			for _, e := range entries {
+				if e.Kind == "lands" && members[e.Target] && !members[e.Actor] {
+					icon = lipgloss.NewStyle().Bold(true).Foreground(lookupColor("white").color()).
+						Background(lookupColor("red").color()).Render("!") + " "
+					break
+				}
+			}
 			if len(entries) > 1 {
 				count = fmt.Sprintf("+%s", plural(len(entries)-1))
 			}

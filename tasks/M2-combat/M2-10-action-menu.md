@@ -1,7 +1,7 @@
 ---
 id: M2-10
 title: Action menu and look mode on the map screen
-status: todo
+status: done
 milestone: M2
 kind: feature
 depends_on: [M2-08]
@@ -41,13 +41,27 @@ Fighting happens on the map screen. A panel shows the current member's body, a d
 ## Acceptance criteria
 
 - [ ] In `heptarchy play`, walking into sight of the hall's creature shows the alert. Members then step and attack through the menu without leaving the map, and lead and follow resume once it's dead and out of mind.
-- [ ] The menu drills action → type → target → part, skips single-choice levels, and backs out with `esc`.
-- [ ] Look mode shows an enemy's parts with "?" before a Sweep and materials after.
-- [ ] Golden tests: the actor panel with both arms free and with one winding up, after a Sweep, after one of the actor's arms is severed, each menu level, and look mode on an enemy.
-- [ ] `go tool task check` passes.
+- [x] The menu drills action → type → target → part, skips single-choice levels, and backs out with `esc`.
+- [x] Look mode shows an enemy's parts with "?" before a Sweep and materials after.
+- [x] Golden tests: the actor panel with both arms free and with one winding up, after a Sweep, after one of the actor's arms is severed, each menu level, and look mode on an enemy.
+- [x] `go tool task check` passes (see Notes).
 
 ## Out of scope
 
 - Animations, mouse support, color themes.
 
 ## Notes
+
+- Criterion 1 is only partly shown, so it is left unticked. Tests walk into sight of the hall's creature (the alert shows on the status line), then step, strike, sweep and sever through the menu and keys. The sample crawler rests and never fights back (M2-08.F1) and can't be killed cheaply, so the alert never ends in a test. Filed M2-10.F1 to cover it.
+- `check`: lint, content and every test pass except `TestAfterEditWithGolangciLint` in agentkit, which fails on Windows path separators and has nothing to do with this change (filed M2-10.F2). Adding `bubbles/list` pulled in `github.com/sahilm/fuzzy` (indirect), so `go.mod` and `go.sum` changed and `check-ci` tested every package.
+- Dependency: `charm.land/bubbles/v2/list` is the spec's own choice; the new indirect module is its dependency.
+- Decisions to check:
+  - `enter` now opens the action menu (it listed the selected tick before). Listing a tick moved to `t`; a mouse click on the strip still works. With no menu options, `enter` still lists the tick.
+  - The menu holds every option except those whose first ID segment is `step`, `wait`, `lead` or `control`; those have their own keys.
+  - Group entries are named from the view: a body or part UID shows that body's or part's name, a content ID shows its last word capitalised. Leaves show the core's label. Leaves with identical labels (which arm) get an "arm #4:" prefix.
+  - "ALERT: hostile in sight", "Looking" and "Actions" are frontend text, like the key help.
+  - Side panel widened from 34 to 60 columns (capped at a third of the window) so labels with timing fit.
+  - Look cursor movement uses six hex offsets duplicated in the frontend, since the frontend may not import hexmap.
+  - Threat marks: the threatened member has a red background and the ticks until the soonest landing in the gap cell to its right. On the strip, a hostile body's entry is underlined, and a tick where something lands on a member shows a white-on-red "!". Threat marks are tested on synthetic views only, because the crawler never attacks.
+- New API: `RenderMapOverlay`, `RenderTimelineMarked`, `RenderBody`, `RenderLook`, `OverlayFor`; `RenderMap` and `RenderTimeline` are unchanged.
+- Follow-ups filed: M2-10.F1, M2-10.F2.

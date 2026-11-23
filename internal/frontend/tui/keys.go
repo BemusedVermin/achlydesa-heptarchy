@@ -29,7 +29,9 @@ type KeyMap struct {
 	control   key.Binding // f: whichever control option is offered
 	prevTick  key.Binding
 	nextTick  key.Binding
-	selectTic key.Binding
+	selectTic key.Binding // t: list the selected tick
+	menu      key.Binding // enter: the action menu
+	look      key.Binding // l: look mode
 	quit      key.Binding
 }
 
@@ -51,7 +53,9 @@ func DefaultKeyMap() KeyMap {
 		control:   key.NewBinding(key.WithKeys("f"), key.WithHelp("f", "lead or follow")),
 		prevTick:  key.NewBinding(key.WithKeys("["), key.WithHelp("[ ]", "pick tick")),
 		nextTick:  key.NewBinding(key.WithKeys("]")),
-		selectTic: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "list tick")),
+		selectTic: key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "list tick")),
+		menu:      key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "actions")),
+		look:      key.NewBinding(key.WithKeys("l"), key.WithHelp("l", "look")),
 		quit:      key.NewBinding(key.WithKeys("esc", "ctrl+c"), key.WithHelp("esc", "quit")),
 	}
 }
@@ -168,6 +172,12 @@ func (k KeyMap) HelpBindings(v api.View) []key.Binding {
 	}
 	if hasOption(v, "control/"+api.ControlIndividual) || hasOption(v, "control/"+api.ControlFollow) {
 		out = append(out, k.control)
+	}
+	if len(buildMenu(v.Options).children) > 0 {
+		out = append(out, k.menu)
+	}
+	if v.Bodies != nil {
+		out = append(out, k.look)
 	}
 	if v.Timeline != nil {
 		out = append(out, k.prevTick, k.selectTic)
