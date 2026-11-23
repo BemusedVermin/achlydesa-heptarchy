@@ -113,13 +113,16 @@ When parallel PRs land, the later ones often conflict on `tasks/INDEX.md`. Fix e
 
 ### Clean up worktrees
 
+From your main checkout, with no Claude sessions running in the worktrees:
+
 ```powershell
-git worktree list
-git worktree remove .claude\worktrees\M2-06
-git worktree prune
+go tool task clean-worktrees -- --dry-run   # see what it would do
+go tool task clean-worktrees
 ```
 
-Claude Code removes subagent worktrees by itself once they're old and hold no unpushed work. A worktree that still holds work is kept, and `git worktree remove` refuses to delete it without `--force`.
+It fetches origin, then removes each worktree in `.claude\worktrees` whose work is already in master (squash merges included) or pushed. Then it deletes the leftover `worktree-*` and `task/*` branches whose work is all in master. It keeps any worktree that is locked (a session or agent may still be using it), has uncommitted or untracked files, or has commits that are neither pushed nor merged, and says why for each. Files in `.claude\worktrees` that aren't worktrees are listed and left alone.
+
+Claude Code also removes subagent worktrees by itself once they're old and hold no unpushed work.
 
 ## Protect master on GitHub
 

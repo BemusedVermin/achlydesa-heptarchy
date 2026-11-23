@@ -58,6 +58,11 @@ tasks:
       # let the next git push through without running the check again. See internal/tools/agentkit.
       - go run ./internal/tools/agentkit mark-checked
 
+  clean-worktrees:
+    desc: "Remove agent worktrees and merged agent branches that hold nothing unsaved (-- --dry-run to preview)"
+    cmds:
+      - go run ./internal/tools/agentkit clean-worktrees {{.CLI_ARGS}}
+
   run:
     desc: Run the game (args after --, e.g. -- play --seed 1)
     cmds:

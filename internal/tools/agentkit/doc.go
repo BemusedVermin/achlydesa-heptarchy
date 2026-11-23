@@ -11,6 +11,11 @@
 //	mark-checked  run by "task check" after it passes: records the commit it passed on, so the
 //	              push that follows doesn't run the check again
 //	ready         lists the tasks an agent can start now, from the task files' front matter
+//	clean-worktrees
+//	              removes the worktrees in .claude/worktrees that hold nothing unsaved (their work
+//	              is pushed or already in master), then the leftover worktree- and task/ branches
+//	              whose work is in master; keeps locked or unsaved ones and says why. --dry-run
+//	              only reports; --no-fetch skips fetching origin first
 //
 // The hooks are a seatbelt, not a sandbox: they catch the usual commands an agent writes by
 // mistake, and Claude Code's own permission rules and worktree isolation sit alongside them.

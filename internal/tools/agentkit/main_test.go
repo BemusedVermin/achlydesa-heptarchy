@@ -36,6 +36,8 @@ func TestRun(t *testing.T) {
 		{"bad hook input fails open", []string{"guard"}, "not json", exitFailed, "", "reading the hook input"},
 		{"unknown subcommand", []string{"nope"}, "", exitFailed, "", "usage"},
 		{"no subcommand", nil, "", exitFailed, "", "usage"},
+		{"only clean-worktrees takes flags", []string{"ready", "--dry-run"}, "", exitFailed, "", "usage"},
+		{"unknown clean-worktrees flag", []string{"clean-worktrees", "--force"}, "", exitFailed, "", "unknown flag"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
