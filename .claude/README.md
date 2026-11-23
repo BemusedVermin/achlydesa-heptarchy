@@ -13,8 +13,10 @@ This folder sets up Claude Code so that agents can take tasks from `tasks/` and 
 | `skills/decide/` | `/decide`: asks you the open design questions as multiple choice, then records your answers in the task files and the design doc, in one PR. |
 | `skills/triage/` | `/triage`: marks the proposed follow-ups that no longer apply obsolete, asks you about the rest as multiple choice, and records it all in one PR. |
 | `skills/shared/` | Guidance the skills share, such as how to ask you questions. Not a skill itself. |
+| `skills/audit/` | `/audit`: between milestones, read-only auditors look for comment bloat, duplication, low-value tests, unclear names, library opportunities and convention slips, and file the cleanup as a `C<n>` milestone. `/audit lock-in` turns the decisions into lint rules. Its checklists are in `lenses/`. |
 | `skills/file-followup/` | How agents file follow-ups (used by do-task). |
 | `agents/task-implementer.md` | An agent that does one task in its own worktree: Sonnet, or Opus for `size: L` and `kind: seam` tasks when `/run-tasks` starts it. |
+| `agents/code-auditor.md` | A read-only Opus agent that audits one area against the lens checklists. Started by `/audit`. |
 | `agents/task-reviewer.md` | A read-only Opus agent that reviews a task's diff against its spec and `AGENTS.md`. |
 | `rules/` | Detail on top of `AGENTS.md` that loads only when Claude reads or edits matching files: `core.md` (`internal/core`), `content.md` (`content/`, `internal/content`), `frontend.md` (`internal/frontend`) and `tasks.md` (`tasks/`). |
 | `../internal/tools/agentkit/` | The hooks' code (Go, with tests), plus the `ready` and `clean-worktrees` helpers. |
@@ -85,6 +87,18 @@ claude
 ```
 
 Then type `/run-tasks M2-06 M2-12`, or `/run-tasks 3` for the first three ready tasks. Each task gets a `task-implementer` agent in its own worktree, running in the background, and the session reports each PR as it lands. It won't start two tasks that change the same files. Large tasks and seams run on Opus, the rest on Sonnet.
+
+### Clean up between milestones
+
+Once a milestone's tasks are merged, and nothing else is running:
+
+1. `/audit` starts a `code-auditor` per area of the code, plus one for vocabulary, and files what they find as a cleanup milestone (`tasks/C1-cleanup/`, then `C2`, ...) in one PR. Names it isn't sure of, and new libraries, become questions.
+2. `/decide` settles those questions. Names go into `docs/glossary.md`.
+3. `/triage` accepts, merges or drops the cleanup tasks.
+4. `/run-tasks` does them. Renames run one at a time, then duplication and libraries per area, then tests per area, then comments per area, then the content guide (written on the first audit, checked for drift after). Each task proves it changed nothing with `go tool task same-behavior`.
+5. `/audit lock-in`, in your session, turns what was decided into lint rules, AGENTS.md style and rule files, so the next audit finds less.
+
+The auditors run on Opus, seven at a time, so an audit uses a fair share of your plan.
 
 ### Triage follow-ups
 

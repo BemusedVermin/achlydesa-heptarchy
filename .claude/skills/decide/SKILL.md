@@ -31,7 +31,12 @@ On a new branch from `origin/master` named `decide/<today's date>`, for every qu
    - If work follows, set `status: todo`. If `milestone` is `unplanned`, set it to the current milestone (the first one in `tasks/INDEX.md` that still has tasks not done).
    - If nothing needs to change (the answer keeps what the game does today), set `status: done` and say so in Notes.
    - Update its row in `tasks/INDEX.md` in the same commit.
-2. **Design doc.** Write the decision into `docs/game-design.md` in the section it belongs to, in the doc's own voice, as a statement of how the game works, not as a change log. If it changes how the code is laid out, update `docs/go-technical-design.md` the same way. Tick the task's criterion about the design doc, if it has one.
+2. **Docs.** Write the decision where it belongs, in the doc's own voice, as a statement of how things are, not as a change log:
+   - a game-design decision in `docs/game-design.md`, in its section;
+   - a name for a concept, from an audit, in `docs/glossary.md`, as one line: `**term**: definition`;
+   - a new library, or anything about how the code is laid out, in `docs/go-technical-design.md`.
+
+   Tick the task's criterion about the docs, if it has one.
 3. Change nothing else: no content, no code. The work the answer calls for is the task's, for an agent to do.
 
 Commit with a message like `Decide M2-06.F4: Name and Keepsake are never refused`, one commit per question.

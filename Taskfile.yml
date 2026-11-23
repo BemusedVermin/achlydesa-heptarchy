@@ -70,6 +70,11 @@ tasks:
       - task: lint
       - task: content
 
+  same-behavior:
+    desc: "Check the working tree plays exactly as origin/master does (-- --rename old=new for renames)"
+    cmds:
+      - go run ./internal/tools/samebehavior {{.CLI_ARGS}}
+
   clean-worktrees:
     desc: "Remove agent worktrees and merged agent branches that hold nothing unsaved (-- --dry-run to preview)"
     cmds:
