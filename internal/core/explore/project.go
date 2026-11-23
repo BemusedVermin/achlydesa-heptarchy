@@ -46,9 +46,10 @@ func buildParty(w *sim.World, v *api.View) error {
 	}
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	appearances := ecs.NewMap[comp.Appearance](w.ECS)
-	leader := ecs.NewMap[comp.Party](w.ECS).Get(party).Leader
+	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
+	leader := state.Leader
 	current, _ := timeline.Current(w)
-	view := &api.PartyView{UID: w.UIDOf(party)}
+	view := &api.PartyView{UID: w.UIDOf(party), Control: state.Control, Alert: state.Alert}
 	if positions.Has(focus) {
 		pos := positions.Get(focus)
 		view.Map, view.Hex = pos.Map, pos.At.Hex

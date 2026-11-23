@@ -14,6 +14,7 @@ type Source struct {
 	fill     hexmap.Terrain
 	authored map[hexmap.ChunkKey][]placed
 	marks    map[string]api.Cell
+	spawns   []Spawn
 }
 
 type placed struct {
@@ -52,7 +53,11 @@ func NewSource(reg *content.Registry, def content.MapDef) (*Source, error) {
 						return nil, fmt.Errorf("legend %q: %w", string(char), err)
 					}
 				} else if name, ok := def.Marks[string(char)]; ok {
-					src.marks[name] = cell
+					if template, spawns := def.Spawns[string(char)]; spawns {
+						src.spawns = append(src.spawns, Spawn{Cell: cell, Template: template})
+					} else {
+						src.marks[name] = cell
+					}
 				} else {
 					return nil, fmt.Errorf("character %q is in neither the legend nor the marks", string(char))
 				}
@@ -79,3 +84,12 @@ func (s *Source) Mark(name string) (api.Cell, bool) {
 	cell, ok := s.marks[name]
 	return cell, ok
 }
+
+// Spawn is a body the map starts with: a template and the cell it stands in.
+type Spawn struct {
+	Cell     api.Cell
+	Template api.ContentID
+}
+
+// Spawns lists the map's spawn marks in row order: layers as authored, then rows, then columns.
+func (s *Source) Spawns() []Spawn { return append([]Spawn(nil), s.spawns...) }

@@ -40,19 +40,21 @@ Set the task's status to `in-progress` in its front matter and in its row of `ta
 - Every line follows "Rules that never bend" in `AGENTS.md`.
 - Where the spec is silent, pick the most reversible option and note it. A game-design question becomes a follow-up of kind `question` (rule 9).
 - Work outside the task's scope becomes a follow-up (the `file-followup` skill). A `// TODO(<follow-up ID>)` is fine; a bare TODO is not.
-- On a task branch you can't edit `AGENTS.md`, `CLAUDE.md`, `docs/`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or `internal/tools/agentkit/`. If the work changes a decision in `docs/`, file a follow-up that says what the doc should now say.
+- On a task branch you can't edit `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or `internal/tools/agentkit/`. If the task needs one of them changed, file a follow-up.
+- If the work changes what the design docs in `docs/` say, update them as part of the task and say so in Notes.
 - Commit as you go, with messages like `M2-07: alert spreads to nearby bodies`.
+- While you work, test only the packages you're changing: `go tool task test -- ./internal/core/combat/...`. The whole suite is slow, and other agents may be running tests on the same machine.
 - **Blocked?** Set the status to `blocked` in the task file and the index, say why in Notes, commit, and stop. Report what blocks you. Don't push a blocked branch.
 
 ## 4. Verify
 
-1. Run `go tool task fmt`, then `go tool task check`, until the check passes. Fix the cause: never weaken a test or a lint rule to get through.
+1. Run `go tool task fmt`, then `go tool task check-ci BASE=origin/master`, until it passes. It runs every check but tests only the packages your change can affect, as CI does. Fix the cause: never weaken a test or a lint rule to get through.
    - If golangci-lint is missing, install the version that `.github/workflows/ci.yml` pins: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<version>`.
 2. For each acceptance criterion, run the test or command that shows it holds, then tick it (`- [x]`). If you can't meet a criterion, that's a blocker (step 3), not a tick.
 
 ## 5. Get a review
 
-Ask the `task-reviewer` agent to review the task, giving it the task ID and your branch. Fix every blocking finding. Fix the should-fix findings too, or say in Notes why not. Run the check again after the fixes.
+Ask the `task-reviewer` agent to review the task, giving it the task ID and your branch. Fix every blocking finding. Fix the should-fix findings too, or say in Notes why not. If the fixes changed code or content, run `go tool task check-ci BASE=origin/master` again.
 
 If you can't start an agent, work through the checklist in `.claude/agents/task-reviewer.md` yourself.
 
@@ -64,8 +66,8 @@ If you can't start an agent, work through the checklist in `.claude/agents/task-
 
 ## 7. Push and open the pull request
 
-1. `git fetch origin`, then `git rebase origin/master`. If `tasks/INDEX.md` conflicts, keep both sides' rows, with your task's status on yours. If the rebase brought in new code, run the check again.
-2. `git push -u origin HEAD`. The guard runs `go tool task check` first, unless it already passed on this commit. If the check fails, fix, commit and push again.
+1. `git fetch origin`, then `git rebase origin/master`. If `tasks/INDEX.md` conflicts, keep both sides' rows, with your task's status on yours. If a conflict was in code or content, run `go tool task check-ci BASE=origin/master` again after resolving it.
+2. `git push -u origin HEAD`. CI runs the check on the pull request; if it fails, fix it, commit and push again.
 3. Write the PR body to a file outside the repository, such as in your system's temp folder. Use the layout of `.github/pull_request_template.md`: Summary, Notes, and a ticked Test plan.
 4. Open the PR:
    ```
@@ -83,4 +85,4 @@ Give the PR link, the follow-ups you filed, and anything the owner needs to deci
 
 ## Updating an open pull request
 
-Stay on the same branch. Commit the changes, then `git push`. If the PR conflicts because master has moved on, run `git fetch origin` and `git merge origin/master`, resolve the conflicts, run the check, and push. Never rebase or amend commits you've already pushed, and never force-push.
+Stay on the same branch. Commit the changes, then `git push`. If the PR conflicts because master has moved on, run `git fetch origin` and `git merge origin/master`, resolve the conflicts, run `go tool task check-ci BASE=origin/master`, and push. Never rebase or amend commits you've already pushed, and never force-push.

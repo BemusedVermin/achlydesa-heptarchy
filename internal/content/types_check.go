@@ -100,6 +100,11 @@ func (r *Registry) checkTypes() []error {
 		}
 	}
 	for _, key := range sortedKeys(r.bundle.Templates) {
+		if faction := r.bundle.Templates[key].Faction; faction != nil {
+			if _, ok := r.bundle.Factions[string(*faction)]; !ok {
+				problems = append(problems, fmt.Errorf("templates[%q].faction: unknown faction %q", key, *faction))
+			}
+		}
 		for i, stack := range r.bundle.Templates[key].Inventory {
 			path := fmt.Sprintf("templates[%q].inventory[%d]", key, i)
 			if _, ok := r.bundle.Items[string(stack.Item)]; !ok {
@@ -109,6 +114,23 @@ func (r *Registry) checkTypes() []error {
 				problems = append(problems, fmt.Errorf("%s.count: must be at least 1, got %d", path, stack.Count))
 			}
 		}
+	}
+	return problems
+}
+
+// checkCombat checks the numbers of alert and death.
+func (r *Registry) checkCombat() []error {
+	cfg := r.bundle.Combat
+	var problems []error
+	if cfg.CalmTicks < 0 {
+		problems = append(problems, fmt.Errorf("combat.calm_ticks: must not be negative, got %d", cfg.CalmTicks))
+	}
+	if cfg.SightRadius < 0 || cfg.SightDepth < 0 {
+		problems = append(problems, fmt.Errorf(
+			"combat: sight_radius and sight_depth must not be negative, got %d and %d",
+			cfg.SightRadius,
+			cfg.SightDepth,
+		))
 	}
 	return problems
 }

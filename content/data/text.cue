@@ -70,6 +70,7 @@ text: {
 	"text.explore.bad_mode":                   "That is not a way to control the party."
 	"text.explore.not_member":                 "That is not a member of the party."
 	"text.explore.already_leads":              "They already lead."
+	"text.explore.fallen":                     "They cannot lead: they have fallen."
 	"text.explore.control_individual":         "Control each member"
 	"text.explore.control_follow":             "Lead and follow"
 	"text.explore.lead_with":                  "Lead with {{.name}}"

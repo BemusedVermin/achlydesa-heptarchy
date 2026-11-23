@@ -17,6 +17,7 @@ import (
 	calendar: #Calendar @go(Calendar)
 	templates: {[string]: #Template} @go(Templates,map[string]Template)
 	party:    #PartyConfig    @go(Party)
+	combat:   #CombatConfig   @go(Combat)
 	timeline: #TimelineConfig @go(Timeline)
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
 	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
@@ -202,6 +203,9 @@ import (
 
 	// Triggers react to events for the entities spawned from this template.
 	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
+
+	// Faction is the side ("faction." ID) a body of this template fights for.
+	faction?: null | api.#ContentID @go(Faction,*api.ContentID)
 }
 
 #RoleSource: "source"
@@ -253,6 +257,23 @@ import (
 	follow_action: api.#ContentID @go(FollowAction)
 }
 
+// CombatConfig is the numbers of alert and death. Placeholders to tune.
+#CombatConfig: {
+	// CalmTicks is how long no hostile may be in sight before an alert ends.
+	calm_ticks: int64 @go(CalmTicks)
+
+	// RestTicks is how long a creature with no mind of its own keeps still before it looks again.
+	rest_ticks: int64 @go(RestTicks)
+
+	// SightRadius and SightDepth are how far a member looks for hostiles, in hexes and in depths.
+	sight_radius: int @go(SightRadius)
+	sight_depth:  int @go(SightDepth)
+
+	// CorpseGlyph and CorpseColor are how a dead body is drawn.
+	corpse_glyph: string @go(CorpseGlyph)
+	corpse_color: string @go(CorpseColor)
+}
+
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.
 #MapDef: {
 	name: api.#ContentID @go(Name)
@@ -269,6 +290,11 @@ import (
 
 	// Marks maps one character to a mark name, such as "@": "party_start".
 	marks: {[string]: string} @go(Marks,map[string]string)
+
+	// Spawns maps a mark character to a template ("template." ID): a body of it is spawned at each
+	// such character at the start, in row order, and the character may appear any number of times
+	// (at least once). Each character must also be one of Marks, so the layers may use it.
+	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
 }
 
 // LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per

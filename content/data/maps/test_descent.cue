@@ -11,7 +11,8 @@ maps: "map.test.descent": content.#MapDef & {
 		"#": "terrain.packed_clay"
 		".": "terrain.air"
 	}
-	marks: "@": "party_start"
+	marks: {"@": "party_start", "c": "creature"}
+	spawns: "c": "template.creature.crawler"
 	layers: [
 		{
 			depth: 0
@@ -55,7 +56,7 @@ maps: "map.test.descent": content.#MapDef & {
 				"               ..",
 				"",
 				"",
-				".............",
+				"......c......",
 			]
 		},
 		{

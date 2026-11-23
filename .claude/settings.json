@@ -126,8 +126,8 @@
               "./internal/tools/agentkit",
               "guard"
             ],
-            "timeout": 1800,
-            "statusMessage": "Agent guardrails (before a push, this runs go tool task check)"
+            "timeout": 60,
+            "statusMessage": "Agent guardrails"
           }
         ]
       },
@@ -144,7 +144,7 @@
               "./internal/tools/agentkit",
               "protect"
             ],
-            "timeout": 600,
+            "timeout": 60,
             "statusMessage": "Agent guardrails"
           }
         ]

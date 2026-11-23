@@ -28,6 +28,8 @@
 | [M2-11](M2-11-sample-content-tests.md) | Sample content, lethality targets and golden encounters | M2-09 |
 | [M2-12](M2-12-hot-reload.md) | Content hot reload in dev builds | M1 (M1-11, M1-13) |
 | [M2-13](M2-13-rules-as-content.md) | Rules as content: records, rules and choices in CUE | M2-05, M2-12 |
+| [M2-14](M2-14-step-speed.md) | Make a game step fast again after the seven forms | M2-06 |
+| [M2-15](M2-15-triage-followups.md) | Triage the open follow-ups into milestones | none |
 
 M2-01, M2-02 and M2-12 can start in parallel.
 

@@ -1,0 +1,115 @@
+package combat
+
+import (
+	"fmt"
+	"slices"
+
+	"github.com/mlange-42/ark/ecs"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+)
+
+// alertSystem is the name of the per-turn system that raises and ends the alert.
+const alertSystem = "combat.alert"
+
+// controlledParty returns the party the player commands.
+func controlledParty(w *sim.World) (ecs.Entity, bool) {
+	query := ecs.NewFilter1[comp.Controlled](w.ECS).Query()
+	for query.Next() {
+		party := query.Entity()
+		query.Close()
+		return party, true
+	}
+	return ecs.Entity{}, false
+}
+
+// livingMembers lists the members of a party that are neither dead nor downed, by UID.
+func livingMembers(w *sim.World, party ecs.Entity) []ecs.Entity {
+	return slices.DeleteFunc(anatomy.Members(w, party), func(e ecs.Entity) bool { return fallen(w, e) })
+}
+
+// hostileCandidates lists every standing body with an allegiance, by UID.
+func hostileCandidates(w *sim.World) []ecs.Entity {
+	var out []ecs.Entity
+	query := ecs.NewFilter2[comp.Pos, comp.Allegiance](w.ECS).Query()
+	for query.Next() {
+		if e := query.Entity(); !fallen(w, e) {
+			out = append(out, e)
+		}
+	}
+	slices.SortFunc(out, func(a, b ecs.Entity) int { return int(w.UIDOf(a)) - int(w.UIDOf(b)) })
+	return out
+}
+
+// firstHostileSeen finds the hostile body with the lowest UID that any living member can see.
+func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) {
+	cfg := w.Content.Combat()
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	candidates := hostileCandidates(w)
+	var first ecs.Entity
+	for _, member := range livingMembers(w, party) {
+		if !positions.Has(member) {
+			continue
+		}
+		from := *positions.Get(member)
+		m := w.Maps.Get(from.Map)
+		if m == nil {
+			continue
+		}
+		cells, err := m.Visible(from.At, cfg.SightRadius, cfg.SightDepth)
+		if err != nil {
+			return ecs.Entity{}, false, fmt.Errorf("combat: alert: sight: %w", err)
+		}
+		visible := make(map[api.Cell]bool, len(cells))
+		for _, cell := range cells {
+			visible[cell] = true
+		}
+		for _, other := range candidates {
+			pos := positions.Get(other)
+			if pos.Map != from.Map || !visible[pos.At] || !Hostile(w, member, other) {
+				continue
+			}
+			if first.IsZero() || w.UIDOf(other) < w.UIDOf(first) {
+				first = other
+			}
+			break // candidates are in UID order: nothing later can beat this one
+		}
+	}
+	return first, !first.IsZero(), nil
+}
+
+// alert raises the controlled party's alert while a hostile is in sight, and ends it once the
+// calm spell has passed.
+func alert(w *sim.World) error {
+	party, ok := controlledParty(w)
+	if !ok {
+		return nil
+	}
+	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
+	calms := ecs.NewMap[comp.Calm](w.ECS)
+	if !calms.Has(party) {
+		calms.Add(party, &comp.Calm{})
+	}
+	calm := calms.Get(party)
+	hostile, seen, err := firstHostileSeen(w, party)
+	if err != nil {
+		return err
+	}
+	switch {
+	case seen:
+		calm.Since = w.Now
+		if !state.Alert {
+			state.Alert = true
+			w.Bus.Publish(api.AlertStarted{
+				Party: w.UIDOf(party), Hostile: w.UIDOf(hostile), Name: nameOf(w, hostile), Tick: w.Now,
+			})
+		}
+	case state.Alert && w.Now-calm.Since >= w.Content.Combat().CalmTicks:
+		state.Alert = false
+		w.Bus.Publish(api.AlertEnded{Party: w.UIDOf(party), Tick: w.Now})
+	}
+	return nil
+}

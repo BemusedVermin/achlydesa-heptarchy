@@ -294,6 +294,26 @@ func TestAModeThePlayerChoseSurvivesTheAlert(t *testing.T) {
 	})
 }
 
+func TestThePartyViewShowsTheControlModeAndTheAlert(t *testing.T) {
+	fx := newFixture(t, "", nil)
+	if got := fx.view().Party; got.Control != api.ControlFollow || got.Alert {
+		t.Fatalf("view = control %q, alert %v; want follow and calm", got.Control, got.Alert)
+	}
+	fx.apply(fx.option("control/individual").Command)
+	if got := fx.view().Party; got.Control != api.ControlIndividual || got.Alert {
+		t.Errorf("after explore.control, view = control %q, alert %v; want individual and calm", got.Control, got.Alert)
+	}
+	fx.apply(fx.option("control/follow").Command)
+	fx.alert(true)
+	if got := fx.view().Party; !got.Alert || got.Control != api.ControlIndividual {
+		t.Errorf(
+			"with the alert forced, view = control %q, alert %v; want individual and alert",
+			got.Control,
+			got.Alert,
+		)
+	}
+}
+
 func TestAnAlertChangesNothingWhenContentTurnsItOff(t *testing.T) {
 	fx := newFixture(t, "", func(b *content.Bundle) { b.Party.IndividualOnAlert = false })
 	if changes := controlChanges(fx.alert(true)); len(changes) != 0 {

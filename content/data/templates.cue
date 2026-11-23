@@ -29,6 +29,7 @@ templates: {
 		actions:   _forms
 		body:      "body.human"
 		protected: true
+		faction:   "faction.party"
 		tags: ["graftable"]
 		lists: types: _innateTypes
 		triggers: [_fallInjury]
@@ -40,9 +41,18 @@ templates: {
 		actions:   _forms
 		body:      "body.human"
 		protected: true
+		faction:   "faction.party"
 		tags: ["graftable"]
 		lists: types: _innateTypes
 		triggers: [_fallInjury]
+	}
+	// A clay-cored creature of the soop. It does nothing yet; M2-08 gives it a mind.
+	"template.creature.crawler": {
+		name: "text.template.creature.crawler"
+		appearance: {glyph: "c", color: "yellow"}
+		actor: controller: "rest"
+		body:    "body.crawler"
+		faction: "faction.deep"
 	}
 	// A human body with no controller of its own, for tests to swing at.
 	"template.test.dummy": {
@@ -51,6 +61,14 @@ templates: {
 		actor: controller: "idle"
 		body: "body.human"
 		tags: ["graftable"]
+	}
+	// A body that crawls, for Stand to freeze.
+	"template.test.crawler": {
+		name: "text.template.test.crawler"
+		appearance: {glyph: "c", color: "white"}
+		actor: controller: "idle"
+		body: "body.human"
+		tags: ["crawls"]
 	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
@@ -66,4 +84,8 @@ templates: {
 	}
 }
 
-text: "text.template.test.dummy": "Dummy"
+text: {
+	"text.template.test.dummy":       "Dummy"
+	"text.template.creature.crawler": "The crawler"
+	"text.template.test.crawler":     "Crawler"
+}
