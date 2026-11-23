@@ -41,6 +41,7 @@ actions: "action.step": {
 	target: "direction", windup: "0", recovery: "step_ticks"
 }
 party: {slots: 4, sight_radius: 6, follow_action: "action.step"}
+combat: {ai_score: "1.0", aims: "true", attack_tag: "attack", step_action: "action.step"}
 timeline: {step_ticks: "speed >= 2 ? 10 : 20", speed: "grant.speed", default_speed: 2, window_ticks: 30}
 calendar: {
 	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]

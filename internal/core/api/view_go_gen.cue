@@ -16,6 +16,7 @@ package api
 	timeline?: null | #TimelineView @go(Timeline,*TimelineView)
 	map?:      null | #MapView      @go(Map,*MapView)
 	party?:    null | #PartyView    @go(Party,*PartyView)
+	bodies?:   null | #BodiesView   @go(Bodies,*BodiesView)
 }
 
 // Option is one thing the player can do right now. Frontends render Label and

@@ -39,6 +39,15 @@ func installSides(w *sim.World) error {
 	if err := timeline.RegisterController(w, restController, rester{}); err != nil {
 		return err
 	}
+	if err := timeline.RegisterController(w, huntController, hunter{}); err != nil {
+		return err
+	}
+	if err := RegisterChooser(w, scoreChooser, ScoreChooser{}); err != nil {
+		return err
+	}
+	if err := w.Views.Register(sim.ViewBuilder{Name: bodiesView, Build: buildBodies}); err != nil {
+		return err
+	}
 	effects.SetHostile(w, Hostile)
 	timeline.SetHalt(w, PartyLost)
 	sim.Subscribe(w.Bus, "combat.death", onPartDamaged)

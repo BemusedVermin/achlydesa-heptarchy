@@ -21,6 +21,8 @@ type Registry struct {
 	templates map[api.ContentID]*template.Template // parsed text, by text ID
 	actions   map[api.ContentID]compiledAction     // compiled action formulas
 	speed     *vm.Program                          // compiled timeline.speed formula
+	aiScore   *vm.Program                          // compiled combat.ai_score formula
+	aims      *vm.Program                          // compiled combat.aims formula
 	records   map[api.ContentID]Record             // the formula view of every record
 	offers    map[string]*vm.Program               // compiled choice offers; absent when a choice has none
 	mods      map[api.ContentID]compiledMods       // compiled mods of types and items
@@ -168,4 +170,30 @@ func (r *Registry) Speed(env GrantEnv) (int, error) {
 type EffectSite struct {
 	Path string      `json:"path"`
 	Refs []EffectRef `json:"refs"`
+}
+
+// AIScore rates an intent for a hunting creature, by combat.ai_score.
+func (r *Registry) AIScore(env ScoreEnv) (float64, error) {
+	out, err := expr.Run(r.aiScore, env)
+	if err != nil {
+		return 0, fmt.Errorf("content: combat.ai_score: %w", err)
+	}
+	score, ok := out.(float64)
+	if !ok {
+		return 0, fmt.Errorf("content: combat.ai_score returned %T, not a number", out)
+	}
+	return score, nil
+}
+
+// Aims says whether a body with the grant totals can pick its target, by combat.aims.
+func (r *Registry) Aims(env GrantEnv) (bool, error) {
+	out, err := expr.Run(r.aims, env)
+	if err != nil {
+		return false, fmt.Errorf("content: combat.aims: %w", err)
+	}
+	aims, ok := out.(bool)
+	if !ok {
+		return false, fmt.Errorf("content: combat.aims returned %T, not a bool", out)
+	}
+	return aims, nil
 }

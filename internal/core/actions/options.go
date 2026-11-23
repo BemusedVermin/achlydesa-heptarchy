@@ -385,3 +385,13 @@ func buildOptions(w *sim.World, v *api.View) error {
 	}
 	return nil
 }
+
+// Windup is the ticks the intent would take to land, or 0 when it cannot be worked out. A chooser
+// scores by it.
+func Windup(w *sim.World, in Intent) int64 {
+	p, _, err := newEvaluator(w).evaluate(in, false)
+	if err != nil || p == nil {
+		return 0
+	}
+	return p.windup
+}
