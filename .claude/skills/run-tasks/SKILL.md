@@ -18,8 +18,9 @@ You coordinate. You don't implement, commit, push or merge anything yourself.
    - With no arguments, take two.
    - Never start more than four at once.
 3. Check for overlap. Read each picked task's Deliverables. If two tasks name the same file (other than `tasks/INDEX.md`), keep the first and defer the other: they would conflict.
-4. Say which tasks you're starting, and which you deferred and why.
-5. Start one `task-implementer` agent per task, all at once, in the background. Each prompt is just `Implement task <ID>.`: the agent already has the workflow.
-6. As each agent finishes, relay its report: the task ID, the PR link or why it stopped, the follow-ups it filed, and anything the owner has to decide.
+4. Pick each task's model from its front matter. A task with `size: L` or `kind: seam` gets Opus: big tasks, and seams other code builds on, are where a weaker first draft costs the most. Every other task stays on Sonnet, the agent's default.
+5. Say which tasks you're starting, on which model, and which you deferred and why.
+6. Start one `task-implementer` agent per task, all at once, in the background. Pass `model: opus` for the Opus tasks and no model for the rest. Each prompt is just `Implement task <ID>.`: the agent already has the workflow.
+7. As each agent finishes, relay its report: the task ID, the PR link or why it stopped, the follow-ups it filed, and anything the owner has to decide.
 
 Parallel pull requests often conflict on `tasks/INDEX.md` once the first of them merges. To fix one, open a session and ask Claude to update that PR from master. The do-task skill's last section covers it.

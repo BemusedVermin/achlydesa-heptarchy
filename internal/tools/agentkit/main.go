@@ -19,9 +19,9 @@ const (
 
 // errUsage reports a command line agentkit doesn't understand.
 var errUsage = errors.New(
-	"usage: agentkit guard | protect | ready | clean-worktrees [--dry-run] [--no-fetch]")
+	"usage: agentkit guard | protect | after-edit | ready | clean-worktrees [--dry-run] [--no-fetch]")
 
-// hookInput is the part of Claude Code's PreToolUse hook input that the hooks read.
+// hookInput is the part of Claude Code's PreToolUse and PostToolUse hook input that the hooks read.
 type hookInput struct {
 	Cwd       string `json:"cwd"`
 	ToolName  string `json:"tool_name"`
@@ -48,6 +48,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return hook(stdin, stdout, stderr, guardHook)
 	case "protect":
 		return hook(stdin, stdout, stderr, protectHook)
+	case "after-edit":
+		return runAfterEdit(stdin, stdout, stderr, golangciLint{})
 	case "ready":
 		dir, err := os.Getwd()
 		report := ""

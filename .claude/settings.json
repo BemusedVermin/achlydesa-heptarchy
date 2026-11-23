@@ -149,6 +149,26 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "go",
+            "args": [
+              "-C",
+              "${CLAUDE_PROJECT_DIR}",
+              "run",
+              "./internal/tools/agentkit",
+              "after-edit"
+            ],
+            "timeout": 120,
+            "statusMessage": "Formatting and linting the edited Go file"
+          }
+        ]
+      }
     ]
   }
 }
