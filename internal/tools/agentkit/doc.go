@@ -7,8 +7,8 @@
 //	              branch deletion, merging pull requests and commands that throw away work. It
 //	              only reads the command line and asks git which branch is checked out, so it
 //	              stays fast; CI runs the full check on every pull request
-//	protect       before a file edit: on task/ branches, refuses edits to the rules, the design
-//	              docs and the checks themselves
+//	protect       before a file edit: on task/ branches, refuses edits to the rules agents work
+//	              under and to the checks themselves (the design docs in docs/ stay editable)
 //	ready         lists the tasks an agent can start now, from the task files' front matter
 //	clean-worktrees
 //	              removes the worktrees in .claude/worktrees that hold nothing unsaved (their work

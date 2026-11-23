@@ -14,8 +14,8 @@ func TestProtectedPath(t *testing.T) {
 		{"AGENTS.md", "AGENTS.md"},
 		{"agents.md", "AGENTS.md"},
 		{"./CLAUDE.md", "CLAUDE.md"},
-		{"docs/go-technical-design.md", "docs/"},
-		{"docs", "docs/"},
+		{"docs/go-technical-design.md", ""},
+		{"docs", ""},
 		{".claude/settings.json", ".claude/"},
 		{".github/workflows/ci.yml", ".github/"},
 		{".golangci.yml", ".golangci.yml"},
@@ -44,11 +44,11 @@ func TestCheckEdit(t *testing.T) {
 		refused bool
 	}{
 		{"task branch, code", "task/M2-07-x", "internal/core/combat/combat.go", false},
-		{"task branch, docs", "task/M2-07-x", "docs/game-design.md", true},
-		{"task branch, new folder under docs", "task/M2-07-x", "docs/new/deep/file.md", true},
+		{"task branch, design docs", "task/M2-07-x", "docs/game-design.md", false},
 		{"task branch, agents rules", "task/M2-07-x", "AGENTS.md", true},
-		{"owner's branch, docs", "spec/M3", "docs/game-design.md", false},
-		{"master, docs", "master", "docs/game-design.md", false},
+		{"task branch, new folder under a protected one", "task/M2-07-x", ".claude/new/deep/file.md", true},
+		{"owner's branch, agents rules", "spec/M3", "AGENTS.md", false},
+		{"master, agents rules", "master", "AGENTS.md", false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

@@ -40,7 +40,8 @@ Set the task's status to `in-progress` in its front matter and in its row of `ta
 - Every line follows "Rules that never bend" in `AGENTS.md`.
 - Where the spec is silent, pick the most reversible option and note it. A game-design question becomes a follow-up of kind `question` (rule 9).
 - Work outside the task's scope becomes a follow-up (the `file-followup` skill). A `// TODO(<follow-up ID>)` is fine; a bare TODO is not.
-- On a task branch you can't edit `AGENTS.md`, `CLAUDE.md`, `docs/`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or `internal/tools/agentkit/`. If the work changes a decision in `docs/`, file a follow-up that says what the doc should now say.
+- On a task branch you can't edit `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.github/`, `Taskfile.yml`, `.golangci.yml` or `internal/tools/agentkit/`. If the task needs one of them changed, file a follow-up.
+- If the work changes what the design docs in `docs/` say, update them as part of the task and say so in Notes.
 - Commit as you go, with messages like `M2-07: alert spreads to nearby bodies`.
 - While you work, test only the packages you're changing: `go tool task test -- ./internal/core/combat/...`. The whole suite is slow, and other agents may be running tests on the same machine.
 - **Blocked?** Set the status to `blocked` in the task file and the index, say why in Notes, commit, and stop. Report what blocks you. Don't push a blocked branch.

@@ -58,7 +58,7 @@ Claude Code is set up to run agents on tasks: `/do-task <ID>` takes one task to 
 - Every acceptance criterion is met and ticked in the task file.
 - `go tool task check` passes: formatting, `go vet`, tests, lint and content. Until M1-01 lands, run `go build ./...`, `go test ./...` and `golangci-lint run` by hand.
 - New packages have a `doc.go`; new exported identifiers have doc comments.
-- If the work changed a decision in `docs/go-technical-design.md`, a follow-up says what the doc should now say. Agents don't edit `docs/`: the owner keeps it in step with the design doc.
+- If the work changed what `docs/game-design.md` or `docs/go-technical-design.md` says, the doc is updated in the same pull request.
 - The Notes section lists assumptions, deviations, files touched outside the Deliverables, and follow-ups filed.
 
 ## Follow-ups
