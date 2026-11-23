@@ -93,14 +93,19 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 	}
 	bundle.Text["text.template.test.fighter"] = "Clay-thing"
 	bundle.Text["text.template.test.dummy"] = "Dummy"
+	// Only an enemy in reach makes an arm worth stopping for.
+	party, deep := api.ContentID("faction.party"), api.ContentID("faction.deep")
 	bundle.Templates["template.test.fighter"] = content.Template{
-		Actor: &content.ActorDef{Controller: timeline.PlayerController}, Actions: known,
+		Faction: &party,
+		Actor:   &content.ActorDef{Controller: timeline.PlayerController}, Actions: known,
 		// The types a body knows innately are the sample's content choice's business.
 		Data: content.Data{Lists: map[string][]string{
 			"types": {"type.cut", "type.name", "type.press", "type.relic"},
 		}},
 	}
-	bundle.Templates["template.test.dummy"] = content.Template{Actor: &content.ActorDef{Controller: "idle"}}
+	bundle.Templates["template.test.dummy"] = content.Template{
+		Faction: &deep, Actor: &content.ActorDef{Controller: "idle"},
+	}
 	if o.mutate != nil {
 		o.mutate(&bundle)
 	}

@@ -44,5 +44,5 @@
 {"kind":"explore.moved","data":{"actor":8,"map":3,"from":{"hex":{"q":-1,"r":10},"depth":0},"to":{"hex":{"q":-2,"r":10},"depth":0},"kind":"level"}}
 {"kind":"clock.day_started","data":{"day":2}}
 {"kind":"explore.moved","data":{"actor":8,"map":3,"from":{"hex":{"q":-2,"r":10},"depth":0},"to":{"hex":{"q":-3,"r":10},"depth":0},"kind":"level"}}
-{"kind":"combat.alert_ended","data":{"party":1,"tick":252}}
+{"kind":"combat.alert_ended","data":{"party":1,"tick":255}}
 {"kind":"explore.control_changed","data":{"party":1,"mode":"follow","by":"alert"}}

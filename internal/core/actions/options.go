@@ -10,6 +10,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -228,8 +229,26 @@ func Startable(w *sim.World, actor ecs.Entity) []Intent {
 	return out
 }
 
-// usableChannels is the timeline's usable hook: a channel is usable when some action could be started
-// with it were it free. So an arm with nothing in reach does not make its body stop and decide. It
+// worthWaking reports whether starting the intent is reason enough to hand its body control. An
+// action aimed at another body counts only against an enemy, so a free arm beside a friend does
+// not stop a body that is still recovering from a step.
+func (ev *evaluator) worthWaking(in Intent) bool {
+	def, ok := ev.w.Content.Action(in.Action)
+	if !ok {
+		return false
+	}
+	switch def.Target {
+	case content.TargetAlly:
+		return false
+	case content.TargetBody, content.TargetPart:
+		return effects.Hostile(ev.w, in.Actor, in.Target)
+	}
+	return true
+}
+
+// usableChannels is the timeline's usable hook: a channel is usable when some action worth stopping
+// for could be started with it were it free. So an arm with nothing hostile in reach does not make
+// its body stop and decide. It
 // builds the body's candidates once and evaluates each at most once, however many channels it uses.
 func usableChannels(w *sim.World, body ecs.Entity, channels []timeline.Channel) []bool {
 	flags := make([]bool, len(channels))
@@ -257,6 +276,9 @@ func usableChannels(w *sim.World, body ecs.Entity, channels []timeline.Channel) 
 			}
 		}
 		if !wanted {
+			continue
+		}
+		if !ev.worthWaking(cand.intent) {
 			continue
 		}
 		p, reason, err := ev.evaluate(cand.intent, false)
