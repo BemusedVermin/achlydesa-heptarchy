@@ -13,7 +13,7 @@ import (
 
 // sidePanelWidth is the right-hand column: the clock, the party and the log. M2-10's action panel
 // goes in the same column.
-const sidePanelWidth = 34
+const sidePanelWidth = 60
 
 // mapScreen is the one screen of play: the timeline strip on top, the map on the left, the side
 // panel on the right, then the status and help lines.
@@ -21,6 +21,66 @@ type mapScreen struct {
 	selected int // offset of the selected timeline tick
 	// lastVertical is the step option the last w or s sent, or empty after any other key.
 	lastVertical string
+	menu         *menuState // the open action menu, or nil
+	look         *lookState // look mode, or nil
+}
+
+// openMenu opens the action menu when the view offers anything to put in it.
+func (s *mapScreen) openMenu(app *App) bool {
+	s.menu = newMenu(app.State, sidePanelWidth, 10)
+	return s.menu != nil
+}
+
+func (s *mapScreen) startLook(app *App) {
+	if app.State.Bodies == nil || app.State.Party == nil {
+		return
+	}
+	s.look = &lookState{cursor: app.State.Party.Hex}
+}
+
+// menuKey handles a key while the action menu is open.
+func (s *mapScreen) menuKey(msg tea.KeyPressMsg, app *App) tea.Cmd {
+	id, closed := s.menu.update(msg)
+	if closed {
+		s.menu = nil
+		return nil
+	}
+	if id == "" {
+		return nil
+	}
+	enabled := false
+	for _, o := range app.State.Options {
+		if o.ID == id {
+			enabled = o.Enabled
+		}
+	}
+	cmd := app.Choose(id)
+	if enabled || cmd != nil {
+		s.menu = nil
+	}
+	s.selectTick(app, s.selected)
+	return cmd
+}
+
+// lookKey handles a key while look mode is on: the step keys move the cursor.
+func (s *mapScreen) lookKey(msg tea.KeyPressMsg, app *App) tea.Cmd {
+	up, down := key.Matches(msg, app.keys.up), key.Matches(msg, app.keys.down)
+	switch {
+	case key.Matches(msg, app.keys.quit) && msg.String() != "ctrl+c", key.Matches(msg, app.keys.look):
+		s.look = nil
+	case up || down:
+		option := VerticalOptions(up, s.look.lastVertical)[0]
+		s.look.lastVertical = option
+		s.look.move(option)
+	default:
+		for _, b := range app.keys.moves {
+			if key.Matches(msg, b.keys) {
+				s.look.lastVertical = ""
+				s.look.move(b.option)
+			}
+		}
+	}
+	return nil
 }
 
 func newMapScreen() *mapScreen { return &mapScreen{} }
@@ -41,12 +101,24 @@ func (s *mapScreen) Update(msg tea.Msg, app *App) (Screen, tea.Cmd) {
 }
 
 func (s *mapScreen) key(msg tea.KeyPressMsg, app *App) tea.Cmd {
+	switch {
+	case s.menu != nil:
+		return s.menuKey(msg, app)
+	case s.look != nil:
+		return s.lookKey(msg, app)
+	}
 	up, down := key.Matches(msg, app.keys.up), key.Matches(msg, app.keys.down)
 	if up || down {
 		return s.vertical(app, up)
 	}
 	s.lastVertical = ""
 	switch {
+	case key.Matches(msg, app.keys.menu):
+		if !s.openMenu(app) {
+			s.open(app)
+		}
+	case key.Matches(msg, app.keys.look):
+		s.startLook(app)
 	case key.Matches(msg, app.keys.quit):
 		return tea.Quit
 	case key.Matches(msg, app.keys.prevTick):
@@ -104,12 +176,32 @@ func (s *mapScreen) View(app *App) string {
 	mapWidth := max(1, width-side-1)
 	bodyHeight := max(1, height-TimelineRows-2)
 
-	strip := RenderTimeline(app.State.Timeline, width, s.selected)
-	mapPane := RenderMap(app.State.Map, app.State.Party, mapWidth, bodyHeight)
+	strip := RenderTimelineMarked(app.State.Timeline, app.State.Bodies, width, s.selected)
+	var target api.UID
+	var cursor *api.Hex
+	if s.menu != nil {
+		target = s.menu.targetUID(app.State.Bodies)
+	}
+	if s.look != nil {
+		cursor = &s.look.cursor
+	}
+	overlay := OverlayFor(app.State.Bodies, target, cursor)
+	mapPane := RenderMapOverlay(app.State.Map, app.State.Party, overlay, mapWidth, bodyHeight)
 
 	panel := []string{RenderClock(app.State.Clock, side), "", RenderParty(app.State.Party), ""}
+	switch body, ok := currentBody(app.State.Bodies); {
+	case s.look != nil:
+		panel = append(panel, RenderLook(app.State, s.look.cursor, side), "")
+	case ok:
+		panel = append(panel, RenderBody(body, app.State.Bodies, app.State.Tick, side), "")
+	}
 	used := strings.Count(strings.Join(panel, "\n"), "\n") + 1
-	panel = append(panel, RenderLog(app.State.Log, side, max(1, bodyHeight-used)))
+	if s.menu != nil {
+		s.menu.list.SetSize(side, max(2, bodyHeight-used-1))
+		panel = append(panel, s.menu.Render())
+	} else {
+		panel = append(panel, RenderLog(app.State.Log, side, max(1, bodyHeight-used)))
+	}
 	sidePane := lipgloss.NewStyle().Width(side).Height(bodyHeight).MaxHeight(bodyHeight).
 		Render(strings.Join(panel, "\n"))
 
@@ -125,10 +217,14 @@ func (s *mapScreen) status(app *App) string {
 	if app.Status != "" {
 		return app.Status
 	}
-	if mode := app.Mode(); mode != "" {
-		return "Control: " + mode
+	var parts []string
+	if app.State.Party != nil && app.State.Party.Alert {
+		parts = append(parts, "ALERT: hostile in sight")
 	}
-	return ""
+	if mode := app.Mode(); mode != "" {
+		parts = append(parts, "Control: "+mode)
+	}
+	return strings.Join(parts, " | ")
 }
 
 // tickPopup lists everything on one timeline tick, by label.
