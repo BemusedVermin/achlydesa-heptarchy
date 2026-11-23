@@ -142,12 +142,6 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	arm := f.partOf(remnant, "arm")
 	f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
 	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-	if got := ecs.NewMap[comp.Identity](f.w.ECS).Get(crawling).Template; got != "template.crawling.remnant_arm" {
-		t.Errorf("the crawling arm acts as %q, want its part's crawls_as", got)
-	}
-	if got := ecs.NewMap[comp.Appearance](f.w.ECS); !got.Has(crawling) || got.Get(crawling).Glyph == "" {
-		t.Error("the crawling arm has no appearance")
-	}
 	// The source and the hall's own creature fall, and the party stands next to the arm: the only
 	// hostiles in its reach are the party.
 	f.damage(reaper, remnant, "torso", "99")
@@ -170,6 +164,44 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	}
 	if !slices.Contains(members, swing.Target) {
 		t.Errorf("the crawling arm swung at %v, want one of the party %v", swing.Target, members)
+	}
+}
+
+func TestACrawlingPartTakesItsCrawlsAsIdentity(t *testing.T) {
+	tests := []struct {
+		name       string
+		crawlsAs   api.ContentID
+		want       api.ContentID
+		appearance bool
+	}{
+		{"with crawls_as", "template.crawling.remnant_arm", "template.crawling.remnant_arm", true},
+		{"without crawls_as", "", "part.remnant_arm", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := huntField(t, func(b *content.Bundle) {
+				template := b.Templates["template.creature.remnant"]
+				template.Triggers[0].If = rollAlways
+				b.Templates["template.creature.remnant"] = template
+				part := b.Parts["part.remnant_arm"]
+				part.CrawlsAs = tt.crawlsAs
+				b.Parts["part.remnant_arm"] = part
+			})
+			pos := *ecs.NewMap[comp.Pos](f.w.ECS).Get(f.creature())
+			remnant, err := f.w.Spawn("template.creature.remnant", &pos)
+			if err != nil {
+				t.Fatal(err)
+			}
+			arm := f.partOf(remnant, "arm")
+			f.apply(f.members()[0], remnant, arm, do("sever", "parts", "target_part"))
+			crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
+			if got := ecs.NewMap[comp.Identity](f.w.ECS).Get(crawling).Template; got != tt.want {
+				t.Errorf("identity = %q, want %q", got, tt.want)
+			}
+			if got := ecs.NewMap[comp.Appearance](f.w.ECS).Has(crawling); got != tt.appearance {
+				t.Errorf("has appearance = %v, want %v", got, tt.appearance)
+			}
+		})
 	}
 }
 

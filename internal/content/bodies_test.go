@@ -77,7 +77,16 @@ func TestBodiesRejectBadReferences(t *testing.T) {
 			part := b.Parts["part.human_arm"]
 			part.CrawlsAs = "template.test.dummy"
 			b.Parts["part.human_arm"] = part
-		}, `crawls_as: template "template.test.dummy" has a body or party of its own`},
+		}, `crawls_as: template "template.test.dummy" sets body, which a crawling part ignores`},
+		{"crawls as a template with a faction", func(b *Bundle) {
+			part := b.Parts["part.human_arm"]
+			part.CrawlsAs = "template.crawling.remnant_arm"
+			b.Parts["part.human_arm"] = part
+			template := b.Templates["template.crawling.remnant_arm"]
+			faction := api.ContentID("faction.deep")
+			template.Faction = &faction
+			b.Templates["template.crawling.remnant_arm"] = template
+		}, `sets faction, which a crawling part ignores`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

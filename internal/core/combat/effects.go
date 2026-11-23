@@ -555,7 +555,11 @@ func applySpawnFromPart(ctx *effects.Context, p effects.Params) error {
 	var appearance *comp.Appearance
 	if def, ok := w.Content.Part(identity); ok && def.CrawlsAs != "" {
 		identity = def.CrawlsAs
-		if template, ok := w.Content.Template(identity); ok && template.Appearance != nil {
+		template, ok := w.Content.Template(identity)
+		if !ok {
+			return fmt.Errorf("part %q crawls as unknown template %q", def.Name, identity)
+		}
+		if template.Appearance != nil {
 			looks := *template.Appearance
 			appearance = &looks
 		}
