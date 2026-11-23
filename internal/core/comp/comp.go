@@ -32,7 +32,7 @@ type Party struct {
 	// Order is the party order: the leader first, then the rest. Each follower follows the member
 	// just before it. Spawning fills it from the party template.
 	Order []api.UID `json:"order"`
-	// Alert is set by the danger check (M2-07) and is always false until then.
+	// Alert is set by the combat package while a hostile is in sight, and cleared after a calm spell.
 	Alert bool `json:"alert"`
 	// Control is api.ControlFollow or api.ControlIndividual.
 	Control string `json:"control"`
@@ -40,6 +40,11 @@ type Party struct {
 	ControlBy string `json:"control_by"`
 	// AlertSeen is the last Alert value the party_control system acted on.
 	AlertSeen bool `json:"alert_seen"`
+}
+
+// Calm is when the controlled party last had a hostile in sight. It sits on the party entity.
+type Calm struct {
+	Since int64 `json:"since"`
 }
 
 // Trail is the cell a party member left on its most recent step, which the member behind it steps
@@ -197,4 +202,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Graft](world)
 	ecs.ComponentID[Allegiance](world)
 	ecs.ComponentID[Triggers](world)
+	ecs.ComponentID[Calm](world)
 }

@@ -13,6 +13,7 @@ type Bundle struct {
 	Calendar  Calendar             `json:"calendar"`
 	Templates map[string]Template  `json:"templates"`
 	Party     PartyConfig          `json:"party"`
+	Combat    CombatConfig         `json:"combat"`
 	Timeline  TimelineConfig       `json:"timeline"`
 	Actions   map[string]ActionDef `json:"actions"`
 	Maps      map[string]MapDef    `json:"maps"`
@@ -186,6 +187,8 @@ type Template struct {
 	Inventory []StackDef `json:"inventory,omitempty"`
 	// Triggers react to events for the entities spawned from this template.
 	Triggers []Trigger `json:"triggers,omitempty"`
+	// Faction is the side ("faction." ID) a body of this template fights for.
+	Faction *api.ContentID `json:"faction,omitempty"`
 	// Later: Combatant, Needs, ...
 }
 
@@ -238,6 +241,20 @@ type PartyConfig struct {
 	FollowAction api.ContentID `json:"follow_action"`
 }
 
+// CombatConfig is the numbers of alert and death. Placeholders to tune.
+type CombatConfig struct {
+	// CalmTicks is how long no hostile may be in sight before an alert ends.
+	CalmTicks int64 `json:"calm_ticks"`
+	// RestTicks is how long a creature with no mind of its own keeps still before it looks again.
+	RestTicks int64 `json:"rest_ticks"`
+	// SightRadius and SightDepth are how far a member looks for hostiles, in hexes and in depths.
+	SightRadius int `json:"sight_radius"`
+	SightDepth  int `json:"sight_depth"`
+	// CorpseGlyph and CorpseColor are how a dead body is drawn.
+	CorpseGlyph string `json:"corpse_glyph"`
+	CorpseColor string `json:"corpse_color"`
+}
+
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.
 type MapDef struct {
 	Name api.ContentID `json:"name"` // a text ID
@@ -250,6 +267,10 @@ type MapDef struct {
 	Legend map[string]api.ContentID `json:"legend"`
 	// Marks maps one character to a mark name, such as "@": "party_start".
 	Marks map[string]string `json:"marks"`
+	// Spawns maps a mark character to a template ("template." ID): a body of it is spawned at each
+	// such character at the start, in row order, and the character may appear any number of times
+	// (at least once). Each character must also be one of Marks, so the layers may use it.
+	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
 }
 
 // LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per

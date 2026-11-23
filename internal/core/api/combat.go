@@ -6,6 +6,11 @@ const (
 	PartSeveredKind  = "combat.part_severed"
 	PartAttachedKind = "combat.part_attached"
 	StatusAddedKind  = "combat.status_added"
+	AlertStartedKind = "combat.alert_started"
+	AlertEndedKind   = "combat.alert_ended"
+	BodyDiedKind     = "combat.body_died"
+	BodyDownedKind   = "combat.body_downed"
+	PartyLostKind    = "combat.party_lost"
 )
 
 // Causes of a [PartSevered].
@@ -89,6 +94,79 @@ func (e PartAttached) Subjects() map[string]UID { return partSubjects(e.Body, e.
 func (e StatusAdded) Subjects() map[string]UID {
 	return withSource(map[string]UID{SubjectTarget: e.Body}, e.Source)
 }
+
+// AlertStarted reports that the controlled party has a hostile body in sight.
+type AlertStarted struct {
+	Party UID `json:"party"`
+	// Hostile is the first hostile seen, the one with the lowest UID, and Name its rendered name.
+	Hostile UID    `json:"hostile"`
+	Name    string `json:"name"`
+	Tick    int64  `json:"tick"`
+}
+
+// EventKind implements [Event].
+func (AlertStarted) EventKind() string { return AlertStartedKind }
+
+// LogText implements [Loggable].
+func (a AlertStarted) LogText() Text {
+	return Text{ID: "text.combat.alert_started", Args: map[string]string{"name": a.Name}}
+}
+
+// AlertEnded reports that the party has been out of sight of every hostile for the calm spell.
+type AlertEnded struct {
+	Party UID   `json:"party"`
+	Tick  int64 `json:"tick"`
+}
+
+// EventKind implements [Event].
+func (AlertEnded) EventKind() string { return AlertEndedKind }
+
+// LogText implements [Loggable].
+func (AlertEnded) LogText() Text { return Text{ID: "text.combat.alert_ended"} }
+
+// BodyDied reports that a body died. It stays where it fell, as a corpse.
+type BodyDied struct {
+	Body UID `json:"body"`
+	// Name is the body's rendered name.
+	Name string `json:"name"`
+	Tick int64  `json:"tick"`
+}
+
+// EventKind implements [Event].
+func (BodyDied) EventKind() string { return BodyDiedKind }
+
+// LogText implements [Loggable].
+func (b BodyDied) LogText() Text {
+	return Text{ID: "text.combat.body_died", Args: map[string]string{"name": b.Name}}
+}
+
+// BodyDowned reports that a protected body fell instead of dying.
+type BodyDowned struct {
+	Body UID `json:"body"`
+	// Name is the body's rendered name.
+	Name string `json:"name"`
+	Tick int64  `json:"tick"`
+}
+
+// EventKind implements [Event].
+func (BodyDowned) EventKind() string { return BodyDownedKind }
+
+// LogText implements [Loggable].
+func (b BodyDowned) LogText() Text {
+	return Text{ID: "text.combat.body_downed", Args: map[string]string{"name": b.Name}}
+}
+
+// PartyLost reports that every member of the controlled party is dead or downed.
+type PartyLost struct {
+	Party UID   `json:"party"`
+	Tick  int64 `json:"tick"`
+}
+
+// EventKind implements [Event].
+func (PartyLost) EventKind() string { return PartyLostKind }
+
+// LogText implements [Loggable].
+func (PartyLost) LogText() Text { return Text{ID: "text.combat.party_lost"} }
 
 // Choices implements [Chosen]: every choice of the action that dealt the damage.
 func (e PartDamaged) Choices() map[string]string { return e.Chosen }

@@ -46,6 +46,9 @@ func Install(w *sim.World) error {
 			return err
 		}
 	}
+	if err := installSides(w); err != nil {
+		return err
+	}
 	return w.Systems.Register(sim.System{Name: expireSystem, Cadence: sim.PerTurn, Run: expireStatuses})
 }
 

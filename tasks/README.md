@@ -37,11 +37,11 @@ The task file is the source of truth for status. `INDEX.md` mirrors it, so updat
 | Status | Meaning | Who sets it |
 | --- | --- | --- |
 | `proposed` | Filed as a follow-up, not yet triaged | The agent that filed it |
-| `todo` | Ready to start once its dependencies are done | The owner |
+| `todo` | Ready to start once its dependencies are done | The owner, or a triage task the owner assigned |
 | `in-progress` | Someone is on it | The implementer |
 | `blocked` | Can't continue; Notes say why and link the blocker | The implementer |
 | `done` | Acceptance criteria met and the PR is open; merging the PR completes the task | The implementer |
-| `obsolete` | Another task made it unnecessary; Notes say which | The owner |
+| `obsolete` | Another task made it unnecessary; Notes say which | The owner, or a triage task the owner assigned |
 
 ## Picking a task
 
@@ -70,7 +70,7 @@ Agents file a follow-up for anything they notice outside their task's scope. The
 - **Index:** add a row to the Follow-ups table in `INDEX.md`.
 - **Questions:** use `kind: question` for design decisions. Give the options, what each costs, and a recommendation. Never settle a game-design question in code.
 
-The owner triages follow-ups: each becomes `todo` in a milestone, gets merged into another task, or is closed with a reason.
+The owner triages follow-ups: each becomes `todo` in a milestone, gets merged into another task, or is closed with a reason. The owner can also hand triage to an agent as a task (M2-15 is the first): its pull request proposes the decisions, and merging it approves them.
 
 ## Writing a task spec
 
