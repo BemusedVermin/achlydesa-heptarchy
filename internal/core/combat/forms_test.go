@@ -315,24 +315,24 @@ func TestSweepIsNotOfferedWithOnlyOneArmFree(t *testing.T) {
 	}
 }
 
-func TestSoakStrikeSeversClayAndSpendsLakeWater(t *testing.T) {
+func TestSoakSeverSeversClayAndSpendsLakeWater(t *testing.T) {
 	r := newRing(t, map[string]int{"fighter": 0, "crawler": 1})
 	fighter, crawler := r.body("fighter"), r.body("crawler")
 	core := r.part(crawler, "torso")
-	if _, ok := r.option("strike", "type.soak", r.uid(crawler), r.uid(core)); ok {
+	if _, ok := r.option("sever", "type.soak", r.uid(crawler), r.uid(core)); ok {
 		t.Fatal("Soak is offered with no lake water")
 	}
 	r.give("item.lake_water", 1, ecs.Entity{})
-	events := r.do("strike", "type.soak", r.uid(crawler), r.uid(core))
+	events := r.do("sever", "type.soak", r.uid(crawler), r.uid(core))
 	if got := inventory.Count(r.w, fighter, "item.lake_water", 0); got != 0 {
 		t.Errorf("lake water left = %d, want it spent when the swing starts", got)
 	}
-	events = append(events, r.wait(3)...)
+	events = append(events, r.wait(2)...)
 	if !has(events, func(e api.PartSevered) bool { return e.Part == r.w.UIDOf(core) }) {
-		t.Errorf("a Soak Strike did not sever the clay core: %v", events)
+		t.Errorf("a Soak Sever did not sever the clay core: %v", events)
 	}
-	// Recovery is 4 plus Soak's 2: the arm is busy for 3 + 6 ticks in all.
-	r.wait(5)
+	// Recovery is 5 plus Soak's 2: the arm is busy for 2 + 7 ticks in all.
+	r.wait(6)
 	if got := r.busyChannels(fighter); got != 1 {
 		t.Errorf("channels busy after 8 ticks = %d, want the Soaked arm still recovering (9 in all)", got)
 	}
