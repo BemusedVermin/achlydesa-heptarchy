@@ -243,14 +243,29 @@ func Start(w *sim.World) error {
 		return err
 	}
 	start := w.Content.Start()
-	if start.Map == "" {
-		return nil
+	if start.Map != "" {
+		mark, ok := sources[start.Map].Mark(start.PartyAtMark)
+		if !ok {
+			return fmt.Errorf("explore: start: map %q has no mark %q", start.Map, start.PartyAtMark)
+		}
+		if err := spawnParty(w, ids[start.Map], mark, start.Party); err != nil {
+			return err
+		}
 	}
-	mark, ok := sources[start.Map].Mark(start.PartyAtMark)
-	if !ok {
-		return fmt.Errorf("explore: start: map %q has no mark %q", start.Map, start.PartyAtMark)
+	return spawnMarked(w, ids, sources)
+}
+
+// spawnMarked spawns the bodies each map's spawn marks name, maps in content ID order and each
+// map's marks in row order.
+func spawnMarked(w *sim.World, ids map[api.ContentID]api.MapID, sources map[api.ContentID]*Source) error {
+	for _, name := range w.Content.MapIDs() {
+		for _, spawn := range sources[name].Spawns() {
+			if _, err := w.Spawn(spawn.Template, &comp.Pos{Map: ids[name], At: spawn.Cell}); err != nil {
+				return fmt.Errorf("explore: start: spawn %q on %q: %w", spawn.Template, name, err)
+			}
+		}
 	}
-	return spawnParty(w, ids[start.Map], mark, start.Party)
+	return nil
 }
 
 // spawnParty spawns the template's party. The leader stands on the mark; each other member stands

@@ -103,6 +103,12 @@ package api
 	// hex, never a depth.
 	hex: #Hex @go(Hex)
 	members: [...#MemberView] @go(Members,[]MemberView)
+
+	// Control is ControlFollow or ControlIndividual.
+	control: string @go(Control)
+
+	// Alert is whether a hostile is in sight.
+	alert: bool @go(Alert)
 }
 
 // MemberView is one member of the party.

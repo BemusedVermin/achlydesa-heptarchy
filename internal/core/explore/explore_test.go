@@ -44,6 +44,11 @@ func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle))
 	if mapID != "" {
 		bundle.Start.Map = mapID
 	}
+	// And nothing hostile lives on the maps, so that walking never raises an alert of its own.
+	for id, def := range bundle.Maps {
+		def.Spawns = nil
+		bundle.Maps[id] = def
+	}
 	if mutate != nil {
 		mutate(&bundle)
 	}

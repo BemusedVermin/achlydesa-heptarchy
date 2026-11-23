@@ -24,7 +24,14 @@ func installControl(w *sim.World) error {
 	if err := sim.Handle(w, handleLead); err != nil {
 		return err
 	}
-	err := w.Systems.Register(sim.System{Name: "explore.party_control", Cadence: sim.PerTurn, Run: partyControl})
+	err := w.Systems.Register(
+		sim.System{
+			Name:    "explore.party_control",
+			Cadence: sim.PerTurn,
+			After:   []string{"combat.alert"},
+			Run:     partyControl,
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -84,6 +91,10 @@ func handleLead(w *sim.World, cmd api.Lead) (int64, error) {
 	member, found := w.ByUID(cmd.Member)
 	if !found || !slices.Contains(membersOf(w, party), member) {
 		rejectCommand(w, cmd.CommandKind(), "text.explore.not_member")
+		return 0, nil
+	}
+	if fallen(w, member) {
+		rejectCommand(w, cmd.CommandKind(), "text.explore.fallen")
 		return 0, nil
 	}
 	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
@@ -193,7 +204,7 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 	}
 	for _, member := range members {
 		uid := w.UIDOf(member)
-		if uid == state.Leader {
+		if uid == state.Leader || fallen(w, member) {
 			continue
 		}
 		v.Options = append(v.Options, api.Option{
@@ -207,4 +218,9 @@ func buildControlOptions(w *sim.World, v *api.View) error {
 		})
 	}
 	return nil
+}
+
+// fallen reports whether a body is dead or downed, and so cannot lead.
+func fallen(w *sim.World, body ecs.Entity) bool {
+	return ecs.NewMap[comp.Dead](w.ECS).Has(body) || ecs.NewMap[comp.Downed](w.ECS).Has(body)
 }
