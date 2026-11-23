@@ -75,7 +75,7 @@ The owner triages follow-ups: each becomes `todo` in a milestone, gets merged in
 ### How a follow-up is triaged
 
 - **Obsolete:** another change already fixed it, it no longer applies, or it duplicates another task. Set `status: obsolete`, and say which change or task in Notes.
-- **`todo` in a milestone:** pick the earliest milestone whose goal, exit criteria or tasks need it; a bug that hurts current work goes in the current milestone. Set `status: todo` and `milestone`, then set `depends_on` so `agentkit ready` offers it at the right time. For a milestone after the current one, depend on the last task of the milestone before it (for M3, that's M2-11).
+- **`todo` in a milestone:** pick the earliest milestone whose goal, exit criteria or tasks need it; a bug that hurts current work goes in the current milestone. Set `status: todo` and `milestone`, then set `depends_on` so `agentkit ready` offers it at the right time. For a milestone that is still an outline, depend on the milestone itself, such as `[M3]`: `agentkit ready` shows it as waiting on M3, and `/plan-milestone` replaces that with the real tasks it needs.
 - **Folded into another task:** if it fits a task that isn't done yet, add its point to that task's Spec, Deliverables and acceptance criteria. Then set the follow-up to `obsolete`, naming the task.
 - **Not now:** leave it `proposed`.
 

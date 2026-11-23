@@ -11,6 +11,7 @@ This folder sets up Claude Code so that agents can take tasks from `tasks/` and 
 | `skills/next-tasks/` | `/next-tasks`: what can start now, and what can run side by side. |
 | `skills/run-tasks/` | `/run-tasks [IDs or N]`: starts one implementer agent per task, in parallel. |
 | `skills/decide/` | `/decide`: asks you the open design questions as multiple choice, then records your answers in the task files and the design doc, in one PR. |
+| `skills/plan-milestone/` | `/plan-milestone [M3]`: turns a milestone's outline brief into task files. It asks you the brief's open questions, shows you the breakdown before writing specs, and wires the follow-ups aimed at the milestone to its real tasks. |
 | `skills/triage/` | `/triage`: marks the proposed follow-ups that no longer apply obsolete, asks you about the rest as multiple choice, and records it all in one PR. |
 | `skills/shared/` | Guidance the skills share, such as how to ask you questions. Not a skill itself. |
 | `skills/audit/` | `/audit`: between milestones, read-only auditors look for comment bloat, duplication, low-value tests, unclear names, library opportunities and convention slips, and file the cleanup as a `C<n>` milestone. `/audit lock-in` turns the decisions into lint rules. Its checklists are in `lenses/`. |
@@ -87,6 +88,17 @@ claude
 ```
 
 Then type `/run-tasks M2-06 M2-12`, or `/run-tasks 3` for the first three ready tasks. Each task gets a `task-implementer` agent in its own worktree, running in the background, and the session reports each PR as it lands. It won't start two tasks that change the same files. Large tasks and seams run on Opus, the rest on Sonnet.
+
+### Plan the next milestone
+
+When a milestone is done, type `/plan-milestone` in an Opus session (`claude --model opus`). It:
+
+1. reads the next outline brief, the design docs, the last milestone's Notes and the code as it is now;
+2. asks you the brief's open questions and records your answers in the design docs;
+3. shows you the task breakdown and waits for your go-ahead;
+4. writes the task specs, the brief's task table and the index rows, in one PR.
+
+Follow-ups aimed at the milestone are folded into its tasks, or given real dependencies on them. If a cleanup (`C<n>`) is still running, the new milestone's first tasks wait for its lock-in.
 
 ### Clean up between milestones
 
