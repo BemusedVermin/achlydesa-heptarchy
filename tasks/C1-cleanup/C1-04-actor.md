@@ -1,7 +1,7 @@
 ---
 id: C1-04
 title: "How are the acting body, the body acted on, a fact's origin and a formula's subject named?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -34,14 +34,16 @@ Event fields name the acting body `Actor` (9 fields), `Source` (4) and `Body`. F
 
 **Recommendation:** The first.
 
+**Decided by the owner:** roles name the fields. Event fields become `Source` (the acting body) and `Target` (the body or part acted on); `api.Fell.Actor` becomes `Body`. Knowledge `Source` becomes `Origin` (`origins`, `origin.sweep`), so `source` in a formula always means the acting body, and `reveal` stops mixing the two senses. `content.Side` becomes `BodyEnv`, so "side" means only a faction. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: roles name the fields. In the glossary.

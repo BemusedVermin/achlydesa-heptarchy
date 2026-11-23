@@ -1,7 +1,7 @@
 ---
 id: C1-13
 title: "May tests share one cached sample registry?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The sample content loads 37 times in 28 test files, and `sampleDir` is defined 1
 
 **Recommendation:** Allow it for the immutable registry only.
 
+**Decided by the owner:** allow it, for the immutable registry only. A `contenttest.Sample(t)` cached with `sync.OnceValues` in a test-support package loads the sample content once per test binary, and tests that mutate the content get a deep-copied bundle. This is the one allowed exception to no global mutable state, because the registry is never written to. Applied by C1-18.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: allow, immutable registry only.

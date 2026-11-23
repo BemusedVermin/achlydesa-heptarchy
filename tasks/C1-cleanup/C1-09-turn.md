@@ -1,7 +1,7 @@
 ---
 id: C1-09
 title: "What do 'turn', 'per-turn' and 'pending' mean?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** Rename.
 
+**Decided by the owner:** rename. The `timeline.Saved.Pending` flag becomes `SystemsDue`, `sim.PerTurn` becomes `PerEntry`, "turn queue" becomes "timeline", and `comp.Pending.Part` becomes `comp.Pending.Channel`. `Pending` then means only an action in flight. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: rename. In the glossary.

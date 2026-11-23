@@ -1,7 +1,7 @@
 ---
 id: C1-11
 title: "Where does player-facing text live, and how are its IDs shaped?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** Beside the record.
 
+**Decided by the owner:** beside the record. A record's name sits beside the record and is `text.<record id>`. Engine messages go in one file per Go package under `text/` as `text.<package>.<event>`. Map IDs become `text.map.test.hall`. A loader check enforces the name pattern, with parts exempt, and `.claude/rules/content.md` is corrected to say so. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: beside the record. In the glossary.

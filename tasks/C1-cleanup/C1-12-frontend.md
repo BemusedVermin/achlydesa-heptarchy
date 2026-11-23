@@ -1,7 +1,7 @@
 ---
 id: C1-12
 title: "Where does frontend chrome end and game text begin, and which core packages may the tui import?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** The first.
 
+**Decided by the owner:** the core supplies all of it. The view carries rendered text, such as a channel state label and option group labels. Only key help stays in Go in the tui. Hot reload sends an opaque `func(*game.Game) error` instead of a `*content.Registry`, so the tui imports only `game` and `api`. Applied by C1-23.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: the core supplies all. In the glossary and the tech design.

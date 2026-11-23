@@ -79,6 +79,7 @@ Every subsystem below reuses a library; the last column is all that's left to wr
 | Rumor and dream text | `text/template` | Templates live in content | Nothing |
 | CLI | cobra | `play`, `harness` and other subcommands | Nothing |
 | Dev commands | [Task](https://taskfile.dev) (go-task), run as a Go tool | Pinned in go.mod and run with `go tool task`, so nothing to install; its built-in shell runs the same commands on Windows and Linux. The CUE CLI is a Go tool the same way | The Taskfile |
+| Task front matter | `go.yaml.in/yaml/v3` | Parses the YAML front matter of task files in the agent tools; already in go.sum through Task | Nothing |
 | Logs and metrics | `log/slog`, `encoding/csv` | Structured logs; CSV for harness output | Metric definitions |
 | Testing | `testing`, rapid, native fuzzing, pprof | Property tests for invariants, fuzzed loaders, profiling | The invariants |
 | Architecture checks | golangci-lint with depguard | Fails the build if the core imports a UI package | One rule |
@@ -113,7 +114,7 @@ achlydesa-heptarchy/
 │   │   ├── rng/            # named math/rand/v2 streams
 │   │   ├── hexmap/         # 3D hex cells in chunks, topology, sight, A*
 │   │   ├── knowledge/      # fact store per knower
-│   │   ├── inventory/      # packs of item stacks
+│   │   ├── inventory/      # inventories of item stacks
 │   │   ├── effects/        # effect core, selectors, timing primitives, triggers
 │   │   ├── actions/        # content-defined actions and the do command
 │   │   ├── explore/        # party movement, plan-view projection
@@ -157,7 +158,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `rng` | One named PCG stream per subsystem, seeded from the world seed (plus the export count for procgen) | `math/rand/v2` |
 | `hexmap` | Maps keyed by map ID: 3D hex cells in chunks (maps can be infinite), the topology, stepping rules, 3D sight and pathing. Sight is line based and symmetric, not shadowcasting, so it differs slightly from the prototype's field of view around pillars | gravitton/hexagon, fzipp/astar |
 | `knowledge` | Facts per knower: subject, claim, source, confidence. The journal is a view over the party's facts | Components only |
-| `inventory` | Packs of item stacks: add, take, count | Components only |
+| `inventory` | Inventories of item stacks: add, take, count | Components only |
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
 | `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options | `timeline`, `effects` |
 | `explore` | Maps from content, stepping, lead and follow, remembered cells and the plan-view projection; gates between maps later | `hexmap` |
@@ -174,7 +175,7 @@ Each package owns one part of the rules and leans on a library for everything el
 
 Content goes from Go structs to CUE schemas to validated data, and almost none of that path is custom code.
 
-1. **Go structs define the shapes.** Components (in `comp`) and content records (`Material`, `Form`, `Template`, `CurdleMode`...) are plain structs. A template is a bag of optional components, so a creature, a person, a town and a candidate are all templates rather than separate types.
+1. **Go structs define the shapes.** Components (in `comp`) and content records (`Material`, `ActionDef`, `Template`, `CurdleMode`...) are plain structs. A template is a bag of optional components, so a creature, a person, a town and a candidate are all templates rather than separate types.
 2. **`cue get go --local` generates the schemas** as `*_go_gen.cue` files beside the Go structs in `internal/content`, so schema and code never drift.
 3. **Authors write data in CUE** under `content/data`. CUE fills defaults and checks references (a form naming an unknown primitive, a creature using an unknown material).
 4. **`cue vet` runs in CI** through `go tool task check`, alongside the tests, so content errors fail before the game starts.
@@ -229,6 +230,7 @@ Frontends only draw the core's read-only view and send it commands, so a second 
 
 - **One root Bubble Tea model with a screen stack:** the map screen (towns and the deep alike, exploring and fighting), with overlays for party and grafts, investigation notes and dreams. Each is its own model.
 - **Bubbles components for the plumbing:** `list` for menus, `table` for the party and inventories, `viewport` for logs and the investigation journal, `textinput` for naming, `help` and `key` for bindings.
+- **No game text in Go.** The view carries every word the player reads, including channel state and menu group labels; only key help is written in the frontend. Hot reload reaches the frontend as an opaque function over the game, so the frontend imports only `game` and `api`.
 - **Lip Gloss for layout and color.** The map, combat panel and message log are panes joined with Lip Gloss.
 - **The hex map** is drawn from the hex library's double-width coordinates: one glyph every two columns, alternate rows offset by one. Depth shows only as shading relative to the party, never as a layer.
 - **Combat** happens on the map screen: a side panel shows the deciding member's parts and what each is doing, a menu picks the action, type and target, and a look mode shows any visible body's parts. A timeline strip along the top shows upcoming ticks, an icon per tick with something on it and +N when several share one; selecting a tick lists who acts and what lands. There's no combat screen.
@@ -261,6 +263,7 @@ The harness tunes the game with data, and the tests guard the invariants the des
 | Fuzzing | Go native fuzzing | The content loader and Expr formulas against malformed input |
 | Content checks | `cue vet` | Every data file against the generated schema |
 | Architecture | golangci-lint depguard | `internal/core` imports no UI package; feature packages import only foundation packages |
+| Shared sample content | `contenttest.Sample` | One cached, immutable registry per test binary; tests that mutate content take a deep copy |
 | Performance | `testing.B`, pprof | Off-screen ticks for a full deep stay fast enough to run 500 seeds overnight |
 
 ## Custom code inventory and build order

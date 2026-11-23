@@ -1,7 +1,7 @@
 ---
 id: C1-01
 title: "What do we call the clay creature that moves, and the body Stand freezes?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -33,14 +33,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** `moving_clay`. The player-facing name is also the owner's call.
 
+**Decided by the owner:** the creature is `moving_clay`, as the design says. `template.creature.crawler` becomes `template.creature.moving_clay`, `body.clay_thing` and `body.crawler` become `body.moving_clay` (the unused flesh `body.crawler` is deleted or moved to the test bundle as `body.test.*`), and the parts become `part.moving_clay_*`. "Crawl" is kept only for the `crawls` tag and crawling parts. The player-facing name stays as the design has it. Applied by C1-17.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: `moving_clay`. In the glossary.

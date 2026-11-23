@@ -433,7 +433,7 @@ Name and Keepsake are never refused. Used on a body they don't belong to, the sw
 | Pin | Locks a part so it can't act for a while, canceling any swing it was winding up. No damage, which is the safe answer to old things whose severed parts crawl off |
 | Stand | Everyone crawling, on both sides, is pushed back on the timeline, and the stander's parts are all ready at once. While standing they take double damage, and allies are delayed too |
 | Give | A character spends one arm's time so an ally can act at once |
-| Graft | Attaches a piece of Serilmen, or reattaches a severed part, mid-fight. Graftable characters only |
+| Graft | Attaches a piece of Serilmen, or puts a severed part back (a reattach, which is not a graft), mid-fight. Graftable characters only |
 
 Example moves: lake water with Sweep douses every clay part on a body. A daylight jar with Sweep blinds every eye. A candidate's name with Pin stops the part that still remembers being him.
 
