@@ -1,7 +1,7 @@
 ---
 id: C1-16
 title: "What should a speed formula that fails at run time do?"
-status: proposed
+status: todo
 milestone: C1
 kind: question
 depends_on: []
@@ -32,14 +32,16 @@ The owner picks one option, and the answer is recorded here and where the glossa
 
 **Recommendation:** Return the error.
 
+**Decided by the owner:** return the error. `timeline.SetSpeed` hooks return `(int, error)` and the timeline propagates it, instead of `speedOf` turning it into speed 0. A content bug in a speed formula now stops the step and is reported. Applied by C1-22.
+
 ## Acceptance criteria
 
-- [ ] The owner has answered, through `/decide`.
-- [ ] The answer is in Notes and in the glossary.
+- [x] The owner has answered, through `/decide`.
+- [x] The answer is in Notes and in the glossary.
 
 ## Out of scope
 
 - Doing the work: the cleanup task named in the milestone brief does it.
 
 ## Notes
-
+Decided 2026-11-23: return the error.
