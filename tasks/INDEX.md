@@ -79,6 +79,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M1-17.F2](followups/M1-17.F2-advance-to-next-real-action.md) | Advance the timeline to the player's next real action | proposed | bug | M2 | M1-17 |
 | [M2-09.F1.F1](followups/M2-09.F1.F1-what-a-crawling-part-can-do.md) | What can a crawling part do? | proposed | question | M2 | M2-09.F1 |
 | [M2-10.F2](followups/M2-10.F2-agentkit-afteredit-windows-path.md) | Fix TestAfterEditWithGolangciLint on Windows paths | done | bug | unplanned | M2-10 |
 | [M2-10.F1](followups/M2-10.F1-fight-to-the-end-test.md) | Test a whole fight on the map screen, to the party resuming follow | done | test | M2 | M2-10 |
