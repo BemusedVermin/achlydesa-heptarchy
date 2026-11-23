@@ -1,7 +1,7 @@
 ---
 id: C1-15
 title: "Where does shared git code for the tools go, given agentkit is protected?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

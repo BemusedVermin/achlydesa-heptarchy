@@ -1,7 +1,7 @@
 ---
 id: C1-06
 title: "What are 'form', 'action', 'move' and 'type'?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

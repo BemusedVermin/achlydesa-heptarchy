@@ -1,7 +1,7 @@
 ---
 id: C1-10
 title: "What is the hostile faction called?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

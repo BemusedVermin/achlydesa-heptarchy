@@ -1,7 +1,7 @@
 ---
 id: C1-11
 title: "Where does player-facing text live, and how are its IDs shaped?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

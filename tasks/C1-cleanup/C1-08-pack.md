@@ -1,7 +1,7 @@
 ---
 id: C1-08
 title: "Is it a pack or an inventory?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []

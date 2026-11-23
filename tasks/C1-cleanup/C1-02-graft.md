@@ -1,7 +1,7 @@
 ---
 id: C1-02
 title: "Is an own severed part that is put back a graft?"
-status: todo
+status: done
 milestone: C1
 kind: question
 depends_on: []
