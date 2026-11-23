@@ -397,7 +397,7 @@ Combat is meant to be lethal and short. If you go in without a plan, you lose.
 - **Each part is made of a material** with its own weakness. Hit the weakness and the part comes off in one blow; hit it any other way and you wear it down.
 - **Severing manipulates timing:** cut an arm mid-swing and that swing never lands; cut the legs and every step takes longer; cut the head and it attacks at random.
 - **The same rules apply to the party.** A lost arm means one fewer swing in the air at once, and injuries persist between fights.
-- **Pre-entropy things don't know how to die.** A part severed from one sometimes crawls off and fights as its own combatant, so cutting can multiply enemies. A crawling part is not one of "everyone who crawls": Stand does not freeze it.
+- **Pre-entropy things don't know how to die.** A part severed from one sometimes crawls off and fights as its own combatant, so cutting can multiply enemies. A crawling part is not one of "everyone who crawls": Stand does not freeze it. A crawling part fights with whatever forms its own grants allow, like any body, and swings with the Cut type.
 
 ### Moves = form × type
 
