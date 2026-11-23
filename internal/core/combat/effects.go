@@ -528,6 +528,9 @@ func applyConsume(ctx *effects.Context, p effects.Params) error {
 	return nil
 }
 
+// applySpawnFromPart makes a severed part a body of its own, at the cell where it lies. The body's
+// identity is the template the part crawls as (its crawls_as), with that template's appearance, or
+// else the part's own template; its faction and controller come from the parameters.
 func applySpawnFromPart(ctx *effects.Context, p effects.Params) error {
 	faction, err := p.String("faction")
 	if err != nil {
@@ -548,7 +551,23 @@ func applySpawnFromPart(ctx *effects.Context, p effects.Params) error {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	identities := ecs.NewMap[comp.Identity](w.ECS)
 	at := *positions.Get(part)
-	body := w.NewIdentified(identities.Get(part).Template)
+	identity := identities.Get(part).Template
+	var appearance *comp.Appearance
+	if def, ok := w.Content.Part(identity); ok && def.CrawlsAs != "" {
+		identity = def.CrawlsAs
+		template, ok := w.Content.Template(identity)
+		if !ok {
+			return fmt.Errorf("part %q crawls as unknown template %q", def.Name, identity)
+		}
+		if template.Appearance != nil {
+			looks := *template.Appearance
+			appearance = &looks
+		}
+	}
+	body := w.NewIdentified(identity)
+	if appearance != nil {
+		ecs.NewMap[comp.Appearance](w.ECS).Add(body, appearance)
+	}
 	ecs.NewMap[comp.Body](w.ECS).Add(body, &comp.Body{})
 	positions.Add(body, &at)
 	positions.Remove(part)
