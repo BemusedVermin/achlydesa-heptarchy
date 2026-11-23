@@ -16,6 +16,7 @@ Every development command is a task in `Taskfile.yml`, run through Go so nothing
 - One part: `go tool task test`, `go tool task lint`, `go tool task content`
 - Pass arguments after `--`: `go tool task test -- -run TestName ./internal/core/sim`
 - Regenerate CUE schemas after changing content structs: `go tool task schema`
+- Show a refactor changed no behavior: `go tool task same-behavior` (renames: `-- --rename old=new`)
 - Play: `go tool task run -- play --seed 1`
 - List them all: `go tool task --list`
 
@@ -73,7 +74,9 @@ If the follow-up blocks your task, set your task to `blocked`, say why in Notes,
 ## Style
 
 - gofmt. A `doc.go` with a package comment in every package. Every exported identifier has a doc comment.
+- Doc comments explain what something is for and what a caller must know, concisely: no sentence that restates the name or carries little information. Any other comment is terse and only says why, where the code can't. No comments that narrate what the code does.
 - Descriptive names. Single letters only for loop indices and conventional uses such as `t *testing.T`.
 - Table-driven tests; `pgregory.net/rapid` for properties; golden files under `testdata/`.
 - Return errors for programmer and content bugs (wrap with `%w`). An invalid player command is not an error: emit an `api.Rejected` event.
 - No global mutable state. Registries hang off a world or a content registry value.
+- Saves are disposable until v1.0.0: renaming content IDs or changing the save format needs no migration. Bump the save version so old saves fail cleanly.

@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Triage the proposed follow-ups in tasks/. Marks the ones that no longer apply obsolete, asks the owner as multiple choice what to do with each of the rest, and records it all in one pull request. Use when the owner wants to triage, sort or plan the follow-ups. Design questions go through /decide instead.
+description: Triage the proposed tasks in tasks/, follow-ups and audit cleanup tasks alike. Marks the ones that no longer apply obsolete, asks the owner as multiple choice what to do with each of the rest, and records it all in one pull request. Use when the owner wants to triage, sort or plan the follow-ups. Design questions go through /decide instead.
 argument-hint: "[follow-up IDs; default all proposed ones]"
 ---
 
@@ -12,8 +12,8 @@ Agents file follow-ups as `proposed`, and nothing starts them until the owner tr
 
 ## 1. Find them
 
-1. `git fetch origin`, then read the follow-ups in `tasks/followups/` on `origin/master`.
-2. Take every follow-up with `status: proposed`, except `kind: question`: those are `/decide`'s. If the arguments name IDs, take only those.
+1. `git fetch origin`, then read the task files on `origin/master`.
+2. Take every task with `status: proposed`: follow-ups in `tasks/followups/`, and the cleanup tasks an `/audit` filed in `tasks/C*-cleanup/`. Leave out `kind: question`: those are `/decide`'s. If the arguments name IDs, take only those.
 3. Leave out any follow-up that already has a `task/<ID>` branch on the remote or an open pull request.
 4. If none are left, say so in one line, mention how many questions are open for `/decide`, and stop.
 
@@ -35,7 +35,7 @@ When you can't tell whether it still applies, treat it as live and say so in the
 
 Follow that guidance (if it isn't attached above, read the file). For each live follow-up, the question says what's wrong or missing and what it would take, in a sentence or two. The options:
 
-- **Your recommendation first:** usually "Todo in M2" for the current milestone, or a later milestone.
+- **Your recommendation first:** usually "Todo in M2" for the current milestone, or a later milestone. A cleanup task already has its milestone, so the recommendation is just "Todo".
 - **One alternative,** such as another milestone, or "Fold into M2-11" when a task that isn't done covers the same ground.
 - **"Won't do",** which marks it obsolete. Record the reason he gives, or "the owner decided not to do it".
 - **"Not now",** which leaves it `proposed`.
