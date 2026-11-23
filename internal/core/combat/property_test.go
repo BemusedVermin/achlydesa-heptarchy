@@ -214,14 +214,6 @@ func (f *fight) check() {
 	}
 }
 
-// readiesBusyChannels is true for an option whose ready effect can free a channel that still has a
-// swing winding up on it, which then takes a second action while the first is in flight.
-// TODO(M2-11.F1): Stand and Give free channels that are winding up; drop this once they do not.
-func readiesBusyChannels(option api.Option) bool {
-	do, ok := option.Command.(api.Do)
-	return ok && (do.Action == "action.stand" || do.Action == "action.give")
-}
-
 // decides says who the view waits on, and checks they are alive.
 func (f *fight) decides(view api.View) {
 	if view.Timeline == nil || view.Timeline.Current == 0 {
@@ -268,7 +260,7 @@ func TestRandomFightsKeepTheInvariants(t *testing.T) {
 			f.decides(view)
 			var enabled []api.Option
 			for _, option := range view.Options {
-				if option.Enabled && !readiesBusyChannels(option) {
+				if option.Enabled {
 					enabled = append(enabled, option)
 				}
 			}

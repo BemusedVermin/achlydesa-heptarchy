@@ -200,7 +200,7 @@ func applyReady(ctx *Context, p Params) error {
 		if len(freed) == count {
 			break
 		}
-		if timeline.Free(w, c) {
+		if timeline.Free(w, c) || len(windingUp(w, c)) > 0 {
 			continue
 		}
 		if err := timeline.Release(w, c); err != nil {
