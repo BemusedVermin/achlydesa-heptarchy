@@ -152,7 +152,7 @@ type Dead struct {
 	Tick int64 `json:"tick"`
 }
 
-// Downed marks a protected body that has fallen.
+// Downed marks a protected body that is out of the fight.
 type Downed struct{}
 
 // StatusEntry is one status a body is under, and the tick it ends.

@@ -12,7 +12,7 @@ package api
 #AlertEndedKind:   "combat.alert_ended"
 #BodyDiedKind:     "combat.body_died"
 #BodyDownedKind:   "combat.body_downed"
-#PartyLostKind:    "combat.party_lost"
+#PartyWipedKind:    "combat.party_wiped"
 
 #SeveredWorn: "worn"
 #SeveredCut:  "cut"
@@ -103,8 +103,8 @@ package api
 	tick: int64  @go(Tick)
 }
 
-// PartyLost reports that every member of the controlled party is dead or downed.
-#PartyLost: {
+// PartyWiped reports that every member of the controlled party is dead or downed.
+#PartyWiped: {
 	party: #UID  @go(Party)
 	tick:  int64 @go(Tick)
 }

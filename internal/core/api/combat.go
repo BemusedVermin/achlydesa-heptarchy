@@ -10,7 +10,7 @@ const (
 	AlertEndedKind   = "combat.alert_ended"
 	BodyDiedKind     = "combat.body_died"
 	BodyDownedKind   = "combat.body_downed"
-	PartyLostKind    = "combat.party_lost"
+	PartyWipedKind   = "combat.party_wiped"
 )
 
 // Causes of a [PartSevered].
@@ -156,17 +156,17 @@ func (b BodyDowned) LogText() Text {
 	return Text{ID: "text.combat.body_downed", Args: map[string]string{"name": b.Name}}
 }
 
-// PartyLost reports that every member of the controlled party is dead or downed.
-type PartyLost struct {
+// PartyWiped reports that every member of the controlled party is dead or downed.
+type PartyWiped struct {
 	Party UID   `json:"party"`
 	Tick  int64 `json:"tick"`
 }
 
 // EventKind implements [Event].
-func (PartyLost) EventKind() string { return PartyLostKind }
+func (PartyWiped) EventKind() string { return PartyWipedKind }
 
 // LogText implements [Loggable].
-func (PartyLost) LogText() Text { return Text{ID: "text.combat.party_lost"} }
+func (PartyWiped) LogText() Text { return Text{ID: "text.combat.party_wiped"} }
 
 // Choices implements [Chosen]: every choice of the action that dealt the damage.
 func (e PartDamaged) Choices() map[string]string { return e.Chosen }

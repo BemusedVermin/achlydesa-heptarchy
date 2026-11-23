@@ -172,12 +172,12 @@ func TestGoldenACrawlingPartOutlivesItsBody(t *testing.T) {
 		arm := f.partOf(remnant, "arm")
 		f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
 		crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-		// The source and the hall's own creature fall: only the crawling arm is left to see.
+		// The source and the hall's own creature go down: only the crawling arm is left to see.
 		f.damage(reaper, remnant, "torso", "99")
 		f.damage(reaper, f.creature(), "torso", "99")
 		dead := ecs.NewMap[comp.Dead](f.w.ECS)
 		if !dead.Has(remnant) || dead.Has(crawling) {
-			t.Fatal("the remnant must have fallen and its crawling arm lived")
+			t.Fatal("the remnant must have gone down and its crawling arm lived")
 		}
 		for range 6 {
 			f.option("wait/event")

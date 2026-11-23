@@ -364,19 +364,19 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 	if !hasEvent[api.BodyDowned](f.events) || hasEvent[api.BodyDied](f.events) {
 		t.Fatalf("events = %v, want the protected member downed, not dead", f.events)
 	}
-	if hasEvent[api.PartyLost](f.events) {
+	if hasEvent[api.PartyWiped](f.events) {
 		t.Fatal("the party was lost with a member standing")
 	}
 	if !ecs.NewMap[comp.Downed](f.w.ECS).Has(members[1]) || ecs.NewMap[comp.Actor](f.w.ECS).Has(members[1]) {
 		t.Error("the downed member is not downed and off the timeline")
 	}
 	f.damage(members[0], members[0], "torso", "99")
-	if !hasEvent[api.PartyLost](f.events) {
-		t.Fatal("no PartyLost after every member fell")
+	if !hasEvent[api.PartyWiped](f.events) {
+		t.Fatal("no PartyWiped after every member went down")
 	}
 	for _, e := range f.events {
-		if lost, ok := e.(api.PartyLost); ok && lost.Party != f.view().Party.UID {
-			t.Errorf("PartyLost names %d, want the party %d", lost.Party, f.view().Party.UID)
+		if lost, ok := e.(api.PartyWiped); ok && lost.Party != f.view().Party.UID {
+			t.Errorf("PartyWiped names %d, want the party %d", lost.Party, f.view().Party.UID)
 		}
 	}
 	events, err := f.g.Apply(api.Wait{Actor: 1, Until: api.WaitEvent})
@@ -391,7 +391,7 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 	}
 }
 
-func TestAFallenMemberCannotLead(t *testing.T) {
+func TestAnOutOfFightMemberCannotLead(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	members := f.members()
 	f.damage(members[0], members[1], "torso", "99")
@@ -408,12 +408,12 @@ func TestAFallenMemberCannotLead(t *testing.T) {
 	if len(events) != 1 {
 		t.Fatalf("events = %v, want one rejection", events)
 	}
-	if rejected, ok := events[0].(api.Rejected); !ok || rejected.Reason.ID != "text.explore.fallen" {
-		t.Errorf("event = %+v, want a rejection with text.explore.fallen", events[0])
+	if rejected, ok := events[0].(api.Rejected); !ok || rejected.Reason.ID != "text.explore.out_of_fight" {
+		t.Errorf("event = %+v, want a rejection with text.explore.out_of_fight", events[0])
 	}
 }
 
-func TestTheLeadPassesOnWhenTheLeaderFalls(t *testing.T) {
+func TestTheLeadPassesOnWhenTheLeaderGoesDown(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	members := f.members()
 	f.damage(members[1], members[0], "torso", "99")
