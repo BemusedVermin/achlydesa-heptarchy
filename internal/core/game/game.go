@@ -175,10 +175,32 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 	if _, err := g.world.Bus.Drain(g.world); err != nil {
 		return nil, g.fail(err)
 	}
+	if err := g.wakeIfWiped(); err != nil {
+		return nil, g.fail(err)
+	}
 	g.history = append(g.history, cmd)
 	events := g.events
 	g.events = nil
 	return events, nil
+}
+
+// wakeIfWiped gets a wiped-out party up at its last rest place after the configured time, then
+// plays on to the first decision. A party with nobody downed stays lost.
+func (g *Game) wakeIfWiped() error {
+	if !combat.PartyLost(g.world) || !explore.CanWake(g.world) {
+		return nil
+	}
+	if err := g.clock.Advance(g.world, max(g.world.Content.Party().WakeTicks, 0)); err != nil {
+		return err
+	}
+	if err := explore.Wake(g.world); err != nil {
+		return err
+	}
+	if _, err := timeline.Run(g.world, g.clock); err != nil {
+		return err
+	}
+	_, err := g.world.Bus.Drain(g.world)
+	return err
 }
 
 func (g *Game) fail(err error) error {

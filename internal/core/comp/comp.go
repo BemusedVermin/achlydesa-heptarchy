@@ -94,6 +94,13 @@ type Landing struct {
 	Choices    map[string]string `json:"choices,omitempty"`
 }
 
+// RestPlace is the cell a party last rested at, on the party entity. A party that is wiped out wakes
+// there. Use the explore package's SetRestPlace rather than writing it.
+type RestPlace struct {
+	Map api.MapID `json:"map"`
+	At  api.Cell  `json:"at"`
+}
+
 // Controlled marks the party the player commands.
 type Controlled struct{}
 
@@ -191,6 +198,7 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Pending](world)
 	ecs.ComponentID[Landing](world)
 	ecs.ComponentID[Controlled](world)
+	ecs.ComponentID[RestPlace](world)
 	ecs.ComponentID[Seen](world)
 	ecs.ComponentID[Knowledge](world)
 	ecs.ComponentID[Body](world)

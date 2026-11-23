@@ -175,7 +175,7 @@ What falls out of it:
 | Named cast | The authored core cast and generated candidates | Full needs agents with relationships, rumors and wounds | Permanent; plot armor optional per character |
 | Generic | Guards, merchants, recruits and similar | Very basic needs and wants | Replaced on a timer while the town is still inhabited |
 
-**A party wipe is not game over.** When every member of the party is dead or downed, the deuteragonists wake at the town they last rested in, with some time consumed. What the enemies did meanwhile, and any other cost, are still open (see `tasks/followups/M2-07.F1.F1-wake-after-wipe.md`).
+**A party wipe is not game over.** When every member of the party is dead or downed, the deuteragonists wake at the town they last rested in, with some time consumed. The party mends and wakes after `party.wake_ticks`, where it last rested (the opening cell until towns exist); the dead stay dead, and a party with nobody downed stays lost. What the enemies did meanwhile, and any other cost, are still open.
 
 Generic NPCs keep towns working without much simulation cost. An abandoned town stops replacing them, so emptied towns stay empty.
 

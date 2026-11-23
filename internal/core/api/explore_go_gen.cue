@@ -10,6 +10,7 @@ package api
 #LeadKind:           "explore.lead"
 #ControlChangedKind: "explore.control_changed"
 #LeaderChangedKind:  "explore.leader_changed"
+#PartyWokeKind:      "explore.party_woke"
 
 #ControlFollow:     "follow"
 #ControlIndividual: "individual"
@@ -43,6 +44,14 @@ package api
 
 	// Name is the leader's rendered name, for the log.
 	name: string @go(Name)
+}
+
+// PartyWoke reports that a party that was wiped out got up again at its last rest place.
+#PartyWoke: {
+	party: #UID   @go(Party)
+	map:   #MapID @go(Map)
+	at:    #Cell  @go(At)
+	tick:  int64  @go(Tick)
 }
 
 #MoveLevel: "level"

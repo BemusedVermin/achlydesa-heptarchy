@@ -81,4 +81,5 @@ text: {
 	"text.explore.control_changed.follow":     "The party falls into single file."
 	"text.explore.control_changed.individual": "Each member acts on their own."
 	"text.explore.leader_changed":             "{{.name}} leads."
+	"text.explore.party_woke":                 "The party wakes, bruised, where it last rested."
 }

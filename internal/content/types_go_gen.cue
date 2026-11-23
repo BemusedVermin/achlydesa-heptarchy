@@ -253,6 +253,9 @@ import (
 	// when it ends. True to start.
 	individual_on_alert: bool @go(IndividualOnAlert)
 
+	// WakeTicks is how long a wiped-out party is out before it wakes at its last rest place.
+	wake_ticks: int64 @go(WakeTicks)
+
 	// FollowAction is the action ("action." ID) a follower steps with; it targets a direction.
 	follow_action: api.#ContentID @go(FollowAction)
 }
