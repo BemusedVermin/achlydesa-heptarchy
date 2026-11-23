@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The full history, so the check can compare the PR with its base branch.
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -18,4 +21,8 @@ jobs:
           version: v2.15.0
           install-mode: binary
           install-only: true
-      - run: go tool task check
+      # On a pull request, test only the packages the change can affect (internal/tools/affected).
+      # A push to master has no base, so it tests everything.
+      - run: go tool task check-ci
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
