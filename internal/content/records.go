@@ -199,3 +199,34 @@ func (r *Registry) checkVocabulary() []error {
 	}
 	return problems
 }
+
+// RecordName returns the text ID of a record's name, or false when the ID is not a record or the
+// record has no name.
+func (r *Registry) RecordName(id api.ContentID) (api.ContentID, bool) {
+	key := string(id)
+	var name api.ContentID
+	switch {
+	case has(r.bundle.Materials, key):
+		name = r.bundle.Materials[key].Name
+	case has(r.bundle.Types, key):
+		name = r.bundle.Types[key].Name
+	case has(r.bundle.Items, key):
+		name = r.bundle.Items[key].Name
+	case has(r.bundle.Parts, key):
+		name = r.bundle.Parts[key].Name
+	case has(r.bundle.Statuses, key):
+		name = r.bundle.Statuses[key].Name
+	case has(r.bundle.Factions, key):
+		name = r.bundle.Factions[key].Name
+	case has(r.bundle.Templates, key):
+		if n := r.bundle.Templates[key].Name; n != nil {
+			name = *n
+		}
+	}
+	return name, name != ""
+}
+
+func has[V any](m map[string]V, key string) bool {
+	_, ok := m[key]
+	return ok
+}

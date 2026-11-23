@@ -267,7 +267,9 @@ func (ev *evaluator) label(cand candidate, p *plan) string {
 	if in.Dir != nil {
 		detail = append(detail, w.Content.Render(api.Text{ID: api.ContentID("text.actions.dir." + dirNames[*in.Dir])}))
 	}
-	detail = append(detail, cand.choiceValues...)
+	for _, value := range cand.choiceValues {
+		detail = append(detail, ev.valueName(value))
+	}
 	if in.Target != in.Actor && !in.Target.IsZero() {
 		detail = append(detail, ev.nameOf(in.Target))
 	}
@@ -280,6 +282,15 @@ func (ev *evaluator) label(cand candidate, p *plan) string {
 		id = "text.actions.option_with"
 	}
 	return w.Content.Render(api.Text{ID: id, Args: args})
+}
+
+// valueName is how a chosen value reads in a label: the record's name when the value names a record
+// with one, else the value as it is.
+func (ev *evaluator) valueName(value string) string {
+	if name, ok := ev.w.Content.RecordName(api.ContentID(value)); ok {
+		return ev.w.Content.Render(api.Text{ID: name})
+	}
+	return value
 }
 
 // command builds the Do that starts the intent.
