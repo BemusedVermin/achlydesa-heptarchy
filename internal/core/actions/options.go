@@ -26,7 +26,8 @@ type candidate struct {
 	// of the option's ID.
 	withChannels bool
 	key          string
-	choiceValues []string // in the action's choice order
+	// In the action's choice order.
+	choiceValues []string
 }
 
 // candidates lists the intents the actor could try, in option order, up to MaxOptions. They are
@@ -110,7 +111,8 @@ func (ev *evaluator) targets(actor ecs.Entity, def content.ActionDef) ([]Intent,
 	case content.TargetBody, content.TargetAlly, content.TargetPart:
 		return ev.bodyTargets(actor, def)
 	}
-	return nil, nil // cell targets wait for a cell in the intent
+	// Cell targets wait for a cell in the intent.
+	return nil, nil
 }
 
 func (ev *evaluator) bodyTargets(actor ecs.Entity, def content.ActionDef) ([]Intent, error) {

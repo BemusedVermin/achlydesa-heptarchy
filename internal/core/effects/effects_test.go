@@ -101,7 +101,7 @@ func (fx *fixture) part(t *testing.T, body ecs.Entity, tag string) ecs.Entity {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ecs.NewMap[comp.Actor](fx.w.ECS).Remove(e) // a part is not on the timeline itself
+	ecs.NewMap[comp.Actor](fx.w.ECS).Remove(e)
 	fx.parts[body] = append(fx.parts[body], e)
 	fx.partTags[e] = []string{tag}
 	return e
@@ -234,7 +234,7 @@ func TestChannelSelectors(t *testing.T) {
 		{"target:all", []ecs.Entity{fx.a, fx.arm1, fx.arm2, fx.leg}},
 		{"target:arm", []ecs.Entity{fx.arm1, fx.arm2}},
 		{"target:leg", []ecs.Entity{fx.leg}},
-		{"target:wing", nil}, // a tag that matches nothing is an empty list, not an error
+		{"target:wing", nil},
 		{"self:body", []ecs.Entity{fx.s}},
 		{"others:body", []ecs.Entity{fx.a, fx.b}},
 		{"used", []ecs.Entity{fx.arm2}},
@@ -320,7 +320,6 @@ func TestLockCancelsWindUpsAndDelaysDecision(t *testing.T) {
 		!reflect.DeepEqual(locked.Channels, fx.uids(fx.a, fx.arm1, fx.arm2, fx.leg)) {
 		t.Errorf("ChannelsLocked = %+v", locked)
 	}
-	// Nothing lands, and the locked body decides again only when the lock runs out.
 	if body, err := timeline.Run(fx.w, fx.clk); err != nil || body != fx.a || fx.w.Now != 8 {
 		t.Errorf("Run = (%v, %v) at tick %d; want the locked body at tick 8", body, err, fx.w.Now)
 	}
@@ -346,7 +345,6 @@ func TestInterrupt(t *testing.T) {
 		if got, ok := last.(api.ActionsInterrupted); !ok || !reflect.DeepEqual(got.Actors, fx.uids(fx.a)) {
 			t.Errorf("last event = %+v, want ActionsInterrupted naming the target", last)
 		}
-		// A stagger locks nothing.
 		if !timeline.Free(fx.w, fx.channel(fx.arm1)) {
 			t.Error("interrupt should not keep the arm busy")
 		}
@@ -392,7 +390,6 @@ func TestDelayPushesBackEveryVisibleBodyButTheSource(t *testing.T) {
 	if got, ok := events[len(events)-1].(api.ChannelsDelayed); !ok || got.Ticks != 8 || len(got.Channels) != 5 {
 		t.Errorf("event = %+v, want ChannelsDelayed for five channels", events[len(events)-1])
 	}
-	// Delaying again pushes the busy time further back.
 	fx.apply(t, fx.ctx(), contenttest.Do("delay", "channels", "target:body", "ticks", "4"))
 	if timeline.Free(fx.w, fx.channel(fx.a)) {
 		t.Error("the body channel should be busy until tick 12")
@@ -510,7 +507,7 @@ func TestParametersAreFormulas(t *testing.T) {
 func TestApplyStopsAtTheFirstError(t *testing.T) {
 	fx := newFixture(t)
 	err := effects.Apply(fx.ctx(), []content.EffectRef{
-		contenttest.Do("delay", "channels", "target:body", "ticks", "0"), // ticks must be at least 1
+		contenttest.Do("delay", "channels", "target:body", "ticks", "0"),
 		contenttest.Do("lock", "channels", "target:body", "ticks", "5"),
 	})
 	if err == nil || !strings.Contains(err.Error(), "delay") {
@@ -565,14 +562,14 @@ func TestRegisterRejectsBadPrimitives(t *testing.T) {
 func TestValidateListsEveryProblem(t *testing.T) {
 	fx := newFixture(t)
 	err := effects.Validate(fx.w, "actions[x].on_start", []content.EffectRef{
-		contenttest.Do("lock", "channels", "target:all", "ticks", "8"),               // fine
-		contenttest.Do("explode"),                                                    // unknown primitive
-		contenttest.Do("lock", "channels", "target:all"),                             // missing ticks
-		contenttest.Do("lock", "channels", "target:all", "ticks", "8", "force", "9"), // unknown parameter
-		contenttest.Do("delay", "channels", "everybody:all", "ticks", "8"),           // malformed selector
-		contenttest.Do("delay", "channels", "target:all", "ticks", "8 +"),            // formula does not compile
-		contenttest.Do("interrupt", "bodies", "target", "channels", "used"),          // both
-		contenttest.Do("interrupt"),                                                  // neither
+		contenttest.Do("lock", "channels", "target:all", "ticks", "8"),
+		contenttest.Do("explode"),
+		contenttest.Do("lock", "channels", "target:all"),
+		contenttest.Do("lock", "channels", "target:all", "ticks", "8", "force", "9"),
+		contenttest.Do("delay", "channels", "everybody:all", "ticks", "8"),
+		contenttest.Do("delay", "channels", "target:all", "ticks", "8 +"),
+		contenttest.Do("interrupt", "bodies", "target", "channels", "used"),
+		contenttest.Do("interrupt"),
 		contenttest.Do("ready", "channels", "target:all", "count", "nonsense"),
 	})
 	if err == nil {

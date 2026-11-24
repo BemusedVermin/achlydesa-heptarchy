@@ -27,9 +27,10 @@ const landKind = "actions.land"
 
 // Intent is one body's wish to start one action, with every choice made.
 type Intent struct {
-	Actor      ecs.Entity
-	Action     api.ContentID
-	Channels   []timeline.Channel // chosen; empty lets Validate pick the lowest-UID matches
+	Actor  ecs.Entity
+	Action api.ContentID
+	// Chosen; empty lets Validate pick the lowest-UID matches.
+	Channels   []timeline.Channel
 	Target     ecs.Entity
 	TargetPart ecs.Entity
 	Dir        *api.Dir
@@ -96,9 +97,12 @@ type evaluator struct {
 	positions  *ecs.Map[comp.Pos]
 	actors     *ecs.Map[comp.Actor]
 	sight      map[ecs.Entity]map[ecs.Entity]bool
-	inventory  map[ecs.Entity]map[string]int // each actor's whole inventory, for choice offers
-	targetMemo map[targetKey][]Intent        // body targets, by what decides them
-	valueMemo  map[valueKey][]string         // offered choice values, by choice and actor
+	// Each actor's whole inventory, for choice offers.
+	inventory map[ecs.Entity]map[string]int
+	// Body targets, by what decides them.
+	targetMemo map[targetKey][]Intent
+	// Offered choice values, by choice and actor.
+	valueMemo map[valueKey][]string
 }
 
 func newEvaluator(w *sim.World) *evaluator {
@@ -231,7 +235,8 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 		}
 		p.target = in.Target
 	default:
-		return bad() // "cell" targets need a cell in the intent, which nothing carries yet
+		// "cell" targets need a cell in the intent, which nothing carries yet.
+		return bad()
 	}
 	return p, api.Text{}, nil
 }

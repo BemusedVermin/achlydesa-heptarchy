@@ -24,15 +24,13 @@ import (
 
 // opts shapes a fixture.
 type opts struct {
-	actions []api.ContentID // what the fighter knows; defaults to every test action and the step
-	arms    int             // the fighter's arms; defaults to 3
-	dummyQ  int             // where the dummy stands; defaults to 1, next to the fighter
-	hooks   bool            // register a "type" choice with a validator and a modifier
-	// contentChoices keeps the sample's "type" choice from content instead of a Go provider.
+	actions        []api.ContentID
+	arms           int
+	dummyQ         int
+	hooks          bool
 	contentChoices bool
-	// install runs with the world before the game starts, to register primitives.
-	install func(w *sim.World) error
-	mutate  func(*content.Bundle)
+	install        func(w *sim.World) error
+	mutate         func(*content.Bundle)
 }
 
 // fixture is a game with a fighter (the player, with arms) and an idle dummy.
@@ -57,10 +55,7 @@ func use(tag string, count int) []content.Requirement {
 func testBundle(t *testing.T, o opts) content.Bundle {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	// The fixtures place bodies by hand, so they start with no maps and no start party; a body that
-	// is not on a map steps in place.
 	bundle.Maps, bundle.Start = nil, content.Start{}
-	// The fixture serves "type" from Go, so the sample's content choice of that name would shadow it.
 	if !o.contentChoices {
 		delete(bundle.Choices, "type")
 	}
@@ -90,12 +85,10 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 	}
 	bundle.Text["text.template.test.fighter"] = "Clay-thing"
 	bundle.Text["text.template.test.dummy"] = "Dummy"
-	// Only an enemy in reach makes an arm worth stopping for.
 	party, deep := api.ContentID("faction.party"), api.ContentID("faction.wild")
 	bundle.Templates["template.test.fighter"] = content.Template{
 		Faction: &party,
 		Actor:   &content.ActorDef{Controller: timeline.PlayerController}, Actions: known,
-		// The types a body knows innately are the sample's content choice's business.
 		Data: content.Data{Lists: map[string][]string{
 			"types": {"type.cut", "type.name", "type.press", "type.relic"},
 		}},
@@ -134,7 +127,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 			if err != nil {
 				return err
 			}
-			ecs.NewMap[comp.Actor](w.ECS).Remove(arm) // a part is not on the timeline itself
+			ecs.NewMap[comp.Actor](w.ECS).Remove(arm)
 			fx.arms = append(fx.arms, arm)
 		}
 		return nil
@@ -387,7 +380,6 @@ func TestLockingOneUsedChannelCancelsTheAction(t *testing.T) {
 	if pending := timeline.PendingOf(fx.w, fx.uid(fx.fighter)); len(pending) != 1 {
 		t.Fatalf("pending actions = %d, want 1", len(pending))
 	}
-	// Lock the second arm only; the action's own part is the first.
 	lock := []content.EffectRef{{Do: "lock", Params: map[string]string{"channels": "target_part", "ticks": "20"}}}
 	ctx := &effects.Context{World: fx.w, Source: fx.fighter, Target: fx.fighter, TargetPart: fx.arms[1]}
 	if err := effects.Apply(ctx, lock); err != nil {
@@ -424,8 +416,6 @@ func TestFailingCheckDisablesTheOptionWithItsReason(t *testing.T) {
 }
 
 func TestUsableHookLetsABodyWithAUselessArmWaitForItsBody(t *testing.T) {
-	// The dummy is out of the swing's reach, so the free arms are useless and the body must wait
-	// for its own channel to recover from the step.
 	far := newFixture(t, 1, opts{
 		actions: []api.ContentID{"action.step", "action.test.swing"}, dummyQ: 9,
 	})
@@ -471,7 +461,7 @@ func TestEveryOptionValidatesAndABusyChannelIsRejected(t *testing.T) {
 	fx := newFixture(t, 1, opts{})
 	do := fx.option("swing/").Command.(api.Do)
 	fx.apply(do)
-	events := fx.apply(do) // the same arm again
+	events := fx.apply(do)
 	rejected, ok := find[api.Rejected](events)
 	if !ok || rejected.Reason.ID != "text.actions.channels_busy" {
 		t.Errorf("a Do on a busy channel gave %v, want Rejected for busy channels", events)

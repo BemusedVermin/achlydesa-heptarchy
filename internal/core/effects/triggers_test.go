@@ -59,7 +59,7 @@ func newTriggerRig(t *testing.T, mutate func(*content.Bundle)) (*triggerRig, err
 			return effects.Register(w, note)
 		},
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
-			if _, err := w.Spawn("template.party.main", nil); err != nil { // someone to play the first decision
+			if _, err := w.Spawn("template.party.main", nil); err != nil {
 				return err
 			}
 			var err error
@@ -379,7 +379,6 @@ func TestSourceRoleTriggerFiresForTheActingBody(t *testing.T) {
 		}
 		b.Templates["template.test.crawler"] = tmpl
 	})
-	// a acts on b: only a, the source, hears of it.
 	ctx := &effects.Context{World: r.w, Source: r.a, Target: r.b, TargetPart: r.part(r.b, "head")}
 	if err := r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part")); err != nil {
 		t.Fatal(err)

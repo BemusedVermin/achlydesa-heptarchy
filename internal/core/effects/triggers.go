@@ -77,7 +77,8 @@ type firing struct {
 	carrier ecs.Entity
 	uid     api.UID
 	site    content.TriggerSite
-	order   int // the site's place in the index, for a stable order among one carrier's triggers
+	// The site's place in the index, for a stable order among one carrier's triggers.
+	order int
 	// viaPart says the carrier is a part of the subject's body, not the subject itself.
 	viaPart bool
 }

@@ -192,7 +192,6 @@ func TestSeqResumesAfterRestore(t *testing.T) {
 	uid := fx.w.UIDOf(player)
 	schedule(t, fx, uid, 0, 9)
 	schedule(t, fx, uid, 0, 7)
-	// A saved world holds only components; copy them into a fresh world as a load would.
 	restored, restoredPlayer, log := pendingFixture(t)
 	for _, e := range timeline.PendingOf(fx.w, uid) {
 		p := *ecs.NewMap[comp.Pending](fx.w.ECS).Get(e)
@@ -264,7 +263,6 @@ func TestLockedTellsALockFromOwnRecovery(t *testing.T) {
 	if err := timeline.Release(fx.w, channel); err != nil || timeline.Locked(fx.w, channel) {
 		t.Errorf("Release should end the lock (err %v)", err)
 	}
-	// A lock that has run out does not mark the next busy time.
 	if err := timeline.Lock(fx.w, channel, 2); err != nil {
 		t.Fatal(err)
 	}
