@@ -1,7 +1,7 @@
 ---
 id: C1-23
 title: "Game and frontend: duplication, text out of the tui, tests, comments"
-status: todo
+status: in-progress
 milestone: C1
 kind: debt
 depends_on: [C1-18, C1-12]
