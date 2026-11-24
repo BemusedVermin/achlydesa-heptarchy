@@ -1,7 +1,7 @@
 ---
 id: C1-22
 title: "Foundation area: duplication, tests, comments, speed errors"
-status: todo
+status: in-progress
 milestone: C1
 kind: debt
 depends_on: [C1-18, C1-16]
