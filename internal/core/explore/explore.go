@@ -121,7 +121,6 @@ func seenIn(w *sim.World, party ecs.Entity, id api.MapID) []api.Cell {
 	return seen.Get(party).ByMap[id]
 }
 
-// sightOf lists what a body standing at pos can see.
 func sightOf(w *sim.World, pos comp.Pos) ([]api.Cell, error) {
 	m := w.Maps.Get(pos.Map)
 	if m == nil {
@@ -299,7 +298,7 @@ func nearestFree(
 	return api.Cell{}, fmt.Errorf("explore: no free standable cell within %d steps of the start mark", searchRadius)
 }
 
-// Content check: the terrain a cell shows in the plan view.
+// terrainOf is the content record of a terrain, or the zero record when content lacks it.
 func terrainOf(reg *content.Registry, id api.ContentID) content.Terrain {
 	t, _ := reg.Terrain(id)
 	return t

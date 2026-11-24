@@ -11,7 +11,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// alertSystem is the name of the per-entry system that raises and ends the alert.
 const alertSystem = "combat.alert"
 
 // livingMembers lists the members of a party that are neither dead nor downed, by UID.

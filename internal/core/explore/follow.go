@@ -13,7 +13,6 @@ import (
 )
 
 const (
-	// followController is the controller of a member trailing the one ahead of it.
 	followController = "follow"
 	// followPathNodes bounds the search for a way to a member that has fallen behind.
 	followPathNodes = 200

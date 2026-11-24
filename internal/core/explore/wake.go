@@ -14,8 +14,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// SetRestPlace records where the party last rested, which is where it wakes after a wipe. The
-// party starts with the cell it began on, until towns and resting exist to move it.
+// SetRestPlace records where the party wakes after a wipe.
 func SetRestPlace(w *sim.World, party ecs.Entity, id api.MapID, at api.Cell) {
 	sim.Put(w, party, comp.RestPlace{Map: id, At: at})
 }
@@ -117,7 +116,6 @@ func leadFromStanding(w *sim.World, party ecs.Entity) {
 	}
 }
 
-// markSeenByParty records what the woken party sees where it stands.
 func markSeenByParty(w *sim.World, party ecs.Entity) error {
 	sight, err := partySight(w, party)
 	if err != nil {

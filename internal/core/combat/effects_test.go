@@ -44,8 +44,7 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Part: &armPart}
 	bundle.Statuses["status.braced"] = content.Status{Name: "text.status.braced"}
-	// These tests are written against the numbers the sample had before the forms made it lethal;
-	// they pin them here so that tuning the sample (M7) doesn't change what they check.
+	// Pinned, so that tuning the sample doesn't change what these tests check.
 	for id, integrity := range map[string]int{
 		"part.human_head": 8, "part.human_arm": 6, "part.human_legs": 10, "part.human_torso": 12,
 	} {

@@ -97,8 +97,7 @@ func (fx *fixture) step(dir string) []api.Event {
 	return fx.apply(o.Command)
 }
 
-// toLeader makes the other members wait for an event until the leader decides. Followers arrive
-// with M1-16; until then every member is player-controlled and takes its own turn.
+// toLeader makes the other members wait until the leader decides.
 func (fx *fixture) toLeader() {
 	fx.t.Helper()
 	leader := fx.view().Party.Members[0].UID
@@ -111,7 +110,6 @@ func (fx *fixture) toLeader() {
 	fx.t.Fatalf("the leader never got a turn")
 }
 
-// stepLeader steps the leader and returns the events.
 func (fx *fixture) stepLeader(dir string) []api.Event {
 	fx.t.Helper()
 	fx.toLeader()

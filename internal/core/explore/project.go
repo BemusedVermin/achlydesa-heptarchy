@@ -39,7 +39,6 @@ func focusOf(w *sim.World) (party ecs.Entity, members []ecs.Entity, focus ecs.En
 	return party, members, focus, true
 }
 
-// buildParty fills the party section.
 func buildParty(w *sim.World, v *api.View) error {
 	party, members, focus, ok := focusOf(w)
 	if !ok {
@@ -118,7 +117,6 @@ func buildMap(w *sim.World, v *api.View) error {
 		seenColumns.add(cell)
 		known[cell] = true
 	}
-	// The party can go where it can walk, over cells it has seen or sees, within the plan range.
 	reached, err := m.Reachable(here.At, stateOf(w).rules, w.Content.Party().PlanRange,
 		func(cell api.Cell) bool { return known[cell] })
 	if err != nil {
@@ -144,7 +142,6 @@ func buildMap(w *sim.World, v *api.View) error {
 		view.Name = w.Content.Render(api.Text{ID: def.Name})
 	}
 	for _, h := range hexes {
-		// Floor the party can reach is drawn; nothing else in its hex competes with it.
 		best, found, err := nearest(w, m, h, reachColumns[h], here.At.Depth)
 		isVisible := found && visible[api.Cell{Hex: h, Depth: best.depth}]
 		if err == nil && !found {

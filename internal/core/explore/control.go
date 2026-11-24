@@ -12,8 +12,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// installControl registers the follow controller, the two commands, the per-entry system and the
-// view builder for the control and lead options.
 func installControl(w *sim.World) error {
 	if err := timeline.RegisterController(w, followController, follower{}); err != nil {
 		return err

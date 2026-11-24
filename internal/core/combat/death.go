@@ -17,7 +17,6 @@ const actorGoneReason api.ContentID = "text.combat.actor_gone"
 func onPartDamaged(w *sim.World, ev api.PartDamaged) { checkBody(w, ev.Body) }
 func onPartSevered(w *sim.World, ev api.PartSevered) { checkBody(w, ev.Body) }
 
-// planHasVital reports whether the body's plan includes a vital part.
 func planHasVital(w *sim.World, body ecs.Entity) bool {
 	bodies := ecs.NewMap[comp.Body](w.ECS)
 	if !bodies.Has(body) || bodies.Get(body).Plan == "" {
@@ -57,7 +56,6 @@ func shouldBeOut(w *sim.World, body ecs.Entity) bool {
 	return true
 }
 
-// checkBody kills or downs the body when the death rule says so.
 func checkBody(w *sim.World, uid api.UID) {
 	body, ok := w.ByUID(uid)
 	if !ok || !ecs.NewMap[comp.Body](w.ECS).Has(body) || anatomy.OutOfFight(w, body) || !shouldBeOut(w, body) {
@@ -106,7 +104,6 @@ func leaveTimeline(w *sim.World, body ecs.Entity) {
 	}
 }
 
-// makeCorpse draws the body as a corpse.
 func makeCorpse(w *sim.World, body ecs.Entity) {
 	cfg := w.Content.Combat()
 	sim.Put(w, body, comp.Appearance{Glyph: cfg.CorpseGlyph, Color: cfg.CorpseColor})

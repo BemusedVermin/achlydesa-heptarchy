@@ -499,8 +499,6 @@ func severedPart(ctx *effects.Context) ecs.Entity {
 	return severedNear(w, ctx.Target)
 }
 
-// knownIDs gives, for each parameter that names a content record, how to find it. A parameter's
-// name is the kind of record it names.
 func knownIDs(reg *content.Registry) map[string]func(api.ContentID) bool {
 	return map[string]func(api.ContentID) bool{
 		"claim":   effects.Known(reg.Claim),
@@ -527,7 +525,6 @@ func verifyAttachContent(reg *content.Registry, raw map[string]string) error {
 	return nil
 }
 
-// nonNegative reads an int parameter that must not be negative.
 func nonNegative(p effects.Params, name string) (int, error) {
 	value, err := p.Int(name)
 	if err != nil {

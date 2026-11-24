@@ -75,8 +75,6 @@ func primitives() []effects.Primitive {
 	}
 }
 
-// installSides registers the alert and death events, the allegiance spawner, the hostility hook,
-// the alert system and the death subscribers.
 func installSides(w *sim.World) error {
 	for _, register := range []func(*api.Codec) error{
 		api.RegisterEvent[api.AlertStarted],

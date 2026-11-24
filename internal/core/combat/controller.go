@@ -18,7 +18,6 @@ import (
 )
 
 const (
-	// huntController is the name of the controller of a creature that hunts the party.
 	huntController = "hunt"
 	// scoreChooser is the name the content-scored chooser is registered under, and the one the
 	// hunt controller asks for.
@@ -29,8 +28,7 @@ const (
 	rngStream = "combat"
 )
 
-// Chooser picks one of the intents a body could start. Choosers are registered by name, so a
-// smarter one can replace the scored one later.
+// Chooser picks one of the intents a body could start. Choosers are registered by name.
 type Chooser interface {
 	// Choose returns the intent to start, or false when it wants none.
 	Choose(w *sim.World, actor ecs.Entity, intents []actions.Intent) (actions.Intent, bool)
@@ -65,7 +63,6 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 	return best[w.RNG.Get(rngStream).IntN(len(best))], true
 }
 
-// scoreOf rates one intent by the content formula.
 func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error) {
 	var sourcePart ecs.Entity
 	for _, c := range in.Channels {
@@ -148,13 +145,11 @@ func pick(w *sim.World, body ecs.Entity, attacks []actions.Intent, aims bool) (a
 	return chooser.Choose(w, body, attacks)
 }
 
-// isAttack reports whether the intent's action carries content's attack tag.
 func isAttack(w *sim.World, in actions.Intent) bool {
 	def, ok := w.Content.Action(in.Action)
 	return ok && slices.Contains(def.Tags, w.Content.Combat().AttackTag)
 }
 
-// scoredChooser is the chooser registered under scoreChooser, if any.
 func scoredChooser(w *sim.World) (Chooser, bool) {
 	chooser, ok := stateOf(w).choosers[scoreChooser]
 	return chooser, ok
