@@ -50,7 +50,7 @@ func TestContentMsgSwapsOrLogsTheError(t *testing.T) {
 	}
 	app.Update(tui.ContentMsg{Reload: func(*game.Game) error { return os.ErrInvalid }})
 	last = app.State.Log[len(app.State.Log)-1].Text
-	if last != os.ErrInvalid.Error() {
+	if !strings.Contains(last, "reload failed") || !strings.Contains(last, os.ErrInvalid.Error()) {
 		t.Errorf("last log line = %q, want the failure", last)
 	}
 	if app.Err() != nil {

@@ -128,7 +128,7 @@ The view now carries every word the tui drew itself, rendered from new content t
   - `ChannelView.State` puts graft before the busy state.
   - `Option.Path` names each ID segment: the action's name, each choice's record name, the direction, and the body or part names. Parts use their part template's name.
 - `App.Mode()` is removed; its test now reads `State.Party.Control`. `RenderBody` lost its `now` argument.
-- `ContentMsg` is now `{Reload func(*game.Game) error}`, so the tui imports only `game` and `api`. The reload-failure wording moved to `cmd/heptarchy`.
+- `ContentMsg` is now `{Reload func(*game.Game) error}`, so the tui imports only `game` and `api`. Both hot-reload log lines are content text (C1-23.F1, below).
 - `tui/doc.go` now says the same. `.claude/rules/frontend.md` and `docs/go-technical-design.md:233` already did, so I didn't change them.
 - The goldens did not change: the core renders the same words the tui did.
 - C1-17.F2: `RenderBody` wraps a long part or swing line with `lipgloss.Wrap` instead of cutting it. `TestALongTargetNameWrapsTheSwingInsteadOfCuttingItsTick` covers it, and `actor_windup.golden` shows `lands at tick 86`.
@@ -158,7 +158,7 @@ All 28 reports are fixed, including `install.go` and `mapscreen.go` (task IDs), 
 - Final harness hashes change, because the new text records change the content hash in the save header.
 - The four menu goldens are now just the menu pane.
 - The `.fail` file is removed.
-- Hot-reload failure line in the log: still "content reload failed, keeping the old content: <err>", now built in `cmd/heptarchy`.
+- Hot-reload log lines: same wording, now rendered from `text.game.content_reloaded` and `text.game.reload_failed`.
 - The `applyEdits` error reads "saved edit: unknown terrain …" (was "saved edit uses unknown terrain …").
 - `runSeed` wraps view errors with "step N:".
 
@@ -166,5 +166,5 @@ All 28 reports are fixed, including `install.go` and `mapscreen.go` (task IDs), 
 
 **Follow-ups:**
 
-- C1-23.F1: the dev reload log lines are still English in Go.
+- C1-23.F1: folded in at the owner's request and done in this PR. `Game.NoteText(api.Text)` joins `Note(string)`; `SwapContent` renders `text.game.content_reloaded`; a new `Game.ReloadFailed(err)` renders `text.game.reload_failed` (added so the tui names no text ID); `cmd/heptarchy` passes only the error. F1 is set obsolete, naming C1-23, as `tasks/README.md` says for a folded follow-up.
 - C1-23.F2: bring the save property test under 2s.

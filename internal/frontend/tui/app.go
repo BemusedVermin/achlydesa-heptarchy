@@ -94,7 +94,7 @@ type ContentMsg struct {
 
 func (a *App) reloadContent(msg ContentMsg) tea.Cmd {
 	if err := msg.Reload(a.Game); err != nil {
-		a.Game.Note(err.Error())
+		a.Game.ReloadFailed(err)
 	}
 	if err := a.refresh(); err != nil {
 		return a.fail(err)

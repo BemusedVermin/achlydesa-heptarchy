@@ -85,14 +85,10 @@ func play(opts *playOptions) error {
 	if opts.dev {
 		stop, err := content.Watch(opts.content, func(reg *content.Registry, err error) {
 			program.Send(tui.ContentMsg{Reload: func(g *game.Game) error {
-				swapErr := err
-				if swapErr == nil {
-					swapErr = g.SwapContent(reg)
+				if err != nil {
+					return err
 				}
-				if swapErr != nil {
-					return fmt.Errorf("content reload failed, keeping the old content: %w", swapErr)
-				}
-				return nil
+				return g.SwapContent(reg)
 			}})
 		})
 		if err != nil {

@@ -137,14 +137,21 @@ func (g *Game) SwapContent(reg *content.Registry) error {
 	}
 	g.clock.Reset(reg.Calendar())
 	timeline.Reload(g.world)
-	// TODO(C1-23.F1): render this from content text.
-	g.Note("content reloaded: a replay from before this point will not match")
+	g.NoteText(api.Text{ID: "text.game.content_reloaded"})
 	return nil
+}
+
+// ReloadFailed logs that a content reload failed with err and the old content stays.
+func (g *Game) ReloadFailed(err error) {
+	g.NoteText(api.Text{ID: "text.game.reload_failed", Args: map[string]string{"error": err.Error()}})
 }
 
 // Note adds a line of text straight to the message log, for the frontend to report something that
 // is not a game event, such as a failed reload.
 func (g *Game) Note(text string) { g.appendLog(text) }
+
+// NoteText is [Game.Note] for text the game's content renders.
+func (g *Game) NoteText(text api.Text) { g.appendLog(g.world.Content.Render(text)) }
 
 // Apply runs one command, plays time forward until a player-controlled body decides, and returns
 // the events in delivery order. An invalid command is not an error: it comes back as an
