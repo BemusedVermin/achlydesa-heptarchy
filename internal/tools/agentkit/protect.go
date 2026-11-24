@@ -10,16 +10,9 @@ import (
 const taskBranchPrefix = "task/"
 
 // protectedPaths are the files and folders, relative to the repository root, that a task branch
-// may not change. A trailing slash marks a folder.
-var protectedPaths = []string{
-	"AGENTS.md",
-	"CLAUDE.md",
-	".claude/",
-	".github/",
-	".golangci.yml",
-	"Taskfile.yml",
-	"internal/tools/agentkit/",
-}
+// may not change. A trailing slash marks a folder. It is empty because the owner lifted the
+// protection; add entries to restore it.
+var protectedPaths []string
 
 // protectedPath returns the entry of protectedPaths that covers relative, a slash-separated path
 // from the repository root, or "" when none does. It ignores case, since Windows does.
