@@ -20,7 +20,6 @@ var calendar = content.Calendar{Phases: []content.Phase{
 
 const dayTicks = 12
 
-// setup returns a world with a clock on the test calendar and systems that record when they run.
 func setup(t *testing.T) (*sim.World, *clock.Clock, *[]string) {
 	t.Helper()
 	world := sim.NewWorld(1)

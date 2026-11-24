@@ -59,7 +59,6 @@ func (c *Clock) PhaseTicks(phase int) int64 { return c.calendar.Phases[phase].Ti
 // order, it sets w.Now to the boundary tick, publishes PhaseStarted and runs
 // PerPhase systems; when that boundary also starts a day, it then publishes
 // DayStarted and runs PerDay systems. Finally it sets w.Now to the end tick.
-// The timeline runs PerEntry systems, not this.
 func (c *Clock) Advance(w *sim.World, ticks int64) error {
 	if ticks < 0 {
 		return fmt.Errorf("clock: cannot advance by %d ticks", ticks)

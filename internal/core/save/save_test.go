@@ -122,11 +122,9 @@ func TestSaveThenLoadWithASpawnedActorHasTheSameHash(t *testing.T) {
 	}
 }
 
-// The party brings bodies, parts and an inventory, and the fact brings knowledge, so one hash covers
-// what each of those packages saves.
 func TestSaveThenLoadWithThePartyAndAFactHasTheSameHash(t *testing.T) {
 	bundle := newBundle(t)
-	contenttest.NoStart(&bundle) // the test spawns its own party
+	contenttest.NoStart(&bundle)
 	var party ecs.Entity
 	cfg := game.Config{
 		Seed:    1,

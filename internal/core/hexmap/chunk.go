@@ -79,7 +79,7 @@ func (c *Chunk) Set(q, r, depth int, t Terrain) {
 	c.cells[slot] = uint16(len(c.palette) - 1)
 }
 
-// Source supplies chunks on demand, from an authored map or a generator.
+// Source supplies chunks on demand.
 type Source interface {
 	Chunk(key ChunkKey) (*Chunk, error)
 }

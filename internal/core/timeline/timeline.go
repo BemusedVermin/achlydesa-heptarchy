@@ -475,8 +475,7 @@ func Reschedule(w *sim.World, body ecs.Entity) {
 	}
 }
 
-// Speed is the body's speed, as the world's speed hook gives it. An error is a content bug in the
-// speed formula.
+// Speed is the body's speed from the world's speed hook; an error is a content bug.
 func Speed(w *sim.World, body ecs.Entity) (int, error) { return stateOf(w).speed(w, body) }
 
 // CurrentPlayer returns the body deciding now when it is the player-controlled body with the UID.

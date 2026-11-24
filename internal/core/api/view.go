@@ -1,8 +1,6 @@
 package api
 
-// View is everything a frontend needs to draw the current state. It holds display-ready strings; the
-// core resolves text before building it. Each package fills its own section as a pointer field; nil
-// means the section is absent.
+// View is what a frontend draws, in display-ready strings; a nil section is absent.
 type View struct {
 	Tick     int64         `json:"tick"`
 	Options  []Option      `json:"options"`
