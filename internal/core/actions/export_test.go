@@ -12,8 +12,8 @@ import (
 // UsableChannels exposes the batch usable hook to the tests.
 var UsableChannels = usableChannels
 
-// UsableOneByOne is the per-channel test the batch hook replaced: a channel is usable when some
-// candidate that uses it passes evaluation.
+// UsableOneByOne answers the usable hook's question for one channel, the slow way: some candidate
+// that uses it passes evaluation. Tests check the batch hook against it.
 func UsableOneByOne(w *sim.World, body ecs.Entity, c timeline.Channel) bool {
 	ev := newEvaluator(w)
 	cands, err := ev.candidates(body, false)

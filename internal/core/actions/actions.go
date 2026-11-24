@@ -16,13 +16,13 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// StepRules are the step limits from the party config: how far a body can climb or drop in one step.
+// StepRules reads the party config's limits on how far a body can climb or drop in one step.
 func StepRules(w *sim.World) hexmap.StepRules {
 	cfg := w.Content.Party()
 	return hexmap.StepRules{MaxStepUp: cfg.MaxStepUp, MaxStepDown: cfg.MaxStepDown, MaxDrop: cfg.MaxDrop}
 }
 
-// landKind is the pending-action kind of an action that lands later.
+// landKind marks the pending actions this package resolves.
 const landKind = "actions.land"
 
 // Intent is one body's wish to start one action, with every choice made.
@@ -44,10 +44,10 @@ type Modifier struct {
 	OnLand   []content.EffectRef
 }
 
-// Validator is an extra check on an intent. Combat uses one for immune materials and type conditions.
+// Validator is an extra check on an intent: ok, or why not.
 type Validator func(w *sim.World, in Intent) (ok bool, reason api.Text)
 
-// ModifierFunc adds to an intent: a loaded type changing any form it is loaded into, for example.
+// ModifierFunc is a hook that says what an intent's choices add to it.
 type ModifierFunc func(w *sim.World, in Intent) Modifier
 
 // why is the reason text for one of this package's own refusals.
@@ -564,7 +564,7 @@ func (ev *evaluator) landingPlan(pending ecs.Entity) (*plan, api.Text, error) {
 	return p, api.Text{}, nil
 }
 
-// resolveLanding is the resolver of actions.land.
+// resolveLanding lands a pending action, or publishes its miss when a channel it used is gone.
 func resolveLanding(w *sim.World, pending ecs.Entity) error {
 	ev := newEvaluator(w)
 	p, reason, err := ev.landingPlan(pending)

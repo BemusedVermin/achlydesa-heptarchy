@@ -25,7 +25,7 @@ import (
 // rollStream is the RNG stream effect formulas draw their roll from.
 const rollStream = "effects"
 
-// Context is what an effect acts on. It assumes nothing about combat.
+// Context is what an effect acts on.
 type Context struct {
 	World      *sim.World
 	Source     ecs.Entity         // the acting body, or zero
@@ -48,7 +48,7 @@ const (
 	KindChannels             // a channel selector, read with Channels
 )
 
-// Primitive is one named effect.
+// Primitive is an effect registered from Go for content to name.
 type Primitive struct {
 	Name string
 	// Params names the required parameters. Optional names the ones that may be left out.
@@ -63,8 +63,8 @@ type Primitive struct {
 	// literals such as item, status or faction IDs. It runs after Verify passes.
 	VerifyContent func(reg *content.Registry, raw map[string]string) error
 	Apply         func(ctx *Context, p Params) error
-	// Check, when set, says whether the effect could apply right now, and why not.
-	// Actions call it before starting and again when landing (M1-20).
+	// Check, when set, says whether the effect could apply right now, and why not. Actions call it
+	// before starting and again when landing, so it must not change the world.
 	Check func(ctx *Context, p Params) (ok bool, reason api.Text)
 }
 
@@ -133,7 +133,7 @@ func stateOf(w *sim.World) *state {
 	return st
 }
 
-// Install registers the timing primitives and their events.
+// Install registers the timing primitives and their events, and subscribes the trigger runner.
 func Install(w *sim.World) error {
 	stateOf(w)
 	for _, register := range []func(*api.Codec) error{
@@ -178,14 +178,14 @@ func Register(w *sim.World, p Primitive) error {
 }
 
 // SetHostile replaces the test for whether a is hostile to b. The default is that nobody is hostile;
-// M2-07 sets it from factions.
+// combat sets it from factions.
 func SetHostile(w *sim.World, fn func(w *sim.World, a, b ecs.Entity) bool) { stateOf(w).hostile = fn }
 
 // Hostile reports whether a is hostile to b, as the world's hostility hook says.
 func Hostile(w *sim.World, a, b ecs.Entity) bool { return stateOf(w).hostile(w, a, b) }
 
 // SetMaps says where to find a map by ID, for working out what a body sees. Without it nobody sees
-// anybody; M1-10 sets it from explore.
+// anybody; explore sets it to the world's maps.
 func SetMaps(w *sim.World, lookup func(id api.MapID) *hexmap.Map) { stateOf(w).maps = lookup }
 
 // Apply runs each effect in order and stops at the first error.

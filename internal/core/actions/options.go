@@ -226,9 +226,8 @@ func (ev *evaluator) worthWaking(in Intent) bool {
 }
 
 // usableChannels is the timeline's usable hook: a channel is usable when some action worth stopping
-// for could be started with it were it free. So an arm with nothing hostile in reach does not make
-// its body stop and decide. It
-// builds the body's candidates once and evaluates each at most once, however many channels it uses.
+// for could be started with it were it free, so an arm with nothing hostile in reach does not make
+// its body stop and decide. It builds the body's candidates once and evaluates each at most once.
 func usableChannels(w *sim.World, body ecs.Entity, channels []timeline.Channel) []bool {
 	flags := make([]bool, len(channels))
 	if len(channels) == 0 {
