@@ -116,6 +116,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | proposed | test | unplanned | C1-23 |
+| [C1-23.F1](followups/C1-23.F1-reload-messages-in-content.md) | Move the hot reload's log messages into content text | proposed | debt | unplanned | C1-23 |
 | [C1-21.F2](followups/C1-21.F2-check-pr-allowed-behavior-changes.md) | Let check-pr accept a cleanup task's named behavior changes | todo | seam | C1 | C1-21 |
 | [C1-21.F1](followups/C1-21.F1-combat-tests-load-content-each-time.md) | Stop reparsing the sample content in every combat test | todo | test | C1 | C1-21 |
 | [C1-17.F2](followups/C1-17.F2-tui-line-cuts-the-tick.md) | The actor panel cuts a line's last digit when the target's name is long | obsolete | bug | C1 | C1-17 |

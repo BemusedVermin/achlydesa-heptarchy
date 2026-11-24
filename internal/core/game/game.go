@@ -137,6 +137,7 @@ func (g *Game) SwapContent(reg *content.Registry) error {
 	}
 	g.clock.Reset(reg.Calendar())
 	timeline.Reload(g.world)
+	// TODO(C1-23.F1): render this from content text.
 	g.Note("content reloaded: a replay from before this point will not match")
 	return nil
 }
