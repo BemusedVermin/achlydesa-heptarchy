@@ -129,4 +129,4 @@ Comments (commit "content comments say what callers need"):
 - The code commit also changed two strings in `schema_test.go`, so that commit's tests stay green after the `immune_to` default changed `materials.cue`; the tests commit then rewrote that test.
 - `go tool task check` passes on this Windows machine, and so does `check-ci`.
 - The last criterion, "Only `_test.go` files and `testdata/` changed", reads as a repeat of the tests-commit criterion: it holds for the tests commit, not for the branch, which by design changes code, CUE and schemas too.
-- Follow-up filed: C1-19.F1 (`go tool task schema` on master writes an uncommitted `internal/core/api/options_go_gen.cue`, left by C1-18; this branch deleted the generated file rather than change `api`).
+- Follow-ups: none. C1-19.F1 (commit the missing `internal/core/api/options_go_gen.cue`) was filed and then withdrawn, because C1-22 committed that file before this branch merged master.
