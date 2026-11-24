@@ -99,6 +99,7 @@ func (r *Registry) checkBehaviorTarget(p *problems, path string, target TargetDe
 		}
 	}
 	switch target.Kind {
+	case BehaviorTargetBody:
 	case BehaviorTargetMark:
 		if target.Mark == "" {
 			p.addf("%s.mark: required for a mark target", path)

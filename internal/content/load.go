@@ -98,7 +98,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		mods:        map[api.ContentID]compiledMods{},
 		needs:       map[api.ContentID]compiledNeed{},
 		behaviors:   map[api.ContentID][]*vm.Program{},
-		rulesUsed:  map[string]bool{},
+		rulesUsed:   map[string]bool{},
 		collections: collections(),
 	}
 	var problems []error
