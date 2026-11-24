@@ -72,8 +72,8 @@ func unquote(value string) string {
 	return value
 }
 
-// parseList reads a flow list such as [a, b]. A quoted item may hold commas. An empty
-// list, null or "none" has no items.
+// parseList reads a flow list such as [a, b]. An item that starts with a quote may hold commas;
+// a quote later in an item is literal, as in YAML. An empty list, null or "none" has no items.
 func parseList(value string) []string {
 	value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, "["), "]"))
 	var items []string
@@ -89,7 +89,7 @@ func parseList(value string) []string {
 		switch {
 		case quote != 0 && char == quote:
 			quote = 0
-		case quote == 0 && (char == '"' || char == '\''):
+		case quote == 0 && (char == '"' || char == '\'') && strings.TrimSpace(value[start:index]) == "":
 			quote = char
 		case quote == 0 && char == ',':
 			add(value[start:index])
@@ -121,14 +121,13 @@ func loadTasks(root string) ([]taskFile, error) {
 			return err
 		}
 		tasks = append(tasks, taskFile{
-			id:        fields["id"],
-			title:     fields["title"],
-			status:    fields["status"],
-			kind:      fields["kind"],
-			dependsOn: parseList(fields["depends_on"]),
-			renames:   parseList(fields["renames"]),
-			path:      filepath.ToSlash(relative),
-
+			id:                 fields["id"],
+			title:              fields["title"],
+			status:             fields["status"],
+			kind:               fields["kind"],
+			dependsOn:          parseList(fields["depends_on"]),
+			renames:            parseList(fields["renames"]),
+			path:               filepath.ToSlash(relative),
 			allowedDifferences: parseList(fields["allowed_differences"]),
 		})
 		return nil

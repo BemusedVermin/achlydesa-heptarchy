@@ -60,6 +60,7 @@ const renameLine = "renames: [map.clay_plain=map.clay_flat]\n"
 // allowRemovedGolden lets a cleanup task remove testdata/hunt.golden.
 const allowRemovedGolden = "allowed_differences: [\"testdata/hunt.golden: golden file removed\"]\n"
 
+// removedGoldenReport is what samebehavior prints when testdata/hunt.golden is gone.
 const removedGoldenReport = "Behavior differs from base:\n- testdata/hunt.golden: golden file removed\n"
 
 const indexHeader = "| ID | Title | Status |\n| --- | --- | --- |\n"
@@ -194,7 +195,6 @@ func TestCheckPR(t *testing.T) {
 			changes:     done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
 			report:      "samebehavior: exit status 1\n",
 			problems:    []string{"C1-02 changed behavior:\nsamebehavior: exit status 1"},
-			warnings:    []string{"didn't happen"},
 			wantRenames: []string{},
 		},
 		{

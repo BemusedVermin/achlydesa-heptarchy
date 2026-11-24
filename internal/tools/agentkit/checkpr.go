@@ -103,8 +103,8 @@ func checkPR(root, branch, base string, sameBehavior behaviorChecker) (prCheck, 
 }
 
 // judgeBehavior passes a same-behavior report whose every difference is in allowed, and warns
-// about each allowed difference that didn't happen. A failed report that lists no differences,
-// such as a build error, always fails.
+// about each allowed difference that didn't happen when the comparison ran. A failed report that
+// lists no differences, such as a build error, always fails.
 func judgeBehavior(id, report string, same bool, allowed []string, result *prCheck) {
 	var found, unexpected []string
 	if !same {
@@ -119,8 +119,9 @@ func judgeBehavior(id, report string, same bool, allowed []string, result *prChe
 			}
 		}
 	}
+	compared := same || len(found) > 0
 	for _, difference := range allowed {
-		if !slices.Contains(found, difference) {
+		if compared && !slices.Contains(found, difference) {
 			result.warnings = append(result.warnings, fmt.Sprintf(
 				"%s allows the difference %q, but it didn't happen", id, difference))
 		}
