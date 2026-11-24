@@ -493,6 +493,20 @@ import (
 	// such character at the start, in row order, and the character may appear any number of times
 	// (at least once). Each character must also be one of Marks, so the layers may use it.
 	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
+
+	// Gates maps a mark character to the gate it is: each such character in the layers leads to a
+	// mark of another map. Each character must also be one of Marks, so the layers may use it.
+	gates?: {[string]: #GateDef} @go(Gates,map[string]GateDef)
+}
+
+// GateDef is where a gate leads.
+#GateDef: {
+	// To is the ID of the destination map ("map." ID).
+	to: api.#ContentID @go(To)
+
+	// Mark names the cell of the destination map where arrivals are set down; it must be a plain
+	// mark, not a spawn or a gate.
+	mark: string @go(Mark)
 }
 
 // LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per

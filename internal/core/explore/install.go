@@ -29,6 +29,7 @@ func Install(w *sim.World) error {
 		api.RegisterEvent[api.ControlChanged],
 		api.RegisterEvent[api.LeaderChanged],
 		api.RegisterEvent[api.PartyWoke],
+		api.RegisterEvent[api.PartyCrossed],
 	} {
 		if err := register(w.Codec); err != nil {
 			return err
@@ -204,15 +205,14 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 	if err != nil {
 		return err
 	}
-	if cost < 1 {
-		return nil
-	}
-	for _, channel := range ctx.Used {
-		if err := timeline.Extend(w, channel, cost); err != nil {
-			return fmt.Errorf("explore: step: %w", err)
+	if cost >= 1 {
+		for _, channel := range ctx.Used {
+			if err := timeline.Extend(w, channel, cost); err != nil {
+				return fmt.Errorf("explore: step: %w", err)
+			}
 		}
 	}
-	return nil
+	return crossGate(w, ctx.Source)
 }
 
 // stepCost is the ticks beyond the action's own recovery: the move cost of the floor under the

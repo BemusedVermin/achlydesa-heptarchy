@@ -107,8 +107,11 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 			p.addf("%s.spawns[%q]: the character is in no layer", path, char)
 		}
 	}
+	r.checkGates(p, path, def, found)
 	for _, char := range sortedKeys(def.Marks) {
-		if _, spawns := def.Spawns[char]; spawns {
+		_, spawns := def.Spawns[char]
+		_, gate := def.Gates[char]
+		if spawns || gate {
 			continue
 		}
 		if n := found[char]; n != 1 {
@@ -116,6 +119,34 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 		}
 	}
 	return p.errs
+}
+
+// checkGates validates a map's gates: each is a mark used in a layer, and leads to a plain mark of a
+// map that exists.
+func (r *Registry) checkGates(p *problems, path string, def MapDef, found map[string]int) {
+	for _, char := range sortedKeys(def.Gates) {
+		at := fmt.Sprintf("%s.gates[%q]", path, char)
+		gate := def.Gates[char]
+		if _, ok := def.Marks[char]; !ok {
+			p.addf("%s: not a mark of the map", at)
+		}
+		if _, spawns := def.Spawns[char]; spawns {
+			p.addf("%s: a character is a gate or a spawn, not both", at)
+		}
+		if found[char] < 1 {
+			p.addf("%s: the character is in no layer", at)
+		}
+		dest, ok := ref(p, r.bundle.Maps, at+".to", "map", gate.To)
+		if !ok {
+			continue
+		}
+		destChar, marked := dest.MarkChars()[gate.Mark]
+		_, destSpawns := dest.Spawns[destChar]
+		_, destGate := dest.Gates[destChar]
+		if !marked || destSpawns || destGate {
+			p.addf("%s.mark: map %q has no plain mark %q", at, gate.To, gate.Mark)
+		}
+	}
 }
 
 // checkStart validates the start scenario when the content has one.
