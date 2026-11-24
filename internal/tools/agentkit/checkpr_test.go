@@ -82,9 +82,9 @@ func TestCheckPR(t *testing.T) {
 		"tasks/C1/C1-03.md":           task("C1-03", "todo", "test", "", "- [ ] one\n"),
 		"internal/core/rules.go":      "package core\n",
 		"internal/core/rules_test.go": "package core\n",
+		"internal/core/old.go":        "package core\n\n// load loads. It returns an error if loading fails.\nfunc load() {}\n",
 	}
 	paths := map[string]string{"M3-01": "tasks/M3/M3-01.md", "C1-02": "tasks/C1/C1-02.md", "C1-03": "tasks/C1/C1-03.md"}
-	// done sets a task to done in its file and in the index.
 	done := func(id, kind, extra, criteria string) map[string]string {
 		row := "[" + id + "](" + strings.TrimPrefix(paths[id], "tasks/") + ")"
 		index := markDone(base["tasks/INDEX.md"], row)
@@ -102,9 +102,10 @@ func TestCheckPR(t *testing.T) {
 		branch       string
 		changes      map[string]string
 		sameBehavior bool
-		problems     []string // fragments, one per expected problem
+		problems     []string
 		warnings     []string
-		wantRenames  []string // renames passed to the same-behavior check; nil when it shouldn't run
+		comments     []string
+		wantRenames  []string
 	}{
 		{
 			name:   "a finished feature task",
@@ -159,7 +160,7 @@ func TestCheckPR(t *testing.T) {
 			branch: "task/C1-03-tests",
 			changes: with(
 				done("C1-03", "test", "", "- [x] one\n"),
-				map[string]string{"internal/core/rules_test.go": "package core\n\n// shorter\n"},
+				map[string]string{"internal/core/rules_test.go": "package core\n\nfunc helper() {}\n"},
 			),
 		},
 		{
@@ -174,6 +175,19 @@ func TestCheckPR(t *testing.T) {
 		{
 			name:   "not a task branch",
 			branch: "dependabot/go_modules/all",
+		},
+		{
+			name:   "filler comments on changed lines",
+			branch: "setup/comments",
+			changes: map[string]string{
+				"internal/core/old.go": "package core\n\n// load loads. It returns an error if loading fails.\n" +
+					"func load() {}\n\n// save saves. It returns an error if saving fails.\nfunc save() {}\n",
+				"internal/core/testdata/fixture.go": "package fixture\n\n// This function is a fixture.\nfunc f() {}\n",
+			},
+			comments: []string{
+				"internal/core/old.go:6: says errors are returned",
+				"internal/core/old.go:6: the first sentence only restates save's name",
+			},
 		},
 	}
 	for _, test := range tests {
@@ -202,6 +216,11 @@ func TestCheckPR(t *testing.T) {
 			}
 			matches("problems", result.problems, test.problems)
 			matches("warnings", result.warnings, test.warnings)
+			var comments []string
+			for _, comment := range result.comments {
+				comments = append(comments, comment.String())
+			}
+			matches("comments", comments, test.comments)
 			if ran != (test.wantRenames != nil) || !slices.Equal(gotRenames, test.wantRenames) {
 				t.Errorf("same-behavior ran = %v with renames %q; want ran = %v with %q",
 					ran, gotRenames, test.wantRenames != nil, test.wantRenames)

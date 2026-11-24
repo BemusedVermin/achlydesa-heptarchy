@@ -10,9 +10,7 @@ import (
 const taskBranchPrefix = "task/"
 
 // protectedPaths are the files and folders, relative to the repository root, that a task branch
-// may not change: the rules agents work under, and the checks and guardrails themselves. The
-// design docs in docs/ aren't here: agents keep them in step with what they build. A trailing slash
-// marks a folder.
+// may not change. A trailing slash marks a folder.
 var protectedPaths = []string{
 	"AGENTS.md",
 	"CLAUDE.md",

@@ -54,20 +54,21 @@ Findings:
 
 ### Comments: combat and explore
 
-About 14 comments are cut or fixed.
+Every comment `go tool task comments -- ./internal/core/combat ./internal/core/explore` lists is cut or fixed (69 when the rule tightened), along with the findings below.
 
 Findings:
 
 - `combat/doc.go:1-5` is stale ("build on them in later tasks"): it names none of hostility, alert, the hunt controller, death, the bodies view, or the effect primitives. `combat/rest.go:15-16` (M2-08), `explore/install.go:91` (M2), `combat/effects_test.go:51` (M7), `explore/explore_test.go:119-120` (false), `combat/property_test.go:33` names `propertyGame` but the function is `propertyConfig`, `:229` cites "the task".
 - `explore/explore.go:351` → "terrainOf is the content record of a terrain, or the zero record when content lacks it." Narration to cut: `explore/project.go:120,146`; the doc comments on `installSides` (`combat/install.go:14`) and `installControl` (`explore/control.go:15`) list what the body registers; `explore` `Install` (`install.go:18`) names two view builders but not `explore.control`.
 
-The policy is the comments lens: doc comments say what a thing is for and what a caller must know, and every sentence carries information (cut name-restatements, filler, history, task IDs). Other comments are terse and say only why. CUE follows the same rules. The examples below set the standard; sweep the whole area.
+The policy is `.claude/rules/comments.md`: doc comments say what a caller needs, and every sentence carries information; other comments say only why; no end-of-line comments, no comments in tests other than doc comments, no task IDs. CUE follows the same rules. The examples below set the standard; sweep the whole area.
 
 ## Acceptance criteria
 
 - [ ] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
 - [ ] The tests commit changed only `_test.go` files and `testdata/`
 - [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
+- [ ] `go tool task comments -- ./internal/core/combat ./internal/core/explore` reports nothing
 - [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
 - [ ] Only `_test.go` files and `testdata/` changed.
 - [ ] `go tool task test -- ./internal/core/combat` runs in under 10s.

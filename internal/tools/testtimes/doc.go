@@ -2,13 +2,7 @@
 //
 //	testtimes [--budget 30s] [--baseline FILE] [--save FILE] [--summary FILE] LOG
 //
-// It reads the "ok" and "FAIL" lines that go test prints, one per package, from LOG; cached results
-// carry no time and are skipped. With --summary it appends a Markdown table of the slowest packages
-// to FILE, which in CI is GitHub's step summary. With --baseline it compares each package with the
-// times an earlier run saved with --save: CI saves master's times and compares pull requests with
-// them.
-//
-// A package over the budget, or at least twice as slow as its baseline and at least five seconds
-// slower, gets a GitHub warning annotation. Slow tests warn; they never fail the build, so testtimes
-// exits 0 whenever it could read its input.
+// --summary appends a Markdown table of the slowest packages to FILE; --baseline compares with the
+// times an earlier run saved with --save. A package over budget, or twice its baseline and at least
+// five seconds slower, gets a warning. It exits 0 whenever it can read LOG: slow tests never fail CI.
 package main

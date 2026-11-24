@@ -1,0 +1,357 @@
+package main
+
+import (
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+)
+
+func TestReviewComments(t *testing.T) {
+	tests := []struct {
+		name string
+		file string
+		src  string
+		want []string
+	}{
+		{
+			name: "the rule's good examples",
+			src: `package content
+
+// Load reads and compiles the content under dir.
+func Load(dir string) error { return nil }
+
+// NewWorld starts a world whose RNG streams all derive from seed.
+func NewWorld(seed int64) {}
+
+// Registry holds compiled content and never changes after Load.
+type Registry struct {
+	// ID names the record in content, such as material.clay.
+	ID string
+}
+
+// ErrNotFound is returned by Get when no record has the ID.
+var ErrNotFound error
+
+// Apply runs one command; an invalid command emits api.Rejected instead of failing.
+func Apply() {}
+
+// Material returns the material with the given ID.
+func (r *Registry) Material(id string) {}
+
+// EventKind implements [Event].
+func (Registry) EventKind() string { return "" }
+
+func sorted() {
+	// By UID, so map order can't decide the outcome.
+}
+
+func spawn() {
+	// this test spawns its own actor
+}
+`,
+		},
+		{
+			name: "an error tautology",
+			src: `package content
+
+// Load loads the registry. It returns an error if loading fails.
+func Load(dir string) error { return nil }
+`,
+			want: []string{"says errors are returned on failure"},
+		},
+		{
+			name: "returning any error that occurs",
+			src: `package game
+
+// Apply applies the command to the world and returns any error that occurs.
+func Apply() {}
+`,
+			want: []string{"says errors are returned on failure"},
+		},
+		{
+			name: "an unexported function that restates its name and parameters",
+			src: `package sim
+
+// newWorld creates a new world with the given seed.
+func newWorld(seed int64) {}
+`,
+			want: []string{"only restates newWorld's name and signature"},
+		},
+		{
+			name: "a type defined as itself",
+			src: `package content
+
+// Registry is a registry that holds the content records.
+type Registry struct{}
+`,
+			want: []string{"defines Registry as itself"},
+		},
+		{
+			name: "a field that restates its name",
+			src: `package comp
+
+// Body is what a creature is made of.
+type Body struct {
+	// Target is the target body and the target part.
+	Target string
+
+	// Parts lists the parts.
+	Parts []string
+}
+`,
+			want: []string{"only restates Parts's name"},
+		},
+		{
+			name: "a test that restates its name",
+			file: "parse_test.go",
+			src: `package content
+
+// TestParse tests Parse.
+func TestParse() {}
+`,
+			want: []string{"only restates TestParse's name"},
+		},
+		{
+			name: "a comment about itself",
+			src: `package content
+
+// This function loads the registry from disk, once.
+func Load() {}
+`,
+			want: []string{`opens with "this function"`},
+		},
+		{
+			name: "a long doc comment",
+			src: `package content
+
+// Load reads the content. It walks the directory, compiles each file, and checks every reference
+// between records before anything can use them, so a registry that loads is whole. Files load in
+// name order, so the same content always gives the same registry. A file the loader can't read
+// stops the load.
+func Load() {}
+`,
+		},
+		{
+			name: "end-of-line comments",
+			src: `package content
+
+// Claim is something a body asserts about the world.
+type Claim struct {
+	ID string // a claim ID
+	// Text is what the claim says, as a text ID.
+	Text string
+}
+
+func load() {
+	run() // TODO(M3-01): run it twice
+}
+`,
+			want: []string{"end-of-line comment"},
+		},
+		{
+			name: "comments in a test",
+			file: "load_test.go",
+			src: `package content
+
+// loadSample loads the sample content once for every test in the package.
+func loadSample() {}
+
+// TestLoad loads the sample and checks every record is reachable.
+func TestLoad(t *testing.T) {
+	tests := []struct {
+		// the content folder
+		dir string
+	}{}
+	// The arm frees first, at tick 4.
+	check(tests) // all of them
+}
+`,
+			want: []string{"comment in a test", "comment in a test", "comment in a test"},
+		},
+		{
+			name: "task IDs",
+			src: `package game
+
+// installAll calls each package's Install in a fixed order (M1-10 adds explore).
+func installAll() {}
+
+// TODO(M3-01.F2): one order per milestone.
+func order() {}
+`,
+			want: []string{"names task M1-10"},
+		},
+		{
+			name: "a long inline comment",
+			src: `package content
+
+func load() {
+	// First we open the directory,
+	// then we read every file in it,
+	// then we compile them,
+	// then we return them.
+}
+`,
+			want: []string{"4-line comment"},
+		},
+		{
+			name: "a package comment with a code block",
+			src: `// Command harness plays games headlessly and writes one CSV row per step.
+//
+//	harness run --seeds 3 --steps 200
+//	harness replay --seed 1
+//	harness summary
+//	harness compare
+//	harness lethality
+package main
+`,
+		},
+		{
+			name: "a file that doesn't parse yet",
+			src:  "package content\n\n// This function returns an error if it fails.\nfunc Load( {\n",
+		},
+		{
+			name: "a generated file",
+			src:  "// Code generated by cue. DO NOT EDIT.\n\npackage content\n\n// Load loads. It returns an error on failure.\nfunc Load() {}\n",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			file := test.file
+			if file == "" {
+				file = "file.go"
+			}
+			found := reviewComments(file, []byte(test.src))
+			if len(found) != len(test.want) {
+				t.Fatalf("found %+v, want %d findings like %q", found, len(test.want), test.want)
+			}
+			for index, fragment := range test.want {
+				if !strings.Contains(found[index].why, fragment) {
+					t.Errorf("finding %d = %q, want it to contain %q", index, found[index].why, fragment)
+				}
+			}
+		})
+	}
+}
+
+func TestSplitName(t *testing.T) {
+	tests := map[string]string{
+		"NewUIDCounter": "new uid counter",
+		"ID":            "id",
+		"parseList":     "parse list",
+		"max_lines":     "max lines",
+	}
+	for name, want := range tests {
+		if got := strings.Join(splitName(name), " "); got != want {
+			t.Errorf("splitName(%q) = %q, want %q", name, got, want)
+		}
+	}
+}
+
+func TestParseHunks(t *testing.T) {
+	diff := `diff --git a/a.go b/a.go
+index 1..2 100644
+--- a/a.go
++++ b/a.go
+@@ -3 +3 @@ func a() {
+-	old
++	new
+@@ -10,0 +11,2 @@ func b() {
++++ two lines that look like a header
++	added
+@@ -20,3 +21,0 @@ func c() {
+-	removed
+diff --git a/gone.go b/gone.go
+--- a/gone.go
++++ /dev/null
+@@ -1,2 +0,0 @@
+-package gone
+diff --git a/new.go b/new.go
+--- /dev/null
++++ b/new.go
+@@ -0,0 +1,3 @@
++package new
+`
+	want := map[string][]lineRange{
+		"a.go":   {{3, 3}, {11, 12}},
+		"new.go": {{1, 3}},
+	}
+	if got := parseHunks(diff); !reflect.DeepEqual(got, want) {
+		t.Errorf("parseHunks = %v, want %v", got, want)
+	}
+}
+
+func TestCommentNote(t *testing.T) {
+	top := newRepo(t)
+	write := func(name, src string) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(top, name), []byte(src), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	old := "package thing\n\n// load loads. It returns an error if loading fails.\nfunc load() {}\n"
+	write("old.go", old)
+	if _, err := gitOutput(top, "add", "old.go"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := gitOutput(top, "-c", "user.name=test", "-c", "user.email=test@example.com",
+		"-c", "commit.gpgsign=false", "commit", "-q", "-m", "old"); err != nil {
+		t.Fatal(err)
+	}
+
+	write("old.go", old+"\n// save saves. It returns an error if saving fails.\nfunc save() {}\n")
+	note := commentNote(top, "old.go")
+	if !strings.Contains(note, "old.go:6: says errors are returned") || strings.Contains(note, "old.go:3:") {
+		t.Errorf("note = %q, want the new comment's finding and not the old one's", note)
+	}
+
+	write("new.go", "package thing\n\n// This function does a thing.\nfunc thing() {}\n")
+	if note := commentNote(top, "new.go"); !strings.Contains(note, "new.go:3: opens with") {
+		t.Errorf("note = %q, want every line of an untracked file reviewed", note)
+	}
+
+	write("old.go", old)
+	if note := commentNote(top, "old.go"); note != "" {
+		t.Errorf("note = %q for an unchanged file, want none", note)
+	}
+}
+
+func TestRunComments(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+	files := map[string]string{
+		"clean.go":            "package thing\n\n// Load reads the content under dir.\nfunc Load(dir string) {}\n",
+		"inner/filler.go":     "package inner\n\nfunc load() {\n\trun() // and then run it\n}\n",
+		"testdata/fixture.go": "package fixture\n\nfunc f() {\n\trun() // a fixture may say anything\n}\n",
+	}
+	for name, src := range files {
+		if err := os.MkdirAll(filepath.Dir(name), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(name, []byte(src), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tests := []struct {
+		name   string
+		args   []string
+		status int
+		want   string
+	}{
+		{"everything", nil, exitFailed, "inner/filler.go:4: end-of-line comment"},
+		{"a package pattern", []string{"./inner/..."}, exitFailed, "inner/filler.go:4: end-of-line comment"},
+		{"a clean file", []string{"clean.go"}, exitOK, ""},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout, stderr strings.Builder
+			status := runComments(test.args, &stdout, &stderr)
+			if status != test.status || !strings.Contains(stdout.String(), test.want) ||
+				strings.Contains(stdout.String(), "fixture") {
+				t.Errorf("status %d, output %q, stderr %q; want %d and a line like %q",
+					status, stdout.String(), stderr.String(), test.status, test.want)
+			}
+		})
+	}
+}

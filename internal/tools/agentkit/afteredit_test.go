@@ -107,6 +107,18 @@ func TestAfterEdit(t *testing.T) {
 			t.Errorf("note = %q, formatted %q; want nothing done", note, tools.formatted)
 		}
 	})
+	t.Run("a filler comment", func(t *testing.T) {
+		filler := filepath.Join(dir, "filler.go")
+		src := "package thing\n\n// load loads. It returns an error if loading fails.\nfunc load() {}\n"
+		if err := os.WriteFile(filler, []byte(src), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		tools := &fakeTools{missing: true}
+		note := afterEdit(editInput(top, filler), tools)
+		if !strings.Contains(note, "internal/thing/filler.go:3: says errors are returned") {
+			t.Errorf("note = %q, want the comment flagged even without golangci-lint", note)
+		}
+	})
 	t.Run("a deleted file", func(t *testing.T) {
 		tools := &fakeTools{output: findings}
 		if note := afterEdit(editInput(top, filepath.Join(dir, "gone.go")), tools); note != "" {

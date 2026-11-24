@@ -97,10 +97,8 @@ type cleanup struct {
 	strays    []string    // entries in .claude/worktrees that aren't worktrees, left alone
 }
 
-// cleanWorktrees removes the worktrees in .claude/worktrees whose work is all in the default branch
-// or pushed, then the leftover agent branches whose work is all in the default branch. It keeps
-// every worktree that is locked, has uncommitted or untracked files, or has commits that are
-// neither pushed nor merged, and says why. dir is any directory in the repository.
+// cleanWorktrees removes the agent worktrees and branches whose work is pushed or merged, and keeps
+// any that is locked or holds unsaved work, saying why. dir is any directory in the repository.
 func cleanWorktrees(dir string, opts cleanOptions) (cleanup, error) {
 	result := cleanup{dryRun: opts.dryRun}
 	listing, err := gitOutput(dir, "worktree", "list", "--porcelain")

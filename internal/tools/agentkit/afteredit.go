@@ -96,11 +96,11 @@ func runAfterEdit(stdin io.Reader, stdout, stderr io.Writer, tools goTools) int 
 	return exitOK
 }
 
-// afterEdit formats the Go file an edit touched and lints its package. It returns what the agent
-// should hear: the lint findings in that file, or nothing.
+// afterEdit formats the Go file an edit touched, lints its package and reviews its new comments.
+// It returns what the agent should hear: the findings in that file, or nothing.
 func afterEdit(input hookInput, tools goTools) string {
 	file := input.ToolInput.FilePath
-	if !strings.HasSuffix(file, ".go") || !tools.available() {
+	if !strings.HasSuffix(file, ".go") {
 		return ""
 	}
 	if !filepath.IsAbs(file) {
@@ -118,18 +118,32 @@ func afterEdit(input hookInput, tools goTools) string {
 	if !ok || rel == "." {
 		return ""
 	}
+	var notes []string
+	if tools.available() {
+		if note := lintNote(root, rel, tools); note != "" {
+			notes = append(notes, note)
+		}
+	}
+	if note := commentNote(root, rel); note != "" {
+		notes = append(notes, note)
+	}
+	return strings.Join(notes, "\n\n")
+}
+
+// lintNote formats file and lints its package, and returns the findings in file.
+func lintNote(root, file string, tools goTools) string {
 	// A file mid-change may not parse yet; the lint below reports that, so a failed format is
 	// left to it.
-	_ = tools.format(root, rel)
-	out, err := tools.lint(root, path.Dir(rel))
+	_ = tools.format(root, file)
+	out, err := tools.lint(root, path.Dir(file))
 	if err != nil {
 		return ""
 	}
-	findings := findingsIn(out, rel)
+	findings := findingsIn(out, file)
 	if len(findings) == 0 {
 		return ""
 	}
-	return "golangci-lint found these in " + rel + " after your edit. Fix them before you finish; " +
+	return "golangci-lint found these in " + file + " after your edit. Fix them before you finish; " +
 		"if one comes from a change you're still in the middle of, carry on and check again after:\n" +
 		strings.Join(findings, "\n")
 }
