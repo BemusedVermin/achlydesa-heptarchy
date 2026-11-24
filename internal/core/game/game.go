@@ -77,6 +77,9 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 	if err := g.installLog(); err != nil {
 		return nil, fmt.Errorf("game: %w", err)
 	}
+	if err := installLabels(g.world); err != nil {
+		return nil, fmt.Errorf("game: %w", err)
+	}
 	if err := installAll(g.world, g.clock); err != nil {
 		return nil, fmt.Errorf("game: install: %w", err)
 	}

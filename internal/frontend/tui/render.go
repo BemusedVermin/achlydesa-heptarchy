@@ -311,7 +311,7 @@ func RenderClock(c *api.ClockView, width int) string {
 	}
 	filled = max(0, min(barWidth, filled))
 	bar := "[" + strings.Repeat("#", filled) + strings.Repeat("-", barWidth-filled) + "]"
-	return fmt.Sprintf("Day %d · %s\n%s", c.Day, c.Phase, bar)
+	return c.Label + "\n" + bar
 }
 
 // RenderParty lists the members in order: the leader marked with "*", the current actor in bold

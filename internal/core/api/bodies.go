@@ -39,6 +39,8 @@ type ChannelView struct {
 	FreeIn int64 `json:"free_in"`
 	// Locked is whether a lock is the reason it is busy.
 	Locked bool `json:"locked,omitempty"`
+	// State says, rendered, whether the part is ready, busy or locked, and whether it is a graft.
+	State string `json:"state"`
 	// Windup is what the part is winding up, if anything.
 	Windup *WindupView `json:"windup,omitempty"`
 }
@@ -48,6 +50,8 @@ type WindupView struct {
 	Action string `json:"action"` // rendered action name
 	Target UID    `json:"target"` // the body aimed at, or 0
 	Lands  int64  `json:"lands"`  // ticks until it lands
+	// When says, rendered, the tick it lands.
+	When string `json:"when"`
 }
 
 // ThreatView is a pending action aimed at a member of the party.

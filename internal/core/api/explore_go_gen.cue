@@ -118,6 +118,10 @@ package api
 
 	// Alert is whether a hostile is in sight.
 	alert: bool @go(Alert)
+
+	// Status is the rendered lines a status bar shows: the alert while one is on, and the control
+	// mode while the player decides for a member.
+	status?: [...string] @go(Status,[]string)
 }
 
 // MemberView is one member of the party.

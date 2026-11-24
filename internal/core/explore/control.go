@@ -156,18 +156,21 @@ func applyControllers(w *sim.World, party ecs.Entity) {
 	}
 }
 
+// playerDecides reports whether the body deciding now is one of members and the player controls it.
+func playerDecides(w *sim.World, members []ecs.Entity) bool {
+	current, found := timeline.Current(w)
+	if !found || !slices.Contains(members, current) {
+		return false
+	}
+	_, player := timeline.CurrentPlayer(w, w.UIDOf(current))
+	return player
+}
+
 // buildControlOptions adds the options to switch control mode and to change the leader, while a
 // player-controlled member of the party is deciding.
 func buildControlOptions(w *sim.World, v *api.View) error {
 	party, members, _, ok := focusOf(w)
-	if !ok {
-		return nil
-	}
-	current, found := timeline.Current(w)
-	if !found || !slices.Contains(members, current) {
-		return nil
-	}
-	if _, player := timeline.CurrentPlayer(w, w.UIDOf(current)); !player {
+	if !ok || !playerDecides(w, members) {
 		return nil
 	}
 	state := ecs.NewMap[comp.Party](w.ECS).Get(party)

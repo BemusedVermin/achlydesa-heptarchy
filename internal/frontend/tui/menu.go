@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -19,11 +20,16 @@ var notMenu = map[string]bool{"step": true, "wait": true, "lead": true, "control
 
 // menuNode is one entry of the drill-down: a segment of option IDs, with the options below it.
 type menuNode struct {
-	segment  string
-	prefix   string      // the option ID segments up to and including this one
+	segment string
+	prefix  string // the option ID segments up to and including this one
+	// path is the core's label of each segment of prefix.
+	path     []string
 	option   *api.Option // set when an option ends here
 	children []*menuNode
 }
+
+// label is how the node's own segment reads.
+func (n *menuNode) label() string { return n.path[len(n.path)-1] }
 
 // buildMenu groups the options that belong in the action menu by splitting their IDs on "/". The
 // core's order is kept; the frontend decides nothing about which options exist or come first.
@@ -45,7 +51,14 @@ func buildMenu(options []api.Option) *menuNode {
 				}
 			}
 			if next == nil {
-				next = &menuNode{segment: segment, prefix: strings.Join(segments[:depth+1], "/")}
+				label := segment
+				if depth < len(option.Path) {
+					label = option.Path[depth]
+				}
+				next = &menuNode{
+					segment: segment, prefix: strings.Join(segments[:depth+1], "/"),
+					path: append(slices.Clone(node.path), label),
+				}
 				node.children = append(node.children, next)
 			}
 			node = next
@@ -99,7 +112,7 @@ func (menuDelegate) Render(w io.Writer, m list.Model, index int, item list.Item)
 type menuState struct {
 	levels []*menuNode // displayed levels, outermost first
 	list   list.Model
-	names  map[api.UID]string
+	title  string
 	width  int
 	height int
 }
@@ -110,27 +123,9 @@ func newMenu(v api.View, width, height int) *menuState {
 	if len(root.children) == 0 {
 		return nil
 	}
-	m := &menuState{names: bodyNames(v.Bodies), width: width, height: height}
+	m := &menuState{title: v.Labels.Actions, width: width, height: height}
 	m.push(root.resolve())
 	return m
-}
-
-// segmentLabel is how a group entry reads: the name of the body or part a number stands for, else
-// the last word of a content ID.
-func (m *menuState) segmentLabel(segment string) string {
-	if uid, err := strconv.ParseUint(segment, 10, 64); err == nil {
-		if name, ok := m.names[api.UID(uid)]; ok {
-			return name
-		}
-		return segment
-	}
-	if i := strings.LastIndexByte(segment, '.'); i >= 0 {
-		segment = segment[i+1:]
-	}
-	if segment == "" {
-		return segment
-	}
-	return strings.ToUpper(segment[:1]) + segment[1:]
 }
 
 func (m *menuState) push(node *menuNode) {
@@ -139,19 +134,19 @@ func (m *menuState) push(node *menuNode) {
 	labels := map[string]int{}
 	leaves := map[string]int{}
 	for _, child := range node.children {
-		labels[m.segmentLabel(child.segment)]++
+		labels[child.label()]++
 		if child.option != nil {
 			leaves[child.option.Label]++
 		}
 	}
 	for i, child := range node.children {
-		label := m.segmentLabel(child.segment)
+		label := child.label()
 		switch {
 		case child.option != nil:
 			label = child.option.Label
 			if leaves[label] > 1 {
 				// Options that differ only in which parts do it read the same: tell them apart.
-				label = m.segmentLabel(child.segment) + " #" + child.segment + ": " + label
+				label = child.label() + " #" + child.segment + ": " + label
 			}
 			if !child.option.Enabled && child.option.Reason != "" {
 				label += " (" + child.option.Reason + ")"
@@ -215,12 +210,7 @@ func (m *menuState) targetUID(bodies *api.BodiesView) api.UID {
 
 // Render draws the open level: the path so far, then the list.
 func (m *menuState) Render() string {
-	path := []string{"Actions"}
-	if prefix := m.levels[len(m.levels)-1].prefix; prefix != "" {
-		for segment := range strings.SplitSeq(prefix, "/") {
-			path = append(path, m.segmentLabel(segment))
-		}
-	}
+	path := append([]string{m.title}, m.levels[len(m.levels)-1].path...)
 	return fmt.Sprintf("%s\n%s", strings.Join(path, " > "), m.list.View())
 }
 

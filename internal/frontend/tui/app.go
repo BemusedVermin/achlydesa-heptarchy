@@ -6,7 +6,6 @@ import (
 	"charm.land/bubbles/v2/help"
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 )
@@ -85,39 +84,21 @@ func (a *App) Choose(id string) tea.Cmd {
 	return nil
 }
 
-// ContentMsg carries the result of a content reload in a dev build: the new registry, or the error
-// that stopped it. The watcher sends it to the program, so the swap happens on the Bubble Tea
-// goroutine, between commands.
+// ContentMsg carries a content reload in a dev build. The watcher sends it to the program, so Reload
+// runs on the Bubble Tea goroutine, between commands. An error Reload returns goes to the message
+// log, and the game plays on.
 type ContentMsg struct {
-	Registry *content.Registry
-	Err      error
+	Reload func(*game.Game) error
 }
 
-// reloadContent swaps in the reloaded content, or logs why it could not and keeps the old.
 func (a *App) reloadContent(msg ContentMsg) tea.Cmd {
-	err := msg.Err
-	if err == nil {
-		err = a.Game.SwapContent(msg.Registry)
+	if err := msg.Reload(a.Game); err != nil {
+		a.Game.Note(err.Error())
 	}
-	if err != nil {
-		a.Game.Note("content reload failed, keeping the old content: " + err.Error())
-	}
-	if refreshErr := a.refresh(); refreshErr != nil {
-		return a.fail(refreshErr)
+	if err := a.refresh(); err != nil {
+		return a.fail(err)
 	}
 	return nil
-}
-
-// Mode is the party's control mode as the view offers it: the option to switch to individual
-// control is present while the party follows, and the reverse.
-func (a *App) Mode() string {
-	switch {
-	case hasOption(a.State, api.ControlOption(api.ControlIndividual)):
-		return api.ControlFollow
-	case hasOption(a.State, api.ControlOption(api.ControlFollow)):
-		return api.ControlIndividual
-	}
-	return ""
 }
 
 // Init implements [tea.Model].

@@ -51,6 +51,9 @@ package api
 	// Locked is whether a lock is the reason it is busy.
 	locked?: bool @go(Locked)
 
+	// State says, rendered, whether the part is ready, busy or locked, and whether it is a graft.
+	state: string @go(State)
+
 	// Windup is what the part is winding up, if anything.
 	windup?: null | #WindupView @go(Windup,*WindupView)
 }
@@ -60,6 +63,9 @@ package api
 	action: string @go(Action)
 	target: #UID   @go(Target)
 	lands:  int64  @go(Lands)
+
+	// When says, rendered, the tick it lands.
+	when: string @go(When)
 }
 
 // ThreatView is a pending action aimed at a member of the party.

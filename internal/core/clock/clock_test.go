@@ -1,6 +1,7 @@
 package clock_test
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
@@ -117,9 +118,10 @@ func TestView(t *testing.T) {
 			t.Fatal(err)
 		}
 		phase := calendar.Phases[tc.phase]
+		phaseName := world.Content.Render(api.Text{ID: phase.Name})
 		want := api.ClockView{
-			Day: tc.day, Phase: world.Content.Render(api.Text{ID: phase.Name}),
-			TickInPhase: tc.in, PhaseTicks: phase.Ticks,
+			Day: tc.day, Phase: phaseName, TickInPhase: tc.in, PhaseTicks: phase.Ticks,
+			Label: fmt.Sprintf("Day %d · %s", tc.day, phaseName),
 		}
 		if got := view.Clock; got == nil || *got != want {
 			t.Errorf("tick %d: view = %+v, want %+v", tc.now, got, want)

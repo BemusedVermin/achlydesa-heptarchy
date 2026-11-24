@@ -43,14 +43,14 @@ func newApp(t *testing.T) *tui.App {
 func TestContentMsgSwapsOrLogsTheError(t *testing.T) {
 	app := newApp(t)
 	reg := contenttest.Sample(t)
-	app.Update(tui.ContentMsg{Registry: reg})
+	app.Update(tui.ContentMsg{Reload: func(g *game.Game) error { return g.SwapContent(reg) }})
 	last := app.State.Log[len(app.State.Log)-1].Text
 	if !strings.Contains(last, "reloaded") {
 		t.Errorf("last log line = %q, want the reload warning", last)
 	}
-	app.Update(tui.ContentMsg{Err: os.ErrInvalid})
+	app.Update(tui.ContentMsg{Reload: func(*game.Game) error { return os.ErrInvalid }})
 	last = app.State.Log[len(app.State.Log)-1].Text
-	if !strings.Contains(last, "reload failed") {
+	if last != os.ErrInvalid.Error() {
 		t.Errorf("last log line = %q, want the failure", last)
 	}
 	if app.Err() != nil {

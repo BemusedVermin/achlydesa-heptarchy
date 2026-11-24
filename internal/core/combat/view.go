@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -131,7 +132,12 @@ func windupsOf(w *sim.World, body ecs.Entity) map[api.UID]*api.WindupView {
 			continue
 		}
 		pend, landing := pendings.Get(pending), landings.Get(pending)
-		wind := &api.WindupView{Action: actionName(w, landing.Action), Target: pend.Target, Lands: pend.Lands - w.Now}
+		wind := &api.WindupView{
+			Action: actionName(w, landing.Action), Target: pend.Target, Lands: pend.Lands - w.Now,
+			When: w.Content.Render(api.Text{
+				ID: "text.combat.lands_at", Args: map[string]string{"tick": strconv.FormatInt(pend.Lands, 10)},
+			}),
+		}
 		for _, channel := range landing.Channels {
 			if _, taken := out[channel]; !taken {
 				out[channel] = wind
@@ -171,7 +177,25 @@ func channelView(
 			view.FreeIn, view.Locked = b.Until-w.Now, b.Locked
 		}
 	}
+	view.State = channelState(w, view)
 	return view
+}
+
+func channelState(w *sim.World, view api.ChannelView) string {
+	state := api.Text{ID: "text.combat.channel.ready"}
+	switch {
+	case view.Locked:
+		state = api.Text{ID: "text.combat.channel.locked"}
+	case view.FreeIn > 0:
+		state = api.Text{
+			ID: "text.combat.channel.free_in", Args: map[string]string{"ticks": strconv.FormatInt(view.FreeIn, 10)},
+		}
+	}
+	rendered := w.Content.Render(state)
+	if view.Graft {
+		return w.Content.Render(api.Text{ID: "text.combat.channel.graft", Args: map[string]string{"state": rendered}})
+	}
+	return rendered
 }
 
 func materialName(w *sim.World, id api.ContentID) string {

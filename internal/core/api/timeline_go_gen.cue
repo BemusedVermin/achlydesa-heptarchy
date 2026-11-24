@@ -41,6 +41,9 @@ package api
 	color:  string @go(Color)
 	target: #UID   @go(Target)
 	label:  string @go(Label)
+
+	// TickLabel names the entry's tick, rendered, as a heading for everything on that tick.
+	tick_label: string @go(TickLabel)
 }
 
 #ActionLandedKind:   "timeline.action_landed"

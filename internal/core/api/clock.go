@@ -41,4 +41,6 @@ type ClockView struct {
 	Phase       string `json:"phase"` // display-ready phase name
 	TickInPhase int64  `json:"tick_in_phase"`
 	PhaseTicks  int64  `json:"phase_ticks"` // length of the current phase
+	// Label is the day and phase, rendered as one line.
+	Label string `json:"label"`
 }

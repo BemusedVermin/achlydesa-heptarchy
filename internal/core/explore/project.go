@@ -67,6 +67,15 @@ func buildParty(w *sim.World, v *api.View) error {
 		}
 		view.Members = append(view.Members, item)
 	}
+	if state.Alert {
+		view.Status = append(view.Status, w.Content.Render(api.Text{ID: "text.explore.status.alert"}))
+	}
+	if playerDecides(w, members) {
+		view.Status = append(
+			view.Status,
+			w.Content.Render(api.Text{ID: api.ContentID("text.explore.status." + state.Control)}),
+		)
+	}
 	v.Party = view
 	return nil
 }

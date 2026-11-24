@@ -166,6 +166,9 @@ type PartyView struct {
 	Control string `json:"control"`
 	// Alert is whether a hostile is in sight.
 	Alert bool `json:"alert"`
+	// Status is the rendered lines a status bar shows: the alert while one is on, and the control
+	// mode while the player decides for a member.
+	Status []string `json:"status,omitempty"`
 }
 
 // MemberView is one member of the party.

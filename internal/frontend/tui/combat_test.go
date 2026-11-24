@@ -157,7 +157,7 @@ func TestMenuDrillsDownSkipsSingleLevelsAndBacksOut(t *testing.T) {
 
 func TestMenuLeafSendsTheOptionAndTheActorPanelShowsTheSwing(t *testing.T) {
 	app := fightApp(t)
-	golden(t, "actor_free", tui.RenderBody(currentMember(t, app), app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_free", tui.RenderBody(currentMember(t, app), app.State.Bodies, panelWidth))
 	pressCode(app, tea.KeyEnter)
 	selectEntry(t, app, "Strike")
 	pressCode(app, tea.KeyEnter)
@@ -174,7 +174,7 @@ func TestMenuLeafSendsTheOptionAndTheActorPanelShowsTheSwing(t *testing.T) {
 		t.Error("the menu stayed open after a command")
 	}
 	body := bodyOf(t, app, app.State.Bodies.Bodies[0].UID)
-	golden(t, "actor_windup", tui.RenderBody(body, app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_windup", tui.RenderBody(body, app.State.Bodies, panelWidth))
 	if !strings.Contains(app.View().Content, "~ Strike") {
 		t.Errorf("the panel does not show the swing:\n%s", app.View().Content)
 	}
@@ -216,7 +216,7 @@ func TestSweepThenLookShowsMaterials(t *testing.T) {
 	}
 	mover := app.State.Bodies.Current
 	app.Choose(sweep.ID)
-	golden(t, "actor_sweep", tui.RenderBody(bodyOf(t, app, mover), app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_sweep", tui.RenderBody(bodyOf(t, app, mover), app.State.Bodies, panelWidth))
 	for range 40 {
 		if !strings.Contains(tui.RenderLook(app.State, enemyHex, panelWidth), "?") {
 			break
@@ -292,7 +292,7 @@ func TestSeveredArmShowsOnThePanel(t *testing.T) {
 	if armIntegrity(body, arm) >= 0 {
 		t.Fatalf("the arm was not severed: %+v", body.Channels)
 	}
-	golden(t, "actor_severed", tui.RenderBody(body, app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_severed", tui.RenderBody(body, app.State.Bodies, panelWidth))
 }
 
 func armIntegrity(body api.BodyView, arm api.UID) int {
@@ -393,8 +393,8 @@ func TestWholeFightEndsAndTheMapResumesFollow(t *testing.T) {
 	if strings.Contains(app.View().Content, "ALERT") {
 		t.Errorf("the status line still says ALERT:\n%s", app.View().Content)
 	}
-	if app.Mode() != api.ControlFollow {
-		t.Errorf("control = %q, want follow", app.Mode())
+	if app.State.Party.Control != api.ControlFollow {
+		t.Errorf("control = %q, want follow", app.State.Party.Control)
 	}
 	if !sawThreat {
 		t.Error("the hunting movingClay never showed a threat")

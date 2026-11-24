@@ -273,26 +273,44 @@ func usableChannels(w *sim.World, body ecs.Entity, channels []timeline.Channel) 
 }
 
 // optionID is the option's ID: the action's key, each choice, then the target, the part or direction,
-// and the channels when there is more than one way to pick them.
-func (ev *evaluator) optionID(cand candidate) string {
+// and the channels when there is more than one way to pick them. path names each segment.
+func (ev *evaluator) optionID(cand candidate, def content.ActionDef) (id string, path []string) {
+	w := ev.w
 	in := cand.intent
 	parts := []string{cand.key}
-	parts = append(parts, cand.choiceValues...)
+	path = []string{w.Content.Render(api.Text{ID: def.Name})}
+	for _, value := range cand.choiceValues {
+		parts, path = append(parts, value), append(path, ev.valueName(value))
+	}
 	if in.Dir != nil {
 		parts = append(parts, dirNames[*in.Dir])
+		path = append(path, w.Content.Render(api.Text{ID: api.ContentID("text.actions.dir." + dirNames[*in.Dir])}))
+	}
+	entity := func(e ecs.Entity) {
+		parts, path = append(parts, uidSegment(w.UIDOf(e))), append(path, ev.segmentName(e))
 	}
 	if in.Target != in.Actor && !in.Target.IsZero() {
-		parts = append(parts, uidSegment(ev.w.UIDOf(in.Target)))
+		entity(in.Target)
 	}
 	if !in.TargetPart.IsZero() {
-		parts = append(parts, uidSegment(ev.w.UIDOf(in.TargetPart)))
+		entity(in.TargetPart)
 	}
 	if cand.withChannels {
-		for _, uid := range timeline.UIDs(ev.w, in.Channels) {
-			parts = append(parts, uidSegment(uid))
+		for _, channel := range in.Channels {
+			entity(channel.Entity)
 		}
 	}
-	return strings.Join(parts, "/")
+	return strings.Join(parts, "/"), path
+}
+
+// segmentName names a body, or a part by its part template, since parts have no template name.
+func (ev *evaluator) segmentName(e ecs.Entity) string {
+	if parts := ecs.NewMap[comp.Part](ev.w.ECS); parts.Has(e) {
+		if def, ok := ev.w.Content.Part(parts.Get(e).Template); ok {
+			return ev.w.Content.Render(api.Text{ID: def.Name})
+		}
+	}
+	return ev.nameOf(e)
 }
 
 func uidSegment(uid api.UID) string { return strconv.FormatUint(uint64(uid), 10) }
@@ -371,8 +389,9 @@ func buildOptions(w *sim.World, v *api.View) error {
 		if p == nil {
 			continue
 		}
+		id, path := ev.optionID(cand, p.def)
 		option := api.Option{
-			ID: ev.optionID(cand), Label: ev.label(cand, p), Command: ev.command(p.intent()), Enabled: reason.ID == "",
+			ID: id, Path: path, Label: ev.label(cand, p), Command: ev.command(p.intent()), Enabled: reason.ID == "",
 		}
 		if !option.Enabled {
 			option.Reason = w.Content.Render(reason)

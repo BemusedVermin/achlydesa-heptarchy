@@ -14,6 +14,17 @@ package api
 	map?:      null | #MapView      @go(Map,*MapView)
 	party?:    null | #PartyView    @go(Party,*PartyView)
 	bodies?:   null | #BodiesView   @go(Bodies,*BodiesView)
+	labels:    #LabelsView          @go(Labels)
+}
+
+// LabelsView is the rendered headings a frontend puts on its panels.
+#LabelsView: {
+	// Actions heads the action menu.
+	actions: string @go(Actions)
+
+	// Look heads the look panel when a body is under the cursor, and LookEmpty replaces it when none is.
+	look:       string @go(Look)
+	look_empty: string @go(LookEmpty)
 }
 
 // Option is one thing the player can do right now. Frontends render Label and
@@ -27,6 +38,11 @@ package api
 
 	// Reason says why the option is disabled.
 	reason?: string @go(Reason)
+
+	// Path names each slash-separated segment of ID, rendered, so a frontend can label the groups
+	// of a menu built from the IDs. It may be shorter than the ID, or empty, for an option that is
+	// not grouped.
+	path?: [...string] @go(Path,[]string)
 }
 
 // LogLine is one line of the player's message log.

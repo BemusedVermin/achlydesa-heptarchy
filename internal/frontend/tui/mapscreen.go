@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
 	"charm.land/bubbles/v2/key"
@@ -155,7 +154,7 @@ func (s *mapScreen) selectTick(app *App, offset int) {
 
 func (s *mapScreen) open(app *App) {
 	if entries := EntriesAt(app.State.Timeline, s.selected); len(entries) > 0 {
-		app.Push(&tickPopup{tick: app.State.Timeline.Now + int64(s.selected), entries: entries})
+		app.Push(&tickPopup{entries: entries})
 	}
 }
 
@@ -183,7 +182,7 @@ func (s *mapScreen) View(app *App) string {
 	case s.look != nil:
 		panel = append(panel, RenderLook(app.State, s.look.cursor, side), "")
 	case ok:
-		panel = append(panel, RenderBody(body, app.State.Bodies, app.State.Tick, side), "")
+		panel = append(panel, RenderBody(body, app.State.Bodies, side), "")
 	}
 	used := strings.Count(strings.Join(panel, "\n"), "\n") + 1
 	if s.menu != nil {
@@ -207,19 +206,14 @@ func (s *mapScreen) status(app *App) string {
 	if app.Status != "" {
 		return app.Status
 	}
-	var parts []string
-	if app.State.Party != nil && app.State.Party.Alert {
-		parts = append(parts, "ALERT: hostile in sight")
+	if app.State.Party == nil {
+		return ""
 	}
-	if mode := app.Mode(); mode != "" {
-		parts = append(parts, "Control: "+mode)
-	}
-	return strings.Join(parts, " | ")
+	return strings.Join(app.State.Party.Status, " | ")
 }
 
-// tickPopup lists everything on one timeline tick, by label.
+// tickPopup lists everything on one timeline tick, by label. It has at least one entry.
 type tickPopup struct {
-	tick    int64
 	entries []api.TimelineEntry
 }
 
@@ -236,7 +230,7 @@ func (p *tickPopup) Update(msg tea.Msg, _ *App) (Screen, tea.Cmd) {
 
 // View implements [Screen].
 func (p *tickPopup) View(app *App) string {
-	lines := []string{fmt.Sprintf("Tick %d", p.tick), ""}
+	lines := []string{p.entries[0].TickLabel, ""}
 	for _, e := range p.entries {
 		lines = append(lines, e.Label)
 	}

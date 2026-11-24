@@ -87,10 +87,9 @@ func currentBody(bodies *api.BodiesView) (api.BodyView, bool) {
 	return api.BodyView{}, false
 }
 
-// RenderBody draws one body: a header, one line per part (slot, name, material, integrity bar,
-// "graft", then "ready", the ticks until it is free, or "locked"), and each swing being wound up
-// with its target and landing tick. now is the current tick.
-func RenderBody(body api.BodyView, bodies *api.BodiesView, now int64, width int) string {
+// RenderBody draws one body: a header, one line per part (slot, name, material, integrity bar and
+// state), and each swing being wound up with its target and landing tick.
+func RenderBody(body api.BodyView, bodies *api.BodiesView, width int) string {
 	names := bodyNames(bodies)
 	header := body.Name
 	if body.Faction != "" {
@@ -100,39 +99,20 @@ func RenderBody(body api.BodyView, bodies *api.BodiesView, now int64, width int)
 		header += " [" + strings.Join(body.Statuses, ", ") + "]"
 	}
 	lines := []string{lipgloss.NewStyle().Bold(true).Render(header)}
-	type swing struct {
-		action string
-		target api.UID
-		lands  int64
-	}
-	var swings []swing
+	var swings []api.WindupView
 	for _, c := range body.Channels {
-		fields := []string{fmt.Sprintf("%-5s", c.Slot), c.Name, c.Material, bar(c.Integrity, c.MaxIntegrity)}
-		if c.Graft {
-			fields = append(fields, "graft")
-		}
-		switch {
-		case c.Locked:
-			fields = append(fields, "locked")
-		case c.FreeIn > 0:
-			fields = append(fields, fmt.Sprintf("free in %d", c.FreeIn))
-		default:
-			fields = append(fields, "ready")
-		}
+		fields := []string{fmt.Sprintf("%-5s", c.Slot), c.Name, c.Material, bar(c.Integrity, c.MaxIntegrity), c.State}
 		lines = append(lines, lipgloss.NewStyle().MaxWidth(max(1, width)).Render(strings.Join(fields, " ")))
-		if c.Windup != nil {
-			s := swing{c.Windup.Action, c.Windup.Target, c.Windup.Lands}
-			if len(swings) == 0 || swings[len(swings)-1] != s {
-				swings = append(swings, s)
-			}
+		if c.Windup != nil && (len(swings) == 0 || swings[len(swings)-1] != *c.Windup) {
+			swings = append(swings, *c.Windup)
 		}
 	}
 	for _, s := range swings {
-		line := fmt.Sprintf("~ %s", s.action)
-		if name, ok := names[s.target]; ok {
+		line := "~ " + s.Action
+		if name, ok := names[s.Target]; ok {
 			line += " -> " + name
 		}
-		line += fmt.Sprintf(", lands at tick %d", now+s.lands)
+		line += ", " + s.When
 		lines = append(lines, lipgloss.NewStyle().MaxWidth(max(1, width)).Render(line))
 	}
 	return strings.Join(lines, "\n")
