@@ -50,6 +50,8 @@ Findings:
 - Hard-coded in the tui: `mapscreen.go:204` "ALERT: hostile in sight", `:207` "Control: ", `:243` "Tick %d"; `look.go:49,51` "Looking"; `actorpanel.go:107-115` "graft", "locked", "free in %d", "ready"; `actorpanel.go:128` "lands at tick %d"; `render.go:278` "Day %d · %s"; `menu.go:216` "Actions"; `menu.go:114-128` `segmentLabel` capitalizes the end of a content ID.
 - `ContentMsg` (`app.go:91`) carries a `*content.Registry`, which `frontend.md` doesn't allow; `tui/doc.go:8` says otherwise.
 
+A timeline line never shows a wrong number (C1-17.F2): in the actor panel a long target name used to cut the line's last digit (`lands at tick 8` for tick 86). Wrap or abbreviate the name, or widen the panel, whichever is least invasive, and check `actor_windup.golden` shows `lands at tick 86`.
+
 Per the decision: the view supplies the text (a channel state label, option group labels); hot reload sends an opaque `func(*game.Game) error`; update `tui/doc.go` and `frontend.md` to say the same. Goldens change.
 
 ### Game, save, harness and tui tests: shrink the slow ones
@@ -81,6 +83,7 @@ The policy is `.claude/rules/comments.md`: doc comments say what a caller needs,
 - [ ] `go tool task comments -- ./internal/core/game ./internal/core/save ./internal/harness ./internal/frontend ./cmd` reports nothing
 - [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
 - [ ] `go tool task same-behavior` shows only the wording differences named in Notes.
+- [ ] A timeline line in the actor panel never cuts its tick, even with a long target name (C1-17.F2).
 - [ ] Only `_test.go` files and `testdata/` changed.
 
 ## Out of scope
