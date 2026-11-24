@@ -47,8 +47,8 @@ actions: {
 		tags: ["supply"]
 	}
 	// For tests: a bite at a body next to the source, which may be a corpse.
-	"action.test.gnaw": {
-		name: "text.action.test.gnaw"
+	"action.gnaw": {
+		name: "text.action.gnaw"
 		key:  "gnaw"
 		uses: [{tag: "body", count: 1}]
 		target:   "body"
@@ -59,8 +59,8 @@ actions: {
 }
 
 text: {
-	"text.action.test.gnaw": "Gnaw"
-	"text.action.step":      "Step"
-	"text.action.eat":       "Eat"
-	"text.action.drink":     "Drink"
+	"text.action.gnaw":  "Gnaw"
+	"text.action.step":  "Step"
+	"text.action.eat":   "Eat"
+	"text.action.drink": "Drink"
 }

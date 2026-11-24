@@ -119,7 +119,7 @@ templates: {
 		appearance: {glyph: "e", color: "green"}
 		actor: controller: "agents"
 		body: "body.human"
-		actions: ["action.step", "action.test.gnaw"]
+		actions: ["action.step", "action.gnaw"]
 		behaviors: ["behavior.test.gnaw_corpse"]
 	}
 	"template.test.hauler": {
@@ -163,8 +163,8 @@ templates: {
 		lists: types: ["type.cut"]
 		behaviors: ["behavior.test.guard_post"]
 	}
-	"template.test.fighter": {
-		name: "text.template.test.fighter"
+	"template.test.engager": {
+		name: "text.template.test.engager"
 		appearance: {glyph: "f", color: "green"}
 		actor: controller: "agents"
 		body:    "body.moving_clay"
@@ -202,7 +202,7 @@ text: {
 	"text.template.test.cistern":         "Cistern"
 	"text.template.test.runner":          "Runner"
 	"text.template.test.guard":           "Guard"
-	"text.template.test.fighter":         "Fighter"
+	"text.template.test.engager":         "Fighter"
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"
 	"text.template.unknown":              "Someone"

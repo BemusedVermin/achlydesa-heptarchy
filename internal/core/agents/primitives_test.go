@@ -117,7 +117,7 @@ func TestAConsumerWalksToACorpseAndStartsItsAction(t *testing.T) {
 	ecs.NewMap[comp.Dead](f.w.ECS).Add(corpse, &comp.Dead{})
 	eater := f.spawn("template.test.eater", cellAt(12, 11))
 	eaterUID, corpseUID := f.w.UIDOf(eater), f.w.UIDOf(corpse)
-	if !f.until(300, func() bool { return f.started(eaterUID, corpseUID, "action.test.gnaw") }) {
+	if !f.until(300, func() bool { return f.started(eaterUID, corpseUID, "action.gnaw") }) {
 		t.Fatalf("the eater never gnawed the corpse; it is at %v", f.at(eater))
 	}
 	if d := hexmap.CellDistance(f.at(eater), f.at(corpse)); d > 1 {
@@ -241,7 +241,7 @@ func TestAnEngagedBodyFightsAsAHunterDoes(t *testing.T) {
 		}
 		return out
 	}
-	hunted, engaged := landings("template.creature.moving_clay"), landings("template.test.fighter")
+	hunted, engaged := landings("template.creature.moving_clay"), landings("template.test.engager")
 	if len(hunted) == 0 {
 		t.Fatal("the hunter started nothing; the test shows nothing")
 	}

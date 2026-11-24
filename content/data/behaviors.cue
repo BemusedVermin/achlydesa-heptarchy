@@ -33,7 +33,7 @@ behaviors: {
 	"behavior.test.gnaw_corpse": {
 		name: "text.behavior.test.gnaw_corpse"
 		do:   "consume"
-		params: action: "action.test.gnaw"
+		params: action: "action.gnaw"
 		consider: ["0.5"]
 		target: {kind: "body", dead: true}
 	}
