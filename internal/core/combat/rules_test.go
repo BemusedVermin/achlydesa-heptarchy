@@ -98,8 +98,8 @@ func TestTextParameterFormulas(t *testing.T) {
 		t.Errorf("lake water = %d, want %d: one spent by the formula's item", got, before-1)
 	}
 	err := effects.Apply(ctx, []content.EffectRef{contenttest.Do("consume", "item", `= "item.nothing"`)})
-	if err == nil || !strings.Contains(err.Error(), `parameter "item"`) {
-		t.Errorf("a formula naming an unknown item: error = %v, want one naming the parameter", err)
+	if err == nil || !strings.Contains(err.Error(), `unknown item "item.nothing"`) {
+		t.Errorf("a formula naming an unknown item: error = %v, want one naming the item", err)
 	}
 }
 

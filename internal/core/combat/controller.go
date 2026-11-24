@@ -102,21 +102,6 @@ func RegisterChooser(w *sim.World, name string, c Chooser) error {
 	return nil
 }
 
-// state is what combat keeps on the world, as an Ark resource.
-type state struct {
-	choosers map[string]Chooser
-}
-
-func stateOf(w *sim.World) *state {
-	res := ecs.NewResource[state](w.ECS)
-	if res.Has() {
-		return res.Get()
-	}
-	st := &state{choosers: map[string]Chooser{}}
-	res.Add(st)
-	return st
-}
-
 // hunter is the controller of a creature that goes after the nearest hostile.
 type hunter struct{}
 
@@ -127,7 +112,6 @@ func (hunter) Decide(w *sim.World, body ecs.Entity) error {
 	if err != nil || !found {
 		return err
 	}
-	cfg := w.Content.Combat()
 	startable := actions.Startable(w, body)
 	aims, err := w.Content.Aims(content.GrantEnv{Grant: anatomy.GrantTotals(w, body)})
 	if err != nil {
@@ -135,7 +119,7 @@ func (hunter) Decide(w *sim.World, body ecs.Entity) error {
 	}
 	var attacks []actions.Intent
 	for _, in := range startable {
-		if def, ok := w.Content.Action(in.Action); !ok || !slices.Contains(def.Tags, cfg.AttackTag) {
+		if !isAttack(w, in) {
 			continue
 		}
 		if aims && in.Target != prey {
@@ -157,11 +141,23 @@ func pick(w *sim.World, body ecs.Entity, attacks []actions.Intent, aims bool) (a
 	if !aims {
 		return attacks[w.RNG.Get(rngStream).IntN(len(attacks))], true
 	}
-	chooser, ok := stateOf(w).choosers[scoreChooser]
+	chooser, ok := scoredChooser(w)
 	if !ok {
 		return actions.Intent{}, false
 	}
 	return chooser.Choose(w, body, attacks)
+}
+
+// isAttack reports whether the intent's action carries content's attack tag.
+func isAttack(w *sim.World, in actions.Intent) bool {
+	def, ok := w.Content.Action(in.Action)
+	return ok && slices.Contains(def.Tags, w.Content.Combat().AttackTag)
+}
+
+// scoredChooser is the chooser registered under scoreChooser, if any.
+func scoredChooser(w *sim.World) (Chooser, bool) {
+	chooser, ok := stateOf(w).choosers[scoreChooser]
+	return chooser, ok
 }
 
 // nearestHostile finds the visible hostile closest by hex distance plus depth difference, then UID.

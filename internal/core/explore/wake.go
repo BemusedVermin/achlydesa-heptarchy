@@ -2,6 +2,8 @@ package explore
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -122,11 +124,7 @@ func markSeenByParty(w *sim.World, party ecs.Entity) error {
 		return err
 	}
 	for id, set := range sight {
-		cells := make([]api.Cell, 0, len(set))
-		for cell := range set {
-			cells = append(cells, cell)
-		}
-		markSeen(w, party, id, cells)
+		markSeen(w, party, id, slices.Collect(maps.Keys(set)))
 	}
 	return nil
 }

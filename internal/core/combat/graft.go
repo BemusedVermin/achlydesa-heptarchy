@@ -1,8 +1,6 @@
 package combat
 
 import (
-	"slices"
-
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
@@ -25,21 +23,16 @@ func applyActAlone(ctx *effects.Context, _ effects.Params) error {
 	if anatomy.OutOfFight(w, body) {
 		return nil
 	}
-	cfg := w.Content.Combat()
 	var own []actions.Intent
 	for _, in := range actions.Startable(w, body) {
-		if len(in.Channels) != 1 || in.Channels[0].Entity != part {
-			continue
+		if len(in.Channels) == 1 && in.Channels[0].Entity == part && isAttack(w, in) {
+			own = append(own, in)
 		}
-		if def, ok := w.Content.Action(in.Action); !ok || !slices.Contains(def.Tags, cfg.AttackTag) {
-			continue
-		}
-		own = append(own, in)
 	}
 	if len(own) == 0 {
 		return nil
 	}
-	chooser, ok := stateOf(w).choosers[scoreChooser]
+	chooser, ok := scoredChooser(w)
 	if !ok {
 		return nil
 	}

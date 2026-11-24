@@ -3,6 +3,7 @@ package combat
 import (
 	"cmp"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -63,12 +64,7 @@ func visibleBodies(w *sim.World, party ecs.Entity) ([]ecs.Entity, error) {
 			}
 		}
 	}
-	out := make([]ecs.Entity, 0, len(chosen))
-	for body := range chosen {
-		out = append(out, body)
-	}
-	w.SortByUID(out)
-	return out, nil
+	return slices.SortedFunc(maps.Keys(chosen), w.CompareUID), nil
 }
 
 // buildBodies fills the bodies section of the view.

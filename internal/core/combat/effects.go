@@ -26,70 +26,6 @@ const (
 	nothingToAttach      api.ContentID = "text.combat.no_severed_part"
 )
 
-// expireSystem is the name of the per-entry system that removes expired statuses.
-const expireSystem = "combat.expire_statuses"
-
-// Install registers the combat events, the primitives and the system that expires statuses. It
-// needs effects installed first.
-func Install(w *sim.World) error {
-	for _, register := range []func(*api.Codec) error{
-		api.RegisterEvent[api.PartDamaged],
-		api.RegisterEvent[api.PartSevered],
-		api.RegisterEvent[api.PartAttached],
-		api.RegisterEvent[api.StatusAdded],
-	} {
-		if err := register(w.Codec); err != nil {
-			return err
-		}
-	}
-	for _, p := range primitives() {
-		if err := effects.Register(w, p); err != nil {
-			return err
-		}
-	}
-	if err := installSides(w); err != nil {
-		return err
-	}
-	return w.Systems.Register(sim.System{Name: expireSystem, Cadence: sim.PerEntry, Run: expireStatuses})
-}
-
-func primitives() []effects.Primitive {
-	parts := map[string]effects.Kind{"parts": effects.KindChannels}
-	return []effects.Primitive{
-		{Name: "damage", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyDamage},
-		{Name: "sever", Params: []string{"parts"}, Optional: []string{"when"}, Kinds: parts, Apply: applySever},
-		{
-			Name: "add_status", Params: []string{"bodies", "status", "ticks"},
-			Kinds:         map[string]effects.Kind{"bodies": effects.KindBodies, "status": effects.KindText},
-			VerifyContent: verifyAddStatusContent, Apply: applyAddStatus,
-		},
-		{
-			Name: "attach_part", Params: []string{"from"}, Optional: []string{"item"},
-			Kinds:  map[string]effects.Kind{"from": effects.KindText, "item": effects.KindText},
-			Verify: verifyAttach, VerifyContent: verifyAttachContent, Apply: applyAttach, Check: checkAttach,
-		},
-		{Name: "raise_max_integrity", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyRaiseMaxIntegrity},
-		{
-			Name: "reveal", Params: []string{"claim", "value", "origin"}, Optional: []string{"parts"},
-			Kinds: map[string]effects.Kind{
-				"claim": effects.KindText, "value": effects.KindText, "origin": effects.KindText,
-				"parts": effects.KindChannels,
-			},
-			VerifyContent: verifyRevealContent, Apply: applyReveal,
-		},
-		{
-			Name: "consume", Params: []string{"item"}, Kinds: map[string]effects.Kind{"item": effects.KindText},
-			VerifyContent: verifyConsumeContent, Apply: applyConsume, Check: checkConsume,
-		},
-		{Name: "act_alone", Apply: applyActAlone},
-		{
-			Name: "spawn_from_part", Params: []string{"faction", "controller"},
-			Kinds:         map[string]effects.Kind{"faction": effects.KindText, "controller": effects.KindText},
-			VerifyContent: verifySpawnContent, Apply: applySpawnFromPart,
-		},
-	}
-}
-
 // bodyOf is the body a part is attached to, or the zero entity.
 func bodyOf(w *sim.World, part ecs.Entity) ecs.Entity {
 	partOf := ecs.NewMap[comp.PartOf](w.ECS)
@@ -132,12 +68,9 @@ func applyDamage(ctx *effects.Context, p effects.Params) error {
 		if body.IsZero() || !parts.Has(c.Entity) || parts.Get(c.Entity).Integrity <= 0 {
 			continue
 		}
-		amount, err := p.For(c).Int("amount")
+		amount, err := nonNegative(p.For(c), "amount")
 		if err != nil {
 			return err
-		}
-		if amount < 0 {
-			return fmt.Errorf("amount must not be negative, got %d", amount)
 		}
 		if amount == 0 {
 			continue
@@ -168,12 +101,9 @@ func applyRaiseMaxIntegrity(ctx *effects.Context, p effects.Params) error {
 		if !ctx.World.ECS.Alive(c.Entity) || !parts.Has(c.Entity) {
 			continue
 		}
-		amount, err := p.For(c).Int("amount")
+		amount, err := nonNegative(p.For(c), "amount")
 		if err != nil {
 			return err
-		}
-		if amount < 0 {
-			return fmt.Errorf("amount must not be negative, got %d", amount)
 		}
 		parts.Get(c.Entity).MaxIntegrity += amount
 	}
@@ -218,8 +148,8 @@ func applyAddStatus(ctx *effects.Context, p effects.Params) error {
 		return err
 	}
 	w := ctx.World
-	if _, ok := w.Content.Status(api.ContentID(status)); !ok {
-		return fmt.Errorf(`parameter "status": unknown status %q`, status)
+	if err := effects.KnownIDs(map[string]string{"status": status}, knownIDs(w.Content)); err != nil {
+		return err
 	}
 	if ticks < 1 {
 		return fmt.Errorf("ticks must be at least 1, got %d", ticks)
@@ -413,20 +343,6 @@ func takePiece(ctx *effects.Context, item api.ContentID) (ecs.Entity, error) {
 	return part, nil
 }
 
-func verifyRevealContent(reg *content.Registry, raw map[string]string) error {
-	if claim, ok := raw["claim"]; ok {
-		if _, found := reg.Claim(api.ContentID(claim)); !found {
-			return fmt.Errorf("unknown claim %q", claim)
-		}
-	}
-	if origin, ok := raw["origin"]; ok {
-		if _, found := reg.Origin(api.ContentID(origin)); !found {
-			return fmt.Errorf("unknown origin %q", origin)
-		}
-	}
-	return nil
-}
-
 func applyReveal(ctx *effects.Context, p effects.Params) error {
 	w := ctx.World
 	knower := inventory.HolderOf(w, ctx.Source)
@@ -441,11 +357,8 @@ func applyReveal(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
-	if _, ok := w.Content.Claim(api.ContentID(claim)); !ok {
-		return fmt.Errorf(`parameter "claim": unknown claim %q`, claim)
-	}
-	if _, ok := w.Content.Origin(api.ContentID(origin)); !ok {
-		return fmt.Errorf(`parameter "origin": unknown origin %q`, origin)
+	if err := effects.KnownIDs(map[string]string{"claim": claim, "origin": origin}, knownIDs(w.Content)); err != nil {
+		return err
 	}
 	var channels []timeline.Channel
 	if p.Has("parts") {
@@ -514,10 +427,10 @@ func applyConsume(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
-	id := api.ContentID(item)
-	if _, ok := ctx.World.Content.Item(id); !ok {
-		return fmt.Errorf(`parameter "item": unknown item %q`, item)
+	if err := effects.KnownIDs(map[string]string{"item": item}, knownIDs(ctx.World.Content)); err != nil {
+		return err
 	}
+	id := api.ContentID(item)
 	inventory.Take(ctx.World, inventory.HolderOf(ctx.World, ctx.Source), id, boundTo(ctx, id), 1)
 	return nil
 }
@@ -535,8 +448,8 @@ func applySpawnFromPart(ctx *effects.Context, p effects.Params) error {
 		return err
 	}
 	w := ctx.World
-	if _, ok := w.Content.Faction(api.ContentID(faction)); !ok {
-		return fmt.Errorf(`parameter "faction": unknown faction %q`, faction)
+	if err := effects.KnownIDs(map[string]string{"faction": faction}, knownIDs(w.Content)); err != nil {
+		return err
 	}
 	part := severedPart(ctx)
 	if part.IsZero() {
@@ -586,47 +499,42 @@ func severedPart(ctx *effects.Context) ecs.Entity {
 	return severedNear(w, ctx.Target)
 }
 
-func verifyAddStatusContent(reg *content.Registry, raw map[string]string) error {
-	if _, ok := raw["status"]; !ok {
-		return nil
+// knownIDs gives, for each parameter that names a content record, how to find it. A parameter's
+// name is the kind of record it names.
+func knownIDs(reg *content.Registry) map[string]func(api.ContentID) bool {
+	return map[string]func(api.ContentID) bool{
+		"claim":   effects.Known(reg.Claim),
+		"faction": effects.Known(reg.Faction),
+		"item":    effects.Known(reg.Item),
+		"origin":  effects.Known(reg.Origin),
+		"status":  effects.Known(reg.Status),
 	}
-	if _, ok := reg.Status(api.ContentID(raw["status"])); !ok {
-		return fmt.Errorf("unknown status %q", raw["status"])
-	}
-	return nil
+}
+
+func verifyKnownIDs(reg *content.Registry, raw map[string]string) error {
+	return effects.KnownIDs(raw, knownIDs(reg))
 }
 
 func verifyAttachContent(reg *content.Registry, raw map[string]string) error {
-	id, ok := raw["item"]
-	if !ok {
-		return nil
+	if err := verifyKnownIDs(reg, raw); err != nil {
+		return err
 	}
-	item, found := reg.Item(api.ContentID(id))
-	if !found {
-		return fmt.Errorf("unknown item %q", id)
-	}
-	if item.Part == nil {
-		return fmt.Errorf("item %q is not a piece that becomes a part", id)
+	if id, ok := raw["item"]; ok {
+		if item, _ := reg.Item(api.ContentID(id)); item.Part == nil {
+			return fmt.Errorf("item %q is not a piece that becomes a part", id)
+		}
 	}
 	return nil
 }
 
-func verifyConsumeContent(reg *content.Registry, raw map[string]string) error {
-	if _, ok := raw["item"]; !ok {
-		return nil
+// nonNegative reads an int parameter that must not be negative.
+func nonNegative(p effects.Params, name string) (int, error) {
+	value, err := p.Int(name)
+	if err != nil {
+		return 0, err
 	}
-	if _, ok := reg.Item(api.ContentID(raw["item"])); !ok {
-		return fmt.Errorf("unknown item %q", raw["item"])
+	if value < 0 {
+		return 0, fmt.Errorf("%s must not be negative, got %d", name, value)
 	}
-	return nil
-}
-
-func verifySpawnContent(reg *content.Registry, raw map[string]string) error {
-	if _, ok := raw["faction"]; !ok {
-		return nil
-	}
-	if _, ok := reg.Faction(api.ContentID(raw["faction"])); !ok {
-		return fmt.Errorf("unknown faction %q", raw["faction"])
-	}
-	return nil
+	return value, nil
 }
