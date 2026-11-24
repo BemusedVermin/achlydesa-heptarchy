@@ -127,7 +127,10 @@ func (m *Map) DirTo(from, to api.Cell, rules StepRules) (api.Dir, bool, error) {
 		if err != nil {
 			return 0, false, err
 		}
-		if cell, local := m.local(step.To); ok && local && cell == to {
+		if !ok {
+			continue
+		}
+		if cell, local := m.local(step.To); local && cell == to {
 			return dir, true, nil
 		}
 	}

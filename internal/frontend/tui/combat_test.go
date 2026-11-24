@@ -9,6 +9,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/frontend/tui"
 )
 
@@ -36,13 +37,7 @@ func fightApp(t *testing.T) *tui.App {
 // tests browse menus, and a hunting creature would change what they see.
 func startApp(t *testing.T) *tui.App {
 	t.Helper()
-	bundle := contenttest.SampleBundle(t)
-	contenttest.StandingCrawler(&bundle)
-	reg := contenttest.Registry(t, bundle)
-	g, err := game.New(game.Config{Seed: 1, Content: reg})
-	if err != nil {
-		t.Fatal(err)
-	}
+	g, _, _ := gametest.New(t, 1, contenttest.StandingCrawler)
 	app, err := tui.NewApp(g)
 	if err != nil {
 		t.Fatal(err)

@@ -77,7 +77,7 @@ func (k KeyMap) OptionFor(msg tea.KeyPressMsg, v api.View) (string, bool) {
 	}
 	switch {
 	case key.Matches(msg, k.control):
-		for _, id := range []string{"control/" + api.ControlIndividual, "control/" + api.ControlFollow} {
+		for _, id := range []string{api.ControlOption(api.ControlIndividual), api.ControlOption(api.ControlFollow)} {
 			if hasOption(v, id) {
 				return id, true
 			}

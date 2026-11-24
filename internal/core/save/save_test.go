@@ -98,15 +98,15 @@ func TestSaveThenLoadAtTickZeroHasTheSameHash(t *testing.T) {
 func TestSaveThenLoadWithASpawnedActorHasTheSameHash(t *testing.T) {
 	bundle := newBundle(t)
 	contenttest.NoStart(&bundle) // the fixture spawns its own actor
-	reg := contenttest.Registry(t, bundle)
-	cfg := game.Config{Seed: 1, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
-		_, err := w.Spawn("template.person.reaper", nil)
-		return err
-	}}
-	g, err := game.New(cfg)
-	if err != nil {
-		t.Fatal(err)
+	cfg := game.Config{
+		Seed:    1,
+		Content: contenttest.Registry(t, bundle),
+		Spawn: func(w *sim.World, _ *clock.Clock) error {
+			_, err := w.Spawn("template.person.reaper", nil)
+			return err
+		},
 	}
+	g, _, cfg := gametest.Start(t, cfg)
 	loaded, warnings := reload(t, cfg, g)
 	if len(warnings) != 0 {
 		t.Errorf("warnings = %v, want none", warnings)
