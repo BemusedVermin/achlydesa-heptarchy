@@ -1,7 +1,7 @@
 ---
 id: M3-08
 title: Regions and towns as entities
-status: todo
+status: in-progress
 milestone: M3
 kind: seam
 depends_on: [M3-06]

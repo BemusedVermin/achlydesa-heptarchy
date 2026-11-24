@@ -509,6 +509,27 @@ import (
 	// Gates maps a mark character to the gate it is: each such character in the layers leads to a
 	// mark of another map. Each character must also be one of Marks, so the layers may use it.
 	gates?: {[string]: #GateDef} @go(Gates,map[string]GateDef)
+
+	// Region is what the map is as a region of the world. Every map is a region, named by the map's
+	// name; a map without one is a region with no data that is not a town.
+	region?: null | #RegionDef @go(Region,*RegionDef)
+}
+
+// RegionDef is a map's region: the data formulas read about it, such as its decay, and its town
+// when it is one.
+#RegionDef: {
+	#Data
+	town?: null | #TownDef @go(Town,*TownDef)
+}
+
+// TownDef makes a region a town, whose stock the region entity holds as its inventory.
+#TownDef: {
+	// Stock is what the stock starts with.
+	stock?: [...#StackDef] @go(Stock,[]StackDef)
+
+	// StockMarks are marks of the map where carried goods go into the stock. Each is a plain mark,
+	// not a spawn or a gate.
+	stock_marks?: [...string] @go(StockMarks,[]string)
 }
 
 // GateDef is where a gate leads.

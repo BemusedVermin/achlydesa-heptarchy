@@ -166,7 +166,8 @@ func bodyAt(w *sim.World, self ecs.Entity, cell api.Cell) (ecs.Entity, bool) {
 }
 
 // stepCarry moves params.count of params.item from the target body's inventory to whatever owns one
-// at the params.to mark. It is done when delivered.
+// at the params.to mark: the town, when the mark is one of its stock marks, otherwise the body
+// standing there. It is done when delivered.
 func stepCarry(w *sim.World, body ecs.Entity, b content.BehaviorDef, target Target) (bool, error) {
 	item := api.ContentID(b.Params["item"])
 	count, err := strconv.Atoi(b.Params["count"])
@@ -196,8 +197,12 @@ func stepCarry(w *sim.World, body ecs.Entity, b content.BehaviorDef, target Targ
 	if !ok {
 		return false, nil
 	}
-	owner, owned := bodyAt(w, body, dest)
-	arrived, err := approach(w, body, dest, owned)
+	stander, standing := bodyAt(w, body, dest)
+	owner, owned := stockAt(w, pos.Map, b.Params["to"])
+	if !owned {
+		owner, owned = stander, standing
+	}
+	arrived, err := approach(w, body, dest, standing)
 	if err != nil || !arrived || !owned {
 		return false, err
 	}

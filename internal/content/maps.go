@@ -108,6 +108,7 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 		}
 	}
 	r.checkGates(p, path, def, found)
+	r.checkTown(p, path, def)
 	for _, char := range sortedKeys(def.Marks) {
 		_, spawns := def.Spawns[char]
 		_, gate := def.Gates[char]
@@ -145,6 +146,30 @@ func (r *Registry) checkGates(p *problems, path string, def MapDef, found map[st
 		_, destGate := dest.Gates[destChar]
 		if !marked || destSpawns || destGate {
 			p.addf("%s.mark: map %q has no plain mark %q", at, gate.To, gate.Mark)
+		}
+	}
+}
+
+// checkTown validates a town's stock and its stock marks, which must be plain marks of the map.
+func (r *Registry) checkTown(p *problems, path string, def MapDef) {
+	if def.Region == nil || def.Region.Town == nil {
+		return
+	}
+	town := def.Region.Town
+	at := path + ".region.town"
+	for i, stack := range town.Stock {
+		ref(p, r.bundle.Items, fmt.Sprintf("%s.stock[%d].item", at, i), "item", stack.Item)
+		if stack.Count < 1 {
+			p.addf("%s.stock[%d].count: %d is not at least 1", at, i, stack.Count)
+		}
+	}
+	chars := def.MarkChars()
+	for i, mark := range town.StockMarks {
+		char, marked := chars[mark]
+		_, spawns := def.Spawns[char]
+		_, gate := def.Gates[char]
+		if !marked || spawns || gate {
+			p.addf("%s.stock_marks[%d]: %q is not a plain mark of the map", at, i, mark)
 		}
 	}
 }

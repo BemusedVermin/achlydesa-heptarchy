@@ -102,7 +102,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | done | feature | M | none |
 | [M3-03](M3-agents/M3-03-behaviors-agents-controller.md) | Behaviors and the agents controller | done | seam | M | M3-02 |
 | [M3-07](M3-agents/M3-07-playground.md) | A playground: the test maps joined by gates | done | content | M | M3-06 |
-| [M3-08](M3-agents/M3-08-regions-towns.md) | Regions and towns as entities | todo | seam | M | M3-06 |
+| [M3-08](M3-agents/M3-08-regions-towns.md) | Regions and towns as entities | in-progress | seam | M | M3-06 |
 | [M3-13](M3-agents/M3-13-party-food-water.md) | The party eats and drinks | done | feature | M | M3-02 |
 | [M3-14](M3-agents/M3-14-rest-heal.md) | Rest in town: heal integrity and set the rest place | todo | feature | M | M3-06 |
 | [M3-04](M3-agents/M3-04-more-behavior-primitives.md) | Behavior primitives: consume, carry, flee, guard and engage | done | feature | M | M3-01, M3-03 |
@@ -143,6 +143,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M3-08.F1](followups/M3-08.F1-draw-region-panel.md) | Draw the region section in the terminal frontend | proposed | feature | M3 | M3-08 |
 | [M3-04.F2.F1](followups/M3-04.F2.F1-action-target-tags.md) | Say what an action may target with a tag, not a new ActionDef field | done | debt | M3 | M3-04.F2 |
 | [M3-04.F1](followups/M3-04.F1-path-around-bodies.md) | Path around standing bodies in the behavior primitives | done | bug | M3 | M3-04 |
 | [M3-04.F2](followups/M3-04.F2-corpse-targets-opt-in.md) | Let an action say whether it may target a corpse | done | seam | M3 | M3-04 |

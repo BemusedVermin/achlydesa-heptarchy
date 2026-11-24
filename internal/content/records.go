@@ -35,7 +35,12 @@ func collections() []collection {
 		described(CollectionActions, "action", func(b *Bundle) map[string]ActionDef { return b.Actions },
 			nil, func(a ActionDef) (api.ContentID, bool) { return a.Name, true }),
 		described(CollectionMaps, "map", func(b *Bundle) map[string]MapDef { return b.Maps },
-			nil, func(m MapDef) (api.ContentID, bool) { return m.Name, true }),
+			func(m MapDef) Data {
+				if m.Region == nil {
+					return Data{}
+				}
+				return m.Region.Data
+			}, func(m MapDef) (api.ContentID, bool) { return m.Name, true }),
 		shared(described(
 			CollectionParts,
 			"part",

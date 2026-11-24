@@ -146,6 +146,17 @@ A body whose template has `actor: controller: "agents"` acts on the behaviors it
 
 `target` says what a behavior goes for: the nearest match on the agent's map, or the behavior is not scored. `kind: "body"` takes another body, filtered by its template `tags`, `dead` and `hostile` (to the agent); `kind: "mark"` takes the `mark` of that name on the map; `kind: "cell"` takes the nearest cell of `terrain` within `agents.cell_radius`. While a behavior goes on, it keeps the body or cell it chose as long as that still matches.
 
+## Regions and towns
+
+Every map is a region, named by the map's `name`, and its neighbours are the maps its gates lead to. A map's `region` holds the data formulas read about it (`tags`, `props` such as a decay, and `lists`), as the map's record. A region with `town` is a town: its `stock` is what the town starts with, and goods a `carry` behavior takes to one of its `stock_marks` (plain marks of the map) go into the stock, even when a body stands on the mark.
+
+```cue
+region: town: {
+	stock: [{item: "item.lake_water", count: 10}]
+	stock_marks: ["stock"]
+}
+```
+
 ## Effects
 
 An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
@@ -205,6 +216,8 @@ To play it, point `start.map` in `start.cue` at it for the session, and put it b
 | 1 | `map.play.hall` | The moving clay creature in the hall. |
 | 2 | `map.play.den` | The remnant and the flesh beast. |
 | 3 | `map.play.descent` | The soops down to the deep, and a moving clay creature at depth 2. |
+
+The hub is a town, with lake water and rations in its stock and a stock mark (`s`) in its top row.
 
 Tests keep their own start maps: the sample content in `contenttest` starts on `map.test.hall`, whatever `start.cue` says.
 
