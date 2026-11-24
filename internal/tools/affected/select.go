@@ -1,6 +1,7 @@
 package main
 
 import (
+	"maps"
 	"path"
 	"slices"
 	"strings"
@@ -8,7 +9,6 @@ import (
 
 // pkg is what the selection needs to know about one Go package.
 type pkg struct {
-	// ImportPath is the package's import path.
 	ImportPath string
 	// Dir is the package's directory, relative to the repository root, with forward slashes.
 	Dir string
@@ -53,12 +53,7 @@ func selectPackages(changed []string, pkgs []pkg) []string {
 	for _, importPath := range dependents(seeds, pkgs) {
 		selected[importPath] = true
 	}
-	result := make([]string, 0, len(selected))
-	for importPath := range selected {
-		result = append(result, importPath)
-	}
-	slices.Sort(result)
-	return result
+	return slices.Sorted(maps.Keys(selected))
 }
 
 // isGlobal reports whether a change to file can affect every package.
@@ -85,11 +80,7 @@ func dependents(seeds []string, pkgs []pkg) []string {
 		seen[next] = true
 		queue = append(queue, importedBy[next]...)
 	}
-	result := make([]string, 0, len(seen))
-	for importPath := range seen {
-		result = append(result, importPath)
-	}
-	return result
+	return slices.Sorted(maps.Keys(seen))
 }
 
 // importPaths returns the import path of every package, sorted.

@@ -12,20 +12,22 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/tools/internal/gitcmd"
 )
 
 // contentMarker is the relative path a test file holds when it loads the content data from disk.
 const contentMarker = "../content/data"
 
 func main() {
-	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, "affected:", err)
+	if err := run(os.Args[1:], os.Stdout); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "affected:", err)
 		os.Exit(1)
 	}
 }
 
 // run parses the flags, selects the packages and tests them (or lists them).
-func run(args []string) error {
+func run(args []string, stdout io.Writer) error {
 	flags := flag.NewFlagSet("affected", flag.ContinueOnError)
 	base := flags.String("base", "", "git ref to compare with; empty tests everything")
 	list := flags.Bool("list", false, "print the selected packages instead of testing them")
@@ -39,7 +41,6 @@ func run(args []string) error {
 	var selected []string
 	switch {
 	case flags.NArg() > 0:
-		// Files named on the command line stand in for the git diff, to see what a change would run.
 		selected = selectPackages(flags.Args(), pkgs)
 	case *base == "":
 		selected = importPaths(pkgs)
@@ -51,16 +52,18 @@ func run(args []string) error {
 		selected = selectPackages(changed, pkgs)
 	}
 	if *list {
-		fmt.Println(strings.Join(selected, "\n"))
-		return nil
+		_, err := fmt.Fprintln(stdout, strings.Join(selected, "\n"))
+		return err
 	}
 	if len(selected) == 0 {
-		fmt.Println("affected: no package is affected by this change, so no tests run")
-		return nil
+		_, err := fmt.Fprintln(stdout, "affected: no package is affected by this change, so no tests run")
+		return err
 	}
-	fmt.Printf("affected: testing %d of %d packages\n", len(selected), len(pkgs))
+	if _, err := fmt.Fprintf(stdout, "affected: testing %d of %d packages\n", len(selected), len(pkgs)); err != nil {
+		return err
+	}
 	test := exec.Command("go", append([]string{"test"}, selected...)...)
-	test.Stdout, test.Stderr = os.Stdout, os.Stderr
+	test.Stdout, test.Stderr = stdout, os.Stderr
 	return test.Run()
 }
 
@@ -74,11 +77,11 @@ func changedFiles(base string) ([]string, error) {
 		{"diff", "--name-only", "HEAD"},
 		{"ls-files", "--others", "--exclude-standard"},
 	} {
-		out, err := exec.Command("git", args...).Output()
+		out, err := gitcmd.Output(".", args...)
 		if err != nil {
-			return nil, fmt.Errorf("git %s: %w", strings.Join(args, " "), err)
+			return nil, err
 		}
-		files = append(files, strings.Fields(string(out))...)
+		files = append(files, strings.Fields(out)...)
 	}
 	slices.Sort(files)
 	return slices.Compact(files), nil

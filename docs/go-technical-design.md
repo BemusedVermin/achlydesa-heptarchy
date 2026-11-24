@@ -24,7 +24,7 @@ The game will change once it's played, so every place the game design already ex
 
 | Seam | From day one | Leaves room for |
 | --- | --- | --- |
-| Maps | Positions are `Pos{Map, Cell}`, where a cell is a hex plus a depth as fine as Minecraft's blocks. Maps are stored in chunks so they can be infinite, and neighbors come from a topology | Soops crossing over and under each other, slopes and ledges, sinks, an infinite plain, impossible folds, towns and set pieces as their own maps |
+| Maps | Positions are `Pos{Map, At}`, where `At` is a cell: a hex plus a depth as fine as Minecraft's blocks. Maps are stored in chunks so they can be infinite, and neighbors come from a topology | Soops crossing over and under each other, slopes and ledges, sinks, an infinite plain, impossible folds, towns and set pieces as their own maps |
 | Plan view | The core projects the 3D world into one 2D hex view: for each hex, the visible cell nearest the party's depth, shaded only by how far above or below it lies. The view never holds a depth or a layer | A seamless deep in the terminal now, and the same view or a richer one for Ebitengine later |
 | Entity templates | Content defines templates as bags of optional components, not one Go type per kind; one spawn function builds any of them | A person who becomes a monster, a creature that trades, a recruit who becomes a candidate, with no new content types |
 | Parts as entities | Each part is its own entity, tied to its body by an Ark relation, `PartOf` | Severed parts that crawl off and fight, a hand that latches onto an ally, moving clay taking a part, grafting and reattaching |
@@ -151,7 +151,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `game` | The public API: `Apply(cmd) []Event`, `View() Snapshot`, new game, load, save. Routes each command to the handler its package registered, and assembles the view from each package's section | `sim` and everything below |
 | `api` | Plain-data commands, events and view types: the boundary that frontends, the harness and replay logs share | The standard library only |
 | `sim` | The Ark world, the event bus, the system scheduler (cadence plus run-after ordering), and the command, event and view registries | Ark |
-| `comp` | Plain component structs and relations: `Pos{Map, Cell}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
+| `comp` | Plain component structs and relations: `Pos{Map, At}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
 | `anatomy` | Queries over bodies and parts: attached parts, functioning parts, grants, party members | `comp` |
 | `clock` | Ticks, day phases and the calendar read from content; per-phase and per-day systems as the timeline crosses boundaries; timers for generic NPC replacement and export scheduling | The `sim` scheduler |
 | `timeline` | The shared timeline: channels (a body and each of its parts) and when they're free, decisions, actions that land later, controllers (player, follow, behaviors), and playing time forward until the player is needed | Ark resources, `clock` |
