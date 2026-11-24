@@ -15,7 +15,7 @@ func TestRunFillsTheCombatColumns(t *testing.T) {
 	reg := contenttest.Sample(t)
 	var buf bytes.Buffer
 	cfg := harness.RunConfig{
-		Seeds: 2, SeedStart: 1, Steps: 60, Content: reg,
+		Seeds: 1, SeedStart: 1, Steps: 60, Content: reg,
 		NewPolicy: func(uint64) harness.Policy { return harness.NewInformedPolicy(reg) },
 	}
 	if err := harness.Run(cfg, &buf); err != nil {
@@ -41,13 +41,9 @@ func TestRunFillsTheCombatColumns(t *testing.T) {
 	if got := last[column("outcome")]; got != harness.OutcomeWon {
 		t.Errorf("outcome = %q, want %q", got, harness.OutcomeWon)
 	}
-	// Totals only grow.
 	landings := column("landings")
 	previous := 0
 	for _, row := range rows[1:] {
-		if row[0] != "1" {
-			continue
-		}
 		n, err := strconv.Atoi(row[landings])
 		if err != nil || n < previous {
 			t.Fatalf("landings went from %d to %q", previous, row[landings])

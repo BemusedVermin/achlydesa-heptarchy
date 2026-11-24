@@ -58,6 +58,9 @@ func median(results []harness.FightResult) int64 {
 // The targets are placeholders for M7's tuning: combat is lethal, and knowing the materials is what
 // wins it.
 func TestLethalityTargets(t *testing.T) {
+	if testing.Short() {
+		t.Skip("plays 200 fights")
+	}
 	reg := contenttest.Sample(t)
 	blind := playFights(t, reg, func() harness.Policy { return harness.NewBlindPolicy(reg) })
 	informed := playFights(t, reg, func() harness.Policy { return harness.NewInformedPolicy(reg) })

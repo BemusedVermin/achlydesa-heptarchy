@@ -116,30 +116,27 @@ func TestMenuDrillsDownSkipsSingleLevelsAndBacksOut(t *testing.T) {
 	app := fightApp(t)
 	history := len(app.Game.History())
 	pressCode(app, tea.KeyEnter)
-	view := app.View().Content
-	golden(t, "menu_actions", view)
+	golden(t, "menu_actions", tui.MenuPane(app))
 	selectEntry(t, app, "Strike")
 	pressCode(app, tea.KeyEnter)
-	view = app.View().Content
+	view := tui.MenuPane(app)
 	golden(t, "menu_types", view)
 	if !strings.Contains(view, "Actions > Strike") {
 		t.Errorf("no path on the type level:\n%s", view)
 	}
 	selectEntry(t, app, "Cut")
 	pressCode(app, tea.KeyEnter)
-	// One target is in reach, so its level is skipped and the parts come next.
-	view = app.View().Content
+	view = tui.MenuPane(app)
 	golden(t, "menu_parts", view)
 	if !strings.Contains(view, "maw") {
 		t.Errorf("the part level does not list the creature's parts:\n%s", view)
 	}
 	if !strings.Contains(view, "Actions > Strike > Cut > "+creature(app).Name) {
-		t.Errorf("the skipped target level is missing from the path:\n%s", view)
+		t.Errorf("the single target's level was not skipped into the path:\n%s", view)
 	}
 	selectEntry(t, app, "maw")
 	pressCode(app, tea.KeyEnter)
-	golden(t, "menu_arms", app.View().Content)
-	// Esc goes up one level at a time and then closes the menu.
+	golden(t, "menu_arms", tui.MenuPane(app))
 	pressCode(app, tea.KeyEscape)
 	if !strings.Contains(app.View().Content, "maw") {
 		t.Error("esc from the arms did not return to the parts")

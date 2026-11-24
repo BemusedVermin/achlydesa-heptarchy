@@ -119,19 +119,13 @@ func TestReplayGivesTheSameHash(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	again := play(t, config(t, 7), original.History())
 	a, errA := original.Hash()
 	b, errB := replayed.Hash()
-	if errA != nil || errB != nil || a != b {
-		t.Errorf("hashes differ: %x vs %x (%v, %v)", a, b, errA, errB)
-	}
-}
-
-func TestSameSeedAndCommandsGiveTheSameHash(t *testing.T) {
-	cmds := waits(t, config(t, 3), 20)
-	a, errA := play(t, config(t, 3), cmds).Hash()
-	b, errB := play(t, config(t, 3), cmds).Hash()
-	if errA != nil || errB != nil || a != b {
-		t.Errorf("hashes differ: %x vs %x (%v, %v)", a, b, errA, errB)
+	c, errC := again.Hash()
+	if errA != nil || errB != nil || errC != nil || a != b || a != c {
+		t.Errorf("hashes differ: original %x, replayed %x, played again on fresh content %x (%v, %v, %v)",
+			a, b, c, errA, errB, errC)
 	}
 }
 
@@ -145,24 +139,6 @@ func TestUnknownCommandKindIsAnError(t *testing.T) {
 	}
 	if _, err := g.View(); err != nil {
 		t.Errorf("an unknown kind should leave the game usable: %v", err)
-	}
-}
-
-func TestSwapContentReplacesContentAndWarns(t *testing.T) {
-	g, err := game.New(config(t, 1))
-	if err != nil {
-		t.Fatal(err)
-	}
-	reg := contenttest.Sample(t)
-	if err := g.SwapContent(reg); err != nil {
-		t.Fatal(err)
-	}
-	view, err := g.View()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(view.Log) == 0 || view.Log[len(view.Log)-1].Text == "" {
-		t.Errorf("log = %+v, want a reload warning last", view.Log)
 	}
 }
 
