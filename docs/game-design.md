@@ -399,7 +399,7 @@ Combat is meant to be lethal and short. If you go in without a plan, you lose.
 - **The same rules apply to the party.** A lost arm means one fewer swing in the air at once, and injuries persist between fights.
 - **Pre-entropy things don't know how to die.** A part severed from one sometimes crawls off and fights as its own combatant, so cutting can multiply enemies. A crawling part is not one of "everyone who crawls": Stand does not freeze it. A crawling part fights with whatever forms its own grants allow, like any body, and swings with the Cut type.
 
-### Moves = form × type
+### Actions = form × type
 
 An action is a character's **form** loaded with a **type**. Cut, Press, Relic and Name are innate. Every other type is a consumable material that has to be fetched.
 

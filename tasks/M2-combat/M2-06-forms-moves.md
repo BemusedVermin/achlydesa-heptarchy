@@ -17,7 +17,7 @@ The seven forms, what each type does to them, and the rules of weakness are all 
 
 ## Context
 
-- Game design: "Combat → Moves = form × type", "Combat → Forms", "Combat → Types", "Combat → Timing", "Combat → Lethality".
+- Game design: "Combat → Actions = form × type", "Combat → Forms", "Combat → Types", "Combat → Timing", "Combat → Lethality".
 - This milestone's README, "The combat model".
 - M1-20 actions; M2-04 the combat primitives; M2-05 triggers; M2-13 records, rules, choices from content, and chosen records' mods.
 
