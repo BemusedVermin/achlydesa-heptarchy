@@ -2,7 +2,7 @@ package data
 
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
-parts: [string]:  content.#PartTemplate
+parts: [string]: content.#PartTemplate & {grants: *[] | [...]}
 bodies: [string]: content.#BodyPlan
 
 // Placeholder numbers, for tuning. Lethal from the start: an ordinary Strike (3) takes off an arm or a

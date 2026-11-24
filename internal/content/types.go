@@ -125,8 +125,8 @@ type Type struct {
 type Item struct {
 	Data
 	Mods
-	Name  api.ContentID `json:"name"`            // a text ID
-	Bound bool          `json:"bound,omitempty"` // tied to one person, e.g. a name or a keepsake
+	Name  api.ContentID `json:"name"`  // a text ID
+	Bound bool          `json:"bound"` // tied to one person, e.g. a name or a keepsake
 	// Part is the part template ("part." ID) an item becomes when grafted on; only such an item has one.
 	Part *api.ContentID `json:"part,omitempty"`
 	// Triggers run for holders of the item.
@@ -366,7 +366,7 @@ type PartTemplate struct {
 	Slot      string        `json:"slot"`     // "head", "arm", "legs", ...: free text, for display and grafting
 	Material  api.ContentID `json:"material"` // a material ID
 	Integrity int           `json:"integrity"`
-	Grants    []comp.Grant  `json:"grants,omitempty"`
+	Grants    []comp.Grant  `json:"grants"`
 	Vital     bool          `json:"vital,omitempty"`
 	// CrawlsAs is the template ("template." ID) a body made from this part by spawn_from_part takes
 	// as its identity: its name, appearance, the actions it knows and its lists. Without it the body

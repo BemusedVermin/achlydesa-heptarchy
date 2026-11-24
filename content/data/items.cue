@@ -2,7 +2,7 @@ package data
 
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
-items: [string]: content.#Item
+items: [string]: content.#Item & {bound: *false | bool}
 
 items: {
 	"item.coal": {name: "text.item.coal", tags: ["consumable"]}
