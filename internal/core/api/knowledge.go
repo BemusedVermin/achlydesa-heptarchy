@@ -50,7 +50,6 @@ func (n FactNoticed) LogText() Text {
 
 // KnowledgeTextID is the text ID that reports a fact of the given claim: "text.knowledge." plus the
 // claim without its "claim." prefix.
-// claim without its "claim." prefix, so the text for the material claim.
 func KnowledgeTextID(claim ContentID) ContentID {
 	return ContentID("text.knowledge." + strings.TrimPrefix(string(claim), "claim."))
 }

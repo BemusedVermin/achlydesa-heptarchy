@@ -6,11 +6,8 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// StepRules bound how far a body can climb or fall in one step.
+// StepRules bound how far a body can climb or fall in one step, in cells.
 type StepRules struct{ MaxStepUp, MaxStepDown, MaxDrop int }
-
-// DefaultStepRules are 1, 1, 8.
-func DefaultStepRules() StepRules { return StepRules{MaxStepUp: 1, MaxStepDown: 1, MaxDrop: 8} }
 
 // StepKind says how a step changed depth.
 type StepKind uint8

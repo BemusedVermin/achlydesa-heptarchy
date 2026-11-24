@@ -232,7 +232,11 @@ func stepCost(w *sim.World, body ecs.Entity, m *hexmap.Map, to api.Cell, kind he
 		}
 	}
 	if kind == hexmap.StepUp {
-		climb, err := w.Content.ClimbCost(content.SpeedEnv{Speed: timeline.Speed(w, body)})
+		speed, err := timeline.Speed(w, body)
+		if err != nil {
+			return 0, err
+		}
+		climb, err := w.Content.ClimbCost(content.SpeedEnv{Speed: speed})
 		if err != nil {
 			return 0, err
 		}

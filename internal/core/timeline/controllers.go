@@ -66,9 +66,11 @@ func SetUsableChannels(w *sim.World, fn func(w *sim.World, body ecs.Entity, chan
 	stateOf(w).usableAll = fn
 }
 
-// SetSpeed replaces how a body's speed is found. The default is the configured default_speed;
-// anatomy sums the legs.
-func SetSpeed(w *sim.World, fn func(w *sim.World, body ecs.Entity) int) { stateOf(w).speed = fn }
+// SetSpeed replaces how a body's speed is found. The default is the configured default_speed. An
+// error from fn stops whatever needed the speed and is returned from it.
+func SetSpeed(w *sim.World, fn func(w *sim.World, body ecs.Entity) (int, error)) {
+	stateOf(w).speed = fn
+}
 
 // SetVisible replaces which bodies the player may see on the timeline. The default is party members.
 func SetVisible(w *sim.World, fn func(w *sim.World, body ecs.Entity) bool) { stateOf(w).visible = fn }

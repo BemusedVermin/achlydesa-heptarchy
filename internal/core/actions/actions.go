@@ -265,13 +265,17 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	if err != nil {
 		return content.ActionEnv{}, err
 	}
+	speed, err := timeline.Speed(ev.w, p.actor)
+	if err != nil {
+		return content.ActionEnv{}, err
+	}
 	choices := p.choices
 	if choices == nil {
 		choices = map[string]string{}
 	}
 	source := effects.BodyEnvOf(ev.w, p.actor, timeline.FirstPart(p.channels))
 	return content.ActionEnv{
-		Speed: timeline.Speed(ev.w, p.actor), StepTicks: stepTicks,
+		Speed: speed, StepTicks: stepTicks,
 		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
 		Source: source, Target: effects.BodyEnvOf(ev.w, p.target, p.part),
 		Chosen: effects.ChosenRecords(ev.w, choices), Inventory: inventory.Usable(ev.w, p.actor, p.target),

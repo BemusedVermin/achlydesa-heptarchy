@@ -16,7 +16,7 @@ import (
 // named: adding a feature package adds one line here (M1-10 adds explore).
 func installAll(w *sim.World, clk *clock.Clock) error {
 	steps := []func() error{
-		func() error { return clock.Install(w, clk, w.Content) },
+		func() error { return clock.Install(w, clk) },
 		func() error { return timeline.Install(w, clk) },
 		func() error { return anatomy.Install(w) },
 		func() error { return inventory.Install(w) },
