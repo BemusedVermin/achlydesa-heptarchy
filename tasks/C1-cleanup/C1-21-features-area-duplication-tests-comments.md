@@ -110,7 +110,7 @@ Comments:
 - `project.go`: two narrating comments are cut.
 - `installSides` and `installControl`: their list-of-registrations doc comments are cut. explore's `Install` doc no longer lists builders, which also fixes the missing `explore.control`.
 - Sweep: name-restating doc comments on unexported identifiers are cut in `alert.go`, `view.go`, `death.go`, `controller.go`, `hostility.go`, `project.go`, `install.go`, `explore.go`, `follow.go` and `wake.go`, and "later"/"until towns exist" history is cut in `controller.go` and `wake.go`.
-- Net over the branch, as the owner asked, measured on `git diff -U0 origin/master` of `.go` comment lines, with moved comments counted on both sides: 49 lines (599 words) added, 86 lines (1110 words) removed. That is 37 lines and 511 words fewer.
+- Net over the branch, as the owner asked, measured on `git diff -U0 origin/master` of `.go` comment lines, with moved comments counted on both sides: 30 lines (391 words) added, 62 lines (807 words) removed. That is 32 lines and 416 words fewer.
 - After review: cut the restating comments on `expireSystem` and `stillController`, and shortened the comment on combat's `state`. explore's `Install` now names what it registers, and `KnownIDs` says what a caller must know.
 
 Other:
