@@ -16,13 +16,16 @@ actions: {
 		on_land: [{do: "step", params: {}}]
 		tags: ["movement"]
 	}
-	// Eating and drinking take one item and lower the need by a placeholder half.
+	// Eating and drinking take one item and lower the need by a placeholder half. With a hostile in sight they stay in
+	// the menu, disabled.
 	"action.eat": {
 		name: "text.action.eat"
 		key:  "eat"
 		uses: [{tag: "body", count: 1}]
 		target:   "self"
 		requires: "inventory[\"item.ration\"] > 0"
+		allowed:  "!source.alert"
+		refusal:  "text.actions.on_alert"
 		windup:   "0"
 		recovery: "20"
 		on_start: [{do: "consume", params: {item: "item.ration"}}]
@@ -35,6 +38,8 @@ actions: {
 		uses: [{tag: "body", count: 1}]
 		target:   "self"
 		requires: "inventory[\"item.lake_water\"] > 0"
+		allowed:  "!source.alert"
+		refusal:  "text.actions.on_alert"
 		windup:   "0"
 		recovery: "20"
 		on_start: [{do: "consume", params: {item: "item.lake_water"}}]

@@ -19,9 +19,9 @@ var tagPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*(:[a-z][a-z0-9_]*)*$`)
 
 // compiledAction holds an action's formulas, compiled against ActionEnv.
 type compiledAction struct {
-	// requires and connects are nil when the action has none.
-	requires, connects *vm.Program
-	windup, recovery   *vm.Program
+	// requires, allowed and connects are nil when the action has none.
+	requires, allowed, connects *vm.Program
+	windup, recovery            *vm.Program
 }
 
 // Action returns the action with the given ID.
@@ -77,6 +77,22 @@ func (r *Registry) ActionRequires(id api.ContentID, env ActionEnv) (bool, error)
 	return value || !present, nil
 }
 
+// ActionAllowed evaluates the action's allowed formula. When it is false, refusal is the text ID of
+// the reason. An action with none is always allowed.
+func (r *Registry) ActionAllowed(id api.ContentID, env ActionEnv) (ok bool, refusal api.ContentID, err error) {
+	value, present, err := r.actionBool(id, "allowed", func(c compiledAction) *vm.Program { return c.allowed }, env)
+	if err != nil {
+		return false, "", err
+	}
+	if value || !present {
+		return true, "", nil
+	}
+	if def, _ := r.Action(id); def.Refusal != "" {
+		return false, def.Refusal, nil
+	}
+	return false, refusalText, nil
+}
+
 // ActionConnects evaluates the action's connects formula. present is false when the action has none,
 // meaning the default applies: the target is still in range (and sight, if required).
 func (r *Registry) ActionConnects(id api.ContentID, env ActionEnv) (connects, present bool, err error) {
@@ -91,6 +107,9 @@ func (r *Registry) checkActions() []error {
 		def := r.bundle.Actions[id]
 		path := fmt.Sprintf("actions[%q]", id)
 		p.text(path+".name", def.Name)
+		if def.Refusal != "" {
+			p.text(path+".refusal", def.Refusal)
+		}
 		other, dup := keys[def.Key]
 		switch {
 		case !keyPattern.MatchString(def.Key):
@@ -163,6 +182,7 @@ func (r *Registry) compileAction(path string, def ActionDef) (compiledAction, []
 	}
 	compiled := compiledAction{
 		requires: compile("requires", def.Requires, false, expr.AsBool()),
+		allowed:  compile("allowed", def.Allowed, false, expr.AsBool()),
 		connects: compile("connects", def.Connects, false, expr.AsBool()),
 		windup:   compile("windup", def.Windup, true, expr.AsInt64()),
 		recovery: compile("recovery", def.Recovery, true, expr.AsInt64()),

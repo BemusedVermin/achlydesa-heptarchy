@@ -92,7 +92,9 @@ rules: {
 }
 ```
 
-Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that names an unknown variable or rule is not caught by `cue vet`: an action's `windup`, `recovery` and `requires`, a mod, an offer and a trigger's `if` fail when content loads, and an effect's params fail when a game starts.
+Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that names an unknown variable or rule is not caught by `cue vet`: an action's `windup`, `recovery`, `requires` and `allowed`, a mod, an offer and a trigger's `if` fail when content loads, and an effect's params fail when a game starts.
+
+An action's `requires` leaves it out of the menu when false, as `action.eat` does with no ration in the inventory. Its `allowed` keeps it in the menu but disabled, with its `refusal` text as the reason (`text.actions.requires` when it names none): `action.eat` and `action.drink` are `allowed: "!source.alert"`, so they are refused while the body's party has a hostile in sight. `source.alert` is false for a body outside a party.
 
 ### Choices and mods
 

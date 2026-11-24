@@ -49,6 +49,8 @@ type BodyEnv struct {
 	WindingUp bool `expr:"winding_up"`
 	// IsParty means the body belongs to the party the player commands (set only when scoring).
 	IsParty bool `expr:"is_party"`
+	// Alert means the body's party has a hostile in sight; a body outside a party is never on alert.
+	Alert bool `expr:"alert"`
 	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
 	Needs map[string]float64 `expr:"needs"`
 }

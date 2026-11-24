@@ -415,6 +415,36 @@ func TestFailingCheckDisablesTheOptionWithItsReason(t *testing.T) {
 	}
 }
 
+func TestFailingAllowedDisablesTheOptionWithTheActionsRefusal(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		refusal api.ContentID
+		want    api.ContentID
+	}{
+		{name: "named refusal", refusal: "text.actions.on_alert", want: "text.actions.on_alert"},
+		{name: "default refusal", want: "text.actions.requires"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			fx := newFixture(t, 1, opts{
+				actions: []api.ContentID{"action.test.grab"}, arms: 2,
+				mutate: func(b *content.Bundle) {
+					grab := b.Actions["action.test.grab"]
+					grab.Allowed, grab.Refusal = "source.integrity < 0", tc.refusal
+					b.Actions["action.test.grab"] = grab
+				},
+			})
+			option := fx.option("grab")
+			if want := fx.w.Content.Render(api.Text{ID: tc.want}); option.Enabled || option.Reason != want {
+				t.Errorf("option = enabled %v, reason %q; want disabled with %q", option.Enabled, option.Reason, want)
+			}
+			events := fx.apply(option.Command)
+			if rejected, ok := find[api.Rejected](events); !ok || rejected.Reason.ID != tc.want {
+				t.Errorf("Do of a disallowed option gave %v, want Rejected with %s", events, tc.want)
+			}
+		})
+	}
+}
+
 func TestUsableHookLetsABodyWithAUselessArmWaitForItsBody(t *testing.T) {
 	far := newFixture(t, 1, opts{
 		actions: []api.ContentID{"action.step", "action.test.swing"}, dummyQ: 9,
