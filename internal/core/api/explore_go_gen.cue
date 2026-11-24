@@ -12,7 +12,10 @@ package api
 #LeaderChangedKind:  "explore.leader_changed"
 #PartyWokeKind:      "explore.party_woke"
 
-#ControlFollow:     "follow"
+// The leader is played; the rest trail in single file
+#ControlFollow: "follow"
+
+// Every member's decisions come to the player
 #ControlIndividual: "individual"
 #ControlByPlayer:   "player"
 #ControlByAlert:    "alert"
@@ -32,9 +35,13 @@ package api
 
 // ControlChanged reports that the party's control mode changed.
 #ControlChanged: {
-	party: #UID   @go(Party)
-	mode:  string @go(Mode)
-	by:    string @go(By)
+	party: #UID @go(Party)
+
+	// ControlFollow or ControlIndividual
+	mode: string @go(Mode)
+
+	// ControlByPlayer or ControlByAlert
+	by: string @go(By)
 }
 
 // LeaderChanged reports that another member leads the party.
@@ -65,7 +72,9 @@ package api
 	map:    #MapID @go(Map)
 	from:   #Cell  @go(From)
 	to:     #Cell  @go(To)
-	kind:   string @go(Kind)
+
+	// One of MoveLevel, MoveUp, MoveDown, MoveDrop
+	kind: string @go(Kind)
 }
 
 // Fell reports that a body dropped off a ledge.
@@ -79,16 +88,22 @@ package api
 #MapView: {
 	map:  #MapID @go(Map)
 	name: string @go(Name)
+
+	// Sorted by R, then Q
 	cells: [...#CellView] @go(Cells,[]CellView)
+
+	// Sorted by UID
 	entities: [...#EntityView] @go(Entities,[]EntityView)
 }
 
 // CellView is one drawn hex.
 #CellView: {
-	hex:     #Hex   @go(Hex)
-	glyph:   string @go(Glyph)
-	color?:  string @go(Color)
-	visible: bool   @go(Visible)
+	hex:    #Hex   @go(Hex)
+	glyph:  string @go(Glyph)
+	color?: string @go(Color)
+
+	// False for a remembered cell
+	visible: bool @go(Visible)
 
 	// Below is the drawn cell's depth minus the party's: positive is lower, negative is higher.
 	below: int @go(Below)
@@ -100,7 +115,9 @@ package api
 	hex:    #Hex   @go(Hex)
 	glyph:  string @go(Glyph)
 	color?: string @go(Color)
-	below:  int    @go(Below)
+
+	// As for [CellView]
+	below: int @go(Below)
 }
 
 // PartyView is the party the player commands.
@@ -111,6 +128,8 @@ package api
 	// Hex is where to center the map: the current actor if it is a member, else the leader. It is a
 	// hex, never a depth.
 	hex: #Hex @go(Hex)
+
+	// In party order
 	members: [...#MemberView] @go(Members,[]MemberView)
 
 	// Control is ControlFollow or ControlIndividual.
@@ -118,6 +137,10 @@ package api
 
 	// Alert is whether a hostile is in sight.
 	alert: bool @go(Alert)
+
+	// Status is the rendered lines a status bar shows: the alert while one is on, and the control
+	// mode while the player decides for a member.
+	status?: [...string] @go(Status,[]string)
 }
 
 // MemberView is one member of the party.

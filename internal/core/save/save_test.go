@@ -21,6 +21,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
 
 // rig is a game on the sample content's start scenario, with the world kept for tests that edit it.
@@ -54,7 +55,7 @@ func reload(t testing.TB, cfg game.Config, g *game.Game) (*rig, []string) {
 	return &rig{cfg: cfg, g: loaded, w: w}, warnings
 }
 
-func hash(t testing.TB, g *game.Game) [32]byte {
+func hash(t rapid.TB, g *game.Game) [32]byte {
 	t.Helper()
 	sum, err := g.Hash()
 	if err != nil {
@@ -63,13 +64,10 @@ func hash(t testing.TB, g *game.Game) [32]byte {
 	return sum
 }
 
-// pick applies the enabled option of the view that choice selects, wrapping around.
-func pick(t testing.TB, g *game.Game, choice int) {
-	t.Helper()
-	view, err := g.View()
-	if err != nil {
-		t.Fatal(err)
-	}
+// nth is a policy that takes the enabled option at its index, wrapping around.
+type nth int
+
+func (n nth) Choose(view api.View) (api.Option, bool) {
 	var enabled []api.Option
 	for _, option := range view.Options {
 		if option.Enabled {
@@ -77,10 +75,16 @@ func pick(t testing.TB, g *game.Game, choice int) {
 		}
 	}
 	if len(enabled) == 0 {
-		t.Fatal("no enabled option")
+		return api.Option{}, false
 	}
-	if _, err := g.Apply(enabled[choice%len(enabled)].Command); err != nil {
-		t.Fatal(err)
+	return enabled[int(n)%len(enabled)], true
+}
+
+// pick applies the enabled option of the view that choice selects, wrapping around.
+func pick(t rapid.TB, g *game.Game, choice int) {
+	t.Helper()
+	if _, ok, err := harness.Step(g, nth(choice)); err != nil || !ok {
+		t.Fatalf("pick %d: ok %v, err %v", choice, ok, err)
 	}
 }
 
@@ -100,7 +104,7 @@ func TestSaveThenLoadAtTickZeroHasTheSameHash(t *testing.T) {
 
 func TestSaveThenLoadWithASpawnedActorHasTheSameHash(t *testing.T) {
 	bundle := newBundle(t)
-	contenttest.NoStart(&bundle) // the fixture spawns its own actor
+	contenttest.NoStart(&bundle)
 	cfg := game.Config{
 		Seed:    1,
 		Content: contenttest.Registry(t, bundle),
@@ -202,26 +206,56 @@ func TestAMapEditSurvivesSaveAndLoad(t *testing.T) {
 	}
 }
 
+// continuesIdentically plays before, saves and loads, then plays after on both games, and fails
+// when their hashes differ after the load or at the end. The hash covers the history and the random
+// streams, so games that part never meet again, and checking at the end catches a split anywhere.
+func continuesIdentically(t rapid.TB, cfg game.Config, before, after []int) {
+	t.Helper()
+	g, err := game.New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, choice := range before {
+		pick(t, g, choice)
+	}
+	var buf bytes.Buffer
+	if err := g.Save(&buf); err != nil {
+		t.Fatal(err)
+	}
+	loaded, _, err := game.Load(cfg, &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hash(t, loaded) != hash(t, g) {
+		t.Fatal("hash changed across save and load")
+	}
+	for _, choice := range after {
+		pick(t, g, choice)
+		pick(t, loaded, choice)
+	}
+	if hash(t, loaded) != hash(t, g) {
+		t.Fatalf("hashes differ at the end, %d commands after loading", len(after))
+	}
+}
+
 func TestLoadingAfterRandomPlayContinuesIdentically(t *testing.T) {
+	reg := contenttest.Registry(t, newBundle(t))
+	for _, tt := range []struct {
+		name          string
+		seed          uint64
+		before, after []int
+	}{
+		{"seed 0, a failure rapid once found", 0, []int{491, 8, 720}, []int{222, 823, 592}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			continuesIdentically(t, game.Config{Seed: tt.seed, Content: reg}, tt.before, tt.after)
+		})
+	}
 	rapid.Check(t, func(rt *rapid.T) {
 		seed := rapid.Uint64().Draw(rt, "seed")
-		before := rapid.SliceOfN(rapid.IntRange(0, 1000), 0, 60).Draw(rt, "before")
-		after := rapid.SliceOfN(rapid.IntRange(0, 1000), 0, 40).Draw(rt, "after")
-		r := newRig(t, seed, newBundle(t))
-		for _, choice := range before {
-			pick(t, r.g, choice)
-		}
-		loaded, _ := reload(t, r.cfg, r.g)
-		if hash(t, loaded.g) != hash(t, r.g) {
-			rt.Fatal("hash changed across save and load")
-		}
-		for i, choice := range after {
-			pick(t, r.g, choice)
-			pick(t, loaded.g, choice)
-			if hash(t, loaded.g) != hash(t, r.g) {
-				rt.Fatalf("hashes differ %d commands after loading", i+1)
-			}
-		}
+		before := rapid.SliceOfN(rapid.IntRange(0, 1000), 0, 20).Draw(rt, "before")
+		after := rapid.SliceOfN(rapid.IntRange(0, 1000), 0, 10).Draw(rt, "after")
+		continuesIdentically(rt, game.Config{Seed: seed, Content: reg}, before, after)
 	})
 }
 

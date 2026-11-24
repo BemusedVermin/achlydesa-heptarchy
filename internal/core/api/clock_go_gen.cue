@@ -23,5 +23,10 @@ package api
 	day:           int    @go(Day)
 	phase:         string @go(Phase)
 	tick_in_phase: int64  @go(TickInPhase)
-	phase_ticks:   int64  @go(PhaseTicks)
+
+	// Length of the current phase
+	phase_ticks: int64 @go(PhaseTicks)
+
+	// Label is the day and phase, rendered as one line.
+	label: string @go(Label)
 }

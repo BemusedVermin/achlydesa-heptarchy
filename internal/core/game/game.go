@@ -20,7 +20,9 @@ import (
 
 // Config says how to start a game.
 type Config struct {
-	Seed    uint64
+	// Seed seeds every random stream. Load ignores it and takes the save's.
+	Seed uint64
+	// Content is required.
 	Content *content.Registry
 	// Install, when set, runs after the standard packages are installed and before the scheduler
 	// freezes. Tests and the harness use it to register hooks. It runs in New and in Load, so it
@@ -31,52 +33,15 @@ type Config struct {
 	Spawn func(w *sim.World, clk *clock.Clock) error
 }
 
-// SwapContent replaces the game's content with reg, for hot reload in dev builds. It runs the
-// content checks build does (effect primitives and references, action choice providers) against
-// the new registry first; on failure it returns the error and keeps the old content. Call it only
-// between commands, from the goroutine that owns the game.
-//
-// Entities keep the components they were spawned with, because components hold content IDs and
-// values, not pointers into the registry; only later spawns and lookups use the new templates and
-// numbers. The swap is not recorded in [Game.History], so a replay that began before it will not
-// reproduce the game, and a warning line in the message log says so.
-func (g *Game) SwapContent(reg *content.Registry) error {
-	if reg == nil {
-		return errors.New("game: swap content: no content")
-	}
-	old := g.world.Content
-	g.world.Content = reg
-	if err := effects.ValidateContent(g.world); err != nil {
-		g.world.Content = old
-		return fmt.Errorf("game: swap content: %w", err)
-	}
-	if err := actions.ValidateContent(g.world); err != nil {
-		g.world.Content = old
-		return fmt.Errorf("game: swap content: %w", err)
-	}
-	g.clock.Reset(reg.Calendar())
-	timeline.Reload(g.world)
-	g.Note("content reloaded: a replay from before this point will not match")
-	return nil
-}
-
-// Note adds a line of text straight to the message log, for the frontend to report something that
-// is not a game event, such as a failed reload.
-func (g *Game) Note(text string) {
-	g.log = append(g.log, api.LogLine{Tick: g.world.Now, Text: text})
-	if len(g.log) > LogLines {
-		g.log = g.log[len(g.log)-LogLines:]
-	}
-}
-
 // Game is one running game. It is not safe for concurrent use.
 type Game struct {
 	world   *sim.World
 	clock   *clock.Clock
 	history []api.Command
-	events  []api.Event // delivered since the last Apply returned
-	log     []api.LogLine
-	broken  error
+	// events are those delivered since the last Apply returned.
+	events []api.Event
+	log    []api.LogLine
+	broken error
 }
 
 // New builds a game from cfg, installs every package, and plays the timeline forward to the first
@@ -115,6 +80,9 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 	if err := g.installLog(); err != nil {
 		return nil, fmt.Errorf("game: %w", err)
 	}
+	if err := installLabels(g.world); err != nil {
+		return nil, fmt.Errorf("game: %w", err)
+	}
 	if err := installAll(g.world, g.clock); err != nil {
 		return nil, fmt.Errorf("game: install: %w", err)
 	}
@@ -131,10 +99,7 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 			return nil, fmt.Errorf("game: spawn: %w", err)
 		}
 	}
-	if err := effects.ValidateContent(g.world); err != nil {
-		return nil, fmt.Errorf("game: %w", err)
-	}
-	if err := actions.ValidateContent(g.world); err != nil {
+	if err := validateContent(g.world); err != nil {
 		return nil, fmt.Errorf("game: %w", err)
 	}
 	if err := g.world.Systems.Freeze(); err != nil {
@@ -142,6 +107,51 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 	}
 	return g, nil
 }
+
+// validateContent runs the content checks that need the packages installed: effect primitives and
+// references, and action choice providers.
+func validateContent(w *sim.World) error {
+	if err := effects.ValidateContent(w); err != nil {
+		return err
+	}
+	return actions.ValidateContent(w)
+}
+
+// SwapContent replaces the game's content with reg, for hot reload in dev builds. It runs the
+// content checks build does against the new registry first, and keeps the old content when they
+// fail. Call it only between commands, from the goroutine that owns the game.
+//
+// Entities keep the components they were spawned with, because components hold content IDs and
+// values, not pointers into the registry; only later spawns and lookups use the new templates and
+// numbers. The swap is not recorded in [Game.History], so a replay that began before it will not
+// reproduce the game, and a warning line in the message log says so.
+func (g *Game) SwapContent(reg *content.Registry) error {
+	if reg == nil {
+		return errors.New("game: swap content: no content")
+	}
+	old := g.world.Content
+	g.world.Content = reg
+	if err := validateContent(g.world); err != nil {
+		g.world.Content = old
+		return fmt.Errorf("game: swap content: %w", err)
+	}
+	g.clock.Reset(reg.Calendar())
+	timeline.Reload(g.world)
+	g.NoteText(api.Text{ID: "text.game.content_reloaded"})
+	return nil
+}
+
+// ReloadFailed logs that a content reload failed with err and the old content stays.
+func (g *Game) ReloadFailed(err error) {
+	g.NoteText(api.Text{ID: "text.game.reload_failed", Args: map[string]string{"error": err.Error()}})
+}
+
+// Note adds a line of text straight to the message log, for the frontend to report something that
+// is not a game event, such as a failed reload.
+func (g *Game) Note(text string) { g.appendLog(text) }
+
+// NoteText is [Game.Note] for text the game's content renders.
+func (g *Game) NoteText(text api.Text) { g.appendLog(g.world.Content.Render(text)) }
 
 // Apply runs one command, plays time forward until a player-controlled body decides, and returns
 // the events in delivery order. An invalid command is not an error: it comes back as an
@@ -160,10 +170,7 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 		if _, err := g.world.Bus.Drain(g.world); err != nil {
 			return nil, g.fail(err)
 		}
-		g.history = append(g.history, cmd)
-		events := g.events
-		g.events = nil
-		return events, nil
+		return g.record(cmd), nil
 	}
 	// Handlers that take time occupy channels themselves, so the returned cost is ignored.
 	if _, err := g.world.Commands.Dispatch(g.world, cmd); err != nil {
@@ -178,10 +185,15 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 	if err := g.wakeIfWiped(); err != nil {
 		return nil, g.fail(err)
 	}
+	return g.record(cmd), nil
+}
+
+// record adds cmd to the history and hands over the events delivered since the last Apply.
+func (g *Game) record(cmd api.Command) []api.Event {
 	g.history = append(g.history, cmd)
 	events := g.events
 	g.events = nil
-	return events, nil
+	return events
 }
 
 // wakeIfWiped gets a wiped-out party up at its last rest place after the configured time, then
@@ -216,7 +228,7 @@ func (g *Game) Current() api.UID {
 	return 0
 }
 
-// View builds the view of the current state.
+// View builds a fresh snapshot for a frontend. It fails once an error has left the game unusable.
 func (g *Game) View() (api.View, error) {
 	if g.broken != nil {
 		return api.View{}, g.broken

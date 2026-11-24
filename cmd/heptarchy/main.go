@@ -84,7 +84,12 @@ func play(opts *playOptions) error {
 	program := tea.NewProgram(app)
 	if opts.dev {
 		stop, err := content.Watch(opts.content, func(reg *content.Registry, err error) {
-			program.Send(tui.ContentMsg{Registry: reg, Err: err})
+			program.Send(tui.ContentMsg{Reload: func(g *game.Game) error {
+				if err != nil {
+					return err
+				}
+				return g.SwapContent(reg)
+			}})
 		})
 		if err != nil {
 			return err

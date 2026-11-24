@@ -7,15 +7,24 @@ package api
 #WaitKind:  "timeline.wait"
 #ReadyKind: "timeline.ready"
 
+// After Ticks ticks
 #WaitTicks: "ticks"
+
+// At the next entry on the timeline that isn't the actor's own
 #WaitEvent: "event"
+
+// At the next phase boundary
 #WaitPhase: "phase"
 
 // Wait makes the current player body skip deciding until something happens.
 #Wait: {
-	source: #UID   @go(Source)
-	until:  string @go(Until)
-	ticks:  int64  @go(Ticks)
+	source: #UID @go(Source)
+
+	// WaitTicks, WaitEvent or WaitPhase
+	until: string @go(Until)
+
+	// For WaitTicks only; must be above 0
+	ticks: int64 @go(Ticks)
 }
 
 // Ready reports that a body may decide at Tick.
@@ -26,21 +35,36 @@ package api
 
 // TimelineView is the shared timeline: who decides now and what comes next.
 #TimelineView: {
-	now:     int64 @go(Now)
-	window:  int64 @go(Window)
-	current: #UID  @go(Current)
+	now: int64 @go(Now)
+
+	// How many ticks past Now the entries reach
+	window: int64 @go(Window)
+
+	// The body deciding now, or 0
+	current: #UID @go(Current)
+
+	// From Now to Now plus the window, in timeline order
 	entries: [...#TimelineEntry] @go(Entries,[]TimelineEntry)
 }
 
 // TimelineEntry is one thing on the timeline.
 #TimelineEntry: {
-	tick:   int64  @go(Tick)
+	tick: int64 @go(Tick)
+
+	// EntryReady or EntryLands
 	kind:   string @go(Kind)
 	source: #UID   @go(Source)
 	glyph:  string @go(Glyph)
 	color:  string @go(Color)
-	target: #UID   @go(Target)
-	label:  string @go(Label)
+
+	// For "lands"
+	target: #UID @go(Target)
+
+	// Rendered, e.g. "The Reaper is ready"
+	label: string @go(Label)
+
+	// TickLabel names the entry's tick, rendered, as a heading for everything on that tick.
+	tick_label: string @go(TickLabel)
 }
 
 #ActionLandedKind:   "timeline.action_landed"
@@ -48,6 +72,7 @@ package api
 
 // ActionLanded reports that a pending action has landed and been resolved.
 #ActionLanded: {
+	// The resolver's name
 	kind:   string @go(Kind)
 	source: #UID   @go(Source)
 	target: #UID   @go(Target)

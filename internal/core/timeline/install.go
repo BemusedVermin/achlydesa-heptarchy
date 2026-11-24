@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -157,6 +158,11 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 		}
 		return 0
 	})
+	for i := range entries {
+		entries[i].TickLabel = w.Content.Render(api.Text{
+			ID: "text.timeline.tick", Args: map[string]string{"tick": strconv.FormatInt(entries[i].Tick, 10)},
+		})
+	}
 	view := &api.TimelineView{Now: w.Now, Window: st.cfg.WindowTicks, Entries: entries}
 	v.Timeline = view
 	body, ok := Current(w)

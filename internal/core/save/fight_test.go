@@ -30,7 +30,6 @@ func landsOf(t testing.TB, g *game.Game) []api.TimelineEntry {
 // fight, with swings winding up (each a pending entity with its kind-specific landing component),
 // loads, runs on, and wants the same actions in flight and the same hash as the game that never saved.
 func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
-	// The hall as shipped: the crawler hunts, and the party fights back.
 	reg := contenttest.Sample(t)
 	cfg := game.Config{Seed: 3, Content: reg}
 	g, err := game.New(cfg)
@@ -39,28 +38,17 @@ func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 	}
 	policy := harness.NewInformedPolicy(reg)
 	policy.Bind(g)
-	// step has the policy choose from the first game's view, and sends the same command to every game.
-	step := func(games ...*game.Game) {
+	step := func(each *game.Game, policy harness.Policy) {
 		t.Helper()
-		view, err := g.View()
-		if err != nil {
-			t.Fatal(err)
-		}
-		option, ok := policy.Choose(view)
-		if !ok {
-			t.Fatal("the policy has nothing to do")
-		}
-		for _, each := range games {
-			if _, err := each.Apply(option.Command); err != nil {
-				t.Fatal(err)
-			}
+		if _, ok, err := harness.Step(each, policy); err != nil || !ok {
+			t.Fatalf("step: ok %v, err %v", ok, err)
 		}
 	}
 	for range 200 {
 		if len(landsOf(t, g)) >= 2 {
 			break
 		}
-		step(g)
+		step(g, policy)
 	}
 	if len(landsOf(t, g)) < 2 {
 		t.Fatal("the fight never had two actions in flight")
@@ -76,8 +64,11 @@ func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 	if want, got := landsOf(t, g), landsOf(t, loaded.g); !reflect.DeepEqual(want, got) {
 		t.Fatalf("the actions in flight differ after loading:\nwant %+v\n got %+v", want, got)
 	}
+	loadedPolicy := harness.NewInformedPolicy(reg)
+	loadedPolicy.Bind(loaded.g)
 	for i := range 40 {
-		step(g, loaded.g)
+		step(g, policy)
+		step(loaded.g, loadedPolicy)
 		if hash(t, loaded.g) != hash(t, g) {
 			t.Fatalf("hashes differ %d commands after loading", i+1)
 		}

@@ -35,6 +35,8 @@ package api
 
 // Cell is one hex-prism cell of the world.
 #Cell: {
-	hex:   #Hex @go(Hex)
-	depth: int  @go(Depth)
+	hex: #Hex @go(Hex)
+
+	// 0 is the salk's surface; larger is deeper; one cell per step
+	depth: int @go(Depth)
 }

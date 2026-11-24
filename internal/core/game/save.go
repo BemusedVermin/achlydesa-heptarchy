@@ -12,7 +12,6 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
@@ -73,17 +72,14 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 	}, nil
 }
 
-// Load reads a save into a game that carries on as if it had never stopped. cfg.Seed is ignored: the
-// save's seed is used. It builds the game the way New does but skips the start scenario, so
-// cfg.Spawn is not run; cfg.Install is. A save made with different content
-// still loads; the warnings say so.
+// Load reads a save into a game that carries on as if it had never stopped. It builds the game the
+// way New does but skips the start scenario: cfg.Seed is ignored for the save's, and cfg.Spawn is
+// not run, though cfg.Install is. A save made with different content still loads; the warnings say
+// so.
 func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 	snapshot, err := save.Read(r)
 	if err != nil {
 		return nil, nil, err
-	}
-	if cfg.Content == nil {
-		return nil, nil, fmt.Errorf("game: no content")
 	}
 	cfg.Seed = snapshot.Header.Seed
 	g, err := build(cfg, explore.LoadMaps, nil)
@@ -135,11 +131,10 @@ func applyEdits(w *sim.World, edits map[api.MapID][]save.MapEdit) error {
 			return fmt.Errorf("saved edits for unknown map %d", id)
 		}
 		for _, edit := range list {
-			def, ok := w.Content.Terrain(edit.Terrain)
-			if !ok {
-				return fmt.Errorf("saved edit uses unknown terrain %q", edit.Terrain)
+			terrain, err := explore.Terrain(w.Content, edit.Terrain)
+			if err != nil {
+				return fmt.Errorf("saved edit: %w", err)
 			}
-			terrain := hexmap.Terrain{ID: edit.Terrain, Solid: def.Solid, Opaque: def.Opaque}
 			if err := m.Set(edit.At, terrain); err != nil {
 				return err
 			}

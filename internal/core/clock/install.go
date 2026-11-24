@@ -2,6 +2,7 @@ package clock
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -23,12 +24,16 @@ func Install(w *sim.World, c *Clock) error {
 		Build: func(w *sim.World, v *api.View) error {
 			index := c.Phase(w.Now)
 			phase := c.calendar.Phases[index]
-			v.Clock = &api.ClockView{
+			view := &api.ClockView{
 				Day:         c.Day(w.Now),
 				Phase:       w.Content.Render(api.Text{ID: phase.Name}),
 				TickInPhase: c.TickInPhase(w.Now),
 				PhaseTicks:  c.PhaseTicks(index),
 			}
+			view.Label = w.Content.Render(api.Text{ID: "text.clock.label", Args: map[string]string{
+				"day": strconv.Itoa(view.Day), "phase": view.Phase,
+			}})
+			v.Clock = view
 			return nil
 		},
 	})

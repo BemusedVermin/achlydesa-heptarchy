@@ -4,11 +4,19 @@
 
 package api
 
+// A body is about to decide
 #EntryReady: "ready"
+
+// An action in flight is about to land
 #EntryLands: "lands"
 
-#OptionStepPrefix:    "step/"
+// Followed by a direction name
+#OptionStepPrefix: "step/"
+
+// Followed by a control mode
 #OptionControlPrefix: "control/"
-#OptionLeadPrefix:    "lead/"
-#OptionWaitEvent:     "wait/event"
-#OptionWaitPhase:     "wait/phase"
+
+// Followed by the UID of the member to lead with
+#OptionLeadPrefix: "lead/"
+#OptionWaitEvent:  "wait/event"
+#OptionWaitPhase:  "wait/phase"

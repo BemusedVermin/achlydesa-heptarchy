@@ -13,7 +13,7 @@ import (
 )
 
 // installAll calls each package's Install in a fixed order. This is the only place packages are
-// named: adding a feature package adds one line here (M1-10 adds explore).
+// named: adding a feature package adds one line here.
 func installAll(w *sim.World, clk *clock.Clock) error {
 	steps := []func() error{
 		func() error { return clock.Install(w, clk) },

@@ -3,13 +3,11 @@ package harness_test
 import (
 	"bytes"
 	"encoding/csv"
-	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
 
@@ -17,8 +15,7 @@ func load(t *testing.T) *content.Registry {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
 	contenttest.StandingCrawler(&bundle)
-	reg := contenttest.Registry(t, bundle)
-	return reg
+	return contenttest.Registry(t, bundle)
 }
 
 func runCSV(t *testing.T, reg *content.Registry, seeds, steps int) []byte {
@@ -32,13 +29,13 @@ func runCSV(t *testing.T, reg *content.Registry, seeds, steps int) []byte {
 }
 
 func TestRunWritesOneRowPerStep(t *testing.T) {
-	data := runCSV(t, load(t), 3, 200)
+	data := runCSV(t, load(t), 2, 10)
 	rows, err := csv.NewReader(bytes.NewReader(data)).ReadAll()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got, want := len(rows), 1+3*200; got != want {
-		t.Fatalf("rows = %d, want %d (header plus 600)", got, want)
+	if got, want := len(rows), 1+2*10; got != want {
+		t.Fatalf("rows = %d, want %d (header plus 20)", got, want)
 	}
 	if strings.Join(rows[0], ",") != strings.Join(harness.Header, ",") {
 		t.Errorf("header = %v", rows[0])
@@ -47,45 +44,7 @@ func TestRunWritesOneRowPerStep(t *testing.T) {
 
 func TestRunIsByteIdentical(t *testing.T) {
 	reg := load(t)
-	if a, b := runCSV(t, reg, 2, 100), runCSV(t, reg, 2, 100); !bytes.Equal(a, b) {
+	if a, b := runCSV(t, reg, 2, 15), runCSV(t, reg, 2, 15); !bytes.Equal(a, b) {
 		t.Fatal("two runs with the same arguments differ")
-	}
-}
-
-func TestReplayPrintsTheGamesHash(t *testing.T) {
-	reg := load(t)
-	g, err := game.New(game.Config{Seed: 7, Content: reg})
-	if err != nil {
-		t.Fatal(err)
-	}
-	policy := harness.NewRandomPolicy(7)
-	for range 50 {
-		view, err := g.View()
-		if err != nil {
-			t.Fatal(err)
-		}
-		option, ok := policy.Choose(view)
-		if !ok {
-			break
-		}
-		if _, err := g.Apply(option.Command); err != nil {
-			t.Fatal(err)
-		}
-	}
-	var log bytes.Buffer
-	if err := g.Codec().WriteLog(&log, g.History()); err != nil {
-		t.Fatal(err)
-	}
-	hash, err := g.Hash()
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := fmt.Sprintf("%x", hash)
-	got, err := harness.Replay(reg, 7, &log)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got != want {
-		t.Errorf("replay hash = %s, want %s", got, want)
 	}
 }

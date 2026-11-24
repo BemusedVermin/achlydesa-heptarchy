@@ -14,18 +14,26 @@ package api
 #BodyDownedKind:   "combat.body_downed"
 #PartyWipedKind:   "combat.party_wiped"
 
+// Its integrity ran out
 #SeveredWorn: "worn"
-#SeveredCut:  "cut"
 
+// An effect took it off
+#SeveredCut: "cut"
+
+// A piece the party carried
 #AttachedFromInventory: "inventory"
-#AttachedFromSevered:   "severed"
+
+// A severed part lying where the body stands
+#AttachedFromSevered: "severed"
 
 // PartDamaged reports that a part lost integrity.
 #PartDamaged: {
-	body:      #UID @go(Body)
-	part:      #UID @go(Part)
-	amount:    int  @go(Amount)
-	integrity: int  @go(Integrity)
+	body: #UID @go(Body)
+	part: #UID @go(Part)
+
+	// The integrity it actually lost
+	amount:    int @go(Amount)
+	integrity: int @go(Integrity)
 
 	// Chosen is every choice of the action that dealt the damage, such as "type": "type.cut"; the
 	// Params method returns it, so trigger formulas see it as chosen.
@@ -38,8 +46,10 @@ package api
 
 // PartSevered reports that a part came off its body. It stays in the world, where the body stands.
 #PartSevered: {
-	body:  #UID   @go(Body)
-	part:  #UID   @go(Part)
+	body: #UID @go(Body)
+	part: #UID @go(Part)
+
+	// SeveredWorn or SeveredCut
 	cause: string @go(Cause)
 
 	// Source is the body that acted, or zero when nothing did.
@@ -49,8 +59,10 @@ package api
 
 // PartAttached reports that a part was fitted onto a body, which gains its channel.
 #PartAttached: {
-	body: #UID   @go(Body)
-	part: #UID   @go(Part)
+	body: #UID @go(Body)
+	part: #UID @go(Part)
+
+	// AttachedFromInventory or AttachedFromSevered
 	from: string @go(From)
 
 	// Source is the body that acted, or zero when nothing did.
@@ -62,7 +74,9 @@ package api
 #StatusAdded: {
 	body:   #UID       @go(Body)
 	status: #ContentID @go(Status)
-	until:  int64      @go(Until)
+
+	// The tick it expires
+	until: int64 @go(Until)
 
 	// Source is the body that acted, or zero when nothing did.
 	source?: #UID  @go(Source)

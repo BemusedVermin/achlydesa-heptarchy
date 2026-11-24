@@ -116,30 +116,27 @@ func TestMenuDrillsDownSkipsSingleLevelsAndBacksOut(t *testing.T) {
 	app := fightApp(t)
 	history := len(app.Game.History())
 	pressCode(app, tea.KeyEnter)
-	view := app.View().Content
-	golden(t, "menu_actions", view)
+	golden(t, "menu_actions", tui.MenuPane(app))
 	selectEntry(t, app, "Strike")
 	pressCode(app, tea.KeyEnter)
-	view = app.View().Content
+	view := tui.MenuPane(app)
 	golden(t, "menu_types", view)
 	if !strings.Contains(view, "Actions > Strike") {
 		t.Errorf("no path on the type level:\n%s", view)
 	}
 	selectEntry(t, app, "Cut")
 	pressCode(app, tea.KeyEnter)
-	// One target is in reach, so its level is skipped and the parts come next.
-	view = app.View().Content
+	view = tui.MenuPane(app)
 	golden(t, "menu_parts", view)
 	if !strings.Contains(view, "maw") {
 		t.Errorf("the part level does not list the creature's parts:\n%s", view)
 	}
 	if !strings.Contains(view, "Actions > Strike > Cut > "+creature(app).Name) {
-		t.Errorf("the skipped target level is missing from the path:\n%s", view)
+		t.Errorf("the single target's level was not skipped into the path:\n%s", view)
 	}
 	selectEntry(t, app, "maw")
 	pressCode(app, tea.KeyEnter)
-	golden(t, "menu_arms", app.View().Content)
-	// Esc goes up one level at a time and then closes the menu.
+	golden(t, "menu_arms", tui.MenuPane(app))
 	pressCode(app, tea.KeyEscape)
 	if !strings.Contains(app.View().Content, "maw") {
 		t.Error("esc from the arms did not return to the parts")
@@ -157,7 +154,7 @@ func TestMenuDrillsDownSkipsSingleLevelsAndBacksOut(t *testing.T) {
 
 func TestMenuLeafSendsTheOptionAndTheActorPanelShowsTheSwing(t *testing.T) {
 	app := fightApp(t)
-	golden(t, "actor_free", tui.RenderBody(currentMember(t, app), app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_free", tui.RenderBody(currentMember(t, app), app.State.Bodies, panelWidth))
 	pressCode(app, tea.KeyEnter)
 	selectEntry(t, app, "Strike")
 	pressCode(app, tea.KeyEnter)
@@ -174,9 +171,21 @@ func TestMenuLeafSendsTheOptionAndTheActorPanelShowsTheSwing(t *testing.T) {
 		t.Error("the menu stayed open after a command")
 	}
 	body := bodyOf(t, app, app.State.Bodies.Bodies[0].UID)
-	golden(t, "actor_windup", tui.RenderBody(body, app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_windup", tui.RenderBody(body, app.State.Bodies, panelWidth))
 	if !strings.Contains(app.View().Content, "~ Strike") {
 		t.Errorf("the panel does not show the swing:\n%s", app.View().Content)
+	}
+}
+
+func TestALongTargetNameWrapsTheSwingInsteadOfCuttingItsTick(t *testing.T) {
+	windup := &api.WindupView{Action: "Strike", Target: 2, Lands: 3, When: "lands at tick 86"}
+	bodies := &api.BodiesView{Bodies: []api.BodyView{
+		{UID: 1, Name: "The Reaper", Channels: []api.ChannelView{{UID: 3, Slot: "arm", Name: "arm", Windup: windup}}},
+		{UID: 2, Name: "The very long-named moving clay"},
+	}}
+	out := tui.RenderBody(bodies.Bodies[0], bodies, panelWidth)
+	if !strings.Contains(strings.ReplaceAll(out, "\n", " "), "lands at tick 86") {
+		t.Errorf("the swing line lost its tick:\n%s", out)
 	}
 }
 
@@ -216,7 +225,7 @@ func TestSweepThenLookShowsMaterials(t *testing.T) {
 	}
 	mover := app.State.Bodies.Current
 	app.Choose(sweep.ID)
-	golden(t, "actor_sweep", tui.RenderBody(bodyOf(t, app, mover), app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_sweep", tui.RenderBody(bodyOf(t, app, mover), app.State.Bodies, panelWidth))
 	for range 40 {
 		if !strings.Contains(tui.RenderLook(app.State, enemyHex, panelWidth), "?") {
 			break
@@ -257,9 +266,22 @@ func TestLookModeMovesACursorAndLeaves(t *testing.T) {
 	}
 }
 
+func TestLookingAtAnEmptyHexAndListingATickUseTheViewsText(t *testing.T) {
+	app := startApp(t)
+	if got := tui.RenderLook(app.State, api.Hex{Q: -100, R: -100}, panelWidth); got != app.State.Labels.LookEmpty ||
+		got == "" {
+		t.Errorf("look at an empty hex = %q, want the view's %q", got, app.State.Labels.LookEmpty)
+	}
+	press(app, "t")
+	want := app.State.Timeline.Entries[0].TickLabel
+	if want == "" || !strings.Contains(app.View().Content, want) {
+		t.Errorf("the tick popup does not head with %q:\n%s", want, app.View().Content)
+	}
+}
+
 func TestSeveredArmShowsOnThePanel(t *testing.T) {
 	app := startApp(t)
-	var victim api.BodyView // the member who is not deciding
+	var victim api.BodyView
 	for _, b := range app.State.Bodies.Bodies {
 		if b.Member && b.UID != app.State.Bodies.Current {
 			victim = b
@@ -292,7 +314,7 @@ func TestSeveredArmShowsOnThePanel(t *testing.T) {
 	if armIntegrity(body, arm) >= 0 {
 		t.Fatalf("the arm was not severed: %+v", body.Channels)
 	}
-	golden(t, "actor_severed", tui.RenderBody(body, app.State.Bodies, app.State.Tick, panelWidth))
+	golden(t, "actor_severed", tui.RenderBody(body, app.State.Bodies, panelWidth))
 }
 
 func armIntegrity(body api.BodyView, arm api.UID) int {
@@ -393,8 +415,8 @@ func TestWholeFightEndsAndTheMapResumesFollow(t *testing.T) {
 	if strings.Contains(app.View().Content, "ALERT") {
 		t.Errorf("the status line still says ALERT:\n%s", app.View().Content)
 	}
-	if app.Mode() != api.ControlFollow {
-		t.Errorf("control = %q, want follow", app.Mode())
+	if app.State.Party.Control != api.ControlFollow {
+		t.Errorf("control = %q, want follow", app.State.Party.Control)
 	}
 	if !sawThreat {
 		t.Error("the hunting movingClay never showed a threat")

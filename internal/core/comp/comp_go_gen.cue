@@ -20,6 +20,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Appearance is how an entity is drawn.
 #Appearance: {
+	// One grapheme, for the terminal
 	glyph:   string @go(Glyph)
 	color?:  string @go(Color)
 	sprite?: string @go(Sprite)
@@ -27,7 +28,10 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Party is what a whole party shares. It sits on the party entity, which has no position.
 #Party: {
-	slots:  int      @go(Slots)
+	// Fighters at a time, copied from content at spawn
+	slots: int @go(Slots)
+
+	// The member who leads; always first in Order
 	leader: api.#UID @go(Leader)
 
 	// Order is the party order: the leader first, then the rest. Each follower follows the member
@@ -71,27 +75,41 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Actor puts a body on the timeline.
 #Actor: {
+	// "player", "follow", "idle", ...
 	controller: string @go(Controller)
-	wait_until: int64  @go(WaitUntil)
+
+	// No decision before this tick
+	wait_until: int64 @go(WaitUntil)
 }
 
 // Pending is an action in flight, on an entity of its own: one per action. Whatever the action
 // needs beyond this lives in a kind-specific component on the same entity.
 #Pending: {
-	kind:    string   @go(Kind)
-	actor:   api.#UID @go(Actor)
+	// The resolver's name, e.g. "actions.land"
+	kind:  string   @go(Kind)
+	actor: api.#UID @go(Actor)
+
+	// The channel it uses (an arm), or the body
 	channel: api.#UID @go(Channel)
+
+	// The body it is aimed at, or 0
 	target:  api.#UID @go(Target)
 	started: int64    @go(Started)
 	lands:   int64    @go(Lands)
-	seq:     uint64   @go(Seq)
+
+	// Scheduling order, for ties
+	seq: uint64 @go(Seq)
 }
 
 // Landing is what an action from content needs to land, on the same entity as its Pending. It
 // names every channel the action occupies, so a lock on any of them cancels it.
 #Landing: {
 	action: api.#ContentID @go(Action)
+
+	// The channels it occupies, in UID order
 	channels: [...api.#UID] @go(Channels,[]api.UID)
+
+	// The part aimed at, or 0
 	target_part: api.#UID @go(TargetPart)
 	has_dir:     bool     @go(HasDir)
 	dir:         api.#Dir @go(Dir)
@@ -116,8 +134,11 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Grant is something a part gives its body: the ability to act, to aim, or speed.
 #Grant: {
-	kind:   string @go(Kind)
-	value?: int    @go(Value)
+	// "action" | "targeting" | "speed"
+	kind: string @go(Kind)
+
+	// Speed amount; ignored for the others
+	value?: int @go(Value)
 }
 
 // Body marks an entity as a body made of parts.
@@ -132,6 +153,8 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	material:      api.#ContentID @go(Material)
 	integrity:     int            @go(Integrity)
 	max_integrity: int            @go(MaxIntegrity)
+
+	// Copied from content at spawn
 	grants: [...#Grant] @go(Grants,[]Grant)
 	vital: bool @go(Vital)
 }
@@ -153,7 +176,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // StatusEntry is one status a body is under, and the tick it ends.
 #StatusEntry: {
 	status: api.#ContentID @go(Status)
-	until:  int64          @go(Until)
+
+	// The tick it expires; it is gone from then on
+	until: int64 @go(Until)
 }
 
 // Statuses is the statuses a body is under, sorted by status ID with none twice. Use the combat

@@ -9,12 +9,17 @@ package api
 
 // Fact is one thing a knower holds to be true about a subject.
 #Fact: {
-	subject:    #UID       @go(Subject)
-	claim:      #ContentID @go(Claim)
-	value:      string     @go(Value)
-	origin:     #ContentID @go(Origin)
-	confidence: float64    @go(Confidence)
-	tick:       int64      @go(Tick)
+	// Who or what the fact is about
+	subject: #UID       @go(Subject)
+	claim:   #ContentID @go(Claim)
+
+	// E.g. "material.clay"
+	value:  string     @go(Value)
+	origin: #ContentID @go(Origin)
+
+	// 0..1
+	confidence: float64 @go(Confidence)
+	tick:       int64   @go(Tick)
 }
 
 // FactLearned reports that a knower learned a fact, or learned it again from the same source.

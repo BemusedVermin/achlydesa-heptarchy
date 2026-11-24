@@ -5,5 +5,6 @@
 // stack exists for overlays such as the timeline popup, and later the journal and dreams. Rendering
 // lives in pure functions ([RenderMap], [RenderTimeline], ...) so golden tests can cover it.
 //
-// The package imports only the core's game, api and content packages.
+// Every word of game text comes rendered in the view; only key help is written here. From the core,
+// the package imports only game and api: hot reload reaches it as an opaque function over the game.
 package tui

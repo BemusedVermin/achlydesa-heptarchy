@@ -63,6 +63,8 @@ type TimelineEntry struct {
 	Target UID `json:"target"`
 	// Rendered, e.g. "The Reaper is ready"
 	Label string `json:"label"`
+	// TickLabel names the entry's tick, rendered, as a heading for everything on that tick.
+	TickLabel string `json:"tick_label"`
 }
 
 // Kinds of the events for pending actions.

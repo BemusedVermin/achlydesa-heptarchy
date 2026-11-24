@@ -17,7 +17,7 @@ func TestControlReturnsOnlyWhenARealActionIsOffered(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		view, err := g.View()
 		if err != nil {
 			t.Fatal(err)

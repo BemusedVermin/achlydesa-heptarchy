@@ -19,8 +19,10 @@ package api
 
 // BodyView is one body.
 #BodyView: {
-	uid:      #UID   @go(UID)
-	name:     string @go(Name)
+	uid:  #UID   @go(UID)
+	name: string @go(Name)
+
+	// Rendered faction name, or empty when it has none
 	faction?: string @go(Faction)
 
 	// Member is whether the body belongs to the party.
@@ -29,6 +31,8 @@ package api
 	// Hostile is whether the body is an enemy of the party.
 	hostile: bool @go(Hostile)
 	statuses?: [...string] @go(Statuses,[]string)
+
+	// Its parts, by UID
 	channels: [...#ChannelView] @go(Channels,[]ChannelView)
 }
 
@@ -51,6 +55,9 @@ package api
 	// Locked is whether a lock is the reason it is busy.
 	locked?: bool @go(Locked)
 
+	// State says, rendered, whether the part is ready, busy or locked, and whether it is a graft.
+	state: string @go(State)
+
 	// Windup is what the part is winding up, if anything.
 	windup?: null | #WindupView @go(Windup,*WindupView)
 }
@@ -58,8 +65,15 @@ package api
 // WindupView is an action in flight that uses a part.
 #WindupView: {
 	action: string @go(Action)
-	target: #UID   @go(Target)
-	lands:  int64  @go(Lands)
+
+	// The body aimed at, or 0
+	target: #UID @go(Target)
+
+	// Ticks until it lands
+	lands: int64 @go(Lands)
+
+	// When says, rendered, the tick it lands.
+	when: string @go(When)
 }
 
 // ThreatView is a pending action aimed at a member of the party.
@@ -68,6 +82,10 @@ package api
 	target:       #UID   @go(Target)
 	target_part?: #UID   @go(TargetPart)
 	action:       string @go(Action)
-	lands:        int64  @go(Lands)
-	tick:         int64  @go(Tick)
+
+	// Ticks until it lands
+	lands: int64 @go(Lands)
+
+	// The tick it lands
+	tick: int64 @go(Tick)
 }

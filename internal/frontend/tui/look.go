@@ -46,7 +46,7 @@ func bodyAt(v api.View, at api.Hex) (api.BodyView, bool) {
 func RenderLook(v api.View, at api.Hex, width int) string {
 	body, ok := bodyAt(v, at)
 	if !ok {
-		return "Looking: nothing here"
+		return v.Labels.LookEmpty
 	}
-	return "Looking\n" + RenderBody(body, v.Bodies, v.Tick, width)
+	return v.Labels.Look + "\n" + RenderBody(body, v.Bodies, width)
 }

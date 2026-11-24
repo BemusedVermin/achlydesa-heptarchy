@@ -10,4 +10,9 @@ text: {
 	"text.combat.severed":         "The part was cut away."
 	"text.combat.inventory_short": "The inventory has no {{.item}}."
 	"text.combat.no_severed_part": "There is no severed part to fit."
+	"text.combat.channel.ready":   "ready"
+	"text.combat.channel.free_in": "free in {{.ticks}}"
+	"text.combat.channel.locked":  "locked"
+	"text.combat.channel.graft":   "graft {{.state}}"
+	"text.combat.lands_at":        "lands at tick {{.tick}}"
 }

@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
 	"charm.land/bubbles/v2/key"
@@ -11,19 +10,23 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// sidePanelWidth is the right-hand column: the clock, the party and the log. M2-10's action panel
-// goes in the same column.
+// sidePanelWidth is the right-hand column: the clock, the party, the acting body, and the log or the
+// action menu.
 const sidePanelWidth = 60
 
 // mapScreen is the one screen of play: the timeline strip on top, the map on the left, the side
 // panel on the right, then the status and help lines.
 type mapScreen struct {
-	selected int // offset of the selected timeline tick
+	// selected is the offset of the selected timeline tick.
+	selected int
 	// lastVertical is the step option the last w or s sent, or empty after any other key.
 	lastVertical string
-	menu         *menuState // the open action menu, or nil
-	look         *lookState // look mode, or nil
+	// menu and look are nil while the action menu is closed and look mode is off.
+	menu *menuState
+	look *lookState
 }
+
+func newMapScreen() *mapScreen { return &mapScreen{} }
 
 // openMenu opens the action menu when the view offers anything to put in it.
 func (s *mapScreen) openMenu(app *App) bool {
@@ -48,14 +51,9 @@ func (s *mapScreen) menuKey(msg tea.KeyPressMsg, app *App) tea.Cmd {
 	if id == "" {
 		return nil
 	}
-	enabled := false
-	for _, o := range app.State.Options {
-		if o.ID == id {
-			enabled = o.Enabled
-		}
-	}
+	option, _ := optionByID(app.State, id)
 	cmd := app.Choose(id)
-	if enabled || cmd != nil {
+	if option.Enabled || cmd != nil {
 		s.menu = nil
 	}
 	s.selectTick(app, s.selected)
@@ -82,8 +80,6 @@ func (s *mapScreen) lookKey(msg tea.KeyPressMsg, app *App) tea.Cmd {
 	}
 	return nil
 }
-
-func newMapScreen() *mapScreen { return &mapScreen{} }
 
 // Update implements [Screen].
 func (s *mapScreen) Update(msg tea.Msg, app *App) (Screen, tea.Cmd) {
@@ -143,14 +139,9 @@ func (s *mapScreen) vertical(app *App, up bool) tea.Cmd {
 	if !ok {
 		return nil
 	}
-	enabled := false
-	for _, o := range app.State.Options {
-		if o.ID == id {
-			enabled = o.Enabled
-		}
-	}
+	option, _ := optionByID(app.State, id)
 	cmd := app.Choose(id)
-	if enabled {
+	if option.Enabled {
 		s.lastVertical = id
 	}
 	s.selectTick(app, s.selected)
@@ -165,7 +156,7 @@ func (s *mapScreen) selectTick(app *App, offset int) {
 
 func (s *mapScreen) open(app *App) {
 	if entries := EntriesAt(app.State.Timeline, s.selected); len(entries) > 0 {
-		app.Push(&tickPopup{tick: app.State.Timeline.Now + int64(s.selected), entries: entries})
+		app.Push(&tickPopup{entries: entries})
 	}
 }
 
@@ -193,7 +184,7 @@ func (s *mapScreen) View(app *App) string {
 	case s.look != nil:
 		panel = append(panel, RenderLook(app.State, s.look.cursor, side), "")
 	case ok:
-		panel = append(panel, RenderBody(body, app.State.Bodies, app.State.Tick, side), "")
+		panel = append(panel, RenderBody(body, app.State.Bodies, side), "")
 	}
 	used := strings.Count(strings.Join(panel, "\n"), "\n") + 1
 	if s.menu != nil {
@@ -212,24 +203,19 @@ func (s *mapScreen) View(app *App) string {
 	)
 }
 
-// status is the status line: the reason a key did nothing, or the party's control mode.
+// status is the status line: the reason a key did nothing, or the party's status from the view.
 func (s *mapScreen) status(app *App) string {
 	if app.Status != "" {
 		return app.Status
 	}
-	var parts []string
-	if app.State.Party != nil && app.State.Party.Alert {
-		parts = append(parts, "ALERT: hostile in sight")
+	if app.State.Party == nil {
+		return ""
 	}
-	if mode := app.Mode(); mode != "" {
-		parts = append(parts, "Control: "+mode)
-	}
-	return strings.Join(parts, " | ")
+	return strings.Join(app.State.Party.Status, " | ")
 }
 
-// tickPopup lists everything on one timeline tick, by label.
+// tickPopup lists everything on one timeline tick, by label. It has at least one entry.
 type tickPopup struct {
-	tick    int64
 	entries []api.TimelineEntry
 }
 
@@ -246,7 +232,7 @@ func (p *tickPopup) Update(msg tea.Msg, _ *App) (Screen, tea.Cmd) {
 
 // View implements [Screen].
 func (p *tickPopup) View(app *App) string {
-	lines := []string{fmt.Sprintf("Tick %d", p.tick), ""}
+	lines := []string{p.entries[0].TickLabel, ""}
 	for _, e := range p.entries {
 		lines = append(lines, e.Label)
 	}
