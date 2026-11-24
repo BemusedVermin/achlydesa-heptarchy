@@ -1,5 +1,8 @@
-// Command cuefix rewrites the Go module path in generated CUE files to lower case.
+// Command cuefix fixes the CUE files "cue get go" generates, so they resolve and match the JSON.
 //
-// CUE module paths must be lower case, but this module's Go path is not, so the
-// imports that "cue get go" writes would not resolve. Run by "task schema".
+//	cuefix DIR...
+//
+// It lower-cases this module's Go path in their imports, because CUE module paths must be lower
+// case, and turns the fields written for embedded Go structs into CUE embeddings, so the embedded
+// fields sit at the level of the embedding struct, as encoding/json has them. Run by "task schema".
 package main

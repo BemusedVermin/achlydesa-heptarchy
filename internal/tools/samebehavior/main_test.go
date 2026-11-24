@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/tools/internal/gittest"
 )
 
 // filePlayer stands in for the harness: its CSV and log are the checkout's play.csv and play.log.
@@ -32,54 +33,17 @@ var baseFiles = map[string]string{
 // newRepo makes a repository whose master holds baseFiles, makes cwd its root, and returns the root.
 func newRepo(t *testing.T) string {
 	t.Helper()
-	if _, err := exec.LookPath("git"); err != nil {
-		t.Skip("git is not installed")
-	}
-	dir := t.TempDir()
-	// autocrlf off: Windows runners turn it on, and the stand-in harness reads checked-out files, so
-	// the base's copies would gain CRs that the real harness's output never has.
-	for _, args := range [][]string{{"init", "-q", "-b", "master"}, {"config", "core.autocrlf", "false"}} {
-		if _, err := git(dir, args...); err != nil {
-			t.Fatal(err)
-		}
-	}
-	for name, content := range baseFiles {
-		write(t, dir, name, content)
-	}
-	for _, args := range [][]string{
-		{"add", "."},
-		{"-c", "user.name=test", "-c", "user.email=test@example.com", "-c", "commit.gpgsign=false",
-			"commit", "-q", "-m", "start"},
-	} {
-		if _, err := git(dir, args...); err != nil {
-			t.Fatal(err)
-		}
-	}
-	top, err := git(dir, "rev-parse", "--show-toplevel")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Chdir(top)
-	return filepath.FromSlash(top)
-}
-
-func write(t *testing.T, root, name, content string) {
-	t.Helper()
-	path := filepath.Join(root, filepath.FromSlash(name))
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	root := gittest.Repo(t, "master", baseFiles)
+	t.Chdir(root)
+	return root
 }
 
 func TestRun(t *testing.T) {
 	tests := []struct {
 		name    string
-		changes map[string]string // files to write in the working tree; "" deletes
+		changes map[string]string
 		args    []string
-		want    []string // fragments of the report
+		want    []string
 		same    bool
 	}{
 		{
@@ -87,16 +51,6 @@ func TestRun(t *testing.T) {
 			changes: map[string]string{"internal/tui/view.go": "package tui\n\n// View draws.\n"},
 			want:    []string{"Same behavior as master: 3 harness rows", "and 1 golden files"},
 			same:    true,
-		},
-		{
-			name:    "a different step",
-			changes: map[string]string{"play.csv": "seed,step,map\n1,1,map.clay_plain\n1,2,map.crawlspace\n"},
-			want:    []string{`harness CSV: line 3 is "1,2,map.crawlspace", was "1,2,map.clay_plain"`},
-		},
-		{
-			name:    "a different final hash",
-			changes: map[string]string{"play.log": "seed=1 hash=00bb\n"},
-			want:    []string{"final hashes: seed 1 ends at 00bb, was 00aa"},
 		},
 		{
 			name:    "a regenerated golden file",
@@ -130,15 +84,7 @@ func TestRun(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			root := newRepo(t)
-			for name, content := range test.changes {
-				if content == "" {
-					if err := os.Remove(filepath.Join(root, filepath.FromSlash(name))); err != nil {
-						t.Fatal(err)
-					}
-					continue
-				}
-				write(t, root, name, content)
-			}
+			gittest.Write(t, root, test.changes)
 			var stdout strings.Builder
 			err := run(append([]string{"--base", "master"}, test.args...), &stdout, filePlayer{})
 			if test.same && err != nil {
@@ -152,7 +98,7 @@ func TestRun(t *testing.T) {
 					t.Errorf("report is missing %q:\n%s", fragment, stdout.String())
 				}
 			}
-			if worktrees, _ := git(root, "worktree", "list"); strings.Count(worktrees, "\n") > 0 {
+			if worktrees := gittest.Git(t, root, "worktree", "list"); strings.Count(worktrees, "\n") > 0 {
 				t.Errorf("the base worktree wasn't removed:\n%s", worktrees)
 			}
 		})
@@ -179,5 +125,51 @@ func TestApplyRenamesInOrder(t *testing.T) {
 	got := applyRenames("form.cut form.cutter", []rename{{"form.cutter", "form.blade"}, {"form.cut", "form.slice"}})
 	if got != "form.slice form.blade" {
 		t.Errorf("applyRenames = %q", got)
+	}
+}
+
+func TestFirstDifference(t *testing.T) {
+	tests := []struct {
+		name      string
+		want, got string
+		report    string
+	}{
+		{"the same", "a\nb\n", "a\nb\n", ""},
+		{"a different step", "a\nb\n", "a\nc\n", `line 2 is "c", was "b"`},
+		{"a line added", "a\n", "a\nb\n", `line 2 is "b", was ""`},
+		{"a line removed", "a\nb", "a", `line 2 is "", was "b"`},
+		{"CRLF against LF", "a\nb\n", "a\r\nb\r\n", `line 1 is "a\r", was "a"`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := firstDifference(test.want, test.got); got != test.report {
+				t.Errorf("firstDifference(%q, %q) = %q, want %q", test.want, test.got, got, test.report)
+			}
+		})
+	}
+}
+
+func TestCompareHashes(t *testing.T) {
+	tests := []struct {
+		name      string
+		want, got string
+		report    string
+	}{
+		{"the same", "seed=1 hash=00aa\nseed=2 hash=00bb\n", "seed=2 hash=00bb\nseed=1 hash=00aa\n", ""},
+		{"a different final hash", "seed=1 hash=00aa\n", "seed=1 hash=00bb\n", "seed 1 ends at 00bb, was 00aa"},
+		{
+			"a seed added",
+			"seed=1 hash=00aa\n",
+			"seed=1 hash=00aa\nseed=2 hash=00bb\n",
+			"2 seeds reported a hash, was 1",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := compareHashes(seedHashes([]byte(test.want)), seedHashes([]byte(test.got)))
+			if got != test.report {
+				t.Errorf("compareHashes = %q, want %q", got, test.report)
+			}
+		})
 	}
 }

@@ -2,8 +2,6 @@
 //
 //	affected [--base REF] [--list] [FILE...]
 //
-// Files named on the command line stand in for the git diff, to see what a change would run.
-//
 // It takes the files changed since the merge base with REF (git diff REF...HEAD), plus any
 // uncommitted or untracked files, and tests:
 //
@@ -13,6 +11,7 @@
 //   - everything, if the change touches go.mod, go.sum, go.work, Taskfile.yml, .golangci.yml or
 //     .github, or if no REF is given.
 //
-// Files that belong to no package (docs, tasks) select nothing. --list prints the selected packages
+// Files named on the command line stand in for the git diff, to see what a change would run. Files
+// that belong to no package (docs, tasks) select nothing. --list prints the selected packages
 // instead of testing them. CI and agents use this ("task check-ci"); "task check" tests everything.
 package main
