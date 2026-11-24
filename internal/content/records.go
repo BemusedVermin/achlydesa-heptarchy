@@ -10,7 +10,7 @@ import (
 )
 
 type collection struct {
-	name        string
+	name        Collection
 	prefix      string
 	keys        func(*Bundle) []string
 	data        func(*Bundle) map[string]Data
@@ -20,49 +20,56 @@ type collection struct {
 
 func collections() []collection {
 	return []collection{
-		described("materials", "material", func(b *Bundle) map[string]Material { return b.Materials },
+		described(CollectionMaterials, "material", func(b *Bundle) map[string]Material { return b.Materials },
 			func(m Material) Data { return m.Data }, func(m Material) (api.ContentID, bool) { return m.Name, true }),
-		described("terrains", "terrain", func(b *Bundle) map[string]Terrain { return b.Terrains },
+		described(CollectionTerrains, "terrain", func(b *Bundle) map[string]Terrain { return b.Terrains },
 			nil, func(t Terrain) (api.ContentID, bool) { return t.Name, true }),
-		described[string]("text", "text", func(b *Bundle) map[string]string { return b.Text }, nil, nil),
-		described("templates", "template", func(b *Bundle) map[string]Template { return b.Templates },
+		described[string](CollectionText, "text", func(b *Bundle) map[string]string { return b.Text }, nil, nil),
+		described(CollectionTemplates, "template", func(b *Bundle) map[string]Template { return b.Templates },
 			func(t Template) Data { return t.Data }, func(t Template) (api.ContentID, bool) {
 				if t.Name == nil {
 					return "", false
 				}
 				return *t.Name, true
 			}),
-		described("actions", "action", func(b *Bundle) map[string]ActionDef { return b.Actions },
+		described(CollectionActions, "action", func(b *Bundle) map[string]ActionDef { return b.Actions },
 			nil, func(a ActionDef) (api.ContentID, bool) { return a.Name, true }),
-		described("maps", "map", func(b *Bundle) map[string]MapDef { return b.Maps },
+		described(CollectionMaps, "map", func(b *Bundle) map[string]MapDef { return b.Maps },
 			nil, func(m MapDef) (api.ContentID, bool) { return m.Name, true }),
 		shared(described(
-			"parts",
+			CollectionParts,
 			"part",
 			func(b *Bundle) map[string]PartTemplate { return b.Parts },
 			func(p PartTemplate) Data { return p.Data },
 			func(p PartTemplate) (api.ContentID, bool) { return p.Name, true },
 		)),
-		described("claims", "claim", func(b *Bundle) map[string]Claim { return b.Claims },
+		described(CollectionClaims, "claim", func(b *Bundle) map[string]Claim { return b.Claims },
 			nil, func(c Claim) (api.ContentID, bool) { return c.Name, true }),
-		described("origins", "origin", func(b *Bundle) map[string]Origin { return b.Origins },
+		described(CollectionOrigins, "origin", func(b *Bundle) map[string]Origin { return b.Origins },
 			nil, func(o Origin) (api.ContentID, bool) { return o.Name, true }),
-		described[BodyPlan]("bodies", "body", func(b *Bundle) map[string]BodyPlan { return b.Bodies }, nil, nil),
-		described("types", "type", func(b *Bundle) map[string]Type { return b.Types },
+		described[BodyPlan](
+			CollectionBodies,
+			"body",
+			func(b *Bundle) map[string]BodyPlan { return b.Bodies },
+			nil,
+			nil,
+		),
+		described(CollectionTypes, "type", func(b *Bundle) map[string]Type { return b.Types },
 			func(t Type) Data { return t.Data }, func(t Type) (api.ContentID, bool) { return t.Name, true }),
-		described("items", "item", func(b *Bundle) map[string]Item { return b.Items },
+		described(CollectionItems, "item", func(b *Bundle) map[string]Item { return b.Items },
 			func(i Item) Data { return i.Data }, func(i Item) (api.ContentID, bool) { return i.Name, true }),
-		described("factions", "faction", func(b *Bundle) map[string]Faction { return b.Factions },
+		described(CollectionFactions, "faction", func(b *Bundle) map[string]Faction { return b.Factions },
 			func(f Faction) Data { return f.Data }, func(f Faction) (api.ContentID, bool) { return f.Name, true }),
-		described("statuses", "status", func(b *Bundle) map[string]Status { return b.Statuses },
+		described(CollectionStatuses, "status", func(b *Bundle) map[string]Status { return b.Statuses },
 			func(s Status) Data { return s.Data }, func(s Status) (api.ContentID, bool) { return s.Name, true }),
-		described("needs", "need", func(b *Bundle) map[string]NeedDef { return b.Needs },
+		described(CollectionNeeds, "need", func(b *Bundle) map[string]NeedDef { return b.Needs },
 			nil, func(n NeedDef) (api.ContentID, bool) { return n.Name, true }),
 	}
 }
 
 func described[V any](
-	name, prefix string,
+	name Collection,
+	prefix string,
 	records func(*Bundle) map[string]V,
 	data func(V) Data,
 	recordName func(V) (api.ContentID, bool),
@@ -94,7 +101,7 @@ func shared(c collection) collection {
 	return c
 }
 
-func (r *Registry) recordCollection(name string) (collection, bool) {
+func (r *Registry) recordCollection(name Collection) (collection, bool) {
 	for _, c := range r.collections {
 		if c.name == name && c.data != nil {
 			return c, true
@@ -103,7 +110,7 @@ func (r *Registry) recordCollection(name string) (collection, bool) {
 	return collection{}, false
 }
 
-func (r *Registry) dataOf(name string) map[string]Data {
+func (r *Registry) dataOf(name Collection) map[string]Data {
 	c, ok := r.recordCollection(name)
 	if !ok {
 		return map[string]Data{}
@@ -111,7 +118,7 @@ func (r *Registry) dataOf(name string) map[string]Data {
 	return c.data(&r.bundle)
 }
 
-func (r *Registry) collectionIDs(name string) (map[string]bool, bool) {
+func (r *Registry) collectionIDs(name Collection) (map[string]bool, bool) {
 	for _, c := range r.collections {
 		if c.name != name {
 			continue
@@ -130,7 +137,7 @@ func (r *Registry) checkIDs() []error {
 	p := r.problems()
 	for _, c := range r.collections {
 		for _, key := range c.keys(&r.bundle) {
-			if err := checkID(c.name, key, c.prefix); err != nil {
+			if err := checkID(string(c.name), key, c.prefix); err != nil {
 				p.add(err)
 			}
 		}
@@ -151,7 +158,7 @@ func (r *Registry) checkTextNames() []error {
 		}
 		for _, key := range c.keys(&r.bundle) {
 			if name, ok := c.recordName(&r.bundle, key); ok {
-				check(c.name, key, name)
+				check(string(c.name), key, name)
 			}
 		}
 	}
@@ -205,7 +212,7 @@ func emptyRecord(id string) Record {
 }
 
 // RecordIDs lists the IDs of a record collection in order. An unknown collection has none.
-func (r *Registry) RecordIDs(collection string) []api.ContentID {
+func (r *Registry) RecordIDs(collection Collection) []api.ContentID {
 	return sortedIDs(r.dataOf(collection))
 }
 
@@ -213,11 +220,11 @@ func (r *Registry) checkVocabulary() []error {
 	p := r.problems()
 	vocab := r.bundle.Vocabulary
 	for _, collection := range sortedKeys(vocab.Tags) {
-		if _, ok := r.recordCollection(collection); !ok {
+		if _, ok := r.recordCollection(Collection(collection)); !ok {
 			p.addf("vocabulary.tags[%q]: not a collection of records", collection)
 			continue
 		}
-		data := r.dataOf(collection)
+		data := r.dataOf(Collection(collection))
 		for _, id := range sortedKeys(data) {
 			for i, tag := range data[id].Tags {
 				if !slices.Contains(vocab.Tags[collection], tag) {
@@ -240,7 +247,7 @@ func (r *Registry) checkVocabulary() []error {
 	}
 	for _, key := range sortedKeys(vocab.Lists) {
 		collection, list, ok := strings.Cut(key, ".")
-		if _, record := r.recordCollection(collection); !ok || !record {
+		if _, record := r.recordCollection(Collection(collection)); !ok || !record {
 			p.addf("vocabulary.lists[%q]: want <collection of records>.<key>", key)
 			continue
 		}
@@ -249,7 +256,7 @@ func (r *Registry) checkVocabulary() []error {
 			p.addf("vocabulary.lists[%q]: unknown collection %q", key, vocab.Lists[key])
 			continue
 		}
-		data := r.dataOf(collection)
+		data := r.dataOf(Collection(collection))
 		for _, id := range sortedKeys(data) {
 			for i, value := range data[id].Lists[list] {
 				if !targets[value] {
