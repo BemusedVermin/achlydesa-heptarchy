@@ -207,7 +207,11 @@ func seedHashes(log []byte) map[string]string {
 // compareHashes describes the first seed whose final hash differs, or returns "" when all match.
 func compareHashes(want, got map[string]string) string {
 	for _, seed := range slices.Sorted(maps.Keys(want)) {
-		if got[seed] != want[seed] {
+		hash, reported := got[seed]
+		if !reported {
+			return fmt.Sprintf("seed %s reported no hash, was %s", seed, want[seed])
+		}
+		if hash != want[seed] {
 			return fmt.Sprintf("seed %s ends at %s, was %s", seed, got[seed], want[seed])
 		}
 	}
