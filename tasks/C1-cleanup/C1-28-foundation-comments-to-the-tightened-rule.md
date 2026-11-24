@@ -1,7 +1,7 @@
 ---
 id: C1-28
 title: "Foundation comments to the tightened rule"
-status: todo
+status: done
 milestone: C1
 kind: debt
 depends_on: []
@@ -36,10 +36,10 @@ Leave doc comments alone otherwise: the owner is happy with them.
 
 ## Acceptance criteria
 
-- [ ] The `go tool task comments` command above reports nothing
-- [ ] `go tool task same-behavior` passes
-- [ ] `go tool task check` passes
-- [ ] Only comments changed, apart from test or subtest names and failure messages that took over a comment's job
+- [x] The `go tool task comments` command above reports nothing
+- [x] `go tool task same-behavior` passes
+- [x] `go tool task check` passes
+- [x] Only comments changed, apart from test or subtest names and failure messages that took over a comment's job
 
 ## Out of scope
 
@@ -48,3 +48,5 @@ Leave doc comments alone otherwise: the owner is happy with them.
 ## Notes
 
 - Filed 2026-11-23 when the owner tightened the comment rule.
+- End-of-line notes that said something the name and type didn't became doc comments above the field; the rest were cut. Three "why" notes moved onto the line above.
+- Test comments were cut; none was moved into a test name, as the tests already say it.

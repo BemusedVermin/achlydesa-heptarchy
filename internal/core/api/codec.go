@@ -28,7 +28,7 @@ type Codec struct {
 
 // kindTable maps the kinds of one family (commands or events) to their decoders.
 type kindTable[T any] struct {
-	family   string // "command" or "event", for error messages
+	family   string
 	decoders map[string]func(json.RawMessage) (T, error)
 }
 
@@ -68,7 +68,8 @@ func (t kindTable[T]) decode(data []byte) (T, error) {
 func NewCodec() *Codec {
 	c := &Codec{commands: newKindTable[Command]("command"), events: newKindTable[Event]("event")}
 	if err := RegisterEvent[Rejected](c); err != nil {
-		panic(err) // a programmer bug: the built-in kind is valid and unique
+		// A programmer bug: the built-in kind is valid and unique
+		panic(err)
 	}
 	return c
 }

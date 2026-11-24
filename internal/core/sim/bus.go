@@ -116,7 +116,8 @@ func (b *Bus) Drain(w *World) ([]api.Event, error) {
 		}
 		e := b.queue[0]
 		b.queue = b.queue[1:]
-		subs := b.subscribers[e.EventKind()] // append-only, so these snapshots stay valid
+		// Append-only, so these snapshots stay valid
+		subs := b.subscribers[e.EventKind()]
 		all := b.all
 		b.mu.Unlock()
 

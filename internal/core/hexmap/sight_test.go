@@ -21,7 +21,6 @@ func visibleSet(t *testing.T, m *Map, from api.Cell, radius, depthRange int) map
 }
 
 func TestVisibleOpenRoomAndWalls(t *testing.T) {
-	// An open room of radius 3 at depth 0, walled by rock beyond that, over a rock floor.
 	m := NewMap(1, "room", FuncSource(func(c api.Cell) Terrain {
 		if c.Depth != 0 || Distance(c.Hex, api.Hex{}) > 3 {
 			return rock
@@ -47,7 +46,6 @@ func TestVisibleOpenRoomAndWalls(t *testing.T) {
 }
 
 func TestVisibleShaftAndRock(t *testing.T) {
-	// Solid rock from depth 1; a shaft at (1,0) down to depth 4; a tunnel at depth 4 elsewhere.
 	m := NewMap(1, "shaft", FuncSource(func(c api.Cell) Terrain {
 		if c.Depth < 1 {
 			return air
@@ -68,7 +66,6 @@ func TestVisibleShaftAndRock(t *testing.T) {
 }
 
 func TestVisibleRampDown(t *testing.T) {
-	// A ramp descending east: floor rises to depth 1 at q<=0, then steps down one per hex.
 	m := NewMap(1, "ramp", FuncSource(func(c api.Cell) Terrain {
 		floor := 1 + max(0, c.Hex.Q)
 		if c.Depth >= floor {
@@ -126,7 +123,7 @@ func TestVisibleRemembersUntilAnEdit(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := slices.Clone(first)
-	first[0] = cell(9, 9, 9) // a caller changing its copy must not change what the map remembers
+	first[0] = cell(9, 9, 9)
 	again, err := m.Visible(from, 4, 0)
 	if err != nil {
 		t.Fatal(err)

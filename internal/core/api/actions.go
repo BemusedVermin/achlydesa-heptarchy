@@ -10,13 +10,16 @@ const (
 // Do makes the current player body start one of its actions. The options of the view carry ready
 // built Do commands; a frontend sends one of those.
 type Do struct {
-	Source     UID               `json:"source"`
-	Action     ContentID         `json:"action"`
-	Channels   []UID             `json:"channels,omitempty"` // the limbs to use; empty lets the core pick the lowest UIDs
-	Target     UID               `json:"target,omitempty"`   // the body aimed at, or 0
-	TargetPart UID               `json:"target_part,omitempty"`
-	Dir        *Dir              `json:"dir,omitempty"`
-	Choices    map[string]string `json:"choices,omitempty"` // extra choices by provider name, e.g. "type"
+	Source UID       `json:"source"`
+	Action ContentID `json:"action"`
+	// The limbs to use; empty lets the core pick the lowest UIDs
+	Channels []UID `json:"channels,omitempty"`
+	// The body aimed at, or 0
+	Target     UID  `json:"target,omitempty"`
+	TargetPart UID  `json:"target_part,omitempty"`
+	Dir        *Dir `json:"dir,omitempty"`
+	// Extra choices by provider name, e.g. "type"
+	Choices map[string]string `json:"choices,omitempty"`
 }
 
 // CommandKind implements [Command].

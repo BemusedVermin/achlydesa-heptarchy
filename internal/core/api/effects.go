@@ -11,7 +11,8 @@ const (
 // ChannelsLocked reports that channels were kept busy for longer, and what they were winding up
 // was canceled.
 type ChannelsLocked struct {
-	Channels []UID `json:"channels"` // the channels' entity UIDs, in UID order
+	// The channels' entity UIDs, in UID order
+	Channels []UID `json:"channels"`
 	Ticks    int64 `json:"ticks"`
 	Tick     int64 `json:"tick"`
 }
@@ -21,7 +22,8 @@ func (ChannelsLocked) EventKind() string { return ChannelsLockedKind }
 
 // ActionsInterrupted reports that pending actions were canceled without locking anything.
 type ActionsInterrupted struct {
-	Actors []UID `json:"actors"` // the bodies whose actions were canceled, in UID order
+	// The bodies whose actions were canceled, in UID order
+	Actors []UID `json:"actors"`
 	Tick   int64 `json:"tick"`
 }
 

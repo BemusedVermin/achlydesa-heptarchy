@@ -66,7 +66,7 @@ func TestAboutIsSortedAndFiltersBySubject(t *testing.T) {
 func TestBestTieBreaks(t *testing.T) {
 	tests := []struct {
 		name  string
-		facts []api.Fact // learned in order; the tick is the index times 10
+		facts []api.Fact
 		want  api.ContentID
 	}{
 		{
