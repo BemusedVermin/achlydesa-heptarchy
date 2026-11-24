@@ -113,6 +113,66 @@ templates: {
 		needs: {"need.water": 0}
 		behaviors: ["behavior.test.wander", "behavior.test.to_water"]
 	}
+	// Bodies for the behavior primitives' tests.
+	"template.test.eater": {
+		name: "text.template.test.eater"
+		appearance: {glyph: "e", color: "green"}
+		actor: controller: "agents"
+		body: "body.human"
+		actions: ["action.step", "action.gnaw"]
+		behaviors: ["behavior.test.gnaw_corpse"]
+	}
+	"template.test.hauler": {
+		name: "text.template.test.hauler"
+		appearance: {glyph: "h", color: "green"}
+		actor: controller: "agents"
+		body: "body.human"
+		actions: ["action.step"]
+		behaviors: ["behavior.test.haul_water"]
+	}
+	"template.test.well": {
+		name: "text.template.test.well"
+		appearance: {glyph: "o", color: "blue"}
+		actor: controller: "idle"
+		body: "body.human"
+		tags: ["well"]
+		inventory: [{item: "item.lake_water", count: 5}]
+	}
+	"template.test.cistern": {
+		name: "text.template.test.cistern"
+		appearance: {glyph: "u", color: "blue"}
+		actor: controller: "idle"
+		body: "body.human"
+	}
+	"template.test.runner": {
+		name: "text.template.test.runner"
+		appearance: {glyph: "r", color: "green"}
+		actor: controller: "agents"
+		body:    "body.human"
+		faction: "faction.wild"
+		actions: ["action.step"]
+		behaviors: ["behavior.test.run"]
+	}
+	"template.test.guard": {
+		name: "text.template.test.guard"
+		appearance: {glyph: "g", color: "green"}
+		actor: controller: "agents"
+		body:    "body.human"
+		faction: "faction.wild"
+		actions: ["action.step", "action.strike"]
+		lists: types: ["type.cut"]
+		behaviors: ["behavior.test.guard_post"]
+	}
+	"template.test.engager": {
+		name: "text.template.test.engager"
+		appearance: {glyph: "f", color: "green"}
+		actor: controller: "agents"
+		body:    "body.moving_clay"
+		faction: "faction.wild"
+		actions: ["action.step", "action.strike"]
+		lists: types: ["type.cut"]
+		behaviors: ["behavior.test.fight"]
+	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
 		// A few of each consumable to start with.
@@ -136,6 +196,13 @@ text: {
 	"text.template.creature.moving_clay": "Moving clay"
 	"text.template.test.crawler":         "Crawler"
 	"text.template.test.drinker":         "Drinker"
+	"text.template.test.eater":           "Eater"
+	"text.template.test.hauler":          "Hauler"
+	"text.template.test.well":            "Well"
+	"text.template.test.cistern":         "Cistern"
+	"text.template.test.runner":          "Runner"
+	"text.template.test.guard":           "Guard"
+	"text.template.test.engager":         "Fighter"
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"
 	"text.template.unknown":              "Someone"
