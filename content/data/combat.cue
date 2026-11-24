@@ -18,6 +18,8 @@ combat: {
 	// A hunting creature attacks with an action carrying this tag, and closes in with this one.
 	attack_tag:  "attack"
 	step_action: "action.step"
+	// An action carrying this tag may be aimed at a dead body.
+	corpse_tag: "corpse"
 	// The claim that says what a part is made of.
 	material_claim: "claim.material"
 	// A body that cannot aim (no part grants targeting) swings at random.

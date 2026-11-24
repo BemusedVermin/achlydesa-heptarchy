@@ -143,7 +143,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M3-04.F2.F1](followups/M3-04.F2.F1-action-target-tags.md) | Say what an action may target with a tag, not a new ActionDef field | todo | debt | M3 | M3-04.F2 |
+| [M3-04.F2.F1](followups/M3-04.F2.F1-action-target-tags.md) | Say what an action may target with a tag, not a new ActionDef field | done | debt | M3 | M3-04.F2 |
 | [M3-04.F1](followups/M3-04.F1-path-around-bodies.md) | Path around standing bodies in the behavior primitives | done | bug | M3 | M3-04 |
 | [M3-04.F2](followups/M3-04.F2-corpse-targets-opt-in.md) | Let an action say whether it may target a corpse | done | seam | M3 | M3-04 |
 | [M3-03.F1](followups/M3-03.F1-death-at-phase-boundary.md) | Don't crash when a body dies at the phase boundary its own decision crosses | done | bug | M3 | M3-03 |
