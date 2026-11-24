@@ -167,8 +167,8 @@ func TestGoldenACrawlingPartOutlivesItsBody(t *testing.T) {
 		arm := f.partOf(remnant, "arm")
 		f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 		crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-		f.damage(reaper, remnant, "torso", "99")
-		f.damage(reaper, f.creature(), "torso", "99")
+		f.damage(reaper, remnant, "torso")
+		f.damage(reaper, f.creature(), "torso")
 		dead := ecs.NewMap[comp.Dead](f.w.ECS)
 		if !dead.Has(remnant) || dead.Has(crawling) {
 			t.Fatal("the remnant must have gone down and its crawling arm lived")
@@ -179,7 +179,7 @@ func TestGoldenACrawlingPartOutlivesItsBody(t *testing.T) {
 		if !f.view().Party.Alert || has(f.events, always[api.AlertEnded]) {
 			t.Fatal("the alert dropped while the crawling arm still lived")
 		}
-		f.damage(reaper, crawling, "arm", "99")
+		f.damage(reaper, crawling, "arm")
 		if !dead.Has(crawling) {
 			t.Fatal("the crawling arm did not fall")
 		}
@@ -217,7 +217,7 @@ func TestGoldenADodgeStepsOutOfReachBeforeTheSwingLands(t *testing.T) {
 func TestGoldenOutpacingACreatureWithItsLegsSevered(t *testing.T) {
 	f := huntField(t, func(b *content.Bundle) { b.Combat.SightRadius = 4 })
 	creature := f.creature()
-	f.damage(f.members()[0], creature, "legs", "99")
+	f.damage(f.members()[0], creature, "legs")
 	start := f.at(creature)
 	f.place(f.members()[0], east(start, -3))
 	f.place(f.members()[1], east(start, -2))

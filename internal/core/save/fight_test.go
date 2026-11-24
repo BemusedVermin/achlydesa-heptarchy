@@ -11,11 +11,11 @@ import (
 )
 
 // landsOf lists the "lands" entries of the timeline, which show the actions in flight.
-func landsOf(t testing.TB, g *game.Game) []api.TimelineEntry {
-	t.Helper()
+func landsOf(tb testing.TB, g *game.Game) []api.TimelineEntry {
+	tb.Helper()
 	view, err := g.View()
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	var lands []api.TimelineEntry
 	for _, entry := range view.Timeline.Entries {

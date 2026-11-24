@@ -5,7 +5,7 @@ paths:
 
 # Working in internal/core
 
-Every rule in AGENTS.md applies here. This is how they play out in the code.
+Every rule in AGENTS.md applies here. This is how they play out in the code. Names come from `docs/glossary.md`.
 
 ## Determinism (rule 3)
 
@@ -27,6 +27,7 @@ Every rule in AGENTS.md applies here. This is how they play out in the code.
 - Commands, events and views in `api` are plain, serializable data with no behavior.
 - Player-facing text leaves the core as an `api.Text` (a text ID plus arguments), or in the view as a string the core rendered from one. Never write English for the player in Go.
 - An invalid player command emits `api.Rejected` with a text reason. It isn't an error.
+- A content bug met at run time, such as a failing speed formula, returns an error up the call chain (`timeline.SetSpeed` hooks return `(int, error)`). Never turn it into 0 or a default.
 - Valid moves, menus and their order are worked out here and served in the view's `Options`.
 
 ## Layers (rule 2)

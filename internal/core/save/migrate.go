@@ -3,6 +3,7 @@ package save
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
 // Migration upgrades a raw document one version, in place. It does not touch the header: upgrade
@@ -27,7 +28,7 @@ func upgrade(doc map[string]json.RawMessage, from, to int, chain map[int]Migrati
 		if err := json.Unmarshal(doc["header"], &header); err != nil {
 			return fmt.Errorf("save: migrate version %d to %d: header: %w", version, version+1, err)
 		}
-		header["version"] = json.RawMessage(fmt.Sprint(version + 1))
+		header["version"] = json.RawMessage(strconv.Itoa(version + 1))
 		raw, err := json.Marshal(header)
 		if err != nil {
 			return fmt.Errorf("save: migrate: %w", err)

@@ -27,12 +27,7 @@ func CanWake(w *sim.World) bool {
 		return false
 	}
 	downed := ecs.NewMap[comp.Downed](w.ECS)
-	for _, member := range membersOf(w, party) {
-		if downed.Has(member) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(membersOf(w, party), downed.Has)
 }
 
 // Wake gets the controlled party's downed members up at its rest place: their parts mended to full

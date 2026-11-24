@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"image/color"
+	"strconv"
 	"strings"
 
 	"charm.land/lipgloss/v2"
@@ -268,7 +269,7 @@ func RenderTimelineMarked(t *api.TimelineView, bodies *api.BodiesView, width, se
 				}
 			}
 			if len(entries) > 1 {
-				count = fmt.Sprintf("+%s", plural(len(entries)-1))
+				count = "+" + plural(len(entries)-1)
 			}
 		}
 		mark := ". "
@@ -296,7 +297,7 @@ func plural(n int) string {
 	if n > 9 {
 		return "*"
 	}
-	return fmt.Sprint(n)
+	return strconv.Itoa(n)
 }
 
 // RenderClock draws the day, the phase and a bar for the ticks elapsed in the phase.

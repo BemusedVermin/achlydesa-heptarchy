@@ -11,11 +11,11 @@ import (
 )
 
 // writeData writes src as the only CUE file of a fresh data package and returns its directory.
-func writeData(t testing.TB, src string) string {
-	t.Helper()
-	dir := t.TempDir()
+func writeData(tb testing.TB, src string) string {
+	tb.Helper()
+	dir := tb.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "data.cue"), []byte("package data\n\n"+src), 0o600); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return dir
 }

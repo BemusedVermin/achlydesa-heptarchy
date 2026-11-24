@@ -28,7 +28,7 @@ type rig struct {
 	party ecs.Entity
 }
 
-func newRig(t *testing.T, seed uint64, mutate func(*content.Bundle)) *rig {
+func newRig(t *testing.T, mutate func(*content.Bundle)) *rig {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
 	contenttest.NoStart(&bundle)
@@ -38,7 +38,7 @@ func newRig(t *testing.T, seed uint64, mutate func(*content.Bundle)) *rig {
 	reg := contenttest.Registry(t, bundle)
 	r := &rig{}
 	r.cfg = game.Config{
-		Seed: seed, Content: reg,
+		Seed: 1, Content: reg,
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
 			var err error
 			r.party, err = w.Spawn("template.party.main", nil)
@@ -97,7 +97,7 @@ func totals(grants ...[]comp.Grant) map[string]int {
 }
 
 func TestPartyMembersGetTheirPlansParts(t *testing.T) {
-	r := newRig(t, 1, nil)
+	r := newRig(t, nil)
 	members := anatomy.Members(r.w, r.party)
 	if len(members) == 0 {
 		t.Fatal("the party has no members")
@@ -141,7 +141,7 @@ func TestPartyMembersGetTheirPlansParts(t *testing.T) {
 }
 
 func TestChannelsAreTheBodyThenEachPartTagged(t *testing.T) {
-	r := newRig(t, 1, nil)
+	r := newRig(t, nil)
 	member := r.member(t)
 	plan := r.plan(t, member)
 	channels := timeline.Channels(r.w, member)
@@ -167,7 +167,7 @@ func TestChannelsAreTheBodyThenEachPartTagged(t *testing.T) {
 }
 
 func TestLosingTheSpeedPartsSlowsSteps(t *testing.T) {
-	r := newRig(t, 1, nil)
+	r := newRig(t, nil)
 	member := r.member(t)
 	fast, err := timeline.StepTicks(r.w, member)
 	if err != nil {
@@ -202,7 +202,7 @@ func TestLosingTheSpeedPartsSlowsSteps(t *testing.T) {
 }
 
 func TestAFailingSpeedFormulaIsAnError(t *testing.T) {
-	r := newRig(t, 1, nil)
+	r := newRig(t, nil)
 	member := r.member(t)
 	bundle := contenttest.SampleBundle(t)
 	bundle.Timeline.Speed = "grant.speed % (grant.speed - grant.speed)"
@@ -216,7 +216,7 @@ func TestAFailingSpeedFormulaIsAnError(t *testing.T) {
 }
 
 func TestGrantsSumThePlansGrants(t *testing.T) {
-	r := newRig(t, 1, nil)
+	r := newRig(t, nil)
 	member := r.member(t)
 	var grants [][]comp.Grant
 	for _, def := range r.plan(t, member) {
@@ -232,7 +232,7 @@ func TestGrantsSumThePlansGrants(t *testing.T) {
 }
 
 func TestDetachingAPartDropsItFromPartsAndGrants(t *testing.T) {
-	r := newRig(t, 1, nil)
+	r := newRig(t, nil)
 	member := r.member(t)
 	all := anatomy.GrantTotals(r.w, member)
 	count := len(anatomy.Parts(r.w, member))
@@ -267,8 +267,8 @@ func TestDetachingAPartDropsItFromPartsAndGrants(t *testing.T) {
 }
 
 func TestAMaterialOverrideChangesThePartsMaterial(t *testing.T) {
-	r := newRig(t, 1, func(b *content.Bundle) {
-		b.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.test.crawler"))}
+	r := newRig(t, func(b *content.Bundle) {
+		b.Templates["template.test.crawler"] = content.Template{Body: new(api.ContentID("body.test.crawler"))}
 	})
 	crawler, err := r.w.Spawn("template.test.crawler", nil)
 	if err != nil {
@@ -287,8 +287,6 @@ func TestAMaterialOverrideChangesThePartsMaterial(t *testing.T) {
 	}
 }
 
-func ptr[T any](v T) *T { return &v }
-
 func TestSpawningIsDeterministic(t *testing.T) {
 	describe := func(r *rig) []string {
 		var out []string
@@ -301,7 +299,7 @@ func TestSpawningIsDeterministic(t *testing.T) {
 		}
 		return out
 	}
-	first, second := describe(newRig(t, 1, nil)), describe(newRig(t, 1, nil))
+	first, second := describe(newRig(t, nil)), describe(newRig(t, nil))
 	if !slices.Equal(first, second) || len(first) == 0 {
 		t.Errorf("first = %v\nsecond = %v", first, second)
 	}

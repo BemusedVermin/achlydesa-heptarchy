@@ -2,6 +2,7 @@ package harness
 
 import (
 	"encoding/csv"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -150,7 +151,7 @@ func runSeed(cfg RunConfig, seed uint64, writer *csv.Writer) error {
 	if err != nil {
 		return err
 	}
-	cfg.Logger.Info("seed finished", "seed", seed, "hash", fmt.Sprintf("%x", hash))
+	cfg.Logger.Info("seed finished", "seed", seed, "hash", hex.EncodeToString(hash[:]))
 	return nil
 }
 

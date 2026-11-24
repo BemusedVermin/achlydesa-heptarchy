@@ -263,10 +263,10 @@ func TestHostileIsSymmetricWhenOnlyOneFactionListsTheOther(t *testing.T) {
 }
 
 // damage wears the named slot's parts of the body down by an amount, as an effect would.
-func (f *field) damage(source, target ecs.Entity, slot, amount string) {
+func (f *field) damage(source, target ecs.Entity, slot string) {
 	f.t.Helper()
 	ctx := &effects.Context{World: f.w, Source: source, Target: target}
-	refs := []content.EffectRef{{Do: "damage", Params: map[string]string{"parts": "target:" + slot, "amount": amount}}}
+	refs := []content.EffectRef{{Do: "damage", Params: map[string]string{"parts": "target:" + slot, "amount": "99"}}}
 	if err := effects.Apply(ctx, refs); err != nil {
 		f.t.Fatal(err)
 	}
@@ -279,11 +279,11 @@ func TestLosingEveryVitalPartKillsABodyAndLeavesACorpse(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	creature, hero := f.creature(), f.members()[0]
 	f.events = nil
-	f.damage(hero, creature, "head", "99")
+	f.damage(hero, creature, "head")
 	if has(f.events, always[api.BodyDied]) {
 		t.Fatal("the creature died with its core intact")
 	}
-	f.damage(hero, creature, "torso", "99")
+	f.damage(hero, creature, "torso")
 	var died *api.BodyDied
 	for _, e := range f.events {
 		if d, ok := e.(api.BodyDied); ok {
@@ -332,7 +332,7 @@ func TestDeathCancelsPendingActions(t *testing.T) {
 		t.Fatal("the swing was not scheduled")
 	}
 	f.events = nil
-	f.damage(hero, creature, "torso", "99")
+	f.damage(hero, creature, "torso")
 	if left := len(pendingOf(f.w, uid)); left != 0 {
 		t.Errorf("a dead body has %d pending actions", left)
 	}
@@ -342,7 +342,7 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	members := f.members()
 	f.events = nil
-	f.damage(members[1], members[1], "torso", "99")
+	f.damage(members[1], members[1], "torso")
 	if !has(f.events, always[api.BodyDowned]) || has(f.events, always[api.BodyDied]) {
 		t.Fatalf("events = %v, want the protected member downed, not dead", f.events)
 	}
@@ -352,7 +352,7 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 	if !ecs.NewMap[comp.Downed](f.w.ECS).Has(members[1]) || ecs.NewMap[comp.Actor](f.w.ECS).Has(members[1]) {
 		t.Error("the downed member is not downed and off the timeline")
 	}
-	f.damage(members[0], members[0], "torso", "99")
+	f.damage(members[0], members[0], "torso")
 	if !has(f.events, always[api.PartyWiped]) {
 		t.Fatal("no PartyWiped after every member went down")
 	}
@@ -376,7 +376,7 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 func TestAnOutOfFightMemberCannotLead(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	members := f.members()
-	f.damage(members[0], members[1], "torso", "99")
+	f.damage(members[0], members[1], "torso")
 	uid := f.w.UIDOf(members[1])
 	for _, o := range f.view().Options {
 		if o.ID == "lead/"+strconv.FormatUint(uint64(uid), 10) {
@@ -398,7 +398,7 @@ func TestAnOutOfFightMemberCannotLead(t *testing.T) {
 func TestTheLeadPassesOnWhenTheLeaderGoesDown(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	members := f.members()
-	f.damage(members[1], members[0], "torso", "99")
+	f.damage(members[1], members[0], "torso")
 	state := f.party()
 	if state.Leader != f.w.UIDOf(members[1]) || state.Order[0] != state.Leader {
 		t.Errorf("leader = %d, order = %v; want the standing member to lead", state.Leader, state.Order)

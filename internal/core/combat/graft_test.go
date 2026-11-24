@@ -148,8 +148,8 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	arm := f.partOf(remnant, "arm")
 	f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-	f.damage(reaper, remnant, "torso", "99")
-	f.damage(reaper, f.creature(), "torso", "99")
+	f.damage(reaper, remnant, "torso")
+	f.damage(reaper, f.creature(), "torso")
 	f.moveParty(east(f.at(crawling), -1))
 
 	uid := f.w.UIDOf(crawling)

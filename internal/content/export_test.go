@@ -15,16 +15,16 @@ var (
 	sampleJSON = sync.OnceValues(func() ([]byte, error) { return loadBundleJSON(dataPath) })
 )
 
-func sampleBundle(t testing.TB) Bundle {
-	t.Helper()
-	return copyBundle(t, sampleJSON)
+func sampleBundle(tb testing.TB) Bundle {
+	tb.Helper()
+	return copyBundle(tb, sampleJSON)
 }
 
-func sampleRegistry(t testing.TB) *Registry {
-	t.Helper()
+func sampleRegistry(tb testing.TB) *Registry {
+	tb.Helper()
 	reg, err := sample()
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return reg
 }
@@ -37,27 +37,27 @@ func loadBundleJSON(dir string) ([]byte, error) {
 	return json.Marshal(bundle)
 }
 
-func copyBundle(t testing.TB, encoded func() ([]byte, error)) Bundle {
-	t.Helper()
+func copyBundle(tb testing.TB, encoded func() ([]byte, error)) Bundle {
+	tb.Helper()
 	data, err := encoded()
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	var bundle Bundle
 	if err := json.Unmarshal(data, &bundle); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return bundle
 }
 
-func requireErrContains(t testing.TB, err error, fragments ...string) {
-	t.Helper()
+func requireErrContains(tb testing.TB, err error, fragments ...string) {
+	tb.Helper()
 	if err == nil {
-		t.Fatalf("got no error, want one containing %q", fragments)
+		tb.Fatalf("got no error, want one containing %q", fragments)
 	}
 	for _, fragment := range fragments {
 		if !strings.Contains(err.Error(), fragment) {
-			t.Errorf("error %q lacks %q", err, fragment)
+			tb.Errorf("error %q lacks %q", err, fragment)
 		}
 	}
 }

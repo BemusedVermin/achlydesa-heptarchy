@@ -1,6 +1,7 @@
 package main
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -97,9 +98,7 @@ func TestCheckPR(t *testing.T) {
 		return map[string]string{paths[id]: task(id, "done", kind, extra, criteria), "tasks/INDEX.md": index}
 	}
 	with := func(changes map[string]string, more map[string]string) map[string]string {
-		for name, content := range more {
-			changes[name] = content
-		}
+		maps.Copy(changes, more)
 		return changes
 	}
 

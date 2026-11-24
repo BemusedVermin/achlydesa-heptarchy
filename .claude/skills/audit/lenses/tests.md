@@ -30,3 +30,5 @@ Report each finding with:
 - what it protects, in a few words;
 - the recommendation: delete, shrink to a stated size, merge into another named test, or keep with a reason;
 - the size of the change.
+
+**Already decided:** the cached `contenttest.Sample(t)` registry is allowed, since the registry is immutable; tests that edit content use `contenttest.SampleBundle(t)`. Report a test that loads the sample content itself instead. `thelper` and `unparam` run on test code too, so don't report helper naming or constant parameters.

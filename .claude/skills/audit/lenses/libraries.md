@@ -13,3 +13,5 @@ Find code that a library already does better: hand-written code, or code that pr
 - **New third-party libraries last.** Propose one only when it removes a meaningful amount of code or risk. Give the lines it replaces, what it does, its maintenance status and license, and why the standard library isn't enough. Each new dependency is the owner's decision, so it becomes a question.
 
 Report each finding with `file:line`, the replacement, and the lines it saves.
+
+**The modernize analyzers now run in `golangci-lint`** (all but `omitzero`), so the lint run covers the standard-library finds above. Don't run it separately; spend the time on hand-written code a dependency already in `go.mod` replaces.

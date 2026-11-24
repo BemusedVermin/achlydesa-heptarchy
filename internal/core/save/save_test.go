@@ -33,27 +33,27 @@ type rig struct {
 	w   *sim.World
 }
 
-func newBundle(t testing.TB) content.Bundle {
-	t.Helper()
-	bundle := contenttest.SampleBundle(t)
+func newBundle(tb testing.TB) content.Bundle {
+	tb.Helper()
+	bundle := contenttest.SampleBundle(tb)
 	contenttest.StepOnlyParty(&bundle)
 	contenttest.StandingCrawler(&bundle)
 	return bundle
 }
 
-func newRig(t testing.TB, seed uint64, bundle content.Bundle) *rig {
-	t.Helper()
-	reg := contenttest.Registry(t, bundle)
+func newRig(tb testing.TB, bundle content.Bundle) *rig {
+	tb.Helper()
+	reg := contenttest.Registry(tb, bundle)
 	r := &rig{}
-	r.cfg = game.Config{Seed: seed, Content: reg}
-	r.g, r.w, _ = gametest.Start(t, r.cfg)
+	r.cfg = game.Config{Seed: 1, Content: reg}
+	r.g, r.w, _ = gametest.Start(tb, r.cfg)
 	return r
 }
 
 // reload saves g and loads the bytes into a new game with the same config.
-func reload(t testing.TB, cfg game.Config, g *game.Game) (*rig, []string) {
-	t.Helper()
-	loaded, w, warnings := gametest.Reload(t, cfg, g)
+func reload(tb testing.TB, cfg game.Config, g *game.Game) (*rig, []string) {
+	tb.Helper()
+	loaded, w, warnings := gametest.Reload(tb, cfg, g)
 	return &rig{cfg: cfg, g: loaded, w: w}, warnings
 }
 
@@ -91,7 +91,7 @@ func pick(t rapid.TB, g *game.Game, choice int) {
 }
 
 func TestSaveThenLoadAtTickZeroHasTheSameHash(t *testing.T) {
-	r := newRig(t, 1, newBundle(t))
+	r := newRig(t, newBundle(t))
 	loaded, warnings := reload(t, r.cfg, r.g)
 	if len(warnings) != 0 {
 		t.Errorf("warnings = %v, want none", warnings)
@@ -164,7 +164,7 @@ func TestSaveThenLoadWithThePartyAndAFactHasTheSameHash(t *testing.T) {
 }
 
 func TestSavingTwiceGivesTheSameBytes(t *testing.T) {
-	r := newRig(t, 1, newBundle(t))
+	r := newRig(t, newBundle(t))
 	for i := range 20 {
 		pick(t, r.g, i)
 	}
@@ -181,7 +181,7 @@ func TestSavingTwiceGivesTheSameBytes(t *testing.T) {
 }
 
 func TestAMapEditSurvivesSaveAndLoad(t *testing.T) {
-	r := newRig(t, 1, newBundle(t))
+	r := newRig(t, newBundle(t))
 	at := api.Cell{Hex: api.Hex{Q: 2, R: 2}, Depth: 1}
 	m := r.w.Maps.Get(1)
 	before, err := m.At(at)
@@ -195,7 +195,7 @@ func TestAMapEditSurvivesSaveAndLoad(t *testing.T) {
 	if err := m.Set(at, want); err != nil {
 		t.Fatal(err)
 	}
-	if hash(t, r.g) == hash(t, newRig(t, 1, newBundle(t)).g) {
+	if hash(t, r.g) == hash(t, newRig(t, newBundle(t)).g) {
 		t.Fatal("the edit is not in the hash")
 	}
 	loaded, _ := reload(t, r.cfg, r.g)
@@ -279,7 +279,7 @@ func TestLoadingAfterRandomPlayContinuesIdentically(t *testing.T) {
 }
 
 func TestChangedContentLoadsWithAWarning(t *testing.T) {
-	r := newRig(t, 1, newBundle(t))
+	r := newRig(t, newBundle(t))
 	for i := range 5 {
 		pick(t, r.g, i)
 	}
@@ -289,7 +289,7 @@ func TestChangedContentLoadsWithAWarning(t *testing.T) {
 	}
 	changed := newBundle(t)
 	changed.Timeline.DefaultSpeed++
-	other := newRig(t, 1, changed)
+	other := newRig(t, changed)
 	loaded, warnings, err := game.Load(other.cfg, &buf)
 	if err != nil {
 		t.Fatal(err)
@@ -303,7 +303,7 @@ func TestChangedContentLoadsWithAWarning(t *testing.T) {
 }
 
 func TestHistoryAndLogSurviveSaveAndLoad(t *testing.T) {
-	r := newRig(t, 1, newBundle(t))
+	r := newRig(t, newBundle(t))
 	for i := range 8 {
 		pick(t, r.g, i)
 	}
@@ -360,7 +360,7 @@ func editHeader(t *testing.T, doc map[string]json.RawMessage, edit func(header m
 }
 
 func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
-	r := newRig(t, 1, newBundle(t))
+	r := newRig(t, newBundle(t))
 	var buf bytes.Buffer
 	if err := r.g.Save(&buf); err != nil {
 		t.Fatal(err)

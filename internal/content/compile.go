@@ -1,6 +1,7 @@
 package content
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -99,7 +100,7 @@ func (in *inliner) Visit(node *ast.Node) {
 	}
 	property, ok := member.Property.(*ast.StringNode)
 	if !ok {
-		in.fail(fmt.Errorf("a rule is named like rule.<name>"))
+		in.fail(errors.New("a rule is named like rule.<name>"))
 		return
 	}
 	body, err := in.expand(property.Value)

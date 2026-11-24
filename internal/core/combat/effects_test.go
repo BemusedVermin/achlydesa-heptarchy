@@ -34,7 +34,10 @@ type rig struct {
 	events  []api.Event
 }
 
-func newRig(t *testing.T) *rig { return newRigWith(t, nil) }
+func newRig(t *testing.T) *rig {
+	t.Helper()
+	return newRigWith(t, nil)
+}
 
 // newRigWith is newRig with the bundle adjusted first.
 func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
@@ -53,7 +56,7 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	}
 	bundle.Text["text.item.test_arm"] = "spare arm"
 	bundle.Text["text.status.braced"] = "braced"
-	bundle.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.test.crawler"))}
+	bundle.Templates["template.test.crawler"] = content.Template{Body: new(api.ContentID("body.test.crawler"))}
 	if mutate != nil {
 		mutate(&bundle)
 	}
@@ -81,8 +84,6 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	ecs.NewMap[comp.Pos](r.w.ECS).Add(r.reaper, &pos)
 	return r
 }
-
-func ptr[T any](v T) *T { return &v }
 
 // apply runs the effects and returns the events they published.
 func (r *rig) apply(t *testing.T, ctx *effects.Context, refs ...content.EffectRef) []api.Event {

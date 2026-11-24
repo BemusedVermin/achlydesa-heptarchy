@@ -1,6 +1,7 @@
 package harness
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -29,5 +30,5 @@ func Replay(reg *content.Registry, seed uint64, r io.Reader) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("harness: %w", err)
 	}
-	return fmt.Sprintf("%x", hash), nil
+	return hex.EncodeToString(hash[:]), nil
 }

@@ -164,7 +164,7 @@ func TestStepKeepsOverlappingTunnelsApart(t *testing.T) {
 	}), Prisms{})
 
 	for _, depth := range []int{0, 4} {
-		for q := 0; q <= 5; q++ {
+		for q := range 6 {
 			from := cell(q, 0, depth)
 			for dir := api.DirE; dir.Valid(); dir++ {
 				step, ok, err := m.Step(from, dir, defaultStepRules())

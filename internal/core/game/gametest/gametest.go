@@ -15,48 +15,48 @@ import (
 // is). Each configure function may set fields of the config, such as Spawn, before the game starts.
 // It returns the game, its world and the config, which Reload and game.Load need.
 func New(
-	t testing.TB,
+	tb testing.TB,
 	seed uint64,
 	mutate func(*content.Bundle),
 	configure ...func(*game.Config),
 ) (*game.Game, *sim.World, game.Config) {
-	t.Helper()
-	bundle := contenttest.SampleBundle(t)
+	tb.Helper()
+	bundle := contenttest.SampleBundle(tb)
 	if mutate != nil {
 		mutate(&bundle)
 	}
-	cfg := game.Config{Seed: seed, Content: contenttest.Registry(t, bundle)}
+	cfg := game.Config{Seed: seed, Content: contenttest.Registry(tb, bundle)}
 	for _, f := range configure {
 		f(&cfg)
 	}
-	return Start(t, cfg)
+	return Start(tb, cfg)
 }
 
 // Start builds a game from cfg and returns it with its world, keeping any Install the config has.
-func Start(t testing.TB, cfg game.Config) (*game.Game, *sim.World, game.Config) {
-	t.Helper()
+func Start(tb testing.TB, cfg game.Config) (*game.Game, *sim.World, game.Config) {
+	tb.Helper()
 	var world *sim.World
 	cfg.Install = capture(cfg.Install, &world)
 	g, err := game.New(cfg)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return g, world, cfg
 }
 
 // Reload saves g and loads the bytes into a new game with the same config. It returns the new game,
 // its world and the load warnings.
-func Reload(t testing.TB, cfg game.Config, g *game.Game) (*game.Game, *sim.World, []string) {
-	t.Helper()
+func Reload(tb testing.TB, cfg game.Config, g *game.Game) (*game.Game, *sim.World, []string) {
+	tb.Helper()
 	var buf bytes.Buffer
 	if err := g.Save(&buf); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	var world *sim.World
 	cfg.Install = capture(cfg.Install, &world)
 	loaded, warnings, err := game.Load(cfg, &buf)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return loaded, world, warnings
 }

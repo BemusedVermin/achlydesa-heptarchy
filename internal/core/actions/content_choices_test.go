@@ -116,18 +116,16 @@ func TestChosenRecordsChangeTheAction(t *testing.T) {
 			b.Text["text.test.refusal"] = "Locked up."
 			b.Text["text.type.test"], b.Text["text.type.locked"] = "Test", "Locked"
 			b.Types["type.test"] = content.Type{
-				Name: "text.type.test", Data: content.Data{Tags: []string{"innate"}},
-				Mods: content.Mods{
-					Windup: "2", Recovery: "1",
-					OnStart: []content.EffectRef{{Do: "consume", Params: map[string]string{"item": "item.lake_water"}},
-						{Do: "test.log", Params: map[string]string{"tag": "start"}},
-					},
-					OnLand: []content.EffectRef{{Do: "test.log", Params: map[string]string{"tag": "mod"}}},
+				Name: "text.type.test", Tags: []string{"innate"},
+				Windup: "2", Recovery: "1",
+				OnStart: []content.EffectRef{{Do: "consume", Params: map[string]string{"item": "item.lake_water"}},
+					{Do: "test.log", Params: map[string]string{"tag": "start"}},
 				},
+				OnLand: []content.EffectRef{{Do: "test.log", Params: map[string]string{"tag": "mod"}}},
 			}
 			b.Types["type.locked"] = content.Type{
-				Name: "text.type.locked", Data: content.Data{Tags: []string{"innate"}},
-				Mods: content.Mods{Requires: "false", Refusal: "text.test.refusal"},
+				Name: "text.type.locked", Tags: []string{"innate"},
+				Requires: "false", Refusal: "text.test.refusal",
 			}
 		},
 	})
