@@ -83,9 +83,9 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-22](C1-cleanup/C1-22-foundation-area-duplication-tests-comments-speed.md) | Foundation area: duplication, tests, comments, speed errors | done | debt | L | C1-18, C1-16 |
 | [C1-23](C1-cleanup/C1-23-game-and-frontend-duplication-text-out-of-the-tu.md) | Game and frontend: duplication, text out of the tui, tests, comments | in-progress | debt | L | C1-18, C1-12 |
 | [C1-24](C1-cleanup/C1-24-tools-fix-the-windows-test-shared-git-code-tests.md) | Tools: fix the Windows test, shared git code, tests, comments | todo | debt | L | C1-18, C1-15 |
-| [C1-25](C1-cleanup/C1-25-agentkit-cleanup-owner-does-this-one.md) | agentkit cleanup (owner does this one) | proposed | debt | L | C1-24, C1-14 |
+| [C1-25](C1-cleanup/C1-25-agentkit-cleanup-owner-does-this-one.md) | agentkit cleanup (owner does this one) | obsolete | debt | L | C1-24, C1-14 |
 | [C1-26](C1-cleanup/C1-26-design-doc-fixes-and-the-content-guide.md) | Design-doc fixes and the content guide | todo | content | L | C1-17, C1-19 |
-| [C1-27](C1-cleanup/C1-27-lock-in-what-the-cleanup-decided.md) | Lock in what the cleanup decided | todo | debt | S | C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-25, C1-26, C1-28, C1-29, C1-30 |
+| [C1-27](C1-cleanup/C1-27-lock-in-what-the-cleanup-decided.md) | Lock in what the cleanup decided | todo | debt | S | C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-26, C1-28, C1-29, C1-30 |
 | [C1-28](C1-cleanup/C1-28-foundation-comments-to-the-tightened-rule.md) | Foundation comments to the tightened rule | todo | debt | M | none |
 | [C1-29](C1-cleanup/C1-29-content-comments-to-the-tightened-rule.md) | Content comments to the tightened rule | todo | debt | M | none |
 | [C1-30](C1-cleanup/C1-30-actions-comments-to-the-tightened-rule.md) | Actions comments to the tightened rule | todo | debt | M | none |
@@ -116,9 +116,9 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [C1-21.F2](followups/C1-21.F2-check-pr-allowed-behavior-changes.md) | Let check-pr accept a cleanup task's named behavior changes | proposed | seam | C1 | C1-21 |
-| [C1-21.F1](followups/C1-21.F1-combat-tests-load-content-each-time.md) | Stop reparsing the sample content in every combat test | proposed | test | unplanned | C1-21 |
-| [C1-17.F2](followups/C1-17.F2-tui-line-cuts-the-tick.md) | The actor panel cuts a line's last digit when the target's name is long | proposed | bug | C1 | C1-17 |
+| [C1-21.F2](followups/C1-21.F2-check-pr-allowed-behavior-changes.md) | Let check-pr accept a cleanup task's named behavior changes | todo | seam | C1 | C1-21 |
+| [C1-21.F1](followups/C1-21.F1-combat-tests-load-content-each-time.md) | Stop reparsing the sample content in every combat test | todo | test | C1 | C1-21 |
+| [C1-17.F2](followups/C1-17.F2-tui-line-cuts-the-tick.md) | The actor panel cuts a line's last digit when the target's name is long | obsolete | bug | C1 | C1-17 |
 | [C1-17.F1](followups/C1-17.F1-content-rules-text-ids.md) | Correct .claude/rules/content.md for the text ID shape | done | debt | C1 | C1-17 |
 | [M2-11.F2](followups/M2-11.F2-where-the-three-creatures-spawn.md) | Where do the sample's three creatures spawn? | obsolete | question | M2 | M2-11 |
 | [M2-11.F1](followups/M2-11.F1-ready-frees-a-winding-channel.md) | Stand and Give free a channel that still has a swing winding up | done | bug | M2 | M2-11 |
