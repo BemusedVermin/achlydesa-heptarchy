@@ -7,15 +7,18 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mlange-42/ark/ecs"
 	"pgregory.net/rapid"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -116,6 +119,43 @@ func TestSaveThenLoadWithASpawnedActorHasTheSameHash(t *testing.T) {
 	}
 	if loaded.g.Current() != g.Current() || g.Current() == 0 {
 		t.Errorf("current = %d, want %d", loaded.g.Current(), g.Current())
+	}
+}
+
+// The party brings bodies, parts and an inventory, and the fact brings knowledge, so one hash covers
+// what each of those packages saves.
+func TestSaveThenLoadWithThePartyAndAFactHasTheSameHash(t *testing.T) {
+	bundle := newBundle(t)
+	contenttest.NoStart(&bundle) // the test spawns its own party
+	var party ecs.Entity
+	cfg := game.Config{
+		Seed:    1,
+		Content: contenttest.Registry(t, bundle),
+		Spawn: func(w *sim.World, _ *clock.Clock) error {
+			var err error
+			party, err = w.Spawn("template.party.main", nil)
+			return err
+		},
+	}
+	g, w, cfg := gametest.Start(t, cfg)
+	before := hash(t, g)
+	members := anatomy.Members(w, party)
+	if len(members) == 0 {
+		t.Fatal("the party has no members")
+	}
+	knowledge.Learn(w, members[0], api.Fact{
+		Subject: w.UIDOf(party), Claim: "claim.material", Value: "material.clay", Origin: "origin.sweep",
+		Confidence: 0.8,
+	})
+	if hash(t, g) == before {
+		t.Fatal("the fact is not in the hash")
+	}
+	loaded, warnings := reload(t, cfg, g)
+	if len(warnings) != 0 {
+		t.Errorf("warnings = %v, want none", warnings)
+	}
+	if hash(t, loaded.g) != hash(t, g) {
+		t.Error("hash changed across save and load")
 	}
 }
 

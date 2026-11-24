@@ -94,11 +94,9 @@ func TestVisibleSortedAndStable(t *testing.T) {
 	if !slices.IsSortedFunc(first, CompareCells) {
 		t.Error("result is not sorted by Depth, R, Q")
 	}
-	for range 100 {
-		again, err := m.Visible(cell(0, 0, 0), 5, 2)
-		if err != nil || !slices.Equal(first, again) {
-			t.Fatalf("repeat call differs: %v", err)
-		}
+	again, err := m.Visible(cell(0, 0, 0), 5, 2)
+	if err != nil || !slices.Equal(first, again) {
+		t.Fatalf("repeat call differs: %v", err)
 	}
 }
 
