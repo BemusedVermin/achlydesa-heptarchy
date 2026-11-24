@@ -120,4 +120,7 @@ Other:
 - **Not met here: "combat runs in under 10s".** On this laptop, shared with other agents' test runs, `go test ./internal/core/combat` took 13 to 37s, with a best of about 13s. It took about 56s before. The property test is now about 2 to 5s of that. The rest is the package's other tests: per-test CUE reparsing (about 18% of the profile) and option evaluation in `game.View`. The owner should time it on an idle machine. C1-21.F1 is the next step if it is still over.
 - `go tool task check` is left unticked. `check-ci BASE=origin/master` passes, but I didn't run the full suite on this shared machine, and on Windows it also needs C1-24's fix.
 - `same-behavior`: differs only in `internal/core/combat/testdata/hunt.golden: golden file removed`, which is deliberate (above).
-- Follow-up filed: C1-21.F1 (combat tests still reparse the sample CUE in every test).
+- `check-pr` fails on that same deliberate difference. It has no way to accept a change the Spec names, and agents can't edit agentkit, so I filed C1-21.F2. The owner can merge past it, or keep the golden instead.
+- Follow-ups filed:
+  - C1-21.F1: combat tests still reparse the sample CUE in every test.
+  - C1-21.F2: let check-pr accept a cleanup task's named behavior changes.
