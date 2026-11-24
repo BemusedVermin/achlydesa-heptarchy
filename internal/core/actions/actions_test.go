@@ -667,3 +667,26 @@ func TestBatchUsableHookAgreesWithTheChannelByChannelTest(t *testing.T) {
 		}
 	}
 }
+
+func TestOnlyACorpseActionMayTargetADeadBody(t *testing.T) {
+	fx := newFixture(t, 1, opts{actions: []api.ContentID{"action.test.swing", "action.gnaw"}})
+	ecs.NewMap[comp.Actor](fx.w.ECS).Remove(fx.dummy)
+	ecs.NewMap[comp.Dead](fx.w.ECS).Add(fx.dummy, &comp.Dead{Tick: fx.w.Now})
+	for _, tc := range []struct {
+		action api.ContentID
+		ok     bool
+	}{
+		{"action.test.swing", false},
+		{"action.gnaw", true},
+	} {
+		t.Run(string(tc.action), func(t *testing.T) {
+			ok, reason := actions.Validate(fx.w, actions.Intent{Actor: fx.fighter, Action: tc.action, Target: fx.dummy})
+			if ok != tc.ok {
+				t.Errorf("Validate at a corpse = %v, %v; want %v", ok, reason, tc.ok)
+			}
+			if !tc.ok && reason.ID != "text.actions.bad_target" {
+				t.Errorf("refusal = %v, want text.actions.bad_target", reason)
+			}
+		})
+	}
+}

@@ -1,0 +1,41 @@
+package data
+
+// The room the party starts in, with one gate to each playground map.
+maps: "map.play.hub": _#TestMap & {
+	name: "text.map.play.hub"
+	marks: {
+		"@": "party_start"
+		"a": "from_hall"
+		"b": "from_den"
+		"c": "from_descent"
+		"1": "gate_to_hall"
+		"2": "gate_to_den"
+		"3": "gate_to_descent"
+	}
+	gates: {
+		"1": {to: "map.play.hall", mark: "from_hub"}
+		"2": {to: "map.play.den", mark: "from_hub"}
+		"3": {to: "map.play.descent", mark: "from_hub"}
+	}
+	layers: [
+		{
+			depth: 0
+			rows: [
+				"#########",
+				"#.......#",
+				"#.1.2.3.#",
+				"#.a.b.c.#",
+				"#...@...#",
+				"#.......#",
+				"#########",
+			]
+		},
+	]
+}
+
+text: {
+	"text.map.play.hub":     "The playground hub"
+	"text.map.play.hall":    "The playground hall"
+	"text.map.play.den":     "The playground den"
+	"text.map.play.descent": "The playground descent"
+}

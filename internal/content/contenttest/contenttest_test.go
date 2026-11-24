@@ -11,6 +11,7 @@ func TestSampleBundleCopyMatchesLoaded(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	pinStart(&loaded)
 	want := Registry(t, loaded).Hash()
 	if got := Registry(t, SampleBundle(t)).Hash(); got != want {
 		t.Errorf("copy hash %q, loaded hash %q", got, want)
