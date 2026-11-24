@@ -24,10 +24,12 @@ const bodyTag = "body"
 
 // Channel is something that can be busy: a body itself, or one of its parts.
 type Channel struct {
-	Entity ecs.Entity // the body, or one of its parts
+	// The body, or one of its parts.
+	Entity ecs.Entity
 	// Body is the body the channel belongs to. The zero entity means Entity is the body.
 	Body ecs.Entity
-	Tags []string // "body" for the body itself; a part's are its slot and what it grants
+	// "body" for the body itself; a part's are its slot and what it grants.
+	Tags []string
 }
 
 // body returns the body that owns c.
@@ -98,18 +100,23 @@ type state struct {
 	halt        func(w *sim.World) bool
 	controllers map[string]Controller
 	line        queue
-	queued      map[ecs.Entity]int64 // the tick of each body's one live slot; only ever looked up
-	current     ecs.Entity
-	hasCurrent  bool
-	systemsDue  bool                // the last entry has not had its per-entry systems run yet
-	sleeping    map[ecs.Entity]bool // bodies whose last decision only waited; others do not wake for them
-	changes     int64               // counts Occupy, Extend and Wait, to tell whether a controller did anything
-	actors      *ecs.Map[comp.Actor]
-	busy        *ecs.Map[comp.Busy]
-	members     *ecs.Map[comp.MemberOf]
-	pendings    *ecs.Map[comp.Pending]
-	resolvers   map[string]Resolver
-	seq         uint64 // the last Seq handed out
+	// The tick of each body's one live slot; only ever looked up.
+	queued     map[ecs.Entity]int64
+	current    ecs.Entity
+	hasCurrent bool
+	// The last entry has not had its per-entry systems run yet.
+	systemsDue bool
+	// Bodies whose last decision only waited; others do not wake for them.
+	sleeping map[ecs.Entity]bool
+	// Counts Occupy, Extend and Wait, to tell whether a controller did anything.
+	changes   int64
+	actors    *ecs.Map[comp.Actor]
+	busy      *ecs.Map[comp.Busy]
+	members   *ecs.Map[comp.MemberOf]
+	pendings  *ecs.Map[comp.Pending]
+	resolvers map[string]Resolver
+	// The last Seq handed out.
+	seq uint64
 }
 
 // stateOf returns the world's timeline state, creating it on first use.
@@ -204,7 +211,8 @@ func (st *state) decisionTick(w *sim.World, body ecs.Entity) int64 {
 	if st.usableAll != nil {
 		flags = st.usableAll(w, body, channels)
 		if len(flags) != len(channels) {
-			flags = nil // a hook that miscounts is ignored; fall back to the per-channel test
+			// A hook that miscounts is ignored; fall back to the per-channel test.
+			flags = nil
 		}
 	}
 	for i, c := range channels {
@@ -257,7 +265,8 @@ func (st *state) pop(w *sim.World) (ecs.Entity, bool) {
 			st.schedule(w, next.e)
 			continue
 		}
-		delete(st.sleeping, next.e) // it is awake: it decides now
+		// It is awake: it decides now.
+		delete(st.sleeping, next.e)
 		return next.e, true
 	}
 	return ecs.Entity{}, false

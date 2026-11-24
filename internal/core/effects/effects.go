@@ -27,14 +27,21 @@ const rollStream = "effects"
 
 // Context is what an effect acts on.
 type Context struct {
-	World      *sim.World
-	Source     ecs.Entity         // the acting body, or zero
-	SourcePart ecs.Entity         // the part acting for the body, when a part's own trigger fired; else zero
-	Used       []timeline.Channel // the channels the action occupies, or none
-	Target     ecs.Entity         // the target body, or zero
-	TargetPart ecs.Entity         // the target part, or zero
-	Dir        *api.Dir           // for direction-targeted actions
-	Choices    map[string]string  // the action's chosen values, e.g. "type": "type.soak"
+	World *sim.World
+	// The acting body, or zero.
+	Source ecs.Entity
+	// The part acting for the body, when a part's own trigger fired; else zero.
+	SourcePart ecs.Entity
+	// The channels the action occupies, or none.
+	Used []timeline.Channel
+	// The target body, or zero.
+	Target ecs.Entity
+	// The target part, or zero.
+	TargetPart ecs.Entity
+	// For direction-targeted actions.
+	Dir *api.Dir
+	// The action's chosen values, e.g. "type": "type.soak".
+	Choices map[string]string
 }
 
 // Kind says how a primitive reads one of its parameters. The zero value is an Expr.
@@ -42,10 +49,14 @@ type Kind uint8
 
 // The kinds of parameter.
 const (
-	KindExpr     Kind = iota // an Expr compiled against content.EffectEnv: Int, Float or Bool
-	KindText                 // a literal string, or a formula when it starts with "=", read with String
-	KindBodies               // a body selector, read with Bodies
-	KindChannels             // a channel selector, read with Channels
+	// An Expr compiled against content.EffectEnv: Int, Float or Bool.
+	KindExpr Kind = iota
+	// A literal string, or a formula when it starts with "=", read with String.
+	KindText
+	// A body selector, read with Bodies.
+	KindBodies
+	// A channel selector, read with Channels.
+	KindChannels
 )
 
 // Primitive is an effect registered from Go for content to name.
@@ -74,9 +85,12 @@ type Params interface {
 	Int(name string) (int, error)
 	Float(name string) (float64, error)
 	Bool(name string) (bool, error)
-	String(name string) (string, error)               // a literal, or the result of a text formula ("= <formula>")
-	Bodies(name string) ([]ecs.Entity, error)         // a body selector, sorted by UID
-	Channels(name string) ([]timeline.Channel, error) // a channel selector, sorted by UID
+	// A literal, or the result of a text formula ("= <formula>").
+	String(name string) (string, error)
+	// A body selector, sorted by UID.
+	Bodies(name string) ([]ecs.Entity, error)
+	// A channel selector, sorted by UID.
+	Channels(name string) ([]timeline.Channel, error)
 	// For returns the same parameters evaluated for one channel: its body is the target and, when
 	// the channel is a part, so is the part. A primitive that acts on a channel selector reads its
 	// other parameters through it, once per selected part.
@@ -97,7 +111,8 @@ func formulaSource(value string) string {
 // programKey identifies one compiled formula.
 type programKey struct {
 	src string
-	as  string // "int", "float" or "bool"
+	// "int", "float" or "bool".
+	as string
 }
 
 // program is one compiled formula and whether it reads roll.
@@ -412,7 +427,8 @@ func (p *params) env(withRoll bool) content.EffectEnv {
 func baseEnv(ctx *Context) content.EffectEnv {
 	w := ctx.World
 	env := content.EffectEnv{Now: w.Now, Chosen: ChosenRecords(w, ctx.Choices)}
-	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"]) // absent or malformed means no fall
+	// Absent or malformed means no fall.
+	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"])
 	env.Source = BodyEnvOf(w, ctx.Source, timeline.FirstPart(ctx.Used))
 	env.Target = BodyEnvOf(w, ctx.Target, ctx.TargetPart)
 	env.Inventory = inventory.Usable(w, ctx.Source, ctx.Target)

@@ -1,7 +1,7 @@
 ---
 id: C1-30
 title: "Actions comments to the tightened rule"
-status: todo
+status: done
 milestone: C1
 kind: debt
 depends_on: []
@@ -36,10 +36,10 @@ Leave doc comments alone otherwise: the owner is happy with them.
 
 ## Acceptance criteria
 
-- [ ] The `go tool task comments` command above reports nothing
-- [ ] `go tool task same-behavior` passes
-- [ ] `go tool task check` passes
-- [ ] Only comments changed, apart from test or subtest names and failure messages that took over a comment's job
+- [x] The `go tool task comments` command above reports nothing
+- [x] `go tool task same-behavior` passes
+- [x] `go tool task check` passes
+- [x] Only comments changed, apart from test or subtest names and failure messages that took over a comment's job
 
 ## Out of scope
 
@@ -48,3 +48,6 @@ Leave doc comments alone otherwise: the owner is happy with them.
 ## Notes
 
 - Filed 2026-11-23 when the owner tightened the comment rule.
+- End-of-line comments in non-test code became doc comments above the field, constant or method (or an own-line why-comment inside functions). They don't start with the field name; reword if the owner prefers.
+- Test comments were cut, not moved into names or messages.
+- `go tool task check` could not run here: the installed golangci-lint is built with Go 1.25 and refuses the module's Go version. Vet, the three packages' tests, the comments check and same-behavior pass.

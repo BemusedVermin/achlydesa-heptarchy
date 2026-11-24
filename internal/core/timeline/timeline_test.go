@@ -42,8 +42,8 @@ type fixture struct {
 	taken     []decision
 	stopAfter int64
 	speeds    map[api.UID]int
-	phases    []int64 // the tick at which each PerPhase system ran
-	perEntry  int     // how many times the PerEntry system ran
+	phases    []int64
+	perEntry  int
 	after     func(w *sim.World, body ecs.Entity)
 }
 
@@ -117,12 +117,11 @@ func (r recorder) Decide(w *sim.World, body ecs.Entity) error {
 // spawn adds a member template and switches it to the controller, returning its entity.
 func (fx *fixture) spawn(t tester, controller string, speed int) ecs.Entity {
 	t.Helper()
-	fx.speeds[fx.w.NextUID()] = speed // the speed hook reads it, so set it before spawning
+	fx.speeds[fx.w.NextUID()] = speed
 	e, err := fx.w.Spawn("template.person.reaper", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The template says "player"; swap in the controller under test.
 	ecs.NewMap[comp.Actor](fx.w.ECS).Get(e).Controller = controller
 	return e
 }
@@ -196,7 +195,6 @@ func TestOccupyAndExtendMoveTheNextDecision(t *testing.T) {
 	if current, err := timeline.Run(fx.w, fx.clk); err != nil || current != player || fx.w.Now != 8 {
 		t.Errorf("Run = %v, %v at tick %d; want the player at tick 8", current, err, fx.w.Now)
 	}
-	// Extending a free channel counts from now.
 	if err := timeline.Extend(fx.w, channel, 5); err != nil {
 		t.Fatal(err)
 	}
@@ -241,7 +239,6 @@ func TestSecondChannelLetsTheBodyDecideAgain(t *testing.T) {
 	if err := timeline.Occupy(fx.w, arm, 4); err != nil {
 		t.Fatal(err)
 	}
-	// The arm frees first, at tick 4.
 	if current, err := timeline.Run(fx.w, fx.clk); err != nil || current != player || fx.w.Now != 4 {
 		t.Errorf("Run = %v, %v at tick %d; want the player at tick 4", current, err, fx.w.Now)
 	}
@@ -251,7 +248,6 @@ func TestRescheduleBringsADecisionForwardWhenAHookChanges(t *testing.T) {
 	fx := newFixture(t, 1)
 	ai := fx.spawn(t, timeline.IdleController, 2)
 	arm := twoChannels(t, fx, ai)
-	// Only the arm counts, so the body decides when the arm frees, at tick 9.
 	timeline.SetUsable(
 		fx.w,
 		func(_ *sim.World, _ ecs.Entity, c timeline.Channel) bool { return c.Entity == arm.Entity },
@@ -276,7 +272,6 @@ func TestRescheduleBringsADecisionForwardWhenAHookChanges(t *testing.T) {
 	if got := readyAt(); got != 9 {
 		t.Fatalf("ready at %d, want 9", got)
 	}
-	// Now the body channel counts too. Nothing requeues the body until Reschedule says so.
 	timeline.SetUsable(fx.w, func(*sim.World, ecs.Entity, timeline.Channel) bool { return true })
 	if got := readyAt(); got != 9 {
 		t.Fatalf("ready at %d before Reschedule, want the old 9", got)
@@ -285,7 +280,6 @@ func TestRescheduleBringsADecisionForwardWhenAHookChanges(t *testing.T) {
 	if got := readyAt(); got != 4 {
 		t.Errorf("ready at %d after Reschedule, want 4", got)
 	}
-	// An entity with no Actor is left alone.
 	timeline.Reschedule(fx.w, arm.Entity)
 }
 
@@ -303,11 +297,9 @@ func TestUnusableChannelsDoNotMakeABodyDecide(t *testing.T) {
 	if err := timeline.Occupy(fx.w, fx.bodyChannel(player), 6); err != nil {
 		t.Fatal(err)
 	}
-	// The arm is free but unusable, so the body decides when the body channel frees.
 	if _, err := timeline.Run(fx.w, fx.clk); err != nil || fx.w.Now != 6 {
 		t.Errorf("now = %d, err = %v; want tick 6", fx.w.Now, err)
 	}
-	// With nothing usable, the body uses all its channels: it decides when the earliest frees.
 	timeline.SetUsable(fx.w, func(*sim.World, ecs.Entity, timeline.Channel) bool { return false })
 	if err := timeline.Occupy(fx.w, fx.bodyChannel(player), 9); err != nil {
 		t.Fatal(err)
@@ -352,7 +344,6 @@ func TestWaitUntilSomethingHappens(t *testing.T) {
 	if _, err := fx.w.Commands.Dispatch(fx.w, commands["wait/event"]); err != nil {
 		t.Fatal(err)
 	}
-	// The AI body occupied itself for 10 ticks, so its next decision is the next entry.
 	if current, err := timeline.Run(fx.w, fx.clk); err != nil || current != player || fx.w.Now != 10 {
 		t.Fatalf("Run = %v, %v at tick %d; want the player at tick 10", current, err, fx.w.Now)
 	}
@@ -378,7 +369,6 @@ func TestWaitUntilThePhaseChanges(t *testing.T) {
 	if current, err := timeline.Run(fx.w, fx.clk); err != nil || current != player {
 		t.Fatal(current, err)
 	}
-	// Dawn lasts 20 ticks.
 	if fx.w.Now != 20 || !reflect.DeepEqual(fx.phases, []int64{20}) {
 		t.Errorf("now = %d, phase systems ran at %v; want 20 and [20]", fx.w.Now, fx.phases)
 	}
@@ -442,7 +432,6 @@ func TestRunWithoutPlayerGivesUp(t *testing.T) {
 	if _, err := timeline.Run(fx.w, fx.clk); err == nil {
 		t.Fatal("expected an error")
 	}
-	// Decision k is at tick k, and each makes the body wait one tick.
 	if got, want := ecs.NewMap[comp.Actor](fx.w.ECS).Get(idler).WaitUntil, int64(timeline.MaxAITurns); got != want {
 		t.Errorf("wait until = %d, want %d", got, want)
 	}
@@ -481,7 +470,6 @@ func TestViewListsVisibleBodiesInWindow(t *testing.T) {
 	}
 	hidden := uids[1]
 	timeline.SetVisible(fx.w, func(w *sim.World, e ecs.Entity) bool { return w.UIDOf(e) != hidden })
-	// Decisions after: uid0 at 12, uid1 (hidden) at 5, uid2 at 5, uid3 at 40 (outside the window), uid4 at 5.
 	for i, ticks := range []int64{12, 5, 5, 40, 5} {
 		if err := timeline.Occupy(fx.w, fx.bodyChannel(bodies[i]), ticks); err != nil {
 			t.Fatal(err)
@@ -515,7 +503,6 @@ func TestDefaultVisibilityIsTheParty(t *testing.T) {
 	if err := timeline.Install(w, clk); err != nil {
 		t.Fatal(err)
 	}
-	// The sample party's followers use the controller explore registers.
 	if err := timeline.RegisterController(w, "follow", idleController{}); err != nil {
 		t.Fatal(err)
 	}
@@ -525,7 +512,7 @@ func TestDefaultVisibilityIsTheParty(t *testing.T) {
 	if _, err := w.Spawn("template.party.main", nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := w.Spawn("template.person.salken", nil); err != nil { // not in the party
+	if _, err := w.Spawn("template.person.salken", nil); err != nil {
 		t.Fatal(err)
 	}
 	view, err := w.Views.Build(w)
@@ -543,7 +530,6 @@ func TestPerEntrySystemsRunAfterEveryEntry(t *testing.T) {
 	fx.spawn(t, "record", 1)
 	fx.stopAfter = 100
 	fx.run(t)
-	// Every entry but the last (which stopped the run) has been followed by a PerEntry run.
 	if want := len(fx.taken); fx.perEntry != want {
 		t.Errorf("PerEntry ran %d times after %d decisions", fx.perEntry, want)
 	}
@@ -557,7 +543,7 @@ func TestSameSeedSameOrder(t *testing.T) {
 		}
 		fx.after = func(*sim.World, ecs.Entity) {
 			if len(fx.taken) == 50 {
-				fx.stopAfter = -1 // the next decision stops the run
+				fx.stopAfter = -1
 			}
 		}
 		fx.run(t)
@@ -579,7 +565,6 @@ func TestOrderMatchesSort(t *testing.T) {
 		}
 		fx.stopAfter = 100
 		fx.run(t)
-		// The run stops at the first decision past 100, which is not recorded.
 		want := reference(steps, 100)
 		if !reflect.DeepEqual(fx.taken, want) {
 			t.Fatalf("order differs from sorted order for speeds %v:\n%v\n%v", speeds, fx.taken, want)

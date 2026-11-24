@@ -21,12 +21,16 @@ type BodySet string
 
 // The body selectors. Allies, enemies, others and everyone all mean "in sight of the source".
 const (
-	BodiesSelf     BodySet = "self"
-	BodiesTarget   BodySet = "target"
-	BodiesAllies   BodySet = "allies"   // in sight, not hostile to the source, not the source
-	BodiesEnemies  BodySet = "enemies"  // in sight and hostile to the source
-	BodiesOthers   BodySet = "others"   // in sight, not the source
-	BodiesEveryone BodySet = "everyone" // in sight, and the source
+	BodiesSelf   BodySet = "self"
+	BodiesTarget BodySet = "target"
+	// In sight, not hostile to the source, not the source.
+	BodiesAllies BodySet = "allies"
+	// In sight and hostile to the source.
+	BodiesEnemies BodySet = "enemies"
+	// In sight, not the source.
+	BodiesOthers BodySet = "others"
+	// In sight, and the source.
+	BodiesEveryone BodySet = "everyone"
 )
 
 var bodySets = []BodySet{BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, BodiesOthers, BodiesEveryone}
@@ -35,7 +39,8 @@ var bodySets = []BodySet{BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, 
 // template carries a tag, written <set>[<tag>] such as others[crawls].
 type BodySelector struct {
 	Set BodySet
-	Tag string // when set, only bodies whose template has this tag
+	// When set, only bodies whose template has this tag.
+	Tag string
 }
 
 // ChannelSelector is a parsed channel selector: the action's own channels, the target part, or the
@@ -44,7 +49,8 @@ type ChannelSelector struct {
 	Used       bool
 	TargetPart bool
 	Bodies     BodySelector
-	Tag        string // "all" matches every channel
+	// "all" matches every channel.
+	Tag string
 }
 
 // ParseBodies parses a body selector: self, target, allies, enemies, others or everyone, each

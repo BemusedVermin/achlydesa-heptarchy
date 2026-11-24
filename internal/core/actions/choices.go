@@ -129,7 +129,8 @@ func (ev *evaluator) channelSets(actor ecs.Entity, def content.ActionDef, requir
 		}
 		need := req.Count
 		if need == 0 {
-			need = total // every one the body has, and all of them must be available
+			// Every one the body has, and all of them must be available.
+			need = total
 			if len(matching) != total {
 				return
 			}
