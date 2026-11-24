@@ -1,7 +1,7 @@
 ---
 id: C1-20
 title: "Actions area: duplication, tests, comments"
-status: todo
+status: in-progress
 milestone: C1
 kind: debt
 depends_on: [C1-18]
