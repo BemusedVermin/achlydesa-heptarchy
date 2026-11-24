@@ -1,7 +1,7 @@
 ---
 id: M3-07
 title: "A playground: the test maps joined by gates"
-status: in-progress
+status: done
 milestone: M3
 kind: content
 depends_on: [M3-06]
@@ -37,9 +37,9 @@ The owner can play every M3 feature by hand. The test hall, the den and the desc
 
 ## Acceptance criteria
 
-- [ ] `go tool task run -- play --seed 1` opens in the playground; walking through each gate reaches each creature (checked by a test that walks the route with commands, and by hand).
-- [ ] `go tool task same-behavior` shows changes only for seeds that use the default start, and Notes lists them.
-- [ ] `go tool task check` passes.
+- [x] `go tool task run -- play --seed 1` opens in the playground; walking through each gate reaches each creature (checked by a test that walks the route with commands, and by hand).
+- [x] `go tool task same-behavior` shows changes only for seeds that use the default start, and Notes lists them.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -47,4 +47,10 @@ The owner can play every M3 feature by hand. The test hall, the den and the desc
 
 ## Notes
 
-
+- New maps `map.play.hub`, `map.play.hall`, `map.play.den`, `map.play.descent` (`content/data/maps/play_*.cue`) copy the test layouts, so no test map changed. `start.cue` now starts on the hub. The gate cells are also marks, as the loader requires.
+- `contenttest.Sample` and `SampleBundle` pin `start.map` to `map.test.hall`, so every test that relied on the default start keeps its map. Tests that load content directly (`cmd/harness` replay) see the real start.
+- `same-behavior` differs, as it must: the default-start seed 1 (harness CSV and final hash), and the UIDs and map IDs in the combat goldens and `menu_parts.golden`, because the new maps' creatures spawn before the old maps' bodies. Only IDs changed in those goldens; I regenerated them.
+- `TestAMoveTowardABodyStopsNextToIt` measured distance to bodies on other maps; it now counts only the drinker's map.
+- The walk-through test is `internal/core/explore/playground_test.go`. It walks the shortest route to each gate and back and checks each creature is on its map.
+- `docs/content-guide.md` gains "The playground".
+- golangci-lint could not run here (the installed binary is built with an older Go than the module targets), so lint was not run; vet, tests, content and comments checks pass. `TestAfterEditWithGolangciLint` fails for the same reason.
