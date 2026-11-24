@@ -3,6 +3,7 @@ package effects
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -35,17 +36,8 @@ func registerTiming(w *sim.World) error {
 	return nil
 }
 
-func uidsOf(w *sim.World, channels []timeline.Channel) []api.UID {
-	uids := make([]api.UID, len(channels))
-	for i, c := range channels {
-		uids[i] = w.UIDOf(c.Entity)
-	}
-	return uids
-}
-
-// windingUp lists the pending actions that use the channel: those that name it as their part, and
-// actions from content, which may occupy several channels at once.
-func windingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
+// WindingUp lists the pending actions that use the channel, so taking the channel away can cancel them.
+func WindingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
 	pendings := ecs.NewMap[comp.Pending](w.ECS)
 	landings := ecs.NewMap[comp.Landing](w.ECS)
 	uid := w.UIDOf(c.Entity)
@@ -61,10 +53,6 @@ func windingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
 	}
 	return out
 }
-
-// WindingUp lists the pending actions that use the channel, for primitives elsewhere that take a
-// channel away, such as a severed arm.
-func WindingUp(w *sim.World, c timeline.Channel) []ecs.Entity { return windingUp(w, c) }
 
 func ticksParam(p Params) (int64, error) {
 	ticks, err := p.Int("ticks")
@@ -88,7 +76,7 @@ func applyLock(ctx *Context, p Params) error {
 	}
 	w := ctx.World
 	for _, c := range channels {
-		for _, pending := range windingUp(w, c) {
+		for _, pending := range WindingUp(w, c) {
 			timeline.Cancel(w, pending, interrupted)
 		}
 		if err := timeline.Lock(w, c, ticks); err != nil {
@@ -96,7 +84,7 @@ func applyLock(ctx *Context, p Params) error {
 		}
 	}
 	if len(channels) > 0 {
-		w.Bus.Publish(api.ChannelsLocked{Channels: uidsOf(w, channels), Ticks: ticks, Tick: w.Now})
+		w.Bus.Publish(api.ChannelsLocked{Channels: timeline.UIDs(w, channels), Ticks: ticks, Tick: w.Now})
 	}
 	return nil
 }
@@ -137,7 +125,7 @@ func applyInterrupt(ctx *Context, p Params) error {
 			return err
 		}
 		for _, c := range channels {
-			pendings = append(pendings, windingUp(w, c)...)
+			pendings = append(pendings, WindingUp(w, c)...)
 		}
 	default:
 		return errors.New("give exactly one of bodies or channels")
@@ -151,12 +139,7 @@ func applyInterrupt(ctx *Context, p Params) error {
 		timeline.Cancel(w, e, interrupted)
 	}
 	if len(actors) > 0 {
-		list := make([]api.UID, 0, len(actors))
-		for uid := range actors {
-			list = append(list, uid)
-		}
-		slices.Sort(list)
-		w.Bus.Publish(api.ActionsInterrupted{Actors: list, Tick: w.Now})
+		w.Bus.Publish(api.ActionsInterrupted{Actors: slices.Sorted(maps.Keys(actors)), Tick: w.Now})
 	}
 	return nil
 }
@@ -177,7 +160,7 @@ func applyDelay(ctx *Context, p Params) error {
 		}
 	}
 	if len(channels) > 0 {
-		w.Bus.Publish(api.ChannelsDelayed{Channels: uidsOf(w, channels), Ticks: ticks, Tick: w.Now})
+		w.Bus.Publish(api.ChannelsDelayed{Channels: timeline.UIDs(w, channels), Ticks: ticks, Tick: w.Now})
 	}
 	return nil
 }
@@ -200,7 +183,7 @@ func applyReady(ctx *Context, p Params) error {
 		if len(freed) == count {
 			break
 		}
-		if timeline.Free(w, c) || len(windingUp(w, c)) > 0 {
+		if timeline.Free(w, c) || len(WindingUp(w, c)) > 0 {
 			continue
 		}
 		if err := timeline.Release(w, c); err != nil {
@@ -209,7 +192,7 @@ func applyReady(ctx *Context, p Params) error {
 		freed = append(freed, c)
 	}
 	if len(freed) > 0 {
-		w.Bus.Publish(api.ChannelsReadied{Channels: uidsOf(w, freed), Tick: w.Now})
+		w.Bus.Publish(api.ChannelsReadied{Channels: timeline.UIDs(w, freed), Tick: w.Now})
 	}
 	return nil
 }

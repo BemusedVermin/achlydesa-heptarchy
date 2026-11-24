@@ -16,13 +16,13 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// StepRules are the step limits from the party config: how far a body can climb or drop in one step.
+// StepRules reads the party config's limits on how far a body can climb or drop in one step.
 func StepRules(w *sim.World) hexmap.StepRules {
 	cfg := w.Content.Party()
 	return hexmap.StepRules{MaxStepUp: cfg.MaxStepUp, MaxStepDown: cfg.MaxStepDown, MaxDrop: cfg.MaxDrop}
 }
 
-// landKind is the pending-action kind of an action that lands later.
+// landKind marks the pending actions this package resolves.
 const landKind = "actions.land"
 
 // Intent is one body's wish to start one action, with every choice made.
@@ -44,11 +44,11 @@ type Modifier struct {
 	OnLand   []content.EffectRef
 }
 
-// Validator is an extra check on an intent. Combat uses one for immune materials and type conditions.
+// Validator is an extra check on an intent: ok, or why not.
 type Validator func(w *sim.World, in Intent) (ok bool, reason api.Text)
 
-// modifierFunc adds to an intent: a loaded type changing any form it is loaded into, for example.
-type modifierFunc func(w *sim.World, in Intent) Modifier
+// ModifierFunc is a hook that says what an intent's choices add to it.
+type ModifierFunc func(w *sim.World, in Intent) Modifier
 
 // why is the reason text for one of this package's own refusals.
 func why(id string) api.Text { return api.Text{ID: api.ContentID("text.actions." + id)} }
@@ -273,17 +273,11 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	if choices == nil {
 		choices = map[string]string{}
 	}
-	var sourcePart ecs.Entity
-	for _, c := range p.channels {
-		if !c.Body.IsZero() && c.Entity != c.Body {
-			sourcePart = c.Entity
-			break
-		}
-	}
+	source := effects.BodyEnvOf(ev.w, p.actor, timeline.FirstPart(p.channels))
 	return content.ActionEnv{
 		Speed: speed, StepTicks: stepTicks,
 		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
-		Source: effects.BodyEnvOf(ev.w, p.actor, sourcePart), Target: effects.BodyEnvOf(ev.w, p.target, p.part),
+		Source: source, Target: effects.BodyEnvOf(ev.w, p.target, p.part),
 		Chosen: effects.ChosenRecords(ev.w, choices), Inventory: inventory.Usable(ev.w, p.actor, p.target),
 	}, nil
 }
@@ -325,10 +319,8 @@ func (ev *evaluator) modify(p *plan) error {
 	return nil
 }
 
-// evaluate works an intent out. A nil plan means it is structurally invalid, with the reason. A plan
-// with a reason is well-formed but not allowed right now (a check failed); its timing is still
-// filled in, so the player can see a disabled option's cost. An error is a content bug.
-// requireFree says whether the channels must be free; the usable hook asks without it.
+// evaluate works an intent out: a nil plan is invalid, with the reason; a plan with a reason is not
+// allowed now but keeps its timing for a disabled option. An error is a content bug.
 func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, error) {
 	w := ev.w
 	if !w.Alive(in.Actor) {
@@ -401,33 +393,31 @@ func (ev *evaluator) verdict(p *plan) api.Text {
 // Validate says whether the body may start the intent right now, and if not, why. A content bug
 // (a formula that fails) counts as a refusal here and is an error from Start.
 func Validate(w *sim.World, in Intent) (ok bool, reason api.Text) {
-	p, reason, err := newEvaluator(w).evaluate(in, true)
-	switch {
-	case err != nil:
-		return false, api.Text{ID: why("broken").ID, Args: map[string]string{"error": err.Error()}}
-	case p == nil || reason.ID != "":
-		return false, reason
-	}
-	return true, api.Text{}
+	p, reason := newEvaluator(w).validate(in)
+	return p != nil, reason
 }
 
-// Start validates the intent, applies the action's start effects, occupies its channels for the
-// wind-up plus recovery, and lands it at once or schedules the landing.
-func Start(w *sim.World, in Intent) error {
-	ev := newEvaluator(w)
+// validate is Validate's check; a nil plan comes with the reason, a content bug included.
+func (ev *evaluator) validate(in Intent) (*plan, api.Text) {
 	p, reason, err := ev.evaluate(in, true)
 	switch {
 	case err != nil:
-		return err
+		return nil, api.Text{ID: why("broken").ID, Args: map[string]string{"error": err.Error()}}
 	case p == nil || reason.ID != "":
-		return fmt.Errorf("actions: cannot start %s: %s", in.Action, w.Content.Render(reason))
+		return nil, reason
 	}
-	return ev.start(p, false)
+	return p, api.Text{}
 }
+
+// Start validates the intent, applies its start effects, occupies its channels and lands it or schedules it.
+func Start(w *sim.World, in Intent) error { return startIntent(w, in, false) }
 
 // StartAutonomous is Start for an action a graft takes on its own: the same checks and wind-up,
 // and the ActionStarted event says it was autonomous.
-func StartAutonomous(w *sim.World, in Intent) error {
+func StartAutonomous(w *sim.World, in Intent) error { return startIntent(w, in, true) }
+
+// startIntent is Start's own check: unlike validate, it reports a content bug as an error.
+func startIntent(w *sim.World, in Intent, autonomous bool) error {
 	ev := newEvaluator(w)
 	p, reason, err := ev.evaluate(in, true)
 	switch {
@@ -436,7 +426,7 @@ func StartAutonomous(w *sim.World, in Intent) error {
 	case p == nil || reason.ID != "":
 		return fmt.Errorf("actions: cannot start %s: %s", in.Action, w.Content.Render(reason))
 	}
-	return ev.start(p, true)
+	return ev.start(p, autonomous)
 }
 
 func (ev *evaluator) start(p *plan, autonomous bool) error {
@@ -452,10 +442,7 @@ func (ev *evaluator) start(p *plan, autonomous bool) error {
 	if p.windup == 0 {
 		return ev.land(p)
 	}
-	uids := make([]api.UID, len(p.channels))
-	for i, c := range p.channels {
-		uids[i] = w.UIDOf(c.Entity)
-	}
+	uids := timeline.UIDs(w, p.channels)
 	pending, err := timeline.Schedule(w, comp.Pending{
 		Kind: landKind, Actor: w.UIDOf(p.actor), Channel: uids[0], Target: w.UIDOf(p.target), Lands: w.Now + p.windup,
 	})
@@ -515,7 +502,7 @@ func (ev *evaluator) land(p *plan) error {
 		}
 	}
 	if reason.ID != "" {
-		ev.miss(p, reason)
+		ev.missed(p.actor, w.UIDOf(p.actor), w.UIDOf(p.target), p.id, reason)
 		return nil
 	}
 	if err := effects.Apply(ctx, p.onLand); err != nil {
@@ -524,14 +511,17 @@ func (ev *evaluator) land(p *plan) error {
 	return nil
 }
 
-func (ev *evaluator) miss(p *plan, reason api.Text) {
-	w := ev.w
-	w.Bus.Publish(api.ActionMissed{
-		Source: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Reason: reason,
-		Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
-			"actor": ev.nameOf(p.actor), "action": w.Content.Render(api.Text{ID: p.def.Name}),
-		}},
+func (ev *evaluator) missed(actor ecs.Entity, source, target api.UID, action api.ContentID, reason api.Text) {
+	ev.w.Bus.Publish(api.ActionMissed{
+		Source: source, Action: action, Target: target, Tick: ev.w.Now, Reason: reason,
+		Line: api.Text{ID: "text.actions.missed", Args: ev.landArgs(actor, action)},
 	})
+}
+
+// landArgs are the text arguments naming a landing's actor and action.
+func (ev *evaluator) landArgs(actor ecs.Entity, action api.ContentID) map[string]string {
+	def, _ := ev.w.Content.Action(action)
+	return map[string]string{"actor": ev.nameOf(actor), "action": ev.w.Content.Render(api.Text{ID: def.Name})}
 }
 
 // nameOf is the rendered name of a body, from its template.
@@ -575,7 +565,7 @@ func (ev *evaluator) landingPlan(pending ecs.Entity) (*plan, api.Text, error) {
 	return p, api.Text{}, nil
 }
 
-// resolveLanding is the resolver of actions.land.
+// resolveLanding lands a pending action, or publishes its miss when a channel it used is gone.
 func resolveLanding(w *sim.World, pending ecs.Entity) error {
 	ev := newEvaluator(w)
 	p, reason, err := ev.landingPlan(pending)
@@ -586,13 +576,7 @@ func resolveLanding(w *sim.World, pending ecs.Entity) error {
 		pend := ecs.NewMap[comp.Pending](w.ECS).Get(pending)
 		landing := ecs.NewMap[comp.Landing](w.ECS).Get(pending)
 		actor, _ := w.ByUID(pend.Actor)
-		def, _ := w.Content.Action(landing.Action)
-		w.Bus.Publish(api.ActionMissed{
-			Source: pend.Actor, Action: landing.Action, Target: pend.Target, Tick: w.Now, Reason: reason,
-			Line: api.Text{ID: "text.actions.missed", Args: map[string]string{
-				"actor": ev.nameOf(actor), "action": w.Content.Render(api.Text{ID: def.Name}),
-			}},
-		})
+		ev.missed(actor, pend.Actor, pend.Target, landing.Action, reason)
 		return nil
 	}
 	return ev.land(p)
@@ -603,9 +587,8 @@ func labelLanding(w *sim.World, pending ecs.Entity) string {
 	ev := newEvaluator(w)
 	pend := ecs.NewMap[comp.Pending](w.ECS).Get(pending)
 	landing := ecs.NewMap[comp.Landing](w.ECS).Get(pending)
-	def, _ := w.Content.Action(landing.Action)
 	actor, _ := w.ByUID(pend.Actor)
-	args := map[string]string{"actor": ev.nameOf(actor), "action": w.Content.Render(api.Text{ID: def.Name})}
+	args := ev.landArgs(actor, landing.Action)
 	id := api.ContentID("text.actions.lands")
 	if target, ok := w.ByUID(pend.Target); ok && target != actor {
 		id, args["target"] = "text.actions.lands_on", ev.nameOf(target)
