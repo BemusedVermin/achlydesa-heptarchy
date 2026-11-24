@@ -9,7 +9,7 @@ Achlydesa: The Dreaming Heptarchy is a turn-based dungeon crawler with time mana
 - **Touchstones:** Fear & Hunger for unsettling lore and limb-level brutality. SMT and Final Fantasy for weakness-driven, turn-manipulating combat, as inspiration only, not a copy. Pathologic for open exploration, time pressure and failure that continues the story.
 - **Tone:** surreal, weird and unsettling throughout.
 - **Core theme:** the illusion of choice, not literal loss of autonomy. Moment-to-moment choices (combat, routes, supplies, timing) are fully real. The illusion lives in what those choices add up to, and the characters are not content with it.
-- **Genre:** a dungeon crawler where combat is the backbone: regular fights, not one-off boss encounters. Menu-based: every move is picked from a menu. Fights happen on the same hex grid as exploring, and a form's range is a distance in hexes, not a range band.
+- **Genre:** a dungeon crawler where combat is the backbone: regular fights, not one-off boss encounters. Menu-based: every action is picked from a menu. Fights happen on the same hex grid as exploring, and a form's range is a distance in hexes, not a range band.
 - **Failure:** handled the Pathologic way. The story continues; there is no roguelike permadeath.
 - **Ending:** one ending, not a menu of endings. What varies is which seven archons sat.
 - **Presentation:** ASCII for the MVP.
@@ -555,7 +555,7 @@ Forms and archon prices have behavior, so the engine defines a small vocabulary 
 - Cast members, the curdle-mode library and clue definitions.
 - Tuning constants: seat speed, kill setback, export rate.
 
-Content is validated on load (every referenced material exists, every primitive is known), so errors show up as test failures rather than mid-fight crashes. Dev builds hot-reload data so a fight can be tuned without restarting.
+Content is validated before play: records on load (every referenced material exists), effects when a game starts (every primitive is known), so errors show up as test failures rather than mid-fight crashes. Dev builds hot-reload data so a fight can be tuned without restarting.
 
 ### Architecture
 

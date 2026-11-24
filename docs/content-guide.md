@@ -26,7 +26,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `rules.cue` | `rules`: named formulas |
 | `choices.cue` | `choices`: what an action can ask the player to pick |
 | `vocabulary.cue` | `vocabulary`: which tags, grant kinds and list values are allowed |
-| `party.cue`, `combat.cue`, `timeline.cue`, `calendar.cue` | one config record each: the numbers every party shares, alert and death, the timeline, the day's phases |
+| `party.cue`, `combat.cue`, `timeline.cue`, `calendar.cue` | one config record each: the numbers every party shares, alert, sight and how creatures hunt, the timeline, the day's phases |
 | `text.cue` | only the schema of `text` |
 | `text/` | engine messages, one file per core package (`text/combat.cue`, `text/actions.cue`, ...) |
 
@@ -53,7 +53,9 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `factions` | `faction.` | `faction.wild` |
 | `statuses` | `status.` | `status.standing` |
 
-Records refer to each other by ID, never by nesting one inside another. Every reference is checked when content loads, so a typo is an error that names the field, not a crash in a fight. Renaming an ID needs no save migration: saves are disposable until v1.0.0.
+The day's phases in `calendar.cue` have IDs too (`phase.dawn`), and are named `text.<phase id>` like any record.
+
+Records refer to each other by ID, never by nesting one inside another. References in records are checked when content loads, and references inside effect params (such as an `add_status` effect's `status`) when a game starts, so a typo is an error that names the field, not a crash in a fight. Renaming an ID needs no save migration: saves are disposable until v1.0.0.
 
 `test.` after the prefix (`template.test.dummy`, `part.test.crawler_maw`, `map.test.den`) marks a fixture that tests rely on. Change those only together with the tests that use them.
 
@@ -61,7 +63,7 @@ Records refer to each other by ID, never by nesting one inside another. Every re
 
 Every word the player sees is a text ID that names an entry in `text:`. Records hold the ID, never the string.
 
-- **A record's name** is `text.<record id>` and sits in a `text:` block in the same file as the record: `material.clay` is named `text.material.clay`. The loader rejects any other name. Parts are the exception: several part templates may share one name, so `part.human_arm` and `part.remnant_arm` can both be `text.part.arm`.
+- **A record's name** is `text.<record id>` and sits in a `text:` block in the same file as the record: `material.clay` is named `text.material.clay`. The loader rejects any other name. Parts are the exception: several part templates may share one name, so `part.human_legs`, `part.beast_legs` and `part.moving_clay_legs` are all `text.part.legs`.
 - **An engine message** is `text.<package>.<event>` and goes in that package's file under `text/`: `text.combat.body_died` is in `text/combat.cue`.
 - **A claim** also needs `text.knowledge.<claim name>` in `text/knowledge.cue`, the line that reports it in the log (`claim.material` needs `text.knowledge.material`).
 - **Placeholders** such as `{{.name}}` are filled from the message's arguments: `"text.combat.body_died": "{{.name}} dies."`.
@@ -72,7 +74,7 @@ A text ID with no entry renders as `[missing text: <id>]`. Look for that wheneve
 
 Most records embed `Data`: free `tags`, named numbers in `props` and named `lists`. Code never reads a tag, prop or list; formulas do. `material.clay` lists `weak_to: ["type.soak", "type.relic"]`, and `rule.weak` reads it as `target.material.lists.weak_to`.
 
-Formulas are [Expr](https://expr-lang.org) strings, such as an action's `windup`, a trigger's `if`, or an effect's `amount`. What each formula can see is a struct in `internal/content/env.go`: `source` and `target` (a `BodyEnv` each), `chosen.<x>.id` (the records the player picked), `inventory`, `roll`, and a trigger event's params such as `cells`. An effect param that holds text is a literal, or a formula when it starts with `= `, as in `value: "= target.material.id"`.
+Formulas are [Expr](https://expr-lang.org) strings, such as an action's `windup`, a trigger's `if`, or an effect's `amount`. What each formula can see is a struct in `internal/content/env.go`: `source` and `target` (a `BodyEnv` each), `chosen.<x>.id` (the records the player picked), `inventory`, `roll`, and a trigger event's params such as `cells`. An effect param that holds text is a literal, or a formula when it starts with `=`, as in `value: "= target.material.id"`.
 
 ### `rules.cue` and `rule.<name>`
 
@@ -86,7 +88,7 @@ rules: {
 }
 ```
 
-Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that names an unknown variable or rule fails when content loads, not in `cue vet`.
+Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that names an unknown variable or rule is not caught by `cue vet`: an action's `windup`, `recovery` and `requires`, a mod, an offer and a trigger's `if` fail when content loads, and an effect's params fail when a game starts.
 
 ### Choices and mods
 
@@ -115,9 +117,9 @@ triggers: [{
 }]
 ```
 
-- `on` is an event kind, `<package>.<event>`, such as `combat.part_damaged`, `explore.fell` or `timeline.ready`. The kinds are the `...Kind` constants in `internal/core/api`; an unknown one fails when a game starts.
+- `on` is an event kind, `<package>.<event>`, such as `combat.part_damaged`, `explore.fell` or `timeline.ready`. The kinds are the event `...Kind` constants in `internal/core/api`; an unknown one fails when a game starts.
 - `role` says which subject of the event the carrier must be: `source` (the acting body), `target` (the body acted on), `part` (the part acted on) or `any`. The remnant's trigger above runs when the remnant is the target of a severing; clay's trigger in `materials.cue` uses `part`, because it is the part that is clay.
-- `if` is a formula; empty means always. It sees the event's subjects as `source` and `target`, and its params as variables such as `cells`.
+- `if` is a formula; empty means always. It sees the event's subjects as `source` and `target`, its params as `chosen.<name>.id` (`chosen.type.id` on `combat.part_damaged`, as clay's trigger reads), and a fall's drop as `cells`.
 - `do` is a list of effects, the same as an action's `on_land`.
 
 Several triggers that match one event fire in UID order of their carriers, then in the order content lists them.
@@ -152,11 +154,11 @@ A type that burns an item:
 4. Say what it does to what: add it to a material's `weak_to` or `immune_to` in `materials.cue`. `rules.cue` turns that into damage.
 5. To have the party carry some, add a stack to `template.party.main`'s `inventory` in `templates.cue`.
 
-The type choice offers it whenever the inventory holds its item. A type that needs no item (Cut, Press, Name) skips `#Consumable` and goes in a template's `lists.types` instead.
+The type choice offers it whenever the inventory holds its item. A type that needs no item (Cut, Press, Name) skips `#Consumable`; it is still defined in `types.cue`, and a body knows it innately when its template lists it in `lists.types`.
 
 ### A part, in `bodies.cue`
 
-1. Add the part template under `parts`: a `part.` ID, a `name` (a new `text.part.<name>` or a shared one such as `text.part.arm`), a `slot`, a `material`, an `integrity`, and `grants` from the vocabulary (`action`, `targeting`, `speed`). Mark the parts a body cannot live without `vital: true`: a body with vital parts is out of the fight once none of them is left.
+1. Add the part template under `parts`: a `part.` ID, a `name` (a new `text.part.<name>` or a shared one such as `text.part.legs`), a `slot`, a `material`, an `integrity`, and `grants` from the vocabulary (`action`, `targeting`, `speed`). Mark the parts a body cannot live without `vital: true`: a body with vital parts is out of the fight once none of them is left.
 2. Add it to a body plan under `bodies`: `{part: "part.<name>"}`. A plan entry may override the material, as `body.test.crawler` does for its core.
 3. Add a new name to the `text:` block of `bodies.cue`.
 
@@ -167,7 +169,7 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
 1. Copy `maps/test_den.cue` to a new file in `maps/`, with a `map.` ID and a `name` of `text.<its ID>`.
 2. `_#TestMap & {...}` fills everything outside the layers with packed clay, and gives `#` as clay and `.` as air in the `legend`.
 3. Draw one or more `layers`, each a `depth` and `rows`: one character per cell, in odd-r offset layout (odd rows are shifted half a hex right). A space leaves the fill.
-4. Name the special characters in `marks`; the mark that `start.party_at_mark` names, `party_start`, is where a new game puts the party (`"@": "party_start"`). Put a mark's character in `spawns` with a template ID to spawn a body of it at every such cell.
+4. Name the special characters in `marks`; the mark that `start.party_at_mark` names, `party_start`, is where a new game puts the party (`"@": "party_start"`). Put a mark's character in `spawns` with a template ID to spawn a body of it at every such cell. A mark with no spawn must appear exactly once in the layers; a spawn's character must also be a mark, and may appear any number of times.
 5. Add the name to the file's `text:` block.
 
 To play it, point `start.map` in `start.cue` at it for the session, and put it back before you commit unless the change is meant.
@@ -175,7 +177,8 @@ To play it, point `start.map` in `start.cue` at it for the session, and put it b
 ## Checking your work
 
 1. `go tool task content` checks every file against the schemas (`cue vet`). It catches a wrong field or a value of the wrong kind.
-2. `go tool task test -- ./internal/content` loads the real content: it catches a dangling ID, a name that is not `text.<record id>`, a missing text, a value the vocabulary does not allow and a formula that does not compile.
-3. `go tool task run -- play --seed 1` plays it, and starting a game catches an unknown effect, selector or event kind. Add `--dev` to reload the content each time you save a file, so a fight can be tuned without restarting. Look for `[missing text:` in what you see.
+2. `go tool task test -- ./internal/content` loads the real content: it catches a dangling ID, a name that is not `text.<record id>`, a missing text, a value the vocabulary does not allow, and a formula outside effect params that does not compile.
+3. `go tool task test -- ./internal/core/game` starts games on the real content: it catches an unknown effect, event kind or selector, and a bad formula or ID in an effect's params.
+4. `go tool task run -- play --seed 1` plays it. Add `--dev` to reload the content each time you save a file, so a fight can be tuned without restarting. Look for `[missing text:` in what you see.
 
 Before a pull request, `go tool task check` runs all of these and the rest of the tests.

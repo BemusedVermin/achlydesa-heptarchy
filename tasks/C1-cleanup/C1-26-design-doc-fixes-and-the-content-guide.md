@@ -1,7 +1,7 @@
 ---
 id: C1-26
 title: "Design-doc fixes and the content guide"
-status: in-progress
+status: done
 milestone: C1
 kind: content
 depends_on: [C1-17, C1-19]
@@ -51,15 +51,15 @@ Cover: the layout of `content/data` and `maps/`; ID prefixes, with the table tha
 
 ## Acceptance criteria
 
-- [ ] Every file, ID and command the docs name exists
-- [ ] The guide's terms match `docs/glossary.md`
-- [ ] `go tool task content` passes
-- [ ] Only files under `docs/` changed
-- [ ] Only files under `docs/` changed.
-- [ ] Every identifier the edited lines name exists.
-- [ ] Every file, ID and command the guide names exists.
-- [ ] Its terms match the glossary.
-- [ ] `go tool task content` passes.
+- [x] Every file, ID and command the docs name exists
+- [x] The guide's terms match `docs/glossary.md`
+- [x] `go tool task content` passes
+- [x] Only files under `docs/` changed
+- [x] Only files under `docs/` changed.
+- [x] Every identifier the edited lines name exists.
+- [x] Every file, ID and command the guide names exists.
+- [x] Its terms match the glossary.
+- [x] `go tool task content` passes.
 
 ## Out of scope
 
@@ -70,3 +70,15 @@ Cover: the layout of `content/data` and `maps/`; ID prefixes, with the table tha
 
 
 - Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
+
+Docs changed:
+
+- `docs/game-design.md`: the Genre line now says actions are picked from menus, on the hex grid, with range in hexes rather than range bands. The primitives list names the 14 real primitives. Also, outside the listed findings: the "validated on load" sentence now says effects are checked when a game starts, which is where `effects.ValidateContent` runs; the task reviewer found it.
+- `docs/go-technical-design.md`: `Pos{Map, Cell}` became `Pos{Map, At}` at the two places named; the form-rename lines were left alone.
+- `docs/content-guide.md`: new. The ID table follows the `collections()` table in `internal/content/records.go`, in its order, plus calendar phase IDs.
+
+Checking: the guide is careful about when a mistake is caught. Record references and most formulas fail on load (`internal/content` tests); effect params (formulas, IDs, selectors), primitives and trigger event kinds fail only when a game starts (`internal/core/game` tests, or `play`). Every backticked ID in the guide was checked against `content/data` with a script.
+
+The "Only files under `docs/` changed" criteria hold for the docs work; `tasks/` changed only for this task's bookkeeping and the follow-up.
+
+Follow-ups: C1-26.F1 (three more uses of "move" for an action in `game-design.md`, outside this Spec's lines).
