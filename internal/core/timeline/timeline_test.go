@@ -59,11 +59,11 @@ func newFixture(t tester, seed uint64) *fixture {
 	if err := timeline.Install(fx.w, fx.clk); err != nil {
 		t.Fatal(err)
 	}
-	timeline.SetSpeed(fx.w, func(w *sim.World, e ecs.Entity) int {
+	timeline.SetSpeed(fx.w, func(w *sim.World, e ecs.Entity) (int, error) {
 		if speed, ok := fx.speeds[w.UIDOf(e)]; ok {
-			return speed
+			return speed, nil
 		}
-		return reg.Timeline().DefaultSpeed
+		return reg.Timeline().DefaultSpeed, nil
 	})
 	timeline.SetVisible(fx.w, func(*sim.World, ecs.Entity) bool { return true })
 	if err := timeline.RegisterController(fx.w, "record", recorder{fx}); err != nil {

@@ -131,8 +131,8 @@ func TestLosingTheLegsSlowsSteps(t *testing.T) {
 	}
 	legs := anatomy.Parts(r.w, member)[3]
 	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(legs)
-	if speed := timeline.Speed(r.w, member); speed != 0 {
-		t.Errorf("speed without legs = %d, want 0", speed)
+	if speed, err := timeline.Speed(r.w, member); err != nil || speed != 0 {
+		t.Errorf("speed without legs = %d, %v; want 0", speed, err)
 	}
 	slow, err := timeline.StepTicks(r.w, member)
 	if err != nil {
@@ -140,6 +140,20 @@ func TestLosingTheLegsSlowsSteps(t *testing.T) {
 	}
 	if slow <= fast {
 		t.Errorf("step ticks = %d without legs and %d with; want slower", slow, fast)
+	}
+}
+
+func TestAFailingSpeedFormulaIsAnError(t *testing.T) {
+	r := newRig(t, 1, nil)
+	member := r.members()[0]
+	bundle := contenttest.SampleBundle(t)
+	bundle.Timeline.Speed = "grant.speed % (grant.speed - grant.speed)"
+	r.w.Content = contenttest.Registry(t, bundle)
+	if speed, err := timeline.Speed(r.w, member); err == nil {
+		t.Errorf("speed = %d with a formula that divides by zero, want an error", speed)
+	}
+	if ticks, err := timeline.StepTicks(r.w, member); err == nil {
+		t.Errorf("step ticks = %d with a formula that divides by zero, want an error", ticks)
 	}
 }
 

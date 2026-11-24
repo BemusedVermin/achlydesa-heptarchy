@@ -97,14 +97,14 @@ func channelsOf(w *sim.World, body ecs.Entity) []timeline.Channel {
 
 // speedOf is the timeline's speed hook: the configured speed formula over the grants of the
 // functioning parts. An entity with no body keeps the configured default speed. A formula that
-// fails is a content bug the loader should have caught, so it reads as speed 0.
-func speedOf(w *sim.World, body ecs.Entity) int {
+// fails is a content bug, returned as an error.
+func speedOf(w *sim.World, body ecs.Entity) (int, error) {
 	if !ecs.NewMap[comp.Body](w.ECS).Has(body) {
-		return w.Content.Timeline().DefaultSpeed
+		return w.Content.Timeline().DefaultSpeed, nil
 	}
 	speed, err := w.Content.Speed(content.GrantEnv{Grant: GrantTotals(w, body)})
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("anatomy: speed of %d: %w", w.UIDOf(body), err)
 	}
-	return speed
+	return speed, nil
 }
