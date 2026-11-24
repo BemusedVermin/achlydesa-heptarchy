@@ -15,6 +15,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
 const (
@@ -67,17 +68,16 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 
 // scoreOf rates one intent by the content formula.
 func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error) {
-	var sourcePart ecs.Entity
-	for _, c := range in.Channels {
-		if !c.Body.IsZero() && c.Entity != c.Body {
-			sourcePart = c.Entity
-			break
-		}
-	}
 	env := content.ScoreEnv{
-		Source: effects.BodyEnvOf(w, actor, sourcePart), Target: effects.BodyEnvOf(w, in.Target, in.TargetPart),
-		Chosen: effects.ChosenRecords(w, in.Choices), Inventory: inventory.Usable(w, actor, in.Target),
-		Windup: actions.Windup(w, in),
+		Source: effects.BodyEnvOf(
+			w,
+			actor,
+			timeline.FirstPart(in.Channels),
+		),
+		Target:    effects.BodyEnvOf(w, in.Target, in.TargetPart),
+		Chosen:    effects.ChosenRecords(w, in.Choices),
+		Inventory: inventory.Usable(w, actor, in.Target),
+		Windup:    actions.Windup(w, in),
 	}
 	env.Target.IsParty = anatomy.InControlledParty(w, in.Target)
 	if parts := ecs.NewMap[comp.Part](w.ECS); !in.TargetPart.IsZero() && parts.Has(in.TargetPart) {

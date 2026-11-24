@@ -39,6 +39,28 @@ func (c Channel) body() ecs.Entity {
 	return c.Body
 }
 
+// IsPart reports whether the channel is one of a body's parts rather than the body itself.
+func (c Channel) IsPart() bool { return !c.Body.IsZero() && c.Entity != c.Body }
+
+// FirstPart is the entity of the first channel that is a part, or the zero entity when none is.
+func FirstPart(channels []Channel) ecs.Entity {
+	for _, c := range channels {
+		if c.IsPart() {
+			return c.Entity
+		}
+	}
+	return ecs.Entity{}
+}
+
+// UIDs lists the UIDs of the channels' entities, in the channels' order.
+func UIDs(w *sim.World, channels []Channel) []api.UID {
+	uids := make([]api.UID, len(channels))
+	for i, c := range channels {
+		uids[i] = w.UIDOf(c.Entity)
+	}
+	return uids
+}
+
 // slot is one timeline entry. Entries go stale when the body's decision tick changes or it is
 // despawned; pop discards them by checking st.queued.
 type slot struct {
@@ -474,7 +496,3 @@ func Reschedule(w *sim.World, body ecs.Entity) {
 
 // Speed is the body's speed, as the world's speed hook gives it.
 func Speed(w *sim.World, body ecs.Entity) int { return stateOf(w).speed(w, body) }
-
-// CurrentPlayer returns the body deciding now when it is the player-controlled body with the UID.
-// Commands from the player use it to reject anyone else.
-func CurrentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) { return currentPlayer(w, uid) }

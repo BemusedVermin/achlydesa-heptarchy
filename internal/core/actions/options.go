@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -187,16 +188,8 @@ func orderOptions(w *sim.World, list []candidate) {
 		if c := dirOf(a.intent) - dirOf(b.intent); c != 0 {
 			return c
 		}
-		return slices.Compare(channelUIDs(w, a.intent.Channels), channelUIDs(w, b.intent.Channels))
+		return slices.Compare(timeline.UIDs(w, a.intent.Channels), timeline.UIDs(w, b.intent.Channels))
 	})
-}
-
-func channelUIDs(w *sim.World, channels []timeline.Channel) []api.UID {
-	uids := make([]api.UID, len(channels))
-	for i, c := range channels {
-		uids[i] = w.UIDOf(c.Entity)
-	}
-	return uids
 }
 
 // Startable lists every intent the actor may start right now, in option order.
@@ -297,7 +290,7 @@ func (ev *evaluator) optionID(cand candidate) string {
 		parts = append(parts, uidSegment(ev.w.UIDOf(in.TargetPart)))
 	}
 	if cand.withChannels {
-		for _, uid := range channelUIDs(ev.w, in.Channels) {
+		for _, uid := range timeline.UIDs(ev.w, in.Channels) {
 			parts = append(parts, uidSegment(uid))
 		}
 	}
@@ -344,7 +337,7 @@ func (ev *evaluator) valueName(value string) string {
 func (ev *evaluator) command(in Intent) api.Do {
 	w := ev.w
 	cmd := api.Do{
-		Source: w.UIDOf(in.Actor), Action: in.Action, Channels: channelUIDs(w, in.Channels),
+		Source: w.UIDOf(in.Actor), Action: in.Action, Channels: timeline.UIDs(w, in.Channels),
 		Target: w.UIDOf(in.Target), TargetPart: w.UIDOf(in.TargetPart),
 	}
 	if in.Dir != nil {
@@ -352,10 +345,7 @@ func (ev *evaluator) command(in Intent) api.Do {
 		cmd.Dir = &dir
 	}
 	if len(in.Choices) > 0 {
-		cmd.Choices = make(map[string]string, len(in.Choices))
-		for name, value := range in.Choices {
-			cmd.Choices[name] = value
-		}
+		cmd.Choices = maps.Clone(in.Choices)
 	}
 	return cmd
 }

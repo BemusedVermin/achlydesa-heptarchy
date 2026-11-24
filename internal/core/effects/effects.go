@@ -3,9 +3,9 @@ package effects
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"reflect"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -181,6 +181,9 @@ func Register(w *sim.World, p Primitive) error {
 // M2-07 sets it from factions.
 func SetHostile(w *sim.World, fn func(w *sim.World, a, b ecs.Entity) bool) { stateOf(w).hostile = fn }
 
+// Hostile reports whether a is hostile to b, as the world's hostility hook says.
+func Hostile(w *sim.World, a, b ecs.Entity) bool { return stateOf(w).hostile(w, a, b) }
+
 // SetMaps says where to find a map by ID, for working out what a body sees. Without it nobody sees
 // anybody; M1-10 sets it from explore.
 func SetMaps(w *sim.World, lookup func(id api.MapID) *hexmap.Map) { stateOf(w).maps = lookup }
@@ -241,12 +244,7 @@ func validateRef(at string, reg *content.Registry, prim Primitive, ref content.E
 			problems = append(problems, fmt.Errorf("%s (%s): missing parameter %q", at, ref.Do, name))
 		}
 	}
-	names := make([]string, 0, len(ref.Params))
-	for name := range ref.Params {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	for _, name := range names {
+	for _, name := range slices.Sorted(maps.Keys(ref.Params)) {
 		if !slices.Contains(known, name) {
 			problems = append(problems, fmt.Errorf("%s (%s): unknown parameter %q", at, ref.Do, name))
 			continue
@@ -416,7 +414,7 @@ func baseEnv(ctx *Context) content.EffectEnv {
 	w := ctx.World
 	env := content.EffectEnv{Now: w.Now, Chosen: ChosenRecords(w, ctx.Choices)}
 	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"]) // absent or malformed means no fall
-	env.Source = BodyEnvOf(w, ctx.Source, firstPart(ctx.Used))
+	env.Source = BodyEnvOf(w, ctx.Source, timeline.FirstPart(ctx.Used))
 	env.Target = BodyEnvOf(w, ctx.Target, ctx.TargetPart)
 	env.Inventory = inventory.Usable(w, ctx.Source, ctx.Target)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
@@ -472,7 +470,7 @@ func (p *params) String(name string) (string, error) {
 // For implements [Params].
 func (p *params) For(c timeline.Channel) Params {
 	ctx := *p.ctx
-	if !c.Body.IsZero() && c.Entity != c.Body {
+	if c.IsPart() {
 		ctx.Target, ctx.TargetPart = c.Body, c.Entity
 	} else {
 		ctx.Target, ctx.TargetPart = c.Entity, ecs.Entity{}
@@ -503,6 +501,3 @@ func (p *params) Channels(name string) ([]timeline.Channel, error) {
 	}
 	return sel.Resolve(p.ctx)
 }
-
-// Hostile reports whether a is hostile to b, as the world's hostility hook says.
-func Hostile(w *sim.World, a, b ecs.Entity) bool { return stateOf(w).hostile(w, a, b) }

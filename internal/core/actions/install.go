@@ -15,7 +15,7 @@ import (
 type state struct {
 	providers  map[string]ChoiceProvider
 	validators []Validator
-	modifiers  []modifierFunc
+	modifiers  []ModifierFunc
 }
 
 func stateOf(w *sim.World) *state {
@@ -38,7 +38,7 @@ func AddValidator(w *sim.World, fn Validator) {
 // AddModifier lets an intent's choices add wind-up ticks, recovery ticks and extra start or landing
 // effects. Combat uses it so a type changes any form it is loaded into. Modifiers run in
 // registration order.
-func AddModifier(w *sim.World, fn func(w *sim.World, in Intent) Modifier) {
+func AddModifier(w *sim.World, fn ModifierFunc) {
 	st := stateOf(w)
 	st.modifiers = append(st.modifiers, fn)
 }
@@ -115,10 +115,12 @@ func handleDo(w *sim.World, cmd api.Do) (int64, error) {
 	if !ok {
 		return reject(why("bad_target"))
 	}
-	if ok, reason := Validate(w, in); !ok {
+	ev := newEvaluator(w)
+	p, reason := ev.validate(in)
+	if p == nil {
 		return reject(reason)
 	}
-	return 0, Start(w, in)
+	return 0, ev.start(p, false)
 }
 
 // intentOf turns a command's UIDs into entities. Channels are looked up among the actor's own; one
