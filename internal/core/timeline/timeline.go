@@ -93,7 +93,7 @@ type state struct {
 	channels    func(w *sim.World, body ecs.Entity) []Channel
 	usable      func(w *sim.World, body ecs.Entity, c Channel) bool
 	usableAll   func(w *sim.World, body ecs.Entity, channels []Channel) []bool
-	speed       func(w *sim.World, body ecs.Entity) int
+	speed       func(w *sim.World, body ecs.Entity) (int, error)
 	visible     func(w *sim.World, body ecs.Entity) bool
 	halt        func(w *sim.World) bool
 	controllers map[string]Controller
@@ -132,7 +132,7 @@ func stateOf(w *sim.World) *state {
 		return []Channel{{Entity: body, Tags: []string{bodyTag}}}
 	}
 	st.usable = func(*sim.World, ecs.Entity, Channel) bool { return true }
-	st.speed = func(*sim.World, ecs.Entity) int { return st.cfg.DefaultSpeed }
+	st.speed = func(*sim.World, ecs.Entity) (int, error) { return st.cfg.DefaultSpeed, nil }
 	st.visible = func(_ *sim.World, body ecs.Entity) bool { return st.members.Has(body) }
 	res.Add(st)
 	return st
@@ -180,8 +180,11 @@ func Free(w *sim.World, c Channel) bool { return stateOf(w).busyUntil(w, c) <= w
 
 // StepTicks is the base ticks a step keeps a body's channels busy, from its speed.
 func StepTicks(w *sim.World, body ecs.Entity) (int64, error) {
-	st := stateOf(w)
-	ticks, err := w.Content.StepTicks(content.SpeedEnv{Speed: st.speed(w, body)})
+	speed, err := Speed(w, body)
+	if err != nil {
+		return 0, err
+	}
+	ticks, err := w.Content.StepTicks(content.SpeedEnv{Speed: speed})
 	if err != nil {
 		return 0, err
 	}
@@ -488,4 +491,7 @@ func Reschedule(w *sim.World, body ecs.Entity) {
 }
 
 // Speed is the body's speed, as the world's speed hook gives it.
-func Speed(w *sim.World, body ecs.Entity) int { return stateOf(w).speed(w, body) }
+func Speed(w *sim.World, body ecs.Entity) (int, error) { return stateOf(w).speed(w, body) }
+
+// CurrentPlayer returns the body deciding now when it is the player-controlled body with the UID.
+func CurrentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) { return currentPlayer(w, uid) }

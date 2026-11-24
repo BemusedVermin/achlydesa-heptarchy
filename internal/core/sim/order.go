@@ -2,7 +2,7 @@ package sim
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -39,7 +39,7 @@ func sortByAfter(kind string, items []orderItem) ([]string, error) {
 	}
 	order := make([]string, 0, len(items))
 	for len(ready) > 0 {
-		sort.Strings(ready)
+		slices.Sort(ready)
 		next := ready[0]
 		ready = ready[1:]
 		order = append(order, next)
@@ -57,7 +57,7 @@ func sortByAfter(kind string, items []orderItem) ([]string, error) {
 				stuck = append(stuck, item.name)
 			}
 		}
-		sort.Strings(stuck)
+		slices.Sort(stuck)
 		return nil, fmt.Errorf("sim: cycle among %ss: %s", kind, strings.Join(stuck, ", "))
 	}
 	return order, nil

@@ -1,6 +1,10 @@
 package hexmap
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+)
 
 func TestCellDistanceAddsTheDepthDifference(t *testing.T) {
 	tests := []struct {
@@ -28,23 +32,23 @@ func TestCellDistanceAddsTheDepthDifference(t *testing.T) {
 
 func TestDirTo(t *testing.T) {
 	from := cell(0, 0, 0)
-	rules := DefaultStepRules()
+	rules := defaultStepRules()
 
 	tests := []struct {
 		name   string
-		setup  func(t *testing.T, m *Map)
+		raise  []api.Cell
 		to     [3]int
 		wantOK bool
 	}{
-		{"neighbour on open ground", func(*testing.T, *Map) {}, [3]int{1, 0, 0}, true},
-		{"too far for one step", func(*testing.T, *Map) {}, [3]int{5, 0, 0}, false},
-		{"blocked neighbour", func(t *testing.T, m *Map) { raise(t, m, cell(1, 0, 0)) }, [3]int{1, 0, 0}, false},
-		{"same cell", func(*testing.T, *Map) {}, [3]int{0, 0, 0}, false},
+		{"neighbour on open ground", nil, [3]int{1, 0, 0}, true},
+		{"too far for one step", nil, [3]int{5, 0, 0}, false},
+		{"blocked neighbour", []api.Cell{cell(1, 0, 0)}, [3]int{1, 0, 0}, false},
+		{"same cell", nil, [3]int{0, 0, 0}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := floorWorld()
-			tt.setup(t, m)
+			raise(t, m, tt.raise...)
 			to := cell(tt.to[0], tt.to[1], tt.to[2])
 			dir, ok, err := m.DirTo(from, to, rules)
 			if err != nil {
