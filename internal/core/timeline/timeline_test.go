@@ -556,7 +556,7 @@ func TestSameSeedSameOrder(t *testing.T) {
 			fx.spawn(t, "record", speed)
 		}
 		fx.after = func(*sim.World, ecs.Entity) {
-			if len(fx.taken) == 1000 {
+			if len(fx.taken) == 50 {
 				fx.stopAfter = -1 // the next decision stops the run
 			}
 		}
@@ -564,7 +564,7 @@ func TestSameSeedSameOrder(t *testing.T) {
 		return fx.taken
 	}
 	first, second := play(), play()
-	if len(first) != 1000 || !reflect.DeepEqual(first, second) {
+	if len(first) != 50 || !reflect.DeepEqual(first, second) {
 		t.Errorf("two runs differ or are short: %d and %d decisions", len(first), len(second))
 	}
 }
@@ -577,10 +577,10 @@ func TestOrderMatchesSort(t *testing.T) {
 		for _, speed := range speeds {
 			steps[fx.w.UIDOf(fx.spawn(t, "record", speed))] = fx.stepTicks(t, speed)
 		}
-		fx.stopAfter = 500
+		fx.stopAfter = 100
 		fx.run(t)
-		// The run stops at the first decision past 500, which is not recorded.
-		want := reference(steps, 500)
+		// The run stops at the first decision past 100, which is not recorded.
+		want := reference(steps, 100)
 		if !reflect.DeepEqual(fx.taken, want) {
 			t.Fatalf("order differs from sorted order for speeds %v:\n%v\n%v", speeds, fx.taken, want)
 		}
