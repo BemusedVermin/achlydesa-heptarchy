@@ -1,7 +1,7 @@
 ---
 id: M3-06
 title: Gates between maps
-status: todo
+status: done
 milestone: M3
 kind: feature
 depends_on: []
@@ -54,11 +54,11 @@ type PartyCrossed struct { Party api.UID; From, To api.MapID }
 
 ## Acceptance criteria
 
-- [ ] A test walks the leader onto a gate; the whole party is on the other map, at the mark, and the plan view shows that map.
-- [ ] Walking back through the return gate puts the party back, and the cells it saw on the first map are still remembered.
-- [ ] A party wiped on map B whose rest place is on map A wakes on map A.
-- [ ] A map naming an unknown gate destination fails `go tool task content`.
-- [ ] `go tool task check` passes.
+- [x] A test walks the leader onto a gate; the whole party is on the other map, at the mark, and the plan view shows that map.
+- [x] Walking back through the return gate puts the party back, and the cells it saw on the first map are still remembered.
+- [x] A party wiped on map B whose rest place is on map A wakes on map A.
+- [x] A map naming an unknown gate destination fails `go tool task content`.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -66,5 +66,14 @@ type PartyCrossed struct { Party api.UID; From, To api.MapID }
 - Regions and promotion on crossing (M3-08, M3-09).
 
 ## Notes
+
+- The crossing runs at the end of `applyStep` (`explore/gates.go`), so any leader's step onto a gate crosses.
+- `hexmap.Map.SetGates` fills the table; `explore.buildMaps` resolves each destination mark once every map has its ID, so loading a save restores gates with the maps.
+- Added `explore.Source.Gates` and `explore.GateSite`, not named in the spec, to carry gate cells from the layers to that step.
+- The leader is set on the destination mark even if a body stands there; followers take the nearest free cells.
+- Pending actions of every living member, the leader included, are canceled with `text.explore.crossed`.
+- A gate's destination must be a plain mark (not a spawn or a gate); a gate character must appear in a layer at least once, and may appear several times.
+- The two new sample maps shift later map IDs, so the combat goldens `dodge.jsonl` and `outpaced.jsonl` were regenerated (only `map` numbers changed).
+- No follow-ups filed. No design docs changed.
 
 

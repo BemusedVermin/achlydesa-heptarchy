@@ -411,6 +411,18 @@ type MapDef struct {
 	// such character at the start, in row order, and the character may appear any number of times
 	// (at least once). Each character must also be one of Marks, so the layers may use it.
 	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
+	// Gates maps a mark character to the gate it is: each such character in the layers leads to a
+	// mark of another map. Each character must also be one of Marks, so the layers may use it.
+	Gates map[string]GateDef `json:"gates,omitempty"`
+}
+
+// GateDef is where a gate leads.
+type GateDef struct {
+	// To is the ID of the destination map ("map." ID).
+	To api.ContentID `json:"to"`
+	// Mark names the cell of the destination map where arrivals are set down; it must be a plain
+	// mark, not a spawn or a gate.
+	Mark string `json:"mark"`
 }
 
 // LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per

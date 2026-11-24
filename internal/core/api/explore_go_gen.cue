@@ -11,6 +11,7 @@ package api
 #ControlChangedKind: "explore.control_changed"
 #LeaderChangedKind:  "explore.leader_changed"
 #PartyWokeKind:      "explore.party_woke"
+#PartyCrossedKind:   "explore.party_crossed"
 
 // The leader is played; the rest trail in single file
 #ControlFollow: "follow"
@@ -59,6 +60,13 @@ package api
 	map:   #MapID @go(Map)
 	at:    #Cell  @go(At)
 	tick:  int64  @go(Tick)
+}
+
+// PartyCrossed reports that a party went through a gate to another map.
+#PartyCrossed: {
+	party: #UID   @go(Party)
+	from:  #MapID @go(From)
+	to:    #MapID @go(To)
 }
 
 #MoveLevel: "level"

@@ -99,7 +99,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | --- | --- | --- | --- | --- | --- |
 | [M3-01](M3-agents/M3-01-foundation-hostility-choosers.md) | Hostility, choosers and controller lookup in the foundation | done | seam | M | none |
 | [M3-02](M3-agents/M3-02-needs.md) | Needs: records, levels, a per-phase tick and the satisfy effect | done | seam | M | none |
-| [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | todo | feature | M | none |
+| [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | done | feature | M | none |
 | [M3-03](M3-agents/M3-03-behaviors-agents-controller.md) | Behaviors and the agents controller | done | seam | M | M3-02 |
 | [M3-07](M3-agents/M3-07-playground.md) | A playground: the test maps joined by gates | todo | content | M | M3-06 |
 | [M3-08](M3-agents/M3-08-regions-towns.md) | Regions and towns as entities | todo | seam | M | M3-06 |
