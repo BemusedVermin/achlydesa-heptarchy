@@ -1,7 +1,7 @@
 ---
 id: M3-07
 title: "A playground: the test maps joined by gates"
-status: todo
+status: in-progress
 milestone: M3
 kind: content
 depends_on: [M3-06]

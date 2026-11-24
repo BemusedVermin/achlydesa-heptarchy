@@ -212,7 +212,7 @@ func TestAMoveTowardABodyStopsNextToIt(t *testing.T) {
 		query := ecs.NewFilter2[comp.Pos, comp.Identity](f.w.ECS).Query()
 		for query.Next() {
 			pos, identity := query.Get()
-			if identity.Template == drinker {
+			if identity.Template == drinker || pos.Map != ecs.NewMap[comp.Pos](f.w.ECS).Get(body).Map {
 				continue
 			}
 			if d := hexmap.CellDistance(f.at(body), pos.At); best < 0 || d < best {

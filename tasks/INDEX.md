@@ -101,7 +101,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-02](M3-agents/M3-02-needs.md) | Needs: records, levels, a per-phase tick and the satisfy effect | done | seam | M | none |
 | [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | done | feature | M | none |
 | [M3-03](M3-agents/M3-03-behaviors-agents-controller.md) | Behaviors and the agents controller | done | seam | M | M3-02 |
-| [M3-07](M3-agents/M3-07-playground.md) | A playground: the test maps joined by gates | todo | content | M | M3-06 |
+| [M3-07](M3-agents/M3-07-playground.md) | A playground: the test maps joined by gates | in-progress | content | M | M3-06 |
 | [M3-08](M3-agents/M3-08-regions-towns.md) | Regions and towns as entities | todo | seam | M | M3-06 |
 | [M3-13](M3-agents/M3-13-party-food-water.md) | The party eats and drinks | done | feature | M | M3-02 |
 | [M3-14](M3-agents/M3-14-rest-heal.md) | Rest in town: heal integrity and set the rest place | todo | feature | M | M3-06 |

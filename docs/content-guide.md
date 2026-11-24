@@ -196,6 +196,18 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
 
 To play it, point `start.map` in `start.cue` at it for the session, and put it back before you commit unless the change is meant.
 
+## The playground
+
+`go tool task run -- play --seed 1` opens in `map.play.hub` (`maps/play_hub.cue`), a small room with a gate to each of three maps that copy the test maps. Each has a gate back. A feature task adds a line here for what it puts in the playground.
+
+| Gate | Map | What is there |
+| --- | --- | --- |
+| 1 | `map.play.hall` | The moving clay creature in the hall. |
+| 2 | `map.play.den` | The remnant and the flesh beast. |
+| 3 | `map.play.descent` | The soops down to the deep, and a moving clay creature at depth 2. |
+
+Tests keep their own start maps: the sample content in `contenttest` starts on `map.test.hall`, whatever `start.cue` says.
+
 ## Checking your work
 
 1. `go tool task content` checks every file against the schemas (`cue vet`). It catches a wrong field or a value of the wrong kind.
