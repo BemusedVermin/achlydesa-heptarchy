@@ -223,6 +223,31 @@ type Doing struct {
 	Since int64 `json:"since"`
 }
 
+// Region makes an entity the region one map is. A region entity has no position and no Identity:
+// it is found by its map.
+type Region struct {
+	Map api.MapID `json:"map"`
+	// Def is the map's content ID, which holds the region's data.
+	Def api.ContentID `json:"def"`
+}
+
+// Town marks a region that is a town. Its stock is the region entity's Inventory.
+type Town struct{}
+
+// Population is how many of one family a region holds off screen.
+type Population struct {
+	Family api.ContentID `json:"family"`
+	Count  int           `json:"count"`
+}
+
+// Populations is a region's off-screen populations, sorted by Family with none twice.
+type Populations struct {
+	Of []Population `json:"of"`
+}
+
+// Individual marks a body that is never demoted into a population count.
+type Individual struct{}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -256,4 +281,8 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Calm](world)
 	ecs.ComponentID[Needs](world)
 	ecs.ComponentID[Doing](world)
+	ecs.ComponentID[Region](world)
+	ecs.ComponentID[Town](world)
+	ecs.ComponentID[Populations](world)
+	ecs.ComponentID[Individual](world)
 }

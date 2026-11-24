@@ -14,6 +14,7 @@ package api
 	map?:      null | #MapView      @go(Map,*MapView)
 	party?:    null | #PartyView    @go(Party,*PartyView)
 	bodies?:   null | #BodiesView   @go(Bodies,*BodiesView)
+	region?:   null | #RegionView   @go(Region,*RegionView)
 	labels:    #LabelsView          @go(Labels)
 }
 

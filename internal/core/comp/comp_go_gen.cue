@@ -230,3 +230,29 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	// Since is the tick the behavior was chosen.
 	since: int64 @go(Since)
 }
+
+// Region makes an entity the region one map is. A region entity has no position and no Identity:
+// it is found by its map.
+#Region: {
+	map: api.#MapID @go(Map)
+
+	// Def is the map's content ID, which holds the region's data.
+	def: api.#ContentID @go(Def)
+}
+
+// Town marks a region that is a town. Its stock is the region entity's Inventory.
+#Town: {}
+
+// Population is how many of one family a region holds off screen.
+#Population: {
+	family: api.#ContentID @go(Family)
+	count:  int            @go(Count)
+}
+
+// Populations is a region's off-screen populations, sorted by Family with none twice.
+#Populations: {
+	of: [...#Population] @go(Of,[]Population)
+}
+
+// Individual marks a body that is never demoted into a population count.
+#Individual: {}
