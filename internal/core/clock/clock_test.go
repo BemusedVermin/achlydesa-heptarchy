@@ -1,7 +1,7 @@
 package clock_test
 
 import (
-	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
@@ -14,8 +14,9 @@ func setup(t *testing.T) (*sim.World, *clock.Clock, *[]string) {
 	t.Helper()
 	reg := contenttest.Sample(t)
 	world := sim.NewWorld(1)
+	world.Content = reg
 	clk := clock.New(reg.Calendar())
-	if err := clock.Install(world, clk, reg); err != nil {
+	if err := clock.Install(world, clk); err != nil {
 		t.Fatal(err)
 	}
 	var calls []string
@@ -44,7 +45,7 @@ func TestAdvanceBoundaries(t *testing.T) {
 	if err := clk.Advance(
 		world,
 		1,
-	); err != nil || !reflect.DeepEqual(*calls, []string{"test.phase"}) ||
+	); err != nil || !slices.Equal(*calls, []string{"test.phase"}) ||
 		world.Now != 20 {
 		t.Fatalf("20th tick: err=%v calls=%v now=%d", err, *calls, world.Now)
 	}
@@ -56,7 +57,7 @@ func TestAdvanceDay(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []string{"test.phase", "test.phase", "test.phase", "test.phase", "test.day"}
-	if !reflect.DeepEqual(*calls, want) {
+	if !slices.Equal(*calls, want) {
 		t.Fatalf("calls = %v, want %v", *calls, want)
 	}
 }
@@ -72,7 +73,7 @@ func TestAdvanceChunkingDoesNotMatter(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if !reflect.DeepEqual(*bigCalls, *stepCalls) || len(*bigCalls) == 0 {
+	if !slices.Equal(*bigCalls, *stepCalls) || len(*bigCalls) == 0 {
 		t.Fatalf("batched %v != stepped %v", *bigCalls, *stepCalls)
 	}
 	if bigWorld.Now != 1000 || stepWorld.Now != 1000 {

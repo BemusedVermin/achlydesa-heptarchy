@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -33,17 +34,17 @@ type badKindCommand struct{}
 
 func (badKindCommand) CommandKind() string { return "BadKind" }
 
-func newTestCodec(t testing.TB) *Codec {
-	t.Helper()
+func newTestCodec(tb testing.TB) *Codec {
+	tb.Helper()
 	c := NewCodec()
 	if err := RegisterCommand[testCommand](c); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	if err := RegisterCommand[otherCommand](c); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	if err := RegisterEvent[testEvent](c); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return c
 }
@@ -153,7 +154,7 @@ func TestLogRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(got, cmds) {
+	if !slices.Equal(got, cmds) {
 		t.Errorf("log = %#v, want %#v", got, cmds)
 	}
 }

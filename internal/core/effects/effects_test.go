@@ -43,7 +43,7 @@ func newFixture(t *testing.T) *fixture {
 	fx.w.Content = reg
 	fx.clk = clock.New(reg.Calendar())
 	for _, step := range []func() error{
-		func() error { return clock.Install(fx.w, fx.clk, reg) },
+		func() error { return clock.Install(fx.w, fx.clk) },
 		func() error { return timeline.Install(fx.w, fx.clk) },
 		func() error { return effects.Install(fx.w) },
 	} {

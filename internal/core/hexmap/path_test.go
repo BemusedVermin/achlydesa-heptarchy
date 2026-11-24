@@ -14,7 +14,7 @@ func TestPathDownRamp(t *testing.T) {
 		}
 		return air
 	}), Prisms{})
-	route, ok, err := m.Path(cell(0, 0, 0), cell(3, 0, 3), DefaultStepRules(), nil, 1000)
+	route, ok, err := m.Path(cell(0, 0, 0), cell(3, 0, 3), defaultStepRules(), nil, 1000)
 	if err != nil || !ok {
 		t.Fatalf("Path = %v, %v, %v; want a route", route, ok, err)
 	}
@@ -39,10 +39,10 @@ func TestPathLedgeAndDrop(t *testing.T) {
 	m := NewMap(1, "ledge", high, Prisms{})
 	top, low := cell(1, 0, -3), cell(0, 0, 0)
 
-	if _, ok, err := m.Path(low, top, DefaultStepRules(), nil, 2000); err != nil || ok {
+	if _, ok, err := m.Path(low, top, defaultStepRules(), nil, 2000); err != nil || ok {
 		t.Errorf("climbing a 3-cell ledge: ok=%v err=%v; want refused", ok, err)
 	}
-	route, ok, err := m.Path(top, low, DefaultStepRules(), nil, 2000)
+	route, ok, err := m.Path(top, low, defaultStepRules(), nil, 2000)
 	if err != nil || !ok {
 		t.Fatalf("dropping down the ledge: %v %v", ok, err)
 	}
@@ -55,13 +55,13 @@ func TestPathGivesUp(t *testing.T) {
 	// Open infinite floor, target buried in rock: no route, but the search must still end.
 	m := floorWorld()
 	raise(t, m, cell(50, 0, 0))
-	route, ok, err := m.Path(cell(0, 0, 0), cell(50, 0, 0), DefaultStepRules(), nil, 200)
+	route, ok, err := m.Path(cell(0, 0, 0), cell(50, 0, 0), defaultStepRules(), nil, 200)
 	if err != nil || ok || route != nil {
 		t.Errorf("Path = %v, %v, %v; want no route", route, ok, err)
 	}
 
 	solid := NewMap(2, "solid", FuncSource(func(api.Cell) Terrain { return rock }), Prisms{})
-	if _, ok, err := solid.Path(cell(0, 0, 0), cell(5, 0, 0), DefaultStepRules(), nil, 100); err != nil || ok {
+	if _, ok, err := solid.Path(cell(0, 0, 0), cell(5, 0, 0), defaultStepRules(), nil, 100); err != nil || ok {
 		t.Errorf("all-solid map: ok=%v err=%v", ok, err)
 	}
 }
@@ -74,7 +74,7 @@ func TestReachableWalksTheStepRulesWithinTheLimit(t *testing.T) {
 		}
 		return air
 	}), Prisms{})
-	reached, err := m.Reachable(cell(0, 0, 0), DefaultStepRules(), 3, nil)
+	reached, err := m.Reachable(cell(0, 0, 0), defaultStepRules(), 3, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestReachableWalksTheStepRulesWithinTheLimit(t *testing.T) {
 	if _, ok := reached[cell(0, 0, 0)]; !ok {
 		t.Error("the start is not in the reached set")
 	}
-	only, err := m.Reachable(cell(0, 0, 0), DefaultStepRules(), 3, func(c api.Cell) bool { return c.Hex.Q <= 1 })
+	only, err := m.Reachable(cell(0, 0, 0), defaultStepRules(), 3, func(c api.Cell) bool { return c.Hex.Q <= 1 })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,12 +99,12 @@ func TestReachableWalksTheStepRulesWithinTheLimit(t *testing.T) {
 func TestPathDeterministic(t *testing.T) {
 	m := floorWorld()
 	raise(t, m, cell(1, 0, 0), cell(1, -1, 0), cell(2, -1, 0))
-	first, ok, err := m.Path(cell(0, 0, 0), cell(4, 0, 0), DefaultStepRules(), nil, 1000)
+	first, ok, err := m.Path(cell(0, 0, 0), cell(4, 0, 0), defaultStepRules(), nil, 1000)
 	if err != nil || !ok {
 		t.Fatal(ok, err)
 	}
 	for range 100 {
-		again, _, _ := m.Path(cell(0, 0, 0), cell(4, 0, 0), DefaultStepRules(), nil, 1000)
+		again, _, _ := m.Path(cell(0, 0, 0), cell(4, 0, 0), defaultStepRules(), nil, 1000)
 		if len(again) != len(first) {
 			t.Fatal("route length changed")
 		}
