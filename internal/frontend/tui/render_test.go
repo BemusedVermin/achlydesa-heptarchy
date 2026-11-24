@@ -239,3 +239,31 @@ func TestRenderPartyListsNeedsUnderTheMember(t *testing.T) {
 		t.Errorf("party panel = %q, want the needs line", got)
 	}
 }
+
+func TestRenderRegionNamesTheTownAndItsStock(t *testing.T) {
+	labels := api.LabelsView{Stock: "Stock"}
+	region := &api.RegionView{Name: "The playground hub", Town: true, Stock: []api.StockLine{
+		{Item: "item.ration", Name: "ration", Count: 3},
+		{Item: "item.water", Name: "lake water", Count: 5},
+	}}
+	golden(t, "region_town", tui.RenderRegion(region, labels))
+	if got := tui.RenderRegion(nil, labels); got != "" {
+		t.Errorf("nil region drew %q, want nothing", got)
+	}
+}
+
+func TestStartScreenShowsTheRegion(t *testing.T) {
+	app := startApp(t)
+	if app.State.Region == nil {
+		t.Fatal("start view has no region")
+	}
+	out := app.View().Content
+	if !strings.Contains(out, app.State.Region.Name) {
+		t.Errorf("view lacks the region name %q:\n%s", app.State.Region.Name, out)
+	}
+	for _, line := range app.State.Region.Stock {
+		if !strings.Contains(out, line.Name) {
+			t.Errorf("view lacks the stock line %q:\n%s", line.Name, out)
+		}
+	}
+}

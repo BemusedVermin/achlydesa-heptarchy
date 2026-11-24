@@ -180,6 +180,9 @@ func (s *mapScreen) View(app *App) string {
 	mapPane := RenderMapOverlay(app.State.Map, app.State.Party, overlay, mapWidth, bodyHeight)
 
 	panel := []string{RenderClock(app.State.Clock, side), "", RenderParty(app.State.Party), ""}
+	if region := RenderRegion(app.State.Region, app.State.Labels); region != "" {
+		panel = append(panel, region, "")
+	}
 	switch body, ok := currentBody(app.State.Bodies); {
 	case s.look != nil:
 		panel = append(panel, RenderLook(app.State, s.look.cursor, side), "")

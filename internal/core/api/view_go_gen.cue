@@ -26,6 +26,9 @@ package api
 	// Look heads the look panel when a body is under the cursor, and LookEmpty replaces it when none is.
 	look:       string @go(Look)
 	look_empty: string @go(LookEmpty)
+
+	// Stock heads the stock lines of a town.
+	stock: string @go(Stock)
 }
 
 // Option is one thing the player can do right now. Frontends render Label and

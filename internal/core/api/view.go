@@ -21,6 +21,8 @@ type LabelsView struct {
 	// Look heads the look panel when a body is under the cursor, and LookEmpty replaces it when none is.
 	Look      string `json:"look"`
 	LookEmpty string `json:"look_empty"`
+	// Stock heads the stock lines of a town.
+	Stock string `json:"stock"`
 }
 
 // Option is one thing the player can do right now. Frontends render Label and
