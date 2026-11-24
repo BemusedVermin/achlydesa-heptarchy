@@ -47,7 +47,7 @@ Findings:
 
 - [ ] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
 - [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
-- [ ] `go tool task comments -- ./internal/tools/agentkit` reports nothing (47 when the rule tightened)
+- [ ] `go tool task comments -- ./internal/tools/agentkit` reports nothing (41 when the rule tightened)
 - [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
 
 ## Out of scope
