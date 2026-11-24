@@ -46,7 +46,7 @@ func RegisterController(w *sim.World, name string, c Controller) error {
 }
 
 // SetChannels replaces how a body's channels are found. The default is one channel, the body
-// itself, tagged "body".
+// itself, tagged "body"; M2-02 adds one per attached part.
 func SetChannels(w *sim.World, fn func(w *sim.World, body ecs.Entity) []Channel) {
 	stateOf(w).channels = fn
 }

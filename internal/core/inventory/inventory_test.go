@@ -102,7 +102,11 @@ func TestSpawningGivesTheTemplatesInventory(t *testing.T) {
 	}
 	party := query.Entity()
 	query.Close()
-	template, _ := reg.Template(ecs.NewMap[comp.Identity](world.ECS).Get(party).Template)
+	id := ecs.NewMap[comp.Identity](world.ECS).Get(party).Template
+	template, ok := reg.Template(id)
+	if !ok {
+		t.Fatalf("unknown template %q", id)
+	}
 	if len(template.Inventory) == 0 {
 		t.Fatal("the sample party starts with nothing, so this test checks nothing")
 	}

@@ -132,7 +132,10 @@ func TestPartyMembersGetTheirPlansParts(t *testing.T) {
 		if ecs.NewMap[comp.Pos](r.w.ECS).Has(got[0]) {
 			t.Error("an attached part has a position")
 		}
-		template, _ := r.w.Content.Template(identities.Get(member).Template)
+		template, ok := r.w.Content.Template(identities.Get(member).Template)
+		if !ok {
+			t.Fatalf("unknown template %q", identities.Get(member).Template)
+		}
 		if protected := ecs.NewMap[comp.Protected](r.w.ECS).Has(member); protected != template.Protected {
 			t.Errorf("protected = %v, want %v as the template says", protected, template.Protected)
 		}
@@ -166,24 +169,38 @@ func TestChannelsAreTheBodyThenEachPartTagged(t *testing.T) {
 	}
 }
 
-func TestLosingTheLegsSlowsSteps(t *testing.T) {
+func TestLosingTheSpeedPartsSlowsSteps(t *testing.T) {
 	r := newRig(t, 1, nil)
 	member := r.member(t)
 	fast, err := timeline.StepTicks(r.w, member)
 	if err != nil {
 		t.Fatal(err)
 	}
-	legs := anatomy.Parts(r.w, member)[3]
-	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(legs)
-	if speed, err := timeline.Speed(r.w, member); err != nil || speed != 0 {
-		t.Errorf("speed without legs = %d, %v; want 0", speed, err)
+	fastSpeed, err := timeline.Speed(r.w, member)
+	if err != nil {
+		t.Fatal(err)
+	}
+	parts := ecs.NewMap[comp.Part](r.w.ECS)
+	severed := 0
+	for _, part := range anatomy.Parts(r.w, member) {
+		if slices.ContainsFunc(parts.Get(part).Grants, func(g comp.Grant) bool { return g.Kind == "speed" }) {
+			ecs.NewMap[comp.PartOf](r.w.ECS).Remove(part)
+			severed++
+		}
+	}
+	if severed == 0 {
+		t.Fatal("no part grants speed, so this test checks nothing")
+	}
+	speed, err := timeline.Speed(r.w, member)
+	if err != nil || speed >= fastSpeed {
+		t.Errorf("speed without its speed parts = %d, %v; want less than %d", speed, err, fastSpeed)
 	}
 	slow, err := timeline.StepTicks(r.w, member)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if slow <= fast {
-		t.Errorf("step ticks = %d without legs and %d with; want slower", slow, fast)
+		t.Errorf("step ticks = %d without its speed parts and %d with; want slower", slow, fast)
 	}
 }
 

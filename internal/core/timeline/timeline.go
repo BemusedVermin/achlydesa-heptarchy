@@ -22,13 +22,13 @@ const MaxAITurns = 10_000
 // bodyTag is the tag of a body's own channel.
 const bodyTag = "body"
 
-// Channel is something that can be busy: the body itself, or one of its parts. Actions say which
-// channels they occupy by tag.
+// Channel is something that can be busy: the body itself, or one of its parts. Actions (M1-20)
+// say which channels they occupy by tag.
 type Channel struct {
 	Entity ecs.Entity // the body, or one of its parts
 	// Body is the body the channel belongs to. The zero entity means Entity is the body.
 	Body ecs.Entity
-	Tags []string // "body" for the body itself; the channel hook tags parts
+	Tags []string // "body" for the body itself; M2-02 gives parts their slot and grants
 }
 
 // body returns the body that owns c.
