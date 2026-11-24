@@ -106,8 +106,8 @@ func (f *primField) started(actor, target api.UID, action api.ContentID) bool {
 	return false
 }
 
-func (f *primField) count(holder ecs.Entity, item api.ContentID) int {
-	return inventory.Count(f.w, holder, item, 0)
+func (f *primField) countWater(holder ecs.Entity) int {
+	return inventory.Count(f.w, holder, "item.lake_water", 0)
 }
 
 func TestAConsumerWalksToACorpseAndStartsItsAction(t *testing.T) {
@@ -133,20 +133,19 @@ func TestAHaulerMovesExactlyItsCountFromTheWellToTheCistern(t *testing.T) {
 	well := f.spawn("template.test.well", cellAt(14, 4))
 	cistern := f.spawn("template.test.cistern", cellAt(6, 6))
 	hauler := f.spawn("template.test.hauler", cellAt(14, 8))
-	const water = "item.lake_water"
-	if got := f.count(well, water); got != 5 {
+	if got := f.countWater(well); got != 5 {
 		t.Fatalf("the well holds %d water, want 5", got)
 	}
-	if !f.until(600, func() bool { return f.count(cistern, water) > 0 }) {
+	if !f.until(600, func() bool { return f.countWater(cistern) > 0 }) {
 		t.Fatalf("nothing reached the cistern by tick %d; the hauler is at %v", f.w.Now, f.at(hauler))
 	}
-	if got := f.count(cistern, water); got != 2 {
+	if got := f.countWater(cistern); got != 2 {
 		t.Errorf("the cistern holds %d water, want 2", got)
 	}
-	if got := f.count(well, water); got != 3 {
+	if got := f.countWater(well); got != 3 {
 		t.Errorf("the well holds %d water, want 3", got)
 	}
-	if got := f.count(hauler, water); got != 0 {
+	if got := f.countWater(hauler); got != 0 {
 		t.Errorf("the hauler still carries %d water", got)
 	}
 }
