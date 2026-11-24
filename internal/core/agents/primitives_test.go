@@ -150,6 +150,19 @@ func TestAHaulerMovesExactlyItsCountFromTheWellToTheCistern(t *testing.T) {
 	}
 }
 
+func TestAHaulerGoesAroundAWallOfStandingBodies(t *testing.T) {
+	f := newPrimField(t, 1, []hallMark{{"q", "cistern", 6, 6}}, nil)
+	f.spawn("template.test.well", cellAt(14, 4))
+	cistern := f.spawn("template.test.cistern", cellAt(6, 6))
+	for col := 8; col <= 16; col++ {
+		f.spawn("template.test.dummy", cellAt(col, 6))
+	}
+	hauler := f.spawn("template.test.hauler", cellAt(14, 8))
+	if !f.until(800, func() bool { return f.countWater(cistern) > 0 }) {
+		t.Fatalf("nothing reached the cistern by tick %d; the hauler is at %v", f.w.Now, f.at(hauler))
+	}
+}
+
 func TestAFleeingBodyRunsFromAHostileUntilItIsOutOfSight(t *testing.T) {
 	f := newPrimField(t, 1, nil, nil)
 	leader := f.leader()

@@ -22,6 +22,9 @@ import (
 const (
 	// pathNodes bounds the search for a way to a behavior's target.
 	pathNodes = 200
+	// heldCellCost prices a step into a cell a standing body holds so high that a route around is taken
+	// whenever the search finds one within pathNodes.
+	heldCellCost = 1000
 	// huntController is the controller engage hands a decision to unless the behavior names one.
 	huntController = "hunt"
 )
@@ -70,7 +73,11 @@ func approach(w *sim.World, body ecs.Entity, goal api.Cell, adjacent bool) (bool
 		return false, nil
 	}
 	rules := actions.StepRules(w)
-	route, found, err := m.Path(from.At, goal, rules, nil, pathNodes)
+	held := cellsHeldByOthers(w, body, from.Map)
+	route, found, err := m.Path(from.At, goal, rules, avoidHeldCells(held, goal), pathNodes)
+	if err == nil && (!found || routeCrosses(route, held, goal)) {
+		route, found, err = m.Path(from.At, goal, rules, nil, pathNodes)
+	}
 	if err != nil || !found || len(route) < 2 {
 		return false, err
 	}
@@ -84,6 +91,34 @@ func approach(w *sim.World, body ecs.Entity, goal api.Cell, adjacent bool) (bool
 		}
 	}
 	return false, nil
+}
+
+// cellsHeldByOthers lists the cells on mapID where a body other than self stands.
+func cellsHeldByOthers(w *sim.World, self ecs.Entity, mapID api.MapID) map[api.Cell]bool {
+	held := map[api.Cell]bool{}
+	query := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
+	for query.Next() {
+		if pos, _ := query.Get(); pos.Map == mapID && query.Entity() != self {
+			held[pos.At] = true
+		}
+	}
+	return held
+}
+
+// avoidHeldCells prices a step into a held cell, except the goal, at heldCellCost. When no route avoids
+// them, approach plans through them and waits for the blocker to move.
+func avoidHeldCells(held map[api.Cell]bool, goal api.Cell) func(hexmap.Step) float64 {
+	return func(step hexmap.Step) float64 {
+		if held[step.To.Cell] && step.To.Cell != goal {
+			return heldCellCost
+		}
+		return 1
+	}
+}
+
+// routeCrosses reports whether route enters a held cell other than the goal.
+func routeCrosses(route []api.Cell, held map[api.Cell]bool, goal api.Cell) bool {
+	return slices.ContainsFunc(route[1:], func(cell api.Cell) bool { return held[cell] && cell != goal })
 }
 
 // stepConsume starts params.action on the target once it can, walking up to it until then. It is
