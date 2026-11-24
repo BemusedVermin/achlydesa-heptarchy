@@ -121,9 +121,9 @@ func TestLoadFormulaUsesEnv(t *testing.T) {
 
 func TestLoadRejects(t *testing.T) {
 	tests := []struct {
-		name string
-		src  string
-		want []string // every fragment must appear in the error
+		name          string
+		src           string
+		wantFragments []string
 	}{
 		{
 			name: "solid terrain without move_cost",
@@ -131,14 +131,14 @@ func TestLoadRejects(t *testing.T) {
 terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true}
 text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
-			want: []string{`terrains["terrain.wall"].move_cost`, "required"},
+			wantFragments: []string{`terrains["terrain.wall"].move_cost`, "required"},
 		},
 		{
 			name: "party with unknown member",
 			src: `
 templates: "template.party.x": party: members: ["template.nope"]
 `,
-			want: []string{`templates["template.party.x"].party.members[0]`, "template.nope"},
+			wantFragments: []string{`templates["template.party.x"].party.members[0]`, "template.nope"},
 		},
 		{
 			name: "party nested in a party",
@@ -148,56 +148,56 @@ templates: {
 	"template.party.b": party: members: ["template.party.a"]
 }
 `,
-			want: []string{"is itself a party"},
+			wantFragments: []string{"is itself a party"},
 		},
 		{
 			name: "party with no members",
 			src: `
 templates: "template.party.x": party: members: []
 `,
-			want: []string{"at least one member"},
+			wantFragments: []string{"at least one member"},
 		},
 		{
 			name: "party numbers too small",
 			src: `
 party: {slots: 0, sight_radius: 0}
 `,
-			want: []string{"party.slots", "party.sight_radius"},
+			wantFragments: []string{"party.slots", "party.sight_radius"},
 		},
 		{
 			name: "step_ticks that does not compile",
 			src: `
 timeline: step_ticks: "speed +"
 `,
-			want: []string{"timeline.step_ticks"},
+			wantFragments: []string{"timeline.step_ticks"},
 		},
 		{
 			name: "step_ticks with an unknown variable",
 			src: `
 timeline: step_ticks: "swiftness"
 `,
-			want: []string{"timeline.step_ticks", "swiftness"},
+			wantFragments: []string{"timeline.step_ticks", "swiftness"},
 		},
 		{
 			name: "negative default speed",
 			src: `
 timeline: default_speed: -1
 `,
-			want: []string{"timeline.default_speed"},
+			wantFragments: []string{"timeline.default_speed"},
 		},
 		{
 			name: "actor without a controller",
 			src: `
 templates: "template.x": actor: controller: ""
 `,
-			want: []string{`templates["template.x"].actor.controller`},
+			wantFragments: []string{`templates["template.x"].actor.controller`},
 		},
 		{
 			name: "bad template id",
 			src: `
 templates: "person.x": {}
 `,
-			want: []string{`templates["person.x"]`, `"template."`},
+			wantFragments: []string{`templates["person.x"]`, `"template."`},
 		},
 		{
 			name: "bad id",
@@ -205,7 +205,7 @@ templates: "person.x": {}
 materials: "Bad Id": name: "text.a"
 text: "text.a": "a"
 `,
-			want: []string{`materials["Bad Id"]`},
+			wantFragments: []string{`materials["Bad Id"]`},
 		},
 		{
 			name: "wrong prefix",
@@ -213,7 +213,7 @@ text: "text.a": "a"
 materials: "terrain.clay": name: "text.a"
 text: "text.a": "a"
 `,
-			want: []string{`materials["terrain.clay"]`, `"material."`},
+			wantFragments: []string{`materials["terrain.clay"]`, `"material."`},
 		},
 		{
 			name: "dangling text reference",
@@ -221,7 +221,7 @@ text: "text.a": "a"
 materials: "material.clay": name: "text.missing"
 text: "text.a": "a"
 `,
-			want: []string{`materials["material.clay"].name`, "text.missing"},
+			wantFragments: []string{`materials["material.clay"].name`, "text.missing"},
 		},
 		{
 			name: "formula does not compile",
@@ -229,7 +229,7 @@ text: "text.a": "a"
 terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "1 +"}
 text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
-			want: []string{`terrains["terrain.wall"].move_cost`},
+			wantFragments: []string{`terrains["terrain.wall"].move_cost`},
 		},
 		{
 			name: "formula uses unknown variable",
@@ -237,7 +237,7 @@ text: {"text.a": "a", "text.terrain.wall": "a"}
 terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "weight"}
 text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
-			want: []string{`terrains["terrain.wall"].move_cost`, "weight"},
+			wantFragments: []string{`terrains["terrain.wall"].move_cost`, "weight"},
 		},
 		{
 			name: "formula returns the wrong type",
@@ -245,14 +245,14 @@ text: {"text.a": "a", "text.terrain.wall": "a"}
 terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true, move_cost: "'heavy'"}
 text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
-			want: []string{`terrains["terrain.wall"].move_cost`},
+			wantFragments: []string{`terrains["terrain.wall"].move_cost`},
 		},
 		{
 			name: "bad text template",
 			src: `
 text: "text.a": "{{.who"
 `,
-			want: []string{`text["text.a"]`},
+			wantFragments: []string{`text["text.a"]`},
 		},
 		{
 			name: "bad calendar",
@@ -260,7 +260,7 @@ text: "text.a": "{{.who"
 text: {"text.a": "a", "text.terrain.wall": "a"}
 calendar: {phases: [{id: "day.dawn", name: "text.missing", ticks: 0}]}
 `,
-			want: []string{"calendar.phases[0].ticks", "calendar.phases[0]", "text.missing"},
+			wantFragments: []string{"calendar.phases[0].ticks", "calendar.phases[0]", "text.missing"},
 		},
 		{
 			name: "all problems are reported",
@@ -269,13 +269,13 @@ materials: "material.clay": name: "text.missing"
 terrains: "terrain.wall": {name: "text.terrain.wall", solid: true, opaque: true}
 text: {"text.a": "a", "text.terrain.wall": "a"}
 `,
-			want: []string{`materials["material.clay"].name`, `terrains["terrain.wall"].move_cost`},
+			wantFragments: []string{`materials["material.clay"].name`, `terrains["terrain.wall"].move_cost`},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := Load(writeData(t, test.src))
-			requireErrContains(t, err, test.want...)
+			requireErrContains(t, err, test.wantFragments...)
 		})
 	}
 }
@@ -330,6 +330,6 @@ func FuzzLoad(f *testing.F) {
 	f.Add(`text: "text.a": "{{"`)
 	f.Add(`terrains: x: {solid: true, move_cost: "1 +"}`)
 	f.Fuzz(func(t *testing.T, src string) {
-		_, _ = Load(writeData(t, src)) // any result is fine; it must not panic
+		_, _ = Load(writeData(t, src))
 	})
 }

@@ -41,9 +41,12 @@ type Bundle struct {
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
 // formulas do.
 type Data struct {
-	Tags  []string            `json:"tags,omitempty"`  // free words: "innate", "piece", "clay", ...
-	Props map[string]float64  `json:"props,omitempty"` // named numbers: "weight": 2
-	Lists map[string][]string `json:"lists,omitempty"` // named lists, usually of IDs: a list of weaknesses, say
+	// Tags are free words: "innate", "piece", "clay", ...
+	Tags []string `json:"tags,omitempty"`
+	// Props are named numbers: "weight": 2.
+	Props map[string]float64 `json:"props,omitempty"`
+	// Lists are named lists, usually of IDs: a list of weaknesses, say.
+	Lists map[string][]string `json:"lists,omitempty"`
 }
 
 // Vocabulary lets content declare which tags, grant kinds and list values are allowed.
@@ -58,33 +61,42 @@ type Vocabulary struct {
 
 // ChoiceDef is a choice an action can ask for, served from a collection of records.
 type ChoiceDef struct {
-	From  string `json:"from"`            // a collection: "types", "items", ...
-	Offer string `json:"offer,omitempty"` // Expr bool over OfferEnv; empty offers every record
+	// From names a collection: "types", "items", ...
+	From string `json:"from"`
+	// Offer is an Expr bool over OfferEnv; empty offers every record.
+	Offer string `json:"offer,omitempty"`
 }
 
 // Mods are what a record changes about an action it's chosen for: a type loaded into a form, a
 // piece held for a graft. Formulas are Expr over ActionEnv.
 type Mods struct {
-	Requires string        `json:"requires,omitempty"` // false refuses the action, with Refusal as the reason
-	Refusal  api.ContentID `json:"refusal,omitempty"`  // a text ID; empty means text.actions.requires
-	Windup   string        `json:"windup,omitempty"`   // ticks added to the wind-up
-	Recovery string        `json:"recovery,omitempty"` // ticks added to the recovery
-	OnStart  []EffectRef   `json:"on_start,omitempty"`
-	OnLand   []EffectRef   `json:"on_land,omitempty"`
+	// Requires is an Expr bool; false refuses the action, with Refusal as the reason.
+	Requires string `json:"requires,omitempty"`
+	// Refusal is a text ID; empty means text.actions.requires.
+	Refusal api.ContentID `json:"refusal,omitempty"`
+	// Windup is ticks added to the wind-up.
+	Windup string `json:"windup,omitempty"`
+	// Recovery is ticks added to the recovery.
+	Recovery string      `json:"recovery,omitempty"`
+	OnStart  []EffectRef `json:"on_start,omitempty"`
+	OnLand   []EffectRef `json:"on_land,omitempty"`
 }
 
 // Status is a condition a body is under until a tick, such as Stand's braced stance. Code knows
 // nothing of any one status: formulas read the ones a body has through the statuses variable.
 type Status struct {
 	Data
-	Name     api.ContentID `json:"name"`               // a text ID
-	Triggers []Trigger     `json:"triggers,omitempty"` // run for bodies carrying the status
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Triggers run for bodies carrying the status.
+	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
 // Claim is a kind of fact a knower can hold, such as a material claim. Each claim needs the text
 // "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
 type Claim struct {
-	Name api.ContentID `json:"name"` // a text ID
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
 	// Value says what a fact's value of this claim holds: "material" (a material ID, shown as its
 	// name), "text" (a text ID, shown rendered) or empty (a literal, shown as it is).
 	Value string `json:"value,omitempty"`
@@ -101,13 +113,15 @@ func valueKinds() []string { return []string{ValueMaterial, ValueText} }
 
 // Origin is where a fact came from, such as a sweep.
 type Origin struct {
-	Name api.ContentID `json:"name"` // a text ID
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
 }
 
 // Material is a substance things are made of.
 type Material struct {
 	Data
-	Name api.ContentID `json:"name"` // a text ID
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
 	// Triggers run for parts made of the material.
 	Triggers []Trigger `json:"triggers,omitempty"`
 }
@@ -118,15 +132,18 @@ type Material struct {
 type Type struct {
 	Data
 	Mods
-	Name api.ContentID `json:"name"` // a text ID
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
 }
 
 // Item is something the inventory carries.
 type Item struct {
 	Data
 	Mods
-	Name  api.ContentID `json:"name"`  // a text ID
-	Bound bool          `json:"bound"` // tied to one person, e.g. a name or a keepsake
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Bound means tied to one person, e.g. a name or a keepsake.
+	Bound bool `json:"bound"`
 	// Part is the part template ("part." ID) an item becomes when grafted on; only such an item has one.
 	Part *api.ContentID `json:"part,omitempty"`
 	// Triggers run for holders of the item.
@@ -136,38 +153,52 @@ type Item struct {
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
 type Faction struct {
 	Data
-	Name      api.ContentID   `json:"name"`       // a text ID
-	HostileTo []api.ContentID `json:"hostile_to"` // faction IDs
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// HostileTo holds faction IDs.
+	HostileTo []api.ContentID `json:"hostile_to"`
 }
 
 // StackDef is some of an item a template starts with.
 type StackDef struct {
-	Item  api.ContentID `json:"item"`  // an item ID
-	Count int           `json:"count"` // at least 1
+	// Item names the item by its ID.
+	Item api.ContentID `json:"item"`
+	// Count is at least 1.
+	Count int `json:"count"`
 }
 
 // Terrain is what one cell of the world is made of: solid (clay, rock) or open (air, later water).
 type Terrain struct {
-	Name       api.ContentID `json:"name"`                  // a text ID
-	Solid      bool          `json:"solid"`                 // blocks movement; can be stood on
-	Opaque     bool          `json:"opaque"`                // blocks sight
-	FloorGlyph string        `json:"floor_glyph,omitempty"` // drawn when you stand on it
-	WallGlyph  string        `json:"wall_glyph,omitempty"`  // drawn when it bounds open space
-	Color      string        `json:"color,omitempty"`
-	MoveCost   string        `json:"move_cost,omitempty"` // Expr with MoveEnv: ticks to walk on top of it; required when solid
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Solid blocks movement and can be stood on.
+	Solid bool `json:"solid"`
+	// Opaque blocks sight.
+	Opaque bool `json:"opaque"`
+	// FloorGlyph is drawn when you stand on it.
+	FloorGlyph string `json:"floor_glyph,omitempty"`
+	// WallGlyph is drawn when it bounds open space.
+	WallGlyph string `json:"wall_glyph,omitempty"`
+	Color     string `json:"color,omitempty"`
+	// MoveCost is an Expr with MoveEnv: ticks to walk on top of it; required when solid.
+	MoveCost string `json:"move_cost,omitempty"`
 }
 
 // Calendar says how ticks group into phases and days. A day is its phases in
 // order, and lasts as many ticks as they add up to.
 type Calendar struct {
-	Phases []Phase `json:"phases"` // in order; at least one
+	// Phases are in order; at least one.
+	Phases []Phase `json:"phases"`
 }
 
 // Phase is one part of the day, such as dawn.
 type Phase struct {
-	ID    api.ContentID `json:"id"`    // "phase.dawn"
-	Name  api.ContentID `json:"name"`  // a text ID
-	Ticks int64         `json:"ticks"` // how long the phase lasts; at least 1
+	// ID is like "phase.dawn".
+	ID api.ContentID `json:"id"`
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Ticks is how long the phase lasts; at least 1.
+	Ticks int64 `json:"ticks"`
 }
 
 // Template is a bag of optional components. A nil field means "no such component".
@@ -206,21 +237,28 @@ func triggerRoles() []string { return []string{RoleSource, RoleTarget, RolePart,
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
 type Trigger struct {
-	On   string      `json:"on"`   // an event kind, e.g. "combat.part_severed"
-	If   string      `json:"if"`   // Expr bool over EffectEnv; empty means always
-	Do   []EffectRef `json:"do"`   // effects to apply, with the event's subjects as source, target and part
-	Role string      `json:"role"` // which subject of the event this entity must be: one of the Role constants
+	// On is an event kind, e.g. "combat.part_severed".
+	On string `json:"on"`
+	// If is an Expr bool over EffectEnv; empty means always.
+	If string `json:"if"`
+	// Do lists effects to apply, with the event's subjects as source, target and part.
+	Do []EffectRef `json:"do"`
+	// Role is which subject of the event this entity must be: one of the Role constants.
+	Role string `json:"role"`
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
 type PartyDef struct {
-	Members []api.ContentID `json:"members"` // member templates, in party order; the first leads
+	// Members are member templates, in party order; the first leads.
+	Members []api.ContentID `json:"members"`
 }
 
 // PartyConfig holds the numbers every party shares.
 type PartyConfig struct {
-	Slots       int `json:"slots"`        // fighters at a time
-	SightRadius int `json:"sight_radius"` // hexes
+	// Slots is how many fighters fight at a time.
+	Slots int `json:"slots"`
+	// SightRadius is in hexes.
+	SightRadius int `json:"sight_radius"`
 	// SightDepth is how many cells up and down the party sees.
 	SightDepth int `json:"sight_depth"`
 	// PlanRange is how many steps of walking from the focus the plan view draws reachable floor.
@@ -268,7 +306,8 @@ type CombatConfig struct {
 
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.
 type MapDef struct {
-	Name api.ContentID `json:"name"` // a text ID
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
 	// Fill is the terrain of every cell not authored, forever in every direction.
 	Fill api.ContentID `json:"fill"`
 	// Open is the terrain of a marked cell, usually air.
@@ -293,23 +332,29 @@ type LayerDef struct {
 
 // Start is the scenario a new game begins with: a party placed at a mark on a map.
 type Start struct {
-	Map         api.ContentID `json:"map"`
-	Party       api.ContentID `json:"party"`         // a party template ID
-	PartyAtMark string        `json:"party_at_mark"` // a mark name of the map
+	Map api.ContentID `json:"map"`
+	// Party names the party template to spawn.
+	Party api.ContentID `json:"party"`
+	// PartyAtMark is a mark name of the map.
+	PartyAtMark string `json:"party_at_mark"`
 }
 
 // TimelineConfig holds the numbers of the shared timeline.
 type TimelineConfig struct {
-	StepTicks string `json:"step_ticks"` // Expr with SpeedEnv: base ticks a step keeps its channels busy
+	// StepTicks is an Expr with SpeedEnv: base ticks a step keeps its channels busy.
+	StepTicks string `json:"step_ticks"`
 	// Speed is an Expr over GrantEnv: a body's speed, from the grants of its functioning parts.
-	Speed        string `json:"speed"`
-	DefaultSpeed int    `json:"default_speed"` // for entities whose speed nothing else provides
-	WindowTicks  int64  `json:"window_ticks"`  // how far ahead the timeline view looks
+	Speed string `json:"speed"`
+	// DefaultSpeed is for entities whose speed nothing else provides.
+	DefaultSpeed int `json:"default_speed"`
+	// WindowTicks is how far ahead the timeline view looks.
+	WindowTicks int64 `json:"window_ticks"`
 }
 
 // ActorDef puts a template's entities on the timeline.
 type ActorDef struct {
-	Controller string `json:"controller"` // "player", "follow", "idle", ...
+	// Controller is "player", "follow", "idle", ...
+	Controller string `json:"controller"`
 }
 
 // EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for
@@ -339,30 +384,44 @@ func targetKinds() []string {
 // which channels it occupies, how long it winds up and recovers, what it targets, and which effects
 // apply when it starts and when it lands. Formulas are Expr sources over ActionEnv.
 type ActionDef struct {
-	Name     api.ContentID `json:"name"`               // a text ID
-	Key      string        `json:"key"`                // short option-ID segment, e.g. "step", "strike"
-	Uses     []Requirement `json:"uses"`               // channels it occupies; every requirement must be met by free channels
-	Target   string        `json:"target"`             // one of the Target constants
-	Range    int           `json:"range,omitempty"`    // hexes, for body/part/ally/cell targets
-	Sight    bool          `json:"sight,omitempty"`    // the target must be visible from the source
-	Choices  []string      `json:"choices,omitempty"`  // extra choices the player makes, by provider name, e.g. "type"
-	Requires string        `json:"requires,omitempty"` // Expr bool over ActionEnv
-	Windup   string        `json:"windup"`             // Expr ticks before it lands; 0 lands at once
-	Recovery string        `json:"recovery"`           // Expr ticks the used channels stay busy after landing
-	OnStart  []EffectRef   `json:"on_start,omitempty"`
-	OnLand   []EffectRef   `json:"on_land,omitempty"`
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Key is a short option-ID segment, e.g. "step", "strike".
+	Key string `json:"key"`
+	// Uses are the channels it occupies; every requirement must be met by free channels.
+	Uses []Requirement `json:"uses"`
+	// Target is one of the Target constants.
+	Target string `json:"target"`
+	// Range is in hexes, for body/part/ally/cell targets.
+	Range int `json:"range,omitempty"`
+	// Sight means the target must be visible from the source.
+	Sight bool `json:"sight,omitempty"`
+	// Choices are extra choices the player makes, by provider name, e.g. "type".
+	Choices []string `json:"choices,omitempty"`
+	// Requires is an Expr bool over ActionEnv.
+	Requires string `json:"requires,omitempty"`
+	// Windup is an Expr for ticks before it lands; 0 lands at once.
+	Windup string `json:"windup"`
+	// Recovery is an Expr for ticks the used channels stay busy after landing.
+	Recovery string      `json:"recovery"`
+	OnStart  []EffectRef `json:"on_start,omitempty"`
+	OnLand   []EffectRef `json:"on_land,omitempty"`
 	// Connects is an Expr bool evaluated when the action lands. Empty means "the target is still in
 	// range (and in sight, if required)".
-	Connects string   `json:"connects,omitempty"`
-	Tags     []string `json:"tags,omitempty"` // free tags for rules and content: "attack", "movement", ...
+	Connects string `json:"connects,omitempty"`
+	// Tags are free tags for rules and content: "attack", "movement", ...
+	Tags []string `json:"tags,omitempty"`
 }
 
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.
 type PartTemplate struct {
 	Data
-	Name      api.ContentID `json:"name"`     // a text ID
-	Slot      string        `json:"slot"`     // "head", "arm", "legs", ...: free text, for display and grafting
-	Material  api.ContentID `json:"material"` // a material ID
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Slot is "head", "arm", "legs", ...: free text, for display and grafting.
+	Slot string `json:"slot"`
+	// Material names the part's default material.
+	Material  api.ContentID `json:"material"`
 	Integrity int           `json:"integrity"`
 	Grants    []comp.Grant  `json:"grants"`
 	Vital     bool          `json:"vital,omitempty"`
@@ -379,12 +438,16 @@ type BodyPlan struct {
 
 // PlanPart is one entry of a body plan.
 type PlanPart struct {
-	Part     api.ContentID `json:"part"`               // a part template ID
-	Material api.ContentID `json:"material,omitempty"` // override, e.g. a clay arm
+	// Part names the part template to use.
+	Part api.ContentID `json:"part"`
+	// Material overrides the part's own, e.g. a clay arm.
+	Material api.ContentID `json:"material,omitempty"`
 }
 
 // Requirement is one set of channels an action occupies.
 type Requirement struct {
-	Tag   string `json:"tag"`   // a channel tag: "body", "arm", "legs", "grant:action", ...
-	Count int    `json:"count"` // how many such channels; 0 means every one the body has (at least one)
+	// Tag is a channel tag: "body", "arm", "legs", "grant:action", ...
+	Tag string `json:"tag"`
+	// Count is how many such channels; 0 means every one the body has (at least one).
+	Count int `json:"count"`
 }

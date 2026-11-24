@@ -51,8 +51,13 @@ import (
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
 // formulas do.
 #Data: {
+	// Tags are free words: "innate", "piece", "clay", ...
 	tags?: [...string] @go(Tags,[]string)
+
+	// Props are named numbers: "weight": 2.
 	props?: {[string]: float64} @go(Props,map[string]float64)
+
+	// Lists are named lists, usually of IDs: a list of weaknesses, say.
 	lists?: {[string]: [...string]} @go(Lists,map[string][]string)
 }
 
@@ -70,17 +75,27 @@ import (
 
 // ChoiceDef is a choice an action can ask for, served from a collection of records.
 #ChoiceDef: {
-	from:   string @go(From)
+	// From names a collection: "types", "items", ...
+	from: string @go(From)
+
+	// Offer is an Expr bool over OfferEnv; empty offers every record.
 	offer?: string @go(Offer)
 }
 
 // Mods are what a record changes about an action it's chosen for: a type loaded into a form, a
 // piece held for a graft. Formulas are Expr over ActionEnv.
 #Mods: {
-	requires?: string         @go(Requires)
-	refusal?:  api.#ContentID @go(Refusal)
-	windup?:   string         @go(Windup)
-	recovery?: string         @go(Recovery)
+	// Requires is an Expr bool; false refuses the action, with Refusal as the reason.
+	requires?: string @go(Requires)
+
+	// Refusal is a text ID; empty means text.actions.requires.
+	refusal?: api.#ContentID @go(Refusal)
+
+	// Windup is ticks added to the wind-up.
+	windup?: string @go(Windup)
+
+	// Recovery is ticks added to the recovery.
+	recovery?: string @go(Recovery)
 	on_start?: [...#EffectRef] @go(OnStart,[]EffectRef)
 	on_land?: [...#EffectRef] @go(OnLand,[]EffectRef)
 }
@@ -89,13 +104,18 @@ import (
 // nothing of any one status: formulas read the ones a body has through the statuses variable.
 #Status: {
 	#Data
+
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
+
+	// Triggers run for bodies carrying the status.
 	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
 }
 
 // Claim is a kind of fact a knower can hold, such as a material claim. Each claim needs the text
 // "text.knowledge.<name>" (see api.KnowledgeTextID) that reports it in the log.
 #Claim: {
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
 
 	// Value says what a fact's value of this claim holds: "material" (a material ID, shown as its
@@ -108,12 +128,15 @@ import (
 
 // Origin is where a fact came from, such as a sweep.
 #Origin: {
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
 }
 
 // Material is a substance things are made of.
 #Material: {
 	#Data
+
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
 
 	// Triggers run for parts made of the material.
@@ -126,6 +149,8 @@ import (
 #Type: {
 	#Data
 	#Mods
+
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
 }
 
@@ -133,8 +158,12 @@ import (
 #Item: {
 	#Data
 	#Mods
-	name:  api.#ContentID @go(Name)
-	bound: bool           @go(Bound)
+
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Bound means tied to one person, e.g. a name or a keepsake.
+	bound: bool @go(Bound)
 
 	// Part is the part template ("part." ID) an item becomes when grafted on; only such an item has one.
 	part?: null | api.#ContentID @go(Part,*api.ContentID)
@@ -146,38 +175,62 @@ import (
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
 #Faction: {
 	#Data
+
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
+
+	// HostileTo holds faction IDs.
 	hostile_to: [...api.#ContentID] @go(HostileTo,[]api.ContentID)
 }
 
 // StackDef is some of an item a template starts with.
 #StackDef: {
-	item:  api.#ContentID @go(Item)
-	count: int            @go(Count)
+	// Item names the item by its ID.
+	item: api.#ContentID @go(Item)
+
+	// Count is at least 1.
+	count: int @go(Count)
 }
 
 // Terrain is what one cell of the world is made of: solid (clay, rock) or open (air, later water).
 #Terrain: {
-	name:         api.#ContentID @go(Name)
-	solid:        bool           @go(Solid)
-	opaque:       bool           @go(Opaque)
-	floor_glyph?: string         @go(FloorGlyph)
-	wall_glyph?:  string         @go(WallGlyph)
-	color?:       string         @go(Color)
-	move_cost?:   string         @go(MoveCost)
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Solid blocks movement and can be stood on.
+	solid: bool @go(Solid)
+
+	// Opaque blocks sight.
+	opaque: bool @go(Opaque)
+
+	// FloorGlyph is drawn when you stand on it.
+	floor_glyph?: string @go(FloorGlyph)
+
+	// WallGlyph is drawn when it bounds open space.
+	wall_glyph?: string @go(WallGlyph)
+	color?:      string @go(Color)
+
+	// MoveCost is an Expr with MoveEnv: ticks to walk on top of it; required when solid.
+	move_cost?: string @go(MoveCost)
 }
 
 // Calendar says how ticks group into phases and days. A day is its phases in
 // order, and lasts as many ticks as they add up to.
 #Calendar: {
+	// Phases are in order; at least one.
 	phases: [...#Phase] @go(Phases,[]Phase)
 }
 
 // Phase is one part of the day, such as dawn.
 #Phase: {
-	id:    api.#ContentID @go(ID)
-	name:  api.#ContentID @go(Name)
-	ticks: int64          @go(Ticks)
+	// ID is like "phase.dawn".
+	id: api.#ContentID @go(ID)
+
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Ticks is how long the phase lasts; at least 1.
+	ticks: int64 @go(Ticks)
 }
 
 // Template is a bag of optional components. A nil field means "no such component".
@@ -217,20 +270,31 @@ import (
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
 #Trigger: {
+	// On is an event kind, e.g. "combat.part_severed".
 	on: string @go(On)
+
+	// If is an Expr bool over EffectEnv; empty means always.
 	if: string @go(If)
+
+	// Do lists effects to apply, with the event's subjects as source, target and part.
 	do: [...#EffectRef] @go(Do,[]EffectRef)
+
+	// Role is which subject of the event this entity must be: one of the Role constants.
 	role: string @go(Role)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
 #PartyDef: {
+	// Members are member templates, in party order; the first leads.
 	members: [...api.#ContentID] @go(Members,[]api.ContentID)
 }
 
 // PartyConfig holds the numbers every party shares.
 #PartyConfig: {
-	slots:        int @go(Slots)
+	// Slots is how many fighters fight at a time.
+	slots: int @go(Slots)
+
+	// SightRadius is in hexes.
 	sight_radius: int @go(SightRadius)
 
 	// SightDepth is how many cells up and down the party sees.
@@ -293,6 +357,7 @@ import (
 
 // MapDef is a hand-made map: a few authored layers embedded in endless fill.
 #MapDef: {
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
 
 	// Fill is the terrain of every cell not authored, forever in every direction.
@@ -323,23 +388,33 @@ import (
 
 // Start is the scenario a new game begins with: a party placed at a mark on a map.
 #Start: {
-	map:           api.#ContentID @go(Map)
-	party:         api.#ContentID @go(Party)
-	party_at_mark: string         @go(PartyAtMark)
+	map: api.#ContentID @go(Map)
+
+	// Party names the party template to spawn.
+	party: api.#ContentID @go(Party)
+
+	// PartyAtMark is a mark name of the map.
+	party_at_mark: string @go(PartyAtMark)
 }
 
 // TimelineConfig holds the numbers of the shared timeline.
 #TimelineConfig: {
+	// StepTicks is an Expr with SpeedEnv: base ticks a step keeps its channels busy.
 	step_ticks: string @go(StepTicks)
 
 	// Speed is an Expr over GrantEnv: a body's speed, from the grants of its functioning parts.
-	speed:         string @go(Speed)
-	default_speed: int    @go(DefaultSpeed)
-	window_ticks:  int64  @go(WindowTicks)
+	speed: string @go(Speed)
+
+	// DefaultSpeed is for entities whose speed nothing else provides.
+	default_speed: int @go(DefaultSpeed)
+
+	// WindowTicks is how far ahead the timeline view looks.
+	window_ticks: int64 @go(WindowTicks)
 }
 
 // ActorDef puts a template's entities on the timeline.
 #ActorDef: {
+	// Controller is "player", "follow", "idle", ...
 	controller: string @go(Controller)
 }
 
@@ -362,30 +437,57 @@ import (
 // which channels it occupies, how long it winds up and recovers, what it targets, and which effects
 // apply when it starts and when it lands. Formulas are Expr sources over ActionEnv.
 #ActionDef: {
+	// Name is a text ID.
 	name: api.#ContentID @go(Name)
-	key:  string         @go(Key)
+
+	// Key is a short option-ID segment, e.g. "step", "strike".
+	key: string @go(Key)
+
+	// Uses are the channels it occupies; every requirement must be met by free channels.
 	uses: [...#Requirement] @go(Uses,[]Requirement)
+
+	// Target is one of the Target constants.
 	target: string @go(Target)
-	range?: int    @go(Range)
-	sight?: bool   @go(Sight)
+
+	// Range is in hexes, for body/part/ally/cell targets.
+	range?: int @go(Range)
+
+	// Sight means the target must be visible from the source.
+	sight?: bool @go(Sight)
+
+	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	choices?: [...string] @go(Choices,[]string)
+
+	// Requires is an Expr bool over ActionEnv.
 	requires?: string @go(Requires)
-	windup:    string @go(Windup)
-	recovery:  string @go(Recovery)
+
+	// Windup is an Expr for ticks before it lands; 0 lands at once.
+	windup: string @go(Windup)
+
+	// Recovery is an Expr for ticks the used channels stay busy after landing.
+	recovery: string @go(Recovery)
 	on_start?: [...#EffectRef] @go(OnStart,[]EffectRef)
 	on_land?: [...#EffectRef] @go(OnLand,[]EffectRef)
 
 	// Connects is an Expr bool evaluated when the action lands. Empty means "the target is still in
 	// range (and in sight, if required)".
 	connects?: string @go(Connects)
+
+	// Tags are free tags for rules and content: "attack", "movement", ...
 	tags?: [...string] @go(Tags,[]string)
 }
 
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.
 #PartTemplate: {
 	#Data
-	name:      api.#ContentID @go(Name)
-	slot:      string         @go(Slot)
+
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Slot is "head", "arm", "legs", ...: free text, for display and grafting.
+	slot: string @go(Slot)
+
+	// Material names the part's default material.
 	material:  api.#ContentID @go(Material)
 	integrity: int            @go(Integrity)
 	grants: [...comp.#Grant] @go(Grants,[]comp.Grant)
@@ -404,12 +506,18 @@ import (
 
 // PlanPart is one entry of a body plan.
 #PlanPart: {
-	part:      api.#ContentID @go(Part)
+	// Part names the part template to use.
+	part: api.#ContentID @go(Part)
+
+	// Material overrides the part's own, e.g. a clay arm.
 	material?: api.#ContentID @go(Material)
 }
 
 // Requirement is one set of channels an action occupies.
 #Requirement: {
-	tag:   string @go(Tag)
-	count: int    @go(Count)
+	// Tag is a channel tag: "body", "arm", "legs", "grant:action", ...
+	tag: string @go(Tag)
+
+	// Count is how many such channels; 0 means every one the body has (at least one).
+	count: int @go(Count)
 }
