@@ -118,7 +118,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | --- | --- | --- | --- | --- | --- |
 | [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | done | test | C1 | C1-23 |
 | [C1-23.F1](followups/C1-23.F1-reload-messages-in-content.md) | Move the hot reload's log messages into content text | obsolete | debt | C1 | C1-23 |
-| [C1-26.F1.F1](followups/C1-26.F1.F1-rename-moves-form-type-heading.md) | Rename the "Moves = form × type" heading | proposed | debt | C1 | C1-26.F1 |
+| [C1-26.F1.F1](followups/C1-26.F1.F1-rename-moves-form-type-heading.md) | Rename the "Moves = form × type" heading | todo | debt | C1 | C1-26.F1 |
 | [C1-26.F1](followups/C1-26.F1-move-means-movement-in-game-design.md) | Use "move" only for movement in game-design.md | done | debt | C1 | C1-26 |
 | [C1-24.F2](followups/C1-24.F2-samebehavior-missing-seed-message.md) | samebehavior says clearly when a seed reports no hash | done | bug | C1 | C1-24 |
 | [C1-24.F1](followups/C1-24.F1-agentkit-tests-use-gittest.md) | agentkit's tests use gittest and build fewer repositories | obsolete | test | C1 | C1-24 |
