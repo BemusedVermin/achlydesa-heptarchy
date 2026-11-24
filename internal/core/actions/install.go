@@ -36,8 +36,7 @@ func AddValidator(w *sim.World, fn Validator) {
 }
 
 // AddModifier lets an intent's choices add wind-up ticks, recovery ticks and extra start or landing
-// effects. Combat uses it so a type changes any form it is loaded into. Modifiers run in
-// registration order.
+// effects. Modifiers run in registration order.
 func AddModifier(w *sim.World, fn ModifierFunc) {
 	st := stateOf(w)
 	st.modifiers = append(st.modifiers, fn)

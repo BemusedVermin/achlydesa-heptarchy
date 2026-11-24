@@ -33,9 +33,6 @@ type opts struct {
 	// install runs with the world before the game starts, to register primitives.
 	install func(w *sim.World) error
 	mutate  func(*content.Bundle)
-	// reg, when set, is the registry testBundle would build for these opts, so a test that builds
-	// many games loads the content once.
-	reg *content.Registry
 }
 
 // fixture is a game with a fighter (the player, with arms) and an idle dummy.
@@ -120,10 +117,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 	if o.dummyQ == 0 {
 		o.dummyQ = 1
 	}
-	reg := o.reg
-	if reg == nil {
-		reg = contenttest.Registry(t, testBundle(t, o))
-	}
+	reg := contenttest.Registry(t, testBundle(t, o))
 	fx := &fixture{t: t}
 	fx.cfg = game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		fx.arms = nil
@@ -451,24 +445,28 @@ func TestUsableHookLetsABodyWithAUselessArmWaitForItsBody(t *testing.T) {
 }
 
 func TestEveryOptionValidatesAndABusyChannelIsRejected(t *testing.T) {
-	shared := opts{hooks: true}
-	shared.reg = contenttest.Registry(t, testBundle(t, shared))
-	probe := newFixture(t, 1, shared)
-	enabled := 0
+	probe := newFixture(t, 1, opts{hooks: true})
+	var enabled []api.Do
 	for _, option := range probe.view().Options {
 		do, ok := option.Command.(api.Do)
 		if !ok || !option.Enabled {
 			continue
 		}
-		enabled++
-		fresh := newFixture(t, 1, shared)
-		events := fresh.apply(do)
-		if rejected, ok := find[api.Rejected](events); ok {
-			t.Errorf("option %q was rejected: %v", option.ID, rejected.Reason)
+		enabled = append(enabled, do)
+		in, ok := actions.IntentOf(probe.w, probe.fighter, do)
+		if !ok {
+			t.Errorf("option %q names entities the actor does not have", option.ID)
+			continue
+		}
+		if ok, reason := actions.Validate(probe.w, in); !ok {
+			t.Errorf("option %q does not validate: %v", option.ID, reason)
 		}
 	}
-	if enabled == 0 {
+	if len(enabled) == 0 {
 		t.Fatal("no enabled action options to check")
+	}
+	if rejected, ok := find[api.Rejected](probe.apply(enabled[0])); ok {
+		t.Errorf("the first enabled option was rejected: %v", rejected.Reason)
 	}
 
 	fx := newFixture(t, 1, opts{})

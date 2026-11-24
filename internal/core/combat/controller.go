@@ -68,13 +68,9 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 
 // scoreOf rates one intent by the content formula.
 func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error) {
+	source := effects.BodyEnvOf(w, actor, timeline.FirstPart(in.Channels))
 	env := content.ScoreEnv{
-		Source: effects.BodyEnvOf(
-			w,
-			actor,
-			timeline.FirstPart(in.Channels),
-		),
-		Target:    effects.BodyEnvOf(w, in.Target, in.TargetPart),
+		Source: source, Target: effects.BodyEnvOf(w, in.Target, in.TargetPart),
 		Chosen:    effects.ChosenRecords(w, in.Choices),
 		Inventory: inventory.Usable(w, actor, in.Target),
 		Windup:    actions.Windup(w, in),

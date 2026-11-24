@@ -269,10 +269,11 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	if choices == nil {
 		choices = map[string]string{}
 	}
+	source := effects.BodyEnvOf(ev.w, p.actor, timeline.FirstPart(p.channels))
 	return content.ActionEnv{
 		Speed: timeline.Speed(ev.w, p.actor), StepTicks: stepTicks,
 		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
-		Source: effects.BodyEnvOf(ev.w, p.actor, timeline.FirstPart(p.channels)), Target: effects.BodyEnvOf(ev.w, p.target, p.part),
+		Source: source, Target: effects.BodyEnvOf(ev.w, p.target, p.part),
 		Chosen: effects.ChosenRecords(ev.w, choices), Inventory: inventory.Usable(ev.w, p.actor, p.target),
 	}, nil
 }
@@ -415,6 +416,7 @@ func Start(w *sim.World, in Intent) error { return startIntent(w, in, false) }
 // and the ActionStarted event says it was autonomous.
 func StartAutonomous(w *sim.World, in Intent) error { return startIntent(w, in, true) }
 
+// startIntent is Start's own check: unlike validate, it reports a content bug as an error.
 func startIntent(w *sim.World, in Intent, autonomous bool) error {
 	ev := newEvaluator(w)
 	p, reason, err := ev.evaluate(in, true)

@@ -9,6 +9,9 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
+// IntentOf exposes the command-to-intent lookup to the tests.
+var IntentOf = intentOf
+
 // UsableChannels exposes the batch usable hook to the tests.
 var UsableChannels = usableChannels
 
