@@ -1,8 +1,8 @@
 ---
 id: C1-31
 title: Fixed string sets as CUE enums
-status: proposed
-milestone: unplanned
+status: todo
+milestone: C1
 kind: debt
 depends_on: []
 discovered_by: null
@@ -81,4 +81,4 @@ Audit for the rest: every `string` field in `internal/content` and in the `api` 
 
 ## Notes
 
-Filled in by the implementer.
+- Triaged 2026-11-24: todo in C1, as the owner decided. It edits `internal/content/types.go`, so it can't run beside M3-02 or M3-06.

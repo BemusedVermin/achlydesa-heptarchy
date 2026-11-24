@@ -89,7 +89,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-28](C1-cleanup/C1-28-foundation-comments-to-the-tightened-rule.md) | Foundation comments to the tightened rule | done | debt | M | none |
 | [C1-29](C1-cleanup/C1-29-content-comments-to-the-tightened-rule.md) | Content comments to the tightened rule | done | debt | M | none |
 | [C1-30](C1-cleanup/C1-30-actions-comments-to-the-tightened-rule.md) | Actions comments to the tightened rule | done | debt | M | none |
-| [C1-31](C1-cleanup/C1-31-fixed-string-sets-as-cue-enums.md) | Fixed string sets as CUE enums | proposed | debt | L | none |
+| [C1-31](C1-cleanup/C1-31-fixed-string-sets-as-cue-enums.md) | Fixed string sets as CUE enums | todo | debt | L | none |
 
 ## M3 · Agents
 
