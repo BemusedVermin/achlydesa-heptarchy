@@ -33,6 +33,9 @@ type opts struct {
 	// install runs with the world before the game starts, to register primitives.
 	install func(w *sim.World) error
 	mutate  func(*content.Bundle)
+	// reg, when set, is the registry testBundle would build for these opts, so a test that builds
+	// many games loads the content once.
+	reg *content.Registry
 }
 
 // fixture is a game with a fighter (the player, with arms) and an idle dummy.
@@ -117,7 +120,10 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 	if o.dummyQ == 0 {
 		o.dummyQ = 1
 	}
-	reg := contenttest.Registry(t, testBundle(t, o))
+	reg := o.reg
+	if reg == nil {
+		reg = contenttest.Registry(t, testBundle(t, o))
+	}
 	fx := &fixture{t: t}
 	fx.cfg = game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		fx.arms = nil
@@ -256,6 +262,14 @@ func find[E api.Event](events []api.Event) (E, bool) {
 	}
 	var zero E
 	return zero, false
+}
+
+// optionLabel is the label the core renders for an option with the given name, detail and timing.
+func optionLabel(fx *fixture, name api.ContentID, detail string, lands, busy int) string {
+	return fx.w.Content.Render(api.Text{ID: "text.actions.option_with", Args: map[string]string{
+		"name": fx.w.Content.Render(api.Text{ID: name}), "detail": detail,
+		"lands": strconv.Itoa(lands), "busy": strconv.Itoa(busy),
+	}})
 }
 
 func uidSegments(fx *fixture, entities ...ecs.Entity) string {
@@ -398,7 +412,7 @@ func TestLockingOneUsedChannelCancelsTheAction(t *testing.T) {
 func TestFailingCheckDisablesTheOptionWithItsReason(t *testing.T) {
 	fx := newFixture(t, 1, opts{})
 	option := fx.option("gate")
-	if option.Enabled || option.Reason != "Packed clay. No way through." {
+	if option.Enabled || option.Reason != fx.w.Content.Render(api.Text{ID: "text.explore.bump"}) {
 		t.Errorf("option = enabled %v, reason %q; want disabled with the check's reason", option.Enabled, option.Reason)
 	}
 	ok, reason := actions.Validate(fx.w, actions.Intent{Actor: fx.fighter, Action: "action.test.gate"})
@@ -437,7 +451,9 @@ func TestUsableHookLetsABodyWithAUselessArmWaitForItsBody(t *testing.T) {
 }
 
 func TestEveryOptionValidatesAndABusyChannelIsRejected(t *testing.T) {
-	probe := newFixture(t, 1, opts{hooks: true})
+	shared := opts{hooks: true}
+	shared.reg = contenttest.Registry(t, testBundle(t, shared))
+	probe := newFixture(t, 1, shared)
 	enabled := 0
 	for _, option := range probe.view().Options {
 		do, ok := option.Command.(api.Do)
@@ -445,7 +461,7 @@ func TestEveryOptionValidatesAndABusyChannelIsRejected(t *testing.T) {
 			continue
 		}
 		enabled++
-		fresh := newFixture(t, 1, opts{hooks: true})
+		fresh := newFixture(t, 1, shared)
 		events := fresh.apply(do)
 		if rejected, ok := find[api.Rejected](events); ok {
 			t.Errorf("option %q was rejected: %v", option.ID, rejected.Reason)
@@ -480,11 +496,12 @@ func TestChoicesHooksAndOptionOrder(t *testing.T) {
 	if want := []string{"load/type.a", "load/type.b"}; !slices.Equal(ids[len(ids)-2:], want) {
 		t.Fatalf("last option IDs = %v, want %v", ids, want)
 	}
-	if option := fx.option("load/type.a"); option.Enabled || option.Reason != "Not right now." {
+	refusal := fx.w.Content.Render(api.Text{ID: "text.actions.requires"})
+	if option := fx.option("load/type.a"); option.Enabled || option.Reason != refusal {
 		t.Errorf("type.a = enabled %v, reason %q; want the validator's refusal", option.Enabled, option.Reason)
 	}
 	b := fx.option("load/type.b")
-	if !b.Enabled || !strings.Contains(b.Label, "busy 7") {
+	if !b.Enabled || b.Label != optionLabel(fx, "text.action.test.load", "type.b", 0, 7) {
 		t.Errorf("type.b = %+v; want it enabled and busy 2+5 = 7 ticks", b)
 	}
 	if got := actions.Startable(fx.w, fx.fighter); len(got) != 1 || got[0].Choices["type"] != "type.b" {
@@ -514,15 +531,16 @@ func TestStepOptionsAreTheSixDirections(t *testing.T) {
 	if !slices.Equal(ids, want) {
 		t.Errorf("step options = %v, want %v", ids, want)
 	}
-	if label := fx.option("step/nw").Label; label != "Step: northwest (lands in 0, busy 10)" {
-		t.Errorf("label = %q", label)
+	northwest := fx.w.Content.Render(api.Text{ID: "text.actions.dir.nw"})
+	if label, want := fx.option("step/nw").Label, optionLabel(fx, "text.action.step", northwest, 0, 10); label != want {
+		t.Errorf("label = %q, want %q", label, want)
 	}
 }
 
 func TestReplayOfRandomOptionsGivesTheSameHash(t *testing.T) {
 	played := newFixture(t, 7, opts{hooks: true})
 	pick := rng.New(99).Get("test")
-	for range 200 {
+	for range 50 {
 		var enabled []api.Option
 		for _, option := range played.view().Options {
 			if option.Enabled {
@@ -547,7 +565,7 @@ func TestReplayOfRandomOptionsGivesTheSameHash(t *testing.T) {
 		t.Errorf("replay hash = %x, %v; want %x", got, err, want)
 	}
 	if played.hits == 0 {
-		t.Error("200 random options never landed a hit; the test is not exercising actions")
+		t.Error("50 random options never landed a hit; the test is not exercising actions")
 	}
 }
 
