@@ -6,6 +6,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -67,7 +68,7 @@ func (follower) Decide(w *sim.World, body ecs.Entity) error {
 
 // memberAhead is the member just before body in the party order.
 func memberAhead(w *sim.World, body ecs.Entity) (ecs.Entity, bool) {
-	party, ok := partyOf(w, body)
+	party, ok := anatomy.PartyOf(w, body)
 	if !ok {
 		return ecs.Entity{}, false
 	}
@@ -86,16 +87,7 @@ func dirTo(w *sim.World, from comp.Pos, cell api.Cell) (api.Dir, bool, error) {
 	if m == nil {
 		return 0, false, nil
 	}
-	for dir := api.Dir(0); dir < api.DirCount; dir++ {
-		step, can, err := m.Step(from.At, dir, stateOf(w).rules)
-		if err != nil {
-			return 0, false, err
-		}
-		if can && (step.To.Map == 0 || step.To.Map == from.Map) && step.To.Cell == cell {
-			return dir, true, nil
-		}
-	}
-	return 0, false, nil
+	return m.DirTo(from.At, cell, stateOf(w).rules)
 }
 
 // stepTo steps the body one step in a direction, unless somebody stands there or the step is not

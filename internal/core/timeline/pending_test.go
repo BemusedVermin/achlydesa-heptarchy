@@ -170,7 +170,7 @@ func TestViewShowsLandsUntilTheyLand(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, entry := range view.Timeline.Entries {
-			if entry.Kind == "lands" {
+			if entry.Kind == api.EntryLands {
 				n, label = n+1, entry.Label
 			}
 		}

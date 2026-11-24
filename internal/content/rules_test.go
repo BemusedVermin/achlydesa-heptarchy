@@ -238,10 +238,7 @@ text: "text.type.cut": "a"
 }
 
 func TestRecordLookup(t *testing.T) {
-	reg, err := Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := sampleRegistry(t)
 	soak, ok := reg.Record("type.soak")
 	if !ok || soak.ID != "type.soak" || len(soak.Lists["consumes"]) != 1 {
 		t.Errorf("Record(type.soak) = %+v, %v", soak, ok)

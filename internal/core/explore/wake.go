@@ -15,18 +15,13 @@ import (
 // SetRestPlace records where the party last rested, which is where it wakes after a wipe. The
 // party starts with the cell it began on, until towns and resting exist to move it.
 func SetRestPlace(w *sim.World, party ecs.Entity, id api.MapID, at api.Cell) {
-	places := ecs.NewMap[comp.RestPlace](w.ECS)
-	if places.Has(party) {
-		*places.Get(party) = comp.RestPlace{Map: id, At: at}
-		return
-	}
-	places.Add(party, &comp.RestPlace{Map: id, At: at})
+	sim.Put(w, party, comp.RestPlace{Map: id, At: at})
 }
 
 // CanWake reports whether the controlled party has a rest place and a downed member to get up. A
 // party of the dead only has nothing to wake.
 func CanWake(w *sim.World) bool {
-	party, ok := controlledParty(w)
+	party, ok := anatomy.ControlledParty(w)
 	if !ok || !ecs.NewMap[comp.RestPlace](w.ECS).Has(party) {
 		return false
 	}
@@ -47,7 +42,7 @@ func Wake(w *sim.World) error {
 	if !CanWake(w) {
 		return nil
 	}
-	party, _ := controlledParty(w)
+	party, _ := anatomy.ControlledParty(w)
 	place := *ecs.NewMap[comp.RestPlace](w.ECS).Get(party)
 	m := w.Maps.Get(place.Map)
 	if m == nil {
@@ -57,8 +52,6 @@ func Wake(w *sim.World) error {
 	downed := ecs.NewMap[comp.Downed](w.ECS)
 	identities := ecs.NewMap[comp.Identity](w.ECS)
 	parts := ecs.NewMap[comp.Part](w.ECS)
-	positions := ecs.NewMap[comp.Pos](w.ECS)
-	trails := ecs.NewMap[comp.Trail](w.ECS)
 	actors := ecs.NewMap[comp.Actor](w.ECS)
 	taken := map[api.Cell]bool{}
 	occupied := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
@@ -78,17 +71,8 @@ func Wake(w *sim.World) error {
 		}
 		taken[at] = true
 		pos := comp.Pos{Map: place.Map, At: at}
-		if positions.Has(member) {
-			*positions.Get(member) = pos
-		} else {
-			positions.Add(member, &pos)
-		}
-		trail := comp.Trail{Last: at}
-		if trails.Has(member) {
-			*trails.Get(member) = trail
-		} else {
-			trails.Add(member, &trail)
-		}
+		sim.Put(w, member, pos)
+		sim.Put(w, member, comp.Trail{Last: at})
 		if !downed.Has(member) {
 			continue
 		}
@@ -125,7 +109,7 @@ func leadFromStanding(w *sim.World, party ecs.Entity) {
 	}
 	for _, uid := range state.Order {
 		if next, ok := w.ByUID(uid); ok && !dead.Has(next) {
-			state.Leader = uid
+			anatomy.SetLeader(w, party, uid)
 			return
 		}
 	}

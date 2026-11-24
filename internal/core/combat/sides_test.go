@@ -8,6 +8,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -15,6 +16,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -29,36 +31,23 @@ type field struct {
 
 func newField(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle)) *field {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bundle.Start.Map = mapID
-	// These tests walk and wait. A member who can also fight is still ready while its legs
-	// recover, so the party knows only the step.
-	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
-		person := bundle.Templates[id]
-		person.Actions = []api.ContentID{"action.step"}
-		bundle.Templates[id] = person
-	}
+	contenttest.StepOnlyParty(&bundle)
 	if mutate != nil {
 		mutate(&bundle)
 	}
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	f := &field{t: t}
-	f.g, err = game.New(game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
-		f.w = w
-		w.Bus.SubscribeAll("test.events", func(_ *sim.World, e api.Event) { f.events = append(f.events, e) })
-		return timeline.RegisterResolver(w, "test.swing", timeline.Resolver{
-			Resolve: func(*sim.World, ecs.Entity) error { return nil },
-		})
-	}})
-	if err != nil {
-		t.Fatal(err)
-	}
+	f.g, f.w, _ = gametest.Start(
+		t,
+		game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
+			w.Bus.SubscribeAll("test.events", func(_ *sim.World, e api.Event) { f.events = append(f.events, e) })
+			return timeline.RegisterResolver(w, "test.swing", timeline.Resolver{
+				Resolve: func(*sim.World, ecs.Entity) error { return nil },
+			})
+		}},
+	)
 	return f
 }
 

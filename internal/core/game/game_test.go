@@ -3,14 +3,12 @@ package game_test
 import (
 	"testing"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const sampleDir = "../../../content/data"
 
 // unknownCommand has no handler.
 type unknownCommand struct{}
@@ -20,15 +18,9 @@ func (unknownCommand) CommandKind() string { return "test.unknown" }
 // config spawns one player-controlled actor, in place of the start scenario.
 func config(t *testing.T, seed uint64) game.Config {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	bundle.Start = content.Start{} // this test spawns its own actor
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
+	contenttest.NoStart(&bundle) // this test spawns its own actor
+	reg := contenttest.Registry(t, bundle)
 	return game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		_, err := w.Spawn("template.person.reaper", nil)
 		return err
@@ -161,10 +153,7 @@ func TestSwapContentReplacesContentAndWarns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	if err := g.SwapContent(reg); err != nil {
 		t.Fatal(err)
 	}
@@ -210,21 +199,15 @@ func TestSwapContentRefreshesTheCalendarAndTimeline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	bundle.Start = content.Start{}
+	bundle := contenttest.SampleBundle(t)
+	contenttest.NoStart(&bundle)
 	first := bundle.Calendar.Phases[0]
 	bundle.Calendar.Phases[0].ID = "phase.renamed"
 	bundle.Calendar.Phases[0].Name = "text.phase.renamed"
 	bundle.Text["text.phase.renamed"] = "dusk"
 	bundle.Calendar.Phases[0].Ticks = first.Ticks + 7
 	bundle.Timeline.WindowTicks++
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	if err := g.SwapContent(reg); err != nil {
 		t.Fatal(err)
 	}

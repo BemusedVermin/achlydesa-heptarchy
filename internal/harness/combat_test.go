@@ -7,15 +7,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
 
 func TestRunFillsTheCombatColumns(t *testing.T) {
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	var buf bytes.Buffer
 	cfg := harness.RunConfig{
 		Seeds: 2, SeedStart: 1, Steps: 60, Content: reg,

@@ -1,7 +1,6 @@
 package inventory_test
 
 import (
-	"bytes"
 	"slices"
 	"strings"
 	"testing"
@@ -9,15 +8,14 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const contentDir = "../../../content/data"
 
 func newHolder(w *sim.World) ecs.Entity {
 	return ecs.NewMap1[comp.Identity](w.ECS).NewEntity(&comp.Identity{UID: w.NewUID()})
@@ -98,10 +96,7 @@ func TestCountOfAnEntityWithNoInventoryIsZero(t *testing.T) {
 }
 
 func TestAllElevenTypesLoadAndNameIsNeverRefused(t *testing.T) {
-	reg, err := content.Load(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	if got := len(reg.TypeIDs()); got != 11 {
 		t.Errorf("types = %d, want 11", got)
 	}
@@ -126,17 +121,11 @@ func TestAllElevenTypesLoadAndNameIsNeverRefused(t *testing.T) {
 }
 
 func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
-	bundle, err := content.LoadBundle(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	deep := bundle.Factions["faction.wild"]
 	deep.HostileTo = []api.ContentID{"faction.crawling"} // only the party's side of the feud is left one-sided
 	bundle.Factions["faction.wild"] = deep
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	hostility := 0
 	for _, warning := range reg.Warnings() {
 		if strings.Contains(warning, "hostile") {
@@ -149,10 +138,7 @@ func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
 }
 
 func TestBadTypeContentIsRejected(t *testing.T) {
-	bundle, err := content.LoadBundle(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	bad := bundle.Types["type.press"]
 	bad.Requires = "no_such_field == 1"
 	bundle.Types["type.press"] = bad
@@ -175,19 +161,8 @@ func partyOf(t *testing.T, w *sim.World) ecs.Entity {
 }
 
 func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
-	reg, err := content.Load(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var world *sim.World
-	cfg := game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
-		world = w
-		return nil
-	}}
-	g, err := game.New(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
+	g, world, cfg := gametest.Start(t, game.Config{Seed: 1, Content: reg})
 	party := partyOf(t, world)
 	for _, item := range []api.ContentID{
 		"item.coal", "item.salk_dust", "item.lake_water", "item.daylight_jar", "item.violet_blood", "item.lees",
@@ -199,13 +174,7 @@ func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
 	inventory.Take(world, party, "item.coal", 0, 1)
 	before := stacks(world, party)
 
-	var buf bytes.Buffer
-	if err := g.Save(&buf); err != nil {
-		t.Fatal(err)
-	}
-	if _, _, err := game.Load(cfg, &buf); err != nil {
-		t.Fatal(err)
-	}
+	_, world, _ = gametest.Reload(t, cfg, g)
 	if got := stacks(world, partyOf(t, world)); !slices.Equal(got, before) {
 		t.Errorf("loaded inventory = %+v, want %+v", got, before)
 	}

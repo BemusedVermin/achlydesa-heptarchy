@@ -1,6 +1,7 @@
 package timeline
 
 import (
+	"cmp"
 	"container/heap"
 	"errors"
 	"fmt"
@@ -138,16 +139,11 @@ func compareChannels(w *sim.World, body ecs.Entity, a, b Channel) int {
 		}
 		return 1
 	}
-	if ra, rb := rank(a), rank(b); ra != rb {
-		return ra - rb
-	}
-	if ua, ub := w.UIDOf(a.Entity), w.UIDOf(b.Entity); ua != ub {
-		if ua < ub {
-			return -1
-		}
-		return 1
-	}
-	return int(a.Entity.ID()) - int(b.Entity.ID())
+	return cmp.Or(
+		cmp.Compare(rank(a), rank(b)),
+		w.CompareUID(a.Entity, b.Entity),
+		cmp.Compare(a.Entity.ID(), b.Entity.ID()),
+	)
 }
 
 // busyUntil is the tick c is free again: now when it is free already.

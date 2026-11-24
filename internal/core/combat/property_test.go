@@ -12,11 +12,13 @@ import (
 	"pgregory.net/rapid"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -34,10 +36,7 @@ const (
 // Serilmen in the inventory, so every form is on the menu.
 func propertyConfig(t *testing.T, seed uint64, install func(w *sim.World)) game.Config {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
 	party := bundle.Templates["template.party.main"]
 	party.Inventory = append(slices.Clone(party.Inventory), content.StackDef{Item: "item.serilmen_arm", Count: 1})
 	bundle.Templates["template.party.main"] = party
@@ -51,10 +50,7 @@ func propertyConfig(t *testing.T, seed uint64, install func(w *sim.World)) game.
 	}
 	hall.Layers = []content.LayerDef{{Depth: hall.Layers[0].Depth, Rows: rows}}
 	bundle.Maps["map.test.hall"] = hall
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	return game.Config{Seed: seed, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
 		if install != nil {
 			install(w)
@@ -81,14 +77,9 @@ func newFight(t *testing.T, seed uint64) (*fight, game.Config) {
 	t.Helper()
 	f := &fight{}
 	cfg := propertyConfig(t, seed, func(w *sim.World) {
-		f.w = w
 		w.Bus.SubscribeAll("test.property", func(w *sim.World, e api.Event) { f.observe(w, e) })
 	})
-	g, err := game.New(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	f.g = g
+	f.g, f.w, _ = gametest.Start(t, cfg)
 	return f, cfg
 }
 
@@ -124,20 +115,10 @@ func (f *fight) checkInReach(w *sim.World, e api.PartDamaged) {
 		return
 	}
 	from, to := positions.Get(source).At, positions.Get(target).At
-	reach := hexmap.Distance(from.Hex, to.Hex)
-	if from.Depth != to.Depth {
-		reach += abs(from.Depth - to.Depth)
-	}
+	reach := hexmap.CellDistance(from, to)
 	if reach > 1 {
 		f.fail("body %d hit body %d from %d cells away", e.Source, e.Body, reach)
 	}
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }
 
 // check looks at the world between two commands.

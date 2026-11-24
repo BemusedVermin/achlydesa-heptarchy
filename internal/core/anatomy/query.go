@@ -1,32 +1,15 @@
 package anatomy
 
 import (
-	"slices"
-
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// byUID sorts entities by UID.
-func byUID(w *sim.World, entities []ecs.Entity) []ecs.Entity {
-	slices.SortFunc(entities, func(a, b ecs.Entity) int {
-		ua, ub := w.UIDOf(a), w.UIDOf(b)
-		switch {
-		case ua < ub:
-			return -1
-		case ua > ub:
-			return 1
-		}
-		return 0
-	})
-	return entities
-}
-
 // Parts lists the parts attached to the body, sorted by UID. A part with no PartOf is not listed.
 func Parts(w *sim.World, body ecs.Entity) []ecs.Entity {
-	if body.IsZero() || !w.ECS.Alive(body) {
+	if !w.Alive(body) {
 		return nil
 	}
 	var parts []ecs.Entity
@@ -34,12 +17,12 @@ func Parts(w *sim.World, body ecs.Entity) []ecs.Entity {
 	for query.Next() {
 		parts = append(parts, query.Entity())
 	}
-	return byUID(w, parts)
+	return w.SortByUID(parts)
 }
 
 // Functioning reports whether the part is attached to a living body and has integrity left.
 func Functioning(w *sim.World, part ecs.Entity) bool {
-	if part.IsZero() || !w.ECS.Alive(part) {
+	if !w.Alive(part) {
 		return false
 	}
 	partOf := ecs.NewMap[comp.PartOf](w.ECS)
@@ -71,7 +54,7 @@ func GrantTotals(w *sim.World, body ecs.Entity) map[string]int {
 
 // Members lists the members of a party, sorted by UID. Party order is in comp.Party.Order.
 func Members(w *sim.World, party ecs.Entity) []ecs.Entity {
-	if party.IsZero() || !w.ECS.Alive(party) {
+	if !w.Alive(party) {
 		return nil
 	}
 	var members []ecs.Entity
@@ -79,5 +62,5 @@ func Members(w *sim.World, party ecs.Entity) []ecs.Entity {
 	for query.Next() {
 		members = append(members, query.Entity())
 	}
-	return byUID(w, members)
+	return w.SortByUID(members)
 }

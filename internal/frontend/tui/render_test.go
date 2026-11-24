@@ -10,7 +10,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/frontend/tui"
@@ -18,30 +18,12 @@ import (
 
 var update = flag.Bool("update", false, "rewrite the golden files")
 
-const sampleDir = "../../../content/data"
-
 func config(t *testing.T) game.Config {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// These tests walk and read goldens drawn for a party that can only step.
-	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
-		person := bundle.Templates[id]
-		person.Actions = []api.ContentID{"action.step"}
-		bundle.Templates[id] = person
-	}
-	// The sample moving clay hunts; these goldens were drawn with it standing still.
-	movingClay := bundle.Templates["template.creature.moving_clay"]
-	movingClay.Actor = &content.ActorDef{Controller: "still"}
-	movingClay.Actions = nil
-	movingClay.Lists = nil
-	bundle.Templates["template.creature.moving_clay"] = movingClay
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	bundle := contenttest.SampleBundle(t)
+	contenttest.StepOnlyParty(&bundle)
+	contenttest.StandingCrawler(&bundle)
+	reg := contenttest.Registry(t, bundle)
 	return game.Config{Seed: 1, Content: reg}
 }
 
@@ -60,10 +42,7 @@ func newApp(t *testing.T) *tui.App {
 
 func TestContentMsgSwapsOrLogsTheError(t *testing.T) {
 	app := newApp(t)
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	app.Update(tui.ContentMsg{Registry: reg})
 	last := app.State.Log[len(app.State.Log)-1].Text
 	if !strings.Contains(last, "reloaded") {
@@ -167,11 +146,11 @@ func TestRenderMapSmallPaneScrollsToTheParty(t *testing.T) {
 
 func TestRenderTimeline(t *testing.T) {
 	tl := &api.TimelineView{Now: 10, Window: 6, Entries: []api.TimelineEntry{
-		{Tick: 10, Kind: "ready", Glyph: "@", Color: "red"},
-		{Tick: 12, Kind: "ready", Glyph: "@", Color: "cyan"},
-		{Tick: 12, Kind: "lands", Glyph: "r", Color: "red"},
-		{Tick: 12, Kind: "ready", Glyph: "r", Color: "red"},
-		{Tick: 15, Kind: "lands", Glyph: "r", Color: "red"},
+		{Tick: 10, Kind: api.EntryReady, Glyph: "@", Color: "red"},
+		{Tick: 12, Kind: api.EntryReady, Glyph: "@", Color: "cyan"},
+		{Tick: 12, Kind: api.EntryLands, Glyph: "r", Color: "red"},
+		{Tick: 12, Kind: api.EntryReady, Glyph: "r", Color: "red"},
+		{Tick: 15, Kind: api.EntryLands, Glyph: "r", Color: "red"},
 	}}
 	golden(t, "timeline", tui.RenderTimeline(tl, 40, 2))
 	if got := len(tui.EntriesAt(tl, 2)); got != 3 {

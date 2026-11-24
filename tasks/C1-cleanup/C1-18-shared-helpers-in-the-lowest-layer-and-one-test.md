@@ -1,7 +1,7 @@
 ---
 id: C1-18
 title: "Shared helpers in the lowest layer, and one test fixture"
-status: todo
+status: done
 milestone: C1
 kind: debt
 depends_on: [C1-17, C1-13]
@@ -107,12 +107,12 @@ Add `internal/content/contenttest` and `internal/core/game/gametest` (suggestion
 
 ## Acceptance criteria
 
-- [ ] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
-- [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
-- [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
-- [ ] No hand-written three-way compare of UIDs or ticks remains: `grep` for `int(w.UIDOf(` finds nothing.
-- [ ] A test shows that after a wake `Order[0]` is the new leader and `LeaderChanged` was published.
-- [ ] Every `sampleDir` and `contentDir` constant is gone from tests.
+- [x] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
+- [x] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
+- [x] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
+- [x] No hand-written three-way compare of UIDs or ticks remains: `grep` for `int(w.UIDOf(` finds nothing.
+- [x] A test shows that after a wake `Order[0]` is the new leader and `LeaderChanged` was published.
+- [x] Every `sampleDir` and `contentDir` constant is gone from tests.
 
 ## Out of scope
 
@@ -123,3 +123,10 @@ Add `internal/content/contenttest` and `internal/core/game/gametest` (suggestion
 
 
 - Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
+- **Deliberate behavior change:** after a wake, `Order` starts with the new leader and `api.LeaderChanged` is published (`explore/wake.go` `leadFromStanding` now goes through `anatomy.SetLeader`). No golden changed: the harness never wakes a party with a dead leader, so `same-behavior` passes unchanged (601 rows, 27 goldens). `game/wake_leader_test.go` pins the new behavior.
+- **Edges `same-behavior` can't see:** `explore` `handleLead` now reorders `Order` as stored instead of rebuilding from live members (same today, since `Order` holds every spawned member; differs once a member despawns or joins late). `inventory.HolderOf` now returns the body itself, not the zero entity, when a member's party relation is zero. `anatomy.InControlledParty` is also true for the controlled party entity itself (irrelevant for body targets).
+- **Resolved:** sim UID/tick comparators, liveness helpers and inline checks, upserts, `Commands.Kinds` sort; anatomy party/leader queries and `seenCells` reuse; `content.Registry.TemplateName` (plus `sim.World.TemplateOf`); api `EntryReady`/`EntryLands`, option-ID builders and parser (`api/options.go`), `api.Reject`, `kindTable[T]`; hexmap `CompareCells`, `CellDistance`, `Distance`, one `floorDiv` (`floorMod` stays as a one-line wrapper), `localSteps`, `DirTo`, `actions.StepRules`, direction loops, `clear` rename; `contenttest` and `gametest`, with every `sampleDir`/`contentDir` gone.
+- **Dropped, with reasons:** `sim/order.go:42,60` sort slices, not map keys. `sim/spawn.go:103` and `anatomy/query.go:33` relation loops: no helper specified. `combat/effects.go:136,447` and `inventory.go:103` test lookup results, not liveness. `explore.go:70` and `combat/alert.go:54` use `<` in min searches. `combat/hunt_test.go` x3 set `hunt`/`idle`, not `still`. `tui/menu.go` split parses generic menu IDs. Four one-line name wrappers stay (`explore.templateName`, `combat.nameOf`, `anatomy.nameOf`, `actions` evaluator `nameOf`); the naming rule lives only in `TemplateName`. `effects/triggers_test.go` and other `game.New` sites need the error or a custom `Install`, so they stay off `gametest`. The `ring`/`field`/`fixture` rigs stay per-package (shapes differ) but build games through `gametest.Start`.
+- **Deviations:** `contenttest` takes a small `contenttest.T` interface (Helper, Fatal) so `rapid.T` works. `NoStart` keeps its name (the scenario is still `content.Start`). `SampleBundle` reloads from disk instead of deep-copying. The step-rules accessor is `actions.StepRules`. Added `contenttest.Do` and `Dir`, and a `content/export_test.go` twin for the import cycle.
+- **Verified here:** `check-ci BASE=origin/master` and `same-behavior` pass. The full `go tool task check` was not run on the owner's Windows machine, so that part of the second criterion is still the owner's to confirm.
+- A local branch `task/C1-18-shared-helpers-lowest-layer` (no commits) can be deleted. No follow-ups filed.

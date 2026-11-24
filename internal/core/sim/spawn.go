@@ -1,8 +1,10 @@
 package sim
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -125,6 +127,40 @@ func (w *World) UIDOf(e ecs.Entity) api.UID {
 		return 0
 	}
 	return w.maps.identity.Get(e).UID
+}
+
+// TemplateOf returns the entity's template ID, or "" when it is dead or has no Identity.
+func (w *World) TemplateOf(e ecs.Entity) api.ContentID {
+	if !w.Alive(e) || !w.maps.identity.Has(e) {
+		return ""
+	}
+	return w.maps.identity.Get(e).Template
+}
+
+// CompareUID orders two entities by UID. An entity with no Identity has UID 0 and sorts first.
+func (w *World) CompareUID(a, b ecs.Entity) int {
+	return cmp.Compare(w.UIDOf(a), w.UIDOf(b))
+}
+
+// SortByUID sorts the entities by UID in place, keeping the order of equal ones, and returns them.
+func (w *World) SortByUID(entities []ecs.Entity) []ecs.Entity {
+	slices.SortStableFunc(entities, w.CompareUID)
+	return entities
+}
+
+// Alive reports whether the entity exists. The zero entity is never alive.
+func (w *World) Alive(e ecs.Entity) bool {
+	return w.ECS.Alive(e)
+}
+
+// Put sets the entity's component to v, adding it if the entity has none.
+func Put[T any](w *World, e ecs.Entity, v T) {
+	components := ecs.NewMap[T](w.ECS)
+	if components.Has(e) {
+		*components.Get(e) = v
+		return
+	}
+	components.Add(e, &v)
 }
 
 // registerCoreSpawners adds the spawners for the components this package owns.

@@ -7,20 +7,15 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 )
 
-const sampleContent = "../../../content/data"
-
 func newSampleWorld(t *testing.T, seed uint64) *World {
 	t.Helper()
-	registry, err := content.Load(sampleContent)
-	if err != nil {
-		t.Fatal(err)
-	}
 	w := NewWorld(seed)
-	w.Content = registry
+	w.Content = contenttest.Sample(t)
 	return w
 }
 

@@ -7,16 +7,15 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const contentDir = "../../../content/data"
 
 func newKnower(w *sim.World) ecs.Entity {
 	return ecs.NewMap1[comp.Identity](w.ECS).NewEntity(&comp.Identity{UID: w.NewUID()})
@@ -147,10 +146,7 @@ func TestLearnAddsKnowledgeAndPublishesEvents(t *testing.T) {
 }
 
 func TestNoticedFactLogsTheValueAsText(t *testing.T) {
-	reg, err := content.Load(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	w := sim.NewWorld(1)
 	w.Content = reg
 	var noticed []api.FactNoticed
@@ -179,30 +175,19 @@ func TestNoticedFactLogsTheValueAsText(t *testing.T) {
 }
 
 func TestSaveAndLoadKeepEveryFact(t *testing.T) {
-	bundle, err := content.LoadBundle(contentDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	bundle.Start = content.Start{}
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var world *sim.World
+	bundle := contenttest.SampleBundle(t)
+	contenttest.NoStart(&bundle)
+	reg := contenttest.Registry(t, bundle)
 	var knower ecs.Entity
 	cfg := game.Config{
 		Seed: 1, Content: reg,
-		Install: func(w *sim.World, _ *clock.Clock) error { world = w; return nil },
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
 			var err error
 			knower, err = w.Spawn("template.person.reaper", nil)
 			return err
 		},
 	}
-	g, err := game.New(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g, world, cfg := gametest.Start(t, cfg)
 	subject := world.UIDOf(knower)
 	world.Now = 12
 	knowledge.Learn(

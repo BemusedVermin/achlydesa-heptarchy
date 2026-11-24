@@ -2,7 +2,8 @@ package sim
 
 import (
 	"fmt"
-	"sort"
+	"maps"
+	"slices"
 	"sync"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -63,10 +64,5 @@ func (c *Commands) Dispatch(w *World, cmd api.Command) (cost int64, err error) {
 func (c *Commands) Kinds() []string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	kinds := make([]string, 0, len(c.handlers))
-	for kind := range c.handlers {
-		kinds = append(kinds, kind)
-	}
-	sort.Strings(kinds)
-	return kinds
+	return slices.Sorted(maps.Keys(c.handlers))
 }

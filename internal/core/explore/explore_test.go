@@ -9,15 +9,14 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
-
-const sampleDir = "../../../content/data"
 
 // fixture is a running game on one of the test maps.
 type fixture struct {
@@ -30,17 +29,8 @@ type fixture struct {
 // newFixture starts the sample content's party on the named map, or on its own start map if empty.
 func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle)) *fixture {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// These tests walk. A member who can also fight is still ready while its legs recover, so they
-	// teach the party only the step.
-	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
-		person := bundle.Templates[id]
-		person.Actions = []api.ContentID{"action.step"}
-		bundle.Templates[id] = person
-	}
+	bundle := contenttest.SampleBundle(t)
+	contenttest.StepOnlyParty(&bundle)
 	if mapID != "" {
 		bundle.Start.Map = mapID
 	}
@@ -52,18 +42,10 @@ func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle))
 	if mutate != nil {
 		mutate(&bundle)
 	}
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	fx := &fixture{t: t}
-	fx.cfg = game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
-		fx.w = w
-		return nil
-	}}
-	if fx.g, err = game.New(fx.cfg); err != nil {
-		t.Fatal(err)
-	}
+	fx.cfg = game.Config{Seed: 1, Content: reg}
+	fx.g, fx.w, _ = gametest.Start(t, fx.cfg)
 	return fx
 }
 

@@ -1,10 +1,10 @@
 package timeline
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -73,10 +73,6 @@ func currentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) {
 	return e, stateOf(w).actors.Get(e).Controller == PlayerController
 }
 
-func reject(w *sim.World, kind string, reason api.ContentID) {
-	w.Bus.Publish(api.Rejected{Command: kind, Reason: api.Text{ID: reason}})
-}
-
 // nextPhaseBoundary is the tick at which the phase after the current one starts.
 func nextPhaseBoundary(w *sim.World, clk *clock.Clock) int64 {
 	return w.Now - clk.TickInPhase(w.Now) + clk.PhaseTicks(clk.Phase(w.Now))
@@ -85,7 +81,7 @@ func nextPhaseBoundary(w *sim.World, clk *clock.Clock) int64 {
 func handleWait(w *sim.World, clk *clock.Clock, cmd api.Wait) (int64, error) {
 	body, ok := currentPlayer(w, cmd.Source)
 	if !ok {
-		reject(w, cmd.CommandKind(), "text.timeline.not_current")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.timeline.not_current"))
 		return 0, nil
 	}
 	st := stateOf(w)
@@ -97,7 +93,7 @@ func handleWait(w *sim.World, clk *clock.Clock, cmd api.Wait) (int64, error) {
 	case cmd.Until == api.WaitPhase:
 		st.waitUntil(w, body, nextPhaseBoundary(w, clk))
 	default:
-		reject(w, cmd.CommandKind(), "text.timeline.bad_wait")
+		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.timeline.bad_wait"))
 	}
 	return 0, nil
 }
@@ -122,39 +118,22 @@ func (st *state) visibleEntries(w *sim.World) []api.TimelineEntry {
 		decisions = append(decisions, decision{s.tick, s.e})
 	}
 	slices.SortFunc(decisions, func(a, b decision) int {
-		if a.tick != b.tick {
-			return int(a.tick - b.tick)
-		}
-		ua, ub := w.UIDOf(a.body), w.UIDOf(b.body)
-		switch {
-		case ua < ub:
-			return -1
-		case ua > ub:
-			return 1
-		}
-		return 0
+		return cmp.Or(cmp.Compare(a.tick, b.tick), w.CompareUID(a.body, b.body))
 	})
 	appearances := ecs.NewMap[comp.Appearance](w.ECS)
-	identities := ecs.NewMap[comp.Identity](w.ECS)
 	var entries []api.TimelineEntry
 	for _, d := range decisions {
 		if d.tick > w.Now+st.cfg.WindowTicks || !st.visible(w, d.body) {
 			continue
 		}
-		entry := api.TimelineEntry{Tick: d.tick, Kind: "ready", Source: w.UIDOf(d.body)}
+		entry := api.TimelineEntry{Tick: d.tick, Kind: api.EntryReady, Source: w.UIDOf(d.body)}
 		if appearances.Has(d.body) {
 			look := appearances.Get(d.body)
 			entry.Glyph, entry.Color = look.Glyph, look.Color
 		}
-		name := api.Text{ID: "text.template.unknown"}
-		if identities.Has(d.body) {
-			name.ID = api.ContentID(
-				"text.template." + strings.TrimPrefix(string(identities.Get(d.body).Template), "template."),
-			)
-		}
 		entry.Label = w.Content.Render(api.Text{
 			ID:   "text.timeline.ready",
-			Args: map[string]string{"name": w.Content.Render(name)},
+			Args: map[string]string{"name": w.Content.Render(w.Content.TemplateName(w.TemplateOf(d.body)))},
 		})
 		entries = append(entries, entry)
 	}
@@ -167,13 +146,13 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 	entries := append(st.visibleEntries(w), st.landsEntries(w)...)
 	slices.SortStableFunc(entries, func(a, b api.TimelineEntry) int {
 		if a.Tick != b.Tick {
-			return cmpInt(a.Tick, b.Tick)
+			return cmp.Compare(a.Tick, b.Tick)
 		}
 		// Landings come before decisions at the same tick.
 		switch {
-		case a.Kind == "lands" && b.Kind != "lands":
+		case a.Kind == api.EntryLands && b.Kind != api.EntryLands:
 			return -1
-		case a.Kind != "lands" && b.Kind == "lands":
+		case a.Kind != api.EntryLands && b.Kind == api.EntryLands:
 			return 1
 		}
 		return 0
@@ -193,13 +172,13 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 	phaseName := w.Content.Render(api.Text{ID: next.Name})
 	v.Options = append(v.Options,
 		api.Option{
-			ID:      "wait/event",
+			ID:      api.OptionWaitEvent,
 			Label:   w.Content.Render(api.Text{ID: "text.timeline.wait_event"}),
 			Command: api.Wait{Source: view.Current, Until: api.WaitEvent},
 			Enabled: true,
 		},
 		api.Option{
-			ID: "wait/phase",
+			ID: api.OptionWaitPhase,
 			Label: w.Content.Render(api.Text{
 				ID:   "text.timeline.wait_phase",
 				Args: map[string]string{"phase": phaseName},

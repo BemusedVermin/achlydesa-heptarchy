@@ -1,6 +1,7 @@
 package timeline
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"slices"
@@ -83,22 +84,9 @@ func (st *state) allPending(w *sim.World) []ecs.Entity {
 	}
 	slices.SortFunc(out, func(a, b ecs.Entity) int {
 		pa, pb := st.pendings.Get(a), st.pendings.Get(b)
-		if pa.Lands != pb.Lands {
-			return cmpInt(pa.Lands, pb.Lands)
-		}
-		return cmpInt(int64(pa.Seq), int64(pb.Seq))
+		return cmp.Or(cmp.Compare(pa.Lands, pb.Lands), cmp.Compare(pa.Seq, pb.Seq))
 	})
 	return out
-}
-
-func cmpInt(a, b int64) int {
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
-	}
-	return 0
 }
 
 // PendingOf lists the actions the actor has in flight, sorted by Lands then Seq.
@@ -171,7 +159,7 @@ func (st *state) landsEntries(w *sim.World) []api.TimelineEntry {
 		if (!actorOK || !st.visible(w, actor)) && (!targetOK || !st.visible(w, target)) {
 			continue
 		}
-		entry := api.TimelineEntry{Tick: p.Lands, Kind: "lands", Source: p.Actor, Target: p.Target}
+		entry := api.TimelineEntry{Tick: p.Lands, Kind: api.EntryLands, Source: p.Actor, Target: p.Target}
 		if actorOK && appearances.Has(actor) {
 			look := appearances.Get(actor)
 			entry.Glyph, entry.Color = look.Glyph, look.Color

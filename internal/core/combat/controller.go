@@ -79,7 +79,7 @@ func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error)
 		Chosen: effects.ChosenRecords(w, in.Choices), Inventory: inventory.Usable(w, actor, in.Target),
 		Windup: actions.Windup(w, in),
 	}
-	env.Target.IsParty = ecs.NewMap[comp.MemberOf](w.ECS).Has(in.Target) && partyControlled(w, in.Target)
+	env.Target.IsParty = anatomy.InControlledParty(w, in.Target)
 	if parts := ecs.NewMap[comp.Part](w.ECS); !in.TargetPart.IsZero() && parts.Has(in.TargetPart) {
 		_, env.MaterialKnown = knowledge.Best(
 			w, inventory.HolderOf(w, actor), w.UIDOf(in.TargetPart), w.Content.Combat().MaterialClaim,
@@ -90,12 +90,6 @@ func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error)
 		env.Height = positions.Get(in.Target).At.Depth - positions.Get(actor).At.Depth
 	}
 	return w.Content.AIScore(env)
-}
-
-// partyControlled says whether the body belongs to the party the player commands.
-func partyControlled(w *sim.World, body ecs.Entity) bool {
-	party, ok := controlledParty(w)
-	return ok && ecs.NewMap[comp.MemberOf](w.ECS).GetRelation(body) == party
 }
 
 // RegisterChooser makes a chooser available by name. Names are unique.
@@ -188,19 +182,12 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 		if pos.Map != from.Map || !seen[pos.At] || !Hostile(w, body, other) {
 			continue
 		}
-		distance := hexmap.Distance(from.At.Hex, pos.At.Hex) + abs(from.At.Depth-pos.At.Depth)
+		distance := hexmap.CellDistance(from.At, pos.At)
 		if best.IsZero() || distance < bestDistance {
 			best, bestDistance = other, distance
 		}
 	}
 	return best, !best.IsZero(), nil
-}
-
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }
 
 // stepToward takes the step along the path to the prey, when the step action is startable.
@@ -212,21 +199,17 @@ func stepToward(w *sim.World, body, prey ecs.Entity, startable []actions.Intent)
 	if m == nil || from.Map != to.Map {
 		return nil
 	}
-	cfg := w.Content.Party()
-	rules := hexmap.StepRules{MaxStepUp: cfg.MaxStepUp, MaxStepDown: cfg.MaxStepDown, MaxDrop: cfg.MaxDrop}
+	rules := actions.StepRules(w)
 	route, found, err := m.Path(from.At, to.At, rules, nil, huntPathNodes)
 	if err != nil || !found || len(route) < 2 {
 		return err
 	}
+	dir, can, err := m.DirTo(from.At, route[1], rules)
+	if err != nil || !can {
+		return err
+	}
 	for _, in := range startable {
-		if in.Action != stepID || in.Dir == nil {
-			continue
-		}
-		step, can, err := m.Step(from.At, *in.Dir, rules)
-		if err != nil {
-			return err
-		}
-		if can && (step.To.Map == 0 || step.To.Map == from.Map) && step.To.Cell == route[1] {
+		if in.Action == stepID && in.Dir != nil && *in.Dir == dir {
 			return actions.Start(w, in)
 		}
 	}

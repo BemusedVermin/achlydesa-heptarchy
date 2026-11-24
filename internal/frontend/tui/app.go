@@ -114,9 +114,9 @@ func (a *App) reloadContent(msg ContentMsg) tea.Cmd {
 // control is present while the party follows, and the reverse.
 func (a *App) Mode() string {
 	switch {
-	case hasOption(a.State, "control/"+api.ControlIndividual):
+	case hasOption(a.State, api.ControlOption(api.ControlIndividual)):
 		return api.ControlFollow
-	case hasOption(a.State, "control/"+api.ControlFollow):
+	case hasOption(a.State, api.ControlOption(api.ControlFollow)):
 		return api.ControlIndividual
 	}
 	return ""

@@ -6,9 +6,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/frontend/tui"
 )
 
@@ -36,23 +37,7 @@ func fightApp(t *testing.T) *tui.App {
 // tests browse menus, and a hunting creature would change what they see.
 func startApp(t *testing.T) *tui.App {
 	t.Helper()
-	bundle, err := content.LoadBundle(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	movingClay := bundle.Templates["template.creature.moving_clay"]
-	movingClay.Actor = &content.ActorDef{Controller: "still"}
-	movingClay.Actions = nil
-	movingClay.Lists = nil
-	bundle.Templates["template.creature.moving_clay"] = movingClay
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
-	g, err := game.New(game.Config{Seed: 1, Content: reg})
-	if err != nil {
-		t.Fatal(err)
-	}
+	g, _, _ := gametest.New(t, 1, contenttest.StandingCrawler)
 	app, err := tui.NewApp(g)
 	if err != nil {
 		t.Fatal(err)
@@ -346,8 +331,8 @@ func TestOverlayMarksThreatsAndTimeline(t *testing.T) {
 		t.Errorf("no landing count next to the threatened member:\n%s", out)
 	}
 	tl := &api.TimelineView{Now: 10, Window: 5, Entries: []api.TimelineEntry{
-		{Tick: 11, Kind: "ready", Source: 2, Glyph: "b", Color: "red"},
-		{Tick: 13, Kind: "lands", Source: 2, Target: 1, Glyph: "b", Color: "red"},
+		{Tick: 11, Kind: api.EntryReady, Source: 2, Glyph: "b", Color: "red"},
+		{Tick: 13, Kind: api.EntryLands, Source: 2, Target: 1, Glyph: "b", Color: "red"},
 	}}
 	golden(t, "timeline_marked", tui.RenderTimelineMarked(tl, bodies, 20, 0))
 }
@@ -355,10 +340,7 @@ func TestOverlayMarksThreatsAndTimeline(t *testing.T) {
 // huntingApp is the sample game as shipped: the moving clay hunts and fights back.
 func huntingApp(t *testing.T) *tui.App {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	g, err := game.New(game.Config{Seed: 1, Content: reg})
 	if err != nil {
 		t.Fatal(err)

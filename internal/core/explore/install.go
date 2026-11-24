@@ -7,6 +7,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
@@ -54,7 +55,7 @@ func Install(w *sim.World) error {
 // in transit) report false and step in place.
 func onMap(w *sim.World, body ecs.Entity) (*comp.Pos, *hexmap.Map, bool) {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if !alive(w, body) || !positions.Has(body) {
+	if !w.Alive(body) || !positions.Has(body) {
 		return nil, nil, false
 	}
 	pos := positions.Get(body)
@@ -103,8 +104,8 @@ func occupant(
 	if !occupied {
 		return ecs.Entity{}, false, false
 	}
-	party, member := partyOf(w, source)
-	otherParty, otherMember := partyOf(w, other)
+	party, member := anatomy.PartyOf(w, source)
+	otherParty, otherMember := anatomy.PartyOf(w, other)
 	swappable = member && otherMember && party == otherParty && step.Kind != hexmap.StepDrop && dest == pos.Map
 	return other, true, swappable
 }
@@ -135,7 +136,7 @@ func swapWith(w *sim.World, other ecs.Entity, from, dest api.Cell, kind string) 
 	pos.At = from
 	setTrail(w, other, dest)
 	w.Bus.Publish(api.Moved{Source: w.UIDOf(other), Map: pos.Map, From: dest, To: from, Kind: reverse(kind)})
-	party, _ := partyOf(w, other)
+	party, _ := anatomy.PartyOf(w, other)
 	cells, err := sightOf(w, *pos)
 	if err != nil {
 		return err
@@ -193,7 +194,7 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 	if step.Kind == hexmap.StepDrop {
 		w.Bus.Publish(api.Fell{Body: actor, Cells: step.Fall})
 	}
-	if party, member := partyOf(w, ctx.Source); member {
+	if party, member := anatomy.PartyOf(w, ctx.Source); member {
 		cells, err := sightOf(w, *pos)
 		if err != nil {
 			return err
@@ -247,8 +248,8 @@ func visibleBody(w *sim.World, body ecs.Entity) bool {
 		return true
 	}
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	party, ok := controlledParty(w)
-	if !ok || !alive(w, body) || !positions.Has(body) {
+	party, ok := anatomy.ControlledParty(w)
+	if !ok || !w.Alive(body) || !positions.Has(body) {
 		return false
 	}
 	sight, err := partySight(w, party)

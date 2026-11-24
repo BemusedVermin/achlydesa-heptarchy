@@ -8,10 +8,7 @@ import (
 )
 
 func TestSampleActions(t *testing.T) {
-	reg, err := Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := sampleRegistry(t)
 	def, ok := reg.Action("action.step")
 	if !ok || def.Key != "step" || def.Target != TargetDirection {
 		t.Fatalf("action.step = %+v, %v", def, ok)
@@ -121,12 +118,9 @@ func TestLoadRejectsBadActions(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			bundle, err := LoadBundle(sampleDir)
-			if err != nil {
-				t.Fatal(err)
-			}
+			bundle := sampleBundle(t)
 			tc.mutate(&bundle)
-			_, err = New(bundle)
+			_, err := New(bundle)
 			if err == nil {
 				t.Fatal("New accepted bad content")
 			}

@@ -23,7 +23,7 @@ func visibleSet(t *testing.T, m *Map, from api.Cell, radius, depthRange int) map
 func TestVisibleOpenRoomAndWalls(t *testing.T) {
 	// An open room of radius 3 at depth 0, walled by rock beyond that, over a rock floor.
 	m := NewMap(1, "room", FuncSource(func(c api.Cell) Terrain {
-		if c.Depth != 0 || hexDistance(c.Hex, api.Hex{}) > 3 {
+		if c.Depth != 0 || Distance(c.Hex, api.Hex{}) > 3 {
 			return rock
 		}
 		return air
@@ -35,12 +35,12 @@ func TestVisibleOpenRoomAndWalls(t *testing.T) {
 		}
 	}
 	for _, c := range m.CellsIn(api.Hex{}, 4, 0, 0) {
-		if hexDistance(c.Hex, api.Hex{}) == 4 && !seen[c] {
+		if Distance(c.Hex, api.Hex{}) == 4 && !seen[c] {
 			t.Errorf("wall cell %v not visible", c)
 		}
 	}
 	for _, c := range m.CellsIn(api.Hex{}, 6, 0, 0) {
-		if hexDistance(c.Hex, api.Hex{}) >= 5 && seen[c] {
+		if Distance(c.Hex, api.Hex{}) >= 5 && seen[c] {
 			t.Errorf("cell %v behind the wall is visible", c)
 		}
 	}
@@ -91,7 +91,7 @@ func TestVisibleSortedAndStable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.IsSortedFunc(first, compareCells) {
+	if !slices.IsSortedFunc(first, CompareCells) {
 		t.Error("result is not sorted by Depth, R, Q")
 	}
 	for range 100 {
@@ -113,11 +113,6 @@ func BenchmarkVisible(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
-}
-
-func hexDistance(a, b api.Hex) int {
-	dq, dr := a.Q-b.Q, a.R-b.R
-	return (absInt(dq) + absInt(dr) + absInt(dq+dr)) / 2
 }
 
 func TestVisibleRemembersUntilAnEdit(t *testing.T) {

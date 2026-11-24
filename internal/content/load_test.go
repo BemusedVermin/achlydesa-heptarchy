@@ -9,8 +9,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-const sampleDir = "../../content/data"
-
 // writeData writes src as the only CUE file of a fresh data package and returns its directory.
 func writeData(t *testing.T, src string) string {
 	t.Helper()
@@ -49,10 +47,7 @@ calendar: {
 `
 
 func TestLoadSample(t *testing.T) {
-	registry, err := Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	registry := sampleRegistry(t)
 	cost, err := registry.MoveCost("terrain.packed_clay", MoveEnv{})
 	if err != nil || cost != 1 {
 		t.Fatalf("MoveCost = %d, %v; want 1, nil", cost, err)
@@ -90,10 +85,7 @@ origins: "origin.sweep": name: "text.also_missing"
 }
 
 func TestStepTicks(t *testing.T) {
-	registry, err := Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	registry := sampleRegistry(t)
 	if got := registry.Timeline().DefaultSpeed; got != 2 {
 		t.Errorf("default speed = %d, want 2", got)
 	}

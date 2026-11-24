@@ -420,7 +420,7 @@ func baseEnv(ctx *Context) content.EffectEnv {
 	env.Target = BodyEnvOf(w, ctx.Target, ctx.TargetPart)
 	env.Inventory = inventory.Usable(w, ctx.Source, ctx.Target)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if alive(w, ctx.Source) && alive(w, ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
+	if w.Alive(ctx.Source) && w.Alive(ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)
 		if a.Map == b.Map {
 			env.Distance = hexmap.Distance(a.At.Hex, b.At.Hex)
@@ -429,8 +429,6 @@ func baseEnv(ctx *Context) content.EffectEnv {
 	}
 	return env
 }
-
-func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
 
 func (p *params) Int(name string) (int, error) {
 	out, err := p.eval(name, "int", expr.AsInt64())

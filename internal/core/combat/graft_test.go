@@ -7,6 +7,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -41,7 +42,12 @@ func TestAGraftActsOnItsOwnAndLeavesTheOtherLimbsFree(t *testing.T) {
 	creature := f.creature()
 	party, _ := f.w.ByUID(f.view().Party.UID)
 	inventory.Add(f.w, party, comp.ItemStack{Item: "item.serilmen_arm", Count: 1})
-	f.apply(f.members()[0], creature, ecs.Entity{}, do("attach_part", "from", "inventory", "item", "item.serilmen_arm"))
+	f.apply(
+		f.members()[0],
+		creature,
+		ecs.Entity{},
+		contenttest.Do("attach_part", "from", "inventory", "item", "item.serilmen_arm"),
+	)
 	graft := f.partOf(creature, "arm")
 	maw := f.partOf(creature, "head")
 	if got := ecs.NewMap[comp.Graft](f.w.ECS).Get(graft).Piece; got != "item.serilmen_arm" {
@@ -82,7 +88,7 @@ func TestActAloneIsRefusedForAPartThatIsNotAGraft(t *testing.T) {
 	f.moveParty(east(f.at(creature), -1))
 	maw := f.partOf(creature, "head")
 	ctx := &effects.Context{World: f.w, Source: creature, SourcePart: maw}
-	if err := effects.Apply(ctx, []content.EffectRef{do("act_alone")}); err != nil {
+	if err := effects.Apply(ctx, []content.EffectRef{contenttest.Do("act_alone")}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := f.w.Bus.Drain(f.w); err != nil {
@@ -115,7 +121,7 @@ func TestASeveredPartOfAPreEntropyThingCrawlsOff(t *testing.T) {
 	f, remnant := remnantField(t)
 	arm := f.partOf(remnant, "arm")
 	at := *ecs.NewMap[comp.Pos](f.w.ECS).Get(remnant)
-	f.apply(f.members()[0], remnant, arm, do("sever", "parts", "target_part"))
+	f.apply(f.members()[0], remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 
 	partOf := ecs.NewMap[comp.PartOf](f.w.ECS)
 	if !partOf.Has(arm) {
@@ -140,7 +146,7 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	f, remnant := remnantField(t)
 	reaper := f.members()[0]
 	arm := f.partOf(remnant, "arm")
-	f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
+	f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
 	// The source and the hall's own creature fall, and the party stands next to the arm: the only
 	// hostiles in its reach are the party.
@@ -193,7 +199,7 @@ func TestACrawlingPartTakesItsCrawlsAsIdentity(t *testing.T) {
 				t.Fatal(err)
 			}
 			arm := f.partOf(remnant, "arm")
-			f.apply(f.members()[0], remnant, arm, do("sever", "parts", "target_part"))
+			f.apply(f.members()[0], remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 			crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
 			if got := ecs.NewMap[comp.Identity](f.w.ECS).Get(crawling).Template; got != tt.want {
 				t.Errorf("identity = %q, want %q", got, tt.want)
@@ -209,7 +215,7 @@ func TestAPartOfAThingThatDiesNormallyDoesNotCrawl(t *testing.T) {
 	f, _ := remnantField(t)
 	creature := f.creature()
 	arm := f.partOf(creature, "head")
-	f.apply(f.members()[0], creature, arm, do("sever", "parts", "target_part"))
+	f.apply(f.members()[0], creature, arm, contenttest.Do("sever", "parts", "target_part"))
 	if got := ecs.NewMap[comp.PartOf](f.w.ECS).Has(arm); got {
 		t.Error("a part of an ordinary creature crawled off")
 	}
@@ -219,7 +225,7 @@ func TestTheAlertHoldsWhileACrawlingPartOutlivesItsSource(t *testing.T) {
 	f, remnant := remnantField(t)
 	reaper := f.members()[0]
 	arm := f.partOf(remnant, "arm")
-	f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
+	f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
 	// The source and the hall's own creature go down: only the crawling arm is left to see.
 	f.damage(reaper, remnant, "torso", "99")
@@ -256,7 +262,7 @@ func TestRotEatsAGraftOnEitherSide(t *testing.T) {
 	grafts := ecs.NewMap[comp.Graft](r.w.ECS)
 	for name, body := range map[string]ecs.Entity{"ally": anatomy.Members(r.w, r.party)[1], "enemy": r.crawler} {
 		inventory.Add(r.w, r.party, comp.ItemStack{Item: "item.test_arm", Count: 1})
-		r.apply(t, r.ctx(body), do("attach_part", "from", "inventory", "item", "item.test_arm"))
+		r.apply(t, r.ctx(body), contenttest.Do("attach_part", "from", "inventory", "item", "item.test_arm"))
 		seen := false
 		for _, part := range anatomy.Parts(r.w, body) {
 			before := parts.Get(part).Integrity
@@ -287,8 +293,8 @@ func TestAReattachedLimbIsNotAGraftForRelicOrRot(t *testing.T) {
 	arm := r.partsOf(r.reaper, "arm")[0]
 	ctx := r.ctx(r.reaper)
 	ctx.TargetPart = arm
-	r.apply(t, ctx, do("sever", "parts", "target_part"))
-	r.apply(t, r.ctx(r.reaper), do("attach_part", "from", "severed"))
+	r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part"))
+	r.apply(t, r.ctx(r.reaper), contenttest.Do("attach_part", "from", "severed"))
 	if got := effects.BodyEnvOf(r.w, r.reaper, arm); got.Grafts != 0 || got.Graft {
 		t.Errorf("a reattached limb counts as a graft: grafts = %d, graft = %v", got.Grafts, got.Graft)
 	}

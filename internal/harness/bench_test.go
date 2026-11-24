@@ -3,8 +3,7 @@ package harness_test
 import (
 	"testing"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
-
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
@@ -12,10 +11,7 @@ import (
 // BenchmarkStep times one harness step on the sample content: build the view, pick a random
 // enabled option, apply it. A game that runs out of options is replaced, off the clock.
 func BenchmarkStep(b *testing.B) {
-	reg, err := loadRegistry()
-	if err != nil {
-		b.Fatal(err)
-	}
+	reg := contenttest.Sample(b)
 	var seed uint64 = 1
 	newGame := func() (*game.Game, *harness.RandomPolicy) {
 		g, err := game.New(game.Config{Seed: seed, Content: reg})
@@ -45,5 +41,3 @@ func BenchmarkStep(b *testing.B) {
 		}
 	}
 }
-
-func loadRegistry() (*content.Registry, error) { return content.Load(sampleDir) }

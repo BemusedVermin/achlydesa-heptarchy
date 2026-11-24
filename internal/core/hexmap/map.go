@@ -1,6 +1,7 @@
 package hexmap
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 
@@ -74,18 +75,13 @@ func (m *Map) Edits() []Edit {
 	for cell, t := range m.edits {
 		out = append(out, Edit{Cell: cell, Terrain: t})
 	}
-	slices.SortFunc(out, func(a, b Edit) int { return compareCells(a.Cell, b.Cell) })
+	slices.SortFunc(out, func(a, b Edit) int { return CompareCells(a.Cell, b.Cell) })
 	return out
 }
 
-func compareCells(a, b api.Cell) int {
-	if a.Depth != b.Depth {
-		return a.Depth - b.Depth
-	}
-	if a.Hex.R != b.Hex.R {
-		return a.Hex.R - b.Hex.R
-	}
-	return a.Hex.Q - b.Hex.Q
+// CompareCells orders cells by Depth, then R, then Q.
+func CompareCells(a, b api.Cell) int {
+	return cmp.Or(cmp.Compare(a.Depth, b.Depth), cmp.Compare(a.Hex.R, b.Hex.R), cmp.Compare(a.Hex.Q, b.Hex.Q))
 }
 
 // CellsIn lists the cells within radius hexes of center and between depthFrom and depthTo inclusive, sorted by

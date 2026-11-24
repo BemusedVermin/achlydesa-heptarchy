@@ -139,7 +139,7 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 			return !slices.Contains(BodyEnvOf(w, body, ecs.Entity{}).Template.Tags, s.Tag)
 		})
 	}
-	sortByUID(w, out)
+	w.SortByUID(out)
 	return out, nil
 }
 
@@ -151,12 +151,12 @@ func (s ChannelSelector) Resolve(ctx *Context) ([]timeline.Channel, error) {
 	switch {
 	case s.Used:
 		for _, c := range ctx.Used {
-			if alive(w, c.Entity) {
+			if w.Alive(c.Entity) {
 				out = append(out, c)
 			}
 		}
 	case s.TargetPart:
-		if alive(w, ctx.TargetPart) && alive(w, ctx.Target) {
+		if w.Alive(ctx.TargetPart) && w.Alive(ctx.Target) {
 			out = append(out, partChannel(w, ctx.Target, ctx.TargetPart))
 		}
 	default:
@@ -173,7 +173,7 @@ func (s ChannelSelector) Resolve(ctx *Context) ([]timeline.Channel, error) {
 		}
 	}
 	slices.SortStableFunc(out, func(a, b timeline.Channel) int {
-		return compareUID(w.UIDOf(a.Entity), w.UIDOf(b.Entity))
+		return w.CompareUID(a.Entity, b.Entity)
 	})
 	return out, nil
 }
@@ -189,24 +189,10 @@ func partChannel(w *sim.World, body, part ecs.Entity) timeline.Channel {
 }
 
 func livingOnly(w *sim.World, e ecs.Entity) []ecs.Entity {
-	if alive(w, e) {
+	if w.Alive(e) {
 		return []ecs.Entity{e}
 	}
 	return nil
-}
-
-func sortByUID(w *sim.World, entities []ecs.Entity) {
-	slices.SortStableFunc(entities, func(a, b ecs.Entity) int { return compareUID(w.UIDOf(a), w.UIDOf(b)) })
-}
-
-func compareUID(a, b api.UID) int {
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
-	}
-	return 0
 }
 
 // bodiesInSight lists the bodies (entities on the timeline with a position) standing in a cell the
@@ -216,7 +202,7 @@ func bodiesInSight(ctx *Context) ([]ecs.Entity, error) {
 	w := ctx.World
 	st := stateOf(w)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if !alive(w, ctx.Source) || !positions.Has(ctx.Source) || st.maps == nil {
+	if !w.Alive(ctx.Source) || !positions.Has(ctx.Source) || st.maps == nil {
 		return nil, nil
 	}
 	from := positions.Get(ctx.Source)

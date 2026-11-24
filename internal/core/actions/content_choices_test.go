@@ -8,6 +8,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
@@ -158,10 +159,7 @@ func TestChosenRecordsChangeTheAction(t *testing.T) {
 }
 
 func TestContentChoiceMayNotShadowAProvider(t *testing.T) {
-	reg, err := content.New(testBundle(t, opts{contentChoices: true}))
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, testBundle(t, opts{contentChoices: true}))
 	if got := reg.ChoiceNames(); !slices.Equal(got, []string{"piece", "type"}) {
 		t.Fatalf("choices = %v", got)
 	}

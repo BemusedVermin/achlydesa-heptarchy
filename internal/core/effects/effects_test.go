@@ -8,6 +8,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -16,8 +17,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
-
-const sampleDir = "../../../content/data"
 
 const mapID api.MapID = 1
 
@@ -37,10 +36,7 @@ type fixture struct {
 
 func newFixture(t *testing.T) *fixture {
 	t.Helper()
-	reg, err := content.Load(sampleDir)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Sample(t)
 	fx := &fixture{
 		w: sim.NewWorld(1), parts: map[ecs.Entity][]ecs.Entity{}, partTags: map[ecs.Entity][]string{},
 	}
@@ -76,7 +72,7 @@ func newFixture(t *testing.T) *fixture {
 	fx.leg = fx.part(t, fx.a, "leg")
 	effects.SetHostile(fx.w, func(w *sim.World, from, to ecs.Entity) bool { return from == fx.s && to == fx.b })
 	fx.w.Bus.SubscribeAll("test.events", func(_ *sim.World, e api.Event) { fx.events = append(fx.events, e) })
-	err = timeline.RegisterResolver(fx.w, "test.swing", timeline.Resolver{
+	err := timeline.RegisterResolver(fx.w, "test.swing", timeline.Resolver{
 		Resolve: func(*sim.World, ecs.Entity) error { return nil },
 	})
 	if err != nil {
@@ -155,14 +151,6 @@ func (fx *fixture) apply(t *testing.T, ctx *effects.Context, refs ...content.Eff
 		t.Fatal(err)
 	}
 	return fx.events
-}
-
-func do(name string, params ...string) content.EffectRef {
-	ref := content.EffectRef{Do: name, Params: map[string]string{}}
-	for i := 0; i < len(params); i += 2 {
-		ref.Params[params[i]] = params[i+1]
-	}
-	return ref
 }
 
 func (fx *fixture) uids(entities ...ecs.Entity) []api.UID {
@@ -308,7 +296,7 @@ func TestLockCancelsWindUpsAndDelaysDecision(t *testing.T) {
 	}
 	fx.swing(t, fx.a, fx.arm1, 5)
 	fx.swing(t, fx.a, fx.arm2, 6)
-	events := fx.apply(t, fx.ctx(), do("lock", "channels", "target:all", "ticks", "8"))
+	events := fx.apply(t, fx.ctx(), contenttest.Do("lock", "channels", "target:all", "ticks", "8"))
 	if left := timeline.PendingOf(fx.w, fx.w.UIDOf(fx.a)); len(left) != 0 {
 		t.Errorf("%d pending actions left, want both swings canceled", len(left))
 	}
@@ -342,7 +330,7 @@ func TestInterrupt(t *testing.T) {
 	t.Run("does nothing to an idle body", func(t *testing.T) {
 		fx := newFixture(t)
 		ctx := &effects.Context{World: fx.w, Source: fx.s, Target: fx.b}
-		events := fx.apply(t, ctx, do("interrupt", "bodies", "target", "when", "target.winding_up"))
+		events := fx.apply(t, ctx, contenttest.Do("interrupt", "bodies", "target", "when", "target.winding_up"))
 		if len(events) != 0 {
 			t.Errorf("events = %v, want none", events)
 		}
@@ -350,7 +338,7 @@ func TestInterrupt(t *testing.T) {
 	t.Run("cancels a body's wind-up when the condition holds", func(t *testing.T) {
 		fx := newFixture(t)
 		fx.swing(t, fx.a, fx.arm1, 5)
-		events := fx.apply(t, fx.ctx(), do("interrupt", "bodies", "target", "when", "target.winding_up"))
+		events := fx.apply(t, fx.ctx(), contenttest.Do("interrupt", "bodies", "target", "when", "target.winding_up"))
 		if len(timeline.PendingOf(fx.w, fx.w.UIDOf(fx.a))) != 0 {
 			t.Error("the swing should be canceled")
 		}
@@ -366,7 +354,7 @@ func TestInterrupt(t *testing.T) {
 	t.Run("leaves wind-ups alone when the condition does not hold", func(t *testing.T) {
 		fx := newFixture(t)
 		fx.swing(t, fx.a, fx.arm1, 5)
-		fx.apply(t, fx.ctx(), do("interrupt", "bodies", "target", "when", "now > 100"))
+		fx.apply(t, fx.ctx(), contenttest.Do("interrupt", "bodies", "target", "when", "now > 100"))
 		if len(timeline.PendingOf(fx.w, fx.w.UIDOf(fx.a))) != 1 {
 			t.Error("the swing should still be pending")
 		}
@@ -375,13 +363,13 @@ func TestInterrupt(t *testing.T) {
 		fx := newFixture(t)
 		fx.swing(t, fx.a, fx.arm1, 5)
 		fx.swing(t, fx.a, fx.arm2, 6)
-		fx.apply(t, fx.ctx(), do("interrupt", "channels", "target_part"))
+		fx.apply(t, fx.ctx(), contenttest.Do("interrupt", "channels", "target_part"))
 		if left := timeline.PendingOf(fx.w, fx.w.UIDOf(fx.a)); len(left) != 2 {
 			t.Errorf("pending = %d, want 2: no target part is set", len(left))
 		}
 		ctx := fx.ctx()
 		ctx.TargetPart = fx.arm1
-		fx.apply(t, ctx, do("interrupt", "channels", "target_part"))
+		fx.apply(t, ctx, contenttest.Do("interrupt", "channels", "target_part"))
 		if left := timeline.PendingOf(fx.w, fx.w.UIDOf(fx.a)); len(left) != 1 {
 			t.Errorf("pending = %d, want only the other arm's swing", len(left))
 		}
@@ -390,7 +378,7 @@ func TestInterrupt(t *testing.T) {
 
 func TestDelayPushesBackEveryVisibleBodyButTheSource(t *testing.T) {
 	fx := newFixture(t)
-	events := fx.apply(t, fx.ctx(), do("delay", "channels", "others:all", "ticks", "8"))
+	events := fx.apply(t, fx.ctx(), contenttest.Do("delay", "channels", "others:all", "ticks", "8"))
 	for _, e := range []ecs.Entity{fx.a, fx.arm1, fx.arm2, fx.leg, fx.b} {
 		if timeline.Free(fx.w, fx.channel(e)) {
 			t.Errorf("channel of %d should be busy", fx.w.UIDOf(e))
@@ -405,7 +393,7 @@ func TestDelayPushesBackEveryVisibleBodyButTheSource(t *testing.T) {
 		t.Errorf("event = %+v, want ChannelsDelayed for five channels", events[len(events)-1])
 	}
 	// Delaying again pushes the busy time further back.
-	fx.apply(t, fx.ctx(), do("delay", "channels", "target:body", "ticks", "4"))
+	fx.apply(t, fx.ctx(), contenttest.Do("delay", "channels", "target:body", "ticks", "4"))
 	if timeline.Free(fx.w, fx.channel(fx.a)) {
 		t.Error("the body channel should be busy until tick 12")
 	}
@@ -418,7 +406,7 @@ func TestReadyFreesTheLowestBusyChannel(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	events := fx.apply(t, fx.ctx(), do("ready", "channels", "target:all", "count", "1"))
+	events := fx.apply(t, fx.ctx(), contenttest.Do("ready", "channels", "target:all", "count", "1"))
 	if !timeline.Free(fx.w, fx.channel(fx.arm1)) {
 		t.Error("the lowest-UID busy channel should be free")
 	}
@@ -431,13 +419,19 @@ func TestReadyFreesTheLowestBusyChannel(t *testing.T) {
 		!reflect.DeepEqual(got.Channels, fx.uids(fx.arm1)) {
 		t.Errorf("event = %+v, want ChannelsReadied naming the first arm", events[len(events)-1])
 	}
-	fx.apply(t, fx.ctx(), do("ready", "channels", "target:all", "count", "5"))
+	fx.apply(t, fx.ctx(), contenttest.Do("ready", "channels", "target:all", "count", "5"))
 	for _, e := range []ecs.Entity{fx.arm2, fx.leg} {
 		if !timeline.Free(fx.w, fx.channel(e)) {
 			t.Errorf("channel %d should be free after readying up to five", fx.w.UIDOf(e))
 		}
 	}
-	if events := fx.apply(t, fx.ctx(), do("ready", "channels", "target:all", "count", "1")); len(events) != 0 {
+	if events := fx.apply(
+		t,
+		fx.ctx(),
+		contenttest.Do("ready", "channels", "target:all", "count", "1"),
+	); len(
+		events,
+	) != 0 {
 		t.Errorf("readying nothing busy published %v", events)
 	}
 }
@@ -450,7 +444,7 @@ func TestReadyLeavesAChannelWithASwingWindingUp(t *testing.T) {
 		}
 	}
 	fx.swing(t, fx.a, fx.arm1, 6)
-	events := fx.apply(t, fx.ctx(), do("ready", "channels", "target:all", "count", "5"))
+	events := fx.apply(t, fx.ctx(), contenttest.Do("ready", "channels", "target:all", "count", "5"))
 	if timeline.Free(fx.w, fx.channel(fx.arm1)) {
 		t.Error("the channel with a swing winding up should stay busy")
 	}
@@ -496,7 +490,17 @@ func TestParametersAreFormulas(t *testing.T) {
 	fx.apply(
 		t,
 		fx.ctx(),
-		do("probe", "ticks", "4 + 4", "distance", "distance", "winding", "target.winding_up", "roll", "roll"),
+		contenttest.Do(
+			"probe",
+			"ticks",
+			"4 + 4",
+			"distance",
+			"distance",
+			"winding",
+			"target.winding_up",
+			"roll",
+			"roll",
+		),
 	)
 	if got.ticks != 8 || got.distance != 2 || !got.winding || got.roll < 0 || got.roll >= 1 {
 		t.Errorf("probe saw %+v, want ticks 8, distance 2, winding up and a roll in [0,1)", got)
@@ -506,8 +510,8 @@ func TestParametersAreFormulas(t *testing.T) {
 func TestApplyStopsAtTheFirstError(t *testing.T) {
 	fx := newFixture(t)
 	err := effects.Apply(fx.ctx(), []content.EffectRef{
-		do("delay", "channels", "target:body", "ticks", "0"), // ticks must be at least 1
-		do("lock", "channels", "target:body", "ticks", "5"),
+		contenttest.Do("delay", "channels", "target:body", "ticks", "0"), // ticks must be at least 1
+		contenttest.Do("lock", "channels", "target:body", "ticks", "5"),
 	})
 	if err == nil || !strings.Contains(err.Error(), "delay") {
 		t.Fatalf("error = %v, want the delay to fail", err)
@@ -515,7 +519,7 @@ func TestApplyStopsAtTheFirstError(t *testing.T) {
 	if !timeline.Free(fx.w, fx.channel(fx.a)) {
 		t.Error("the effects after the failing one should not have run")
 	}
-	if err := effects.Apply(fx.ctx(), []content.EffectRef{do("explode")}); err == nil {
+	if err := effects.Apply(fx.ctx(), []content.EffectRef{contenttest.Do("explode")}); err == nil {
 		t.Error("an unknown primitive should be an error")
 	}
 }
@@ -531,10 +535,13 @@ func TestCheckReportsTheFirstReason(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ok, _ := effects.Check(fx.ctx(), []content.EffectRef{do("lock", "channels", "used", "ticks", "1")}); !ok {
+	if ok, _ := effects.Check(
+		fx.ctx(),
+		[]content.EffectRef{contenttest.Do("lock", "channels", "used", "ticks", "1")},
+	); !ok {
 		t.Error("a primitive with no Check always passes")
 	}
-	if ok, reason := effects.Check(fx.ctx(), []content.EffectRef{do("gate")}); ok || reason.ID != why.ID {
+	if ok, reason := effects.Check(fx.ctx(), []content.EffectRef{contenttest.Do("gate")}); ok || reason.ID != why.ID {
 		t.Errorf("Check = %v, %v; want it to fail with the gate's reason", ok, reason)
 	}
 }
@@ -558,15 +565,15 @@ func TestRegisterRejectsBadPrimitives(t *testing.T) {
 func TestValidateListsEveryProblem(t *testing.T) {
 	fx := newFixture(t)
 	err := effects.Validate(fx.w, "actions[x].on_start", []content.EffectRef{
-		do("lock", "channels", "target:all", "ticks", "8"), // fine
-		do("explode"),                        // unknown primitive
-		do("lock", "channels", "target:all"), // missing ticks
-		do("lock", "channels", "target:all", "ticks", "8", "force", "9"), // unknown parameter
-		do("delay", "channels", "everybody:all", "ticks", "8"),           // malformed selector
-		do("delay", "channels", "target:all", "ticks", "8 +"),            // formula does not compile
-		do("interrupt", "bodies", "target", "channels", "used"),          // both
-		do("interrupt"), // neither
-		do("ready", "channels", "target:all", "count", "nonsense"),
+		contenttest.Do("lock", "channels", "target:all", "ticks", "8"),               // fine
+		contenttest.Do("explode"),                                                    // unknown primitive
+		contenttest.Do("lock", "channels", "target:all"),                             // missing ticks
+		contenttest.Do("lock", "channels", "target:all", "ticks", "8", "force", "9"), // unknown parameter
+		contenttest.Do("delay", "channels", "everybody:all", "ticks", "8"),           // malformed selector
+		contenttest.Do("delay", "channels", "target:all", "ticks", "8 +"),            // formula does not compile
+		contenttest.Do("interrupt", "bodies", "target", "channels", "used"),          // both
+		contenttest.Do("interrupt"),                                                  // neither
+		contenttest.Do("ready", "channels", "target:all", "count", "nonsense"),
 	})
 	if err == nil {
 		t.Fatal("Validate succeeded, want every problem")
@@ -623,7 +630,7 @@ func TestChecksDoNotDrawFromTheRNG(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	refs := []content.EffectRef{do("gauge", "limit", "distance + 1")}
+	refs := []content.EffectRef{contenttest.Do("gauge", "limit", "distance + 1")}
 	for range 2 {
 		if ok, _ := effects.Check(fx.ctx(), refs); !ok {
 			t.Fatal("the check should pass")
@@ -636,10 +643,14 @@ func TestChecksDoNotDrawFromTheRNG(t *testing.T) {
 	if !reflect.DeepEqual(before, after) {
 		t.Error("checking an effect changed the RNG state")
 	}
-	if ok, _ := effects.Check(fx.ctx(), []content.EffectRef{do("gauge", "limit", "roll")}); ok {
+	if ok, _ := effects.Check(fx.ctx(), []content.EffectRef{contenttest.Do("gauge", "limit", "roll")}); ok {
 		t.Error("a check that reads roll should fail rather than draw")
 	}
-	if err := effects.Validate(fx.w, "x", []content.EffectRef{do("gauge", "limit", "roll * 2")}); err == nil {
+	if err := effects.Validate(
+		fx.w,
+		"x",
+		[]content.EffectRef{contenttest.Do("gauge", "limit", "roll * 2")},
+	); err == nil {
 		t.Error("Validate should reject a primitive with a Check reading roll")
 	}
 	if err := effects.Validate(fx.w, "x", refs); err != nil {
