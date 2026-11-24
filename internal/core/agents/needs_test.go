@@ -2,6 +2,7 @@ package agents_test
 
 import (
 	"math"
+	"slices"
 	"strings"
 	"testing"
 
@@ -199,8 +200,10 @@ func TestSwappingToContentWithoutANeedLetsTheGamePlayOn(t *testing.T) {
 	f := newFixture(t, map[string]float64{"need.water": 0.2, "need.food": 0.5}, nil)
 	bundle := contenttest.SampleBundle(t)
 	delete(bundle.Needs, "need.water")
+	delete(bundle.Actions, "action.drink")
 	for key, template := range bundle.Templates {
 		delete(template.Needs, "need.water")
+		template.Actions = slices.DeleteFunc(slices.Clone(template.Actions), func(id api.ContentID) bool { return id == "action.drink" })
 		bundle.Templates[key] = template
 	}
 	if err := f.g.SwapContent(contenttest.Registry(t, bundle)); err != nil {
