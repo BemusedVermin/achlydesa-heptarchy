@@ -31,7 +31,7 @@ Read the task file, `AGENTS.md`, and the doc sections the task links.
    - the core serves the choices
    - a new dependency is justified in Notes
    - no game-design decision is settled in code
-4. **Style.** Every package has a `doc.go`; exported identifiers have doc comments; names are descriptive; tests are table-driven; errors are wrapped with `%w`; an invalid player command emits `api.Rejected` and doesn't return an error; there is no global mutable state.
+4. **Style.** Comments follow `.claude/rules/comments.md`: a doc comment that restates the name, says errors are returned on failure, or runs past what a caller needs, and any comment that narrates the code, is **blocking**, with the rewrite or "delete" in your finding. Every package has a `doc.go`; exported identifiers have doc comments; names are descriptive; tests are table-driven; errors are wrapped with `%w`; an invalid player command emits `api.Rejected` and doesn't return an error; there is no global mutable state.
 5. **Tests.** They cover the spec's behavior and its edge cases, not just the happy path. Golden files live under `testdata/`.
 6. **Bookkeeping.** The status is `done` in the task file and in `tasks/INDEX.md`. Notes are filled in. Every follow-up has a file and an index row. If the change alters what `docs/` says, the doc is updated too.
 

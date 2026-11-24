@@ -72,11 +72,9 @@ func baseName(path string) string {
 	return path
 }
 
-// parseCommandLine splits a command line into its simple commands. It understands enough of shell
-// syntax to find the programs a line runs: quotes and escapes; the separators ; & && || | and new
-// lines; subshells, $(...) and `...` substitutions; braces around a group; redirections, which it
-// drops; and here-documents, whose text it skips. It isn't a full shell parser, and doesn't need
-// to be: it only has to find the git and gh commands an agent writes.
+// parseCommandLine splits a command line into its simple commands. It handles quotes, separators,
+// subshells, substitutions, groups, redirections and here-documents: enough to find the git and gh
+// commands an agent writes, not a full shell parser.
 func parseCommandLine(line string, dia dialect) []command {
 	scanner := lineScanner{runes: []rune(line), dia: dia}
 	scanner.scan()

@@ -8,10 +8,8 @@ import (
 	"os"
 )
 
-// Exit statuses. A hook refuses a tool call by printing a decision on standard output and exiting
-// with status 0, not by exiting with status 2: the hooks run through "go run", which turns any
-// non-zero status from the program into status 1. Claude Code reports a status 1 to the user as a
-// hook error and lets the tool call go ahead.
+// Exit statuses. A hook refuses by printing a decision and exiting 0, not 2: "go run" turns any
+// non-zero status into 1, which Claude Code reports as a hook error before letting the call go ahead.
 const (
 	exitOK     = 0
 	exitFailed = 1
