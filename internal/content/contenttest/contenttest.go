@@ -17,7 +17,7 @@ type T interface {
 }
 
 // sample loads content/data once. The registry is never written to, which makes it the one shared
-// value tests may hold (C1-13).
+// value tests may hold.
 var sample = sync.OnceValues(func() (*content.Registry, error) { return content.Load(Dir()) })
 
 // Dir is the path of the sample content directory, whatever package the test runs in.

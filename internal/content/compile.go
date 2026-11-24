@@ -74,9 +74,11 @@ func (f *variableFinder) Visit(node *ast.Node) {
 
 // inliner is the patch that replaces rule.<name> with the rule's parsed source.
 type inliner struct {
-	reg     *Registry
-	stack   []string // the rules being expanded, to catch cycles
-	failure *error   // the first problem, shared with the inliners of nested rules
+	reg *Registry
+	// stack holds the rules being expanded, to catch cycles.
+	stack []string
+	// failure is the first problem, shared with the inliners of nested rules.
+	failure *error
 }
 
 func (in *inliner) fail(err error) {
@@ -171,7 +173,7 @@ func (r *Registry) checkRules() []error {
 			ref(p, r.bundle.Rules, path, "rule", api.ContentID(other))
 		}
 	}
-	state := map[string]int{} // 1 while on the walk, 2 when done
+	state := map[string]int{}
 	var walk func(name string, trail []string)
 	walk = func(name string, trail []string) {
 		switch state[name] {

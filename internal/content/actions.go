@@ -19,7 +19,8 @@ var tagPattern = regexp.MustCompile(`^[a-z][a-z0-9_]*(:[a-z][a-z0-9_]*)*$`)
 
 // compiledAction holds an action's formulas, compiled against ActionEnv.
 type compiledAction struct {
-	requires, connects *vm.Program // nil when the action has none
+	// requires and connects are nil when the action has none.
+	requires, connects *vm.Program
 	windup, recovery   *vm.Program
 }
 

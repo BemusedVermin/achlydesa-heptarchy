@@ -1,7 +1,7 @@
 ---
 id: C1-29
 title: "Content comments to the tightened rule"
-status: todo
+status: done
 milestone: C1
 kind: debt
 depends_on: []
@@ -36,10 +36,10 @@ Leave doc comments alone otherwise: the owner is happy with them.
 
 ## Acceptance criteria
 
-- [ ] The `go tool task comments` command above reports nothing
-- [ ] `go tool task same-behavior` passes
-- [ ] `go tool task check` passes
-- [ ] Only comments changed, apart from test or subtest names and failure messages that took over a comment's job
+- [x] The `go tool task comments` command above reports nothing
+- [x] `go tool task same-behavior` passes
+- [x] `go tool task check` passes
+- [x] Only comments changed, apart from test or subtest names and failure messages that took over a comment's job
 
 ## Out of scope
 
@@ -48,3 +48,7 @@ Leave doc comments alone otherwise: the owner is happy with them.
 ## Notes
 
 - Filed 2026-11-23 when the owner tightened the comment rule.
+- Field notes became doc comments above the field, reworded where the "defines X as itself" lint objected; notes that restated the name or type were cut.
+- Renamed test struct fields `want` to `wantFragments` (load_test.go) and `wantErr` (rules_test.go) so they carry what their comments said.
+- Regenerated `internal/content/*_go_gen.cue` with `go tool task schema`; the new doc comments flow into them.
+- `.claude/rules/content.md` still says text-ID fields are commented `// a text ID`, which the tightened rule forbids at end of line. Fields now carry `// Name is a text ID.` above them. That rule file is off-limits on a task branch; the owner may want it updated.

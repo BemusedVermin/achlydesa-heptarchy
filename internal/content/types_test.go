@@ -32,7 +32,7 @@ func TestSampleTypesLoadAndNameIsNeverRefused(t *testing.T) {
 func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
 	bundle := sampleBundle(t)
 	deep := bundle.Factions["faction.wild"]
-	deep.HostileTo = []api.ContentID{"faction.crawling"} // only the party's side of the feud is left one-sided
+	deep.HostileTo = []api.ContentID{"faction.crawling"}
 	bundle.Factions["faction.wild"] = deep
 	reg, err := New(bundle)
 	if err != nil {

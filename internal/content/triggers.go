@@ -20,10 +20,13 @@ const (
 // TriggerSite is one trigger and the content that carries it.
 type TriggerSite struct {
 	// ID names the trigger: the owner's ID, then "#", then the trigger's index in its list.
-	ID      string
-	Owner   string        // one of the Owner kinds
-	OwnerID api.ContentID // the template, material, status or item ID
-	Path    string        // where it sits in content, for error messages
+	ID string
+	// Owner is one of the Owner kinds.
+	Owner string
+	// OwnerID is the template, material, status or item ID.
+	OwnerID api.ContentID
+	// Path is where the trigger sits in content, for error messages.
+	Path    string
 	Trigger Trigger
 }
 
