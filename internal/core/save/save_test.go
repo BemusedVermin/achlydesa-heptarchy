@@ -3,7 +3,9 @@ package save_test
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -238,6 +240,22 @@ func continuesIdentically(t rapid.TB, cfg game.Config, before, after []int) {
 	}
 }
 
+// limitChecks lowers rapid's case count to n for this test, unless -rapid.checks was given. Each
+// case plays a whole game, so the default 100 is too slow for a unit test.
+func limitChecks(t *testing.T, n int) {
+	t.Helper()
+	explicit := false
+	flag.Visit(func(f *flag.Flag) { explicit = explicit || f.Name == "rapid.checks" })
+	if explicit {
+		return
+	}
+	previous := flag.Lookup("rapid.checks").Value.String()
+	if err := flag.Set("rapid.checks", strconv.Itoa(n)); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = flag.Set("rapid.checks", previous) })
+}
+
 func TestLoadingAfterRandomPlayContinuesIdentically(t *testing.T) {
 	reg := contenttest.Registry(t, newBundle(t))
 	for _, tt := range []struct {
@@ -251,6 +269,7 @@ func TestLoadingAfterRandomPlayContinuesIdentically(t *testing.T) {
 			continuesIdentically(t, game.Config{Seed: tt.seed, Content: reg}, tt.before, tt.after)
 		})
 	}
+	limitChecks(t, 15)
 	rapid.Check(t, func(rt *rapid.T) {
 		seed := rapid.Uint64().Draw(rt, "seed")
 		before := rapid.SliceOfN(rapid.IntRange(0, 1000), 0, 20).Draw(rt, "before")

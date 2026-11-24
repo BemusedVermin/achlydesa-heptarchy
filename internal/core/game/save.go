@@ -180,30 +180,33 @@ func canonical(data []byte) (json.RawMessage, error) {
 		alive[to], components[to] = pool.Alive[from], dump.Components[from]
 	}
 	slices.Sort(dump.Types)
-	var world map[string]any
-	worldDecoder := json.NewDecoder(bytes.NewReader(dump.World))
-	worldDecoder.UseNumber()
-	if err := worldDecoder.Decode(&world); err != nil {
-		return nil, err
-	}
-	world["Alive"] = alive
-	return normalize(map[string]any{
-		"World": world, "Types": dump.Types, "Components": components, "Resources": dump.Resources,
-	})
-}
-
-// normalize encodes v with every object's keys sorted: it decodes the encoding into generic maps and
-// encodes that again.
-func normalize(v any) (json.RawMessage, error) {
-	data, err := json.Marshal(v)
+	world, err := decodeGeneric(dump.World)
 	if err != nil {
 		return nil, err
 	}
+	world.(map[string]any)["Alive"] = alive
+	generic := make([]any, len(components))
+	for i, component := range components {
+		if generic[i], err = decodeGeneric(component); err != nil {
+			return nil, err
+		}
+	}
+	resources, err := decodeGeneric(dump.Resources)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(map[string]any{
+		"World": world, "Types": dump.Types, "Components": generic, "Resources": resources,
+	})
+}
+
+// decodeGeneric decodes JSON into maps and slices, which encoding/json writes with sorted keys.
+func decodeGeneric(data []byte) (any, error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
 	var generic any
 	if err := decoder.Decode(&generic); err != nil {
 		return nil, err
 	}
-	return json.Marshal(generic)
+	return generic, nil
 }
