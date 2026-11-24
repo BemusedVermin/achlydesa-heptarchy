@@ -82,7 +82,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-21](C1-cleanup/C1-21-features-area-duplication-tests-comments.md) | Features area: duplication, tests, comments | done | debt | L | C1-18 |
 | [C1-22](C1-cleanup/C1-22-foundation-area-duplication-tests-comments-speed.md) | Foundation area: duplication, tests, comments, speed errors | done | debt | L | C1-18, C1-16 |
 | [C1-23](C1-cleanup/C1-23-game-and-frontend-duplication-text-out-of-the-tu.md) | Game and frontend: duplication, text out of the tui, tests, comments | todo | debt | L | C1-18, C1-12 |
-| [C1-24](C1-cleanup/C1-24-tools-fix-the-windows-test-shared-git-code-tests.md) | Tools: fix the Windows test, shared git code, tests, comments | in-progress | debt | L | C1-18, C1-15 |
+| [C1-24](C1-cleanup/C1-24-tools-fix-the-windows-test-shared-git-code-tests.md) | Tools: fix the Windows test, shared git code, tests, comments | done | debt | L | C1-18, C1-15 |
 | [C1-25](C1-cleanup/C1-25-agentkit-cleanup-owner-does-this-one.md) | agentkit cleanup (owner does this one) | proposed | debt | L | C1-24, C1-14 |
 | [C1-26](C1-cleanup/C1-26-design-doc-fixes-and-the-content-guide.md) | Design-doc fixes and the content guide | todo | content | L | C1-17, C1-19 |
 | [C1-27](C1-cleanup/C1-27-lock-in-what-the-cleanup-decided.md) | Lock in what the cleanup decided | todo | debt | S | C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-25, C1-26, C1-28, C1-29, C1-30 |
@@ -116,6 +116,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [C1-24.F2](followups/C1-24.F2-samebehavior-missing-seed-message.md) | samebehavior says clearly when a seed reports no hash | proposed | bug | C1 | C1-24 |
+| [C1-24.F1](followups/C1-24.F1-agentkit-tests-use-gittest.md) | agentkit's tests use gittest and build fewer repositories | proposed | test | C1 | C1-24 |
 | [C1-21.F2](followups/C1-21.F2-check-pr-allowed-behavior-changes.md) | Let check-pr accept a cleanup task's named behavior changes | proposed | seam | C1 | C1-21 |
 | [C1-21.F1](followups/C1-21.F1-combat-tests-load-content-each-time.md) | Stop reparsing the sample content in every combat test | proposed | test | unplanned | C1-21 |
 | [C1-17.F2](followups/C1-17.F2-tui-line-cuts-the-tick.md) | The actor panel cuts a line's last digit when the target's name is long | proposed | bug | C1 | C1-17 |

@@ -157,7 +157,6 @@ func TestCompareHashes(t *testing.T) {
 	}{
 		{"the same", "seed=1 hash=00aa\nseed=2 hash=00bb\n", "seed=2 hash=00bb\nseed=1 hash=00aa\n", ""},
 		{"a different final hash", "seed=1 hash=00aa\n", "seed=1 hash=00bb\n", "seed 1 ends at 00bb, was 00aa"},
-		{"a seed missing", "seed=1 hash=00aa\nseed=2 hash=00bb\n", "seed=1 hash=00aa\n", "seed 2 ends at , was 00bb"},
 		{
 			"a seed added",
 			"seed=1 hash=00aa\n",

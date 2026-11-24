@@ -1,7 +1,7 @@
 ---
 id: C1-24
 title: "Tools: fix the Windows test, shared git code, tests, comments"
-status: in-progress
+status: done
 milestone: C1
 kind: debt
 depends_on: [C1-18, C1-15]
@@ -76,14 +76,14 @@ The policy is `.claude/rules/comments.md`: doc comments say what a caller needs,
 
 ## Acceptance criteria
 
-- [ ] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
-- [ ] The tests commit changed only `_test.go` files and `testdata/`
-- [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
-- [ ] `go tool task comments -- ./internal/tools/affected ./internal/tools/cuefix ./internal/tools/samebehavior ./internal/tools/testtimes` reports nothing
-- [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
-- [ ] `go tool task test -- ./internal/tools/samebehavior` passes on Windows and Linux.
-- [ ] Only `_test.go` files changed.
-- [ ] Only `_test.go` files and `testdata/` changed (cuefix's extraction is in the tools duplication task).
+- [x] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
+- [x] The tests commit changed only `_test.go` files and `testdata/`
+- [x] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
+- [x] `go tool task comments -- ./internal/tools/affected ./internal/tools/cuefix ./internal/tools/samebehavior ./internal/tools/testtimes` reports nothing
+- [x] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
+- [x] `go tool task test -- ./internal/tools/samebehavior` passes on Windows and Linux.
+- [x] Only `_test.go` files changed.
+- [x] Only `_test.go` files and `testdata/` changed (cuefix's extraction is in the tools duplication task).
 
 ## Out of scope
 
@@ -92,5 +92,30 @@ The policy is `.claude/rules/comments.md`: doc comments say what a caller needs,
 
 ## Notes
 
-
 - Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
+
+Findings, one per line:
+
+- Windows TestRun: master's `newRepo` already set `core.autocrlf false`, so the test already passed on Windows; the guard now lives in `gittest.Repo` (`internal/tools/internal/gittest`), with the identity and `commit.gpgsign=false`, writing files with `os.CopyFS`.
+- Git fixtures: `affected/main_test.go` and `samebehavior/main_test.go` use `gittest.Repo`. agentkit's (`git_test.go`, `worktrees_test.go`, `afteredit_test.go`, `ready_test.go`): dropped, owner-only; filed as C1-24.F1, since C1-25 doesn't list them.
+- `gitOutput`/`git`: samebehavior and affected use `internal/tools/internal/gitcmd.Output`; affected's git errors now carry git's stderr. agentkit keeps `gitOutput`, as C1-15 decided.
+- Entry points: affected has `run(args, stdout io.Writer) error` and a two-line `main`; cuefix has `run(args []string) error` without `stdout`, because it prints nothing and an unused writer would be dead weight. Both write `_, _ = fmt.Fprintln(os.Stderr, ...)`.
+- Libraries: `affected/select.go` uses `slices.Sorted(maps.Keys(...))` twice; testtimes' tests use `maps.Equal` and `slices.Equal`.
+- samebehavior TestRun: "a different step" and "a different final hash" moved to `TestFirstDifference` and `TestCompareHashes`; 4 git-backed cases remain.
+- `TestRunCleanWorktrees`/`TestCleanReportWhenEmpty` merge: dropped, owner-only; in C1-24.F1.
+- cuefix: `fix(text string) string` extracted, with `TestFix` covering the module path, an embedded field, a same-type field that isn't embedded and a top-level field.
+- Comments: the 8 the checker listed are gone (the two in affected's test went with the fixture). cuefix's package comment names both rewrites; `affected/main.go:42` cut; `affected/doc.go`'s command-line-files sentence moved after the default; `pkg.ImportPath`'s restating doc cut. `agentkit/guard.go:131`, `shell.go:86`, `shell.go:132`: dropped, owner-only (C1-25's comments criterion covers them).
+
+Behavior changes that `same-behavior` (which passes) can't show:
+
+- affected's git errors read `git <args>: <err>: <stderr>` instead of `git <args>: <err>`.
+- affected's `--list` and test output go through the writer `run` is given (`os.Stdout` from `main`); `dependents` now returns a sorted list, which `selectPackages` sorted anyway.
+
+Other:
+
+- New packages beyond the Spec's `Repo`: `gittest.Git` (runs git, failing the test) and `gittest.Write` (writes or, for empty content, removes files), which the tests needed for changes after the first commit.
+- The last three criteria come from merged sub-tasks and contradict the Spec's code changes; I read them as applying to the tests commits, which touch only `_test.go` files. The code changes, cuefix's `fix` extraction included, are in the duplication commit.
+- Commits: duplication, tests, comments, but two gofmt fix-ups of the samebehavior tests landed around the comments commit, and a review fix-up after it.
+- `go tool task schema` regenerates the CUE schemas with no diff, so cuefix behaves as before.
+- The "a seed missing" case of `compareHashes` was left out so as not to pin its message `seed 2 ends at , was 00bb`; filed as C1-24.F2.
+- Follow-ups: C1-24.F1, C1-24.F2.
