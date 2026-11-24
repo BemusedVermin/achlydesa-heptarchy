@@ -41,9 +41,9 @@ func newRepo(t *testing.T) string {
 func TestRun(t *testing.T) {
 	tests := []struct {
 		name    string
-		changes map[string]string // files to write in the working tree; "" deletes
+		changes map[string]string
 		args    []string
-		want    []string // fragments of the report
+		want    []string
 		same    bool
 	}{
 		{
@@ -51,16 +51,6 @@ func TestRun(t *testing.T) {
 			changes: map[string]string{"internal/tui/view.go": "package tui\n\n// View draws.\n"},
 			want:    []string{"Same behavior as master: 3 harness rows", "and 1 golden files"},
 			same:    true,
-		},
-		{
-			name:    "a different step",
-			changes: map[string]string{"play.csv": "seed,step,map\n1,1,map.clay_plain\n1,2,map.crawlspace\n"},
-			want:    []string{`harness CSV: line 3 is "1,2,map.crawlspace", was "1,2,map.clay_plain"`},
-		},
-		{
-			name:    "a different final hash",
-			changes: map[string]string{"play.log": "seed=1 hash=00bb\n"},
-			want:    []string{"final hashes: seed 1 ends at 00bb, was 00aa"},
 		},
 		{
 			name:    "a regenerated golden file",
@@ -135,5 +125,47 @@ func TestApplyRenamesInOrder(t *testing.T) {
 	got := applyRenames("form.cut form.cutter", []rename{{"form.cutter", "form.blade"}, {"form.cut", "form.slice"}})
 	if got != "form.slice form.blade" {
 		t.Errorf("applyRenames = %q", got)
+	}
+}
+
+func TestFirstDifference(t *testing.T) {
+	tests := []struct {
+		name      string
+		want, got string
+		report    string
+	}{
+		{"the same", "a\nb\n", "a\nb\n", ""},
+		{"a different step", "a\nb\n", "a\nc\n", `line 2 is "c", was "b"`},
+		{"a line added", "a\n", "a\nb\n", `line 2 is "b", was ""`},
+		{"a line removed", "a\nb", "a", `line 2 is "", was "b"`},
+		{"CRLF against LF", "a\nb\n", "a\r\nb\r\n", `line 1 is "a\r", was "a"`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := firstDifference(test.want, test.got); got != test.report {
+				t.Errorf("firstDifference(%q, %q) = %q, want %q", test.want, test.got, got, test.report)
+			}
+		})
+	}
+}
+
+func TestCompareHashes(t *testing.T) {
+	tests := []struct {
+		name      string
+		want, got string
+		report    string
+	}{
+		{"the same", "seed=1 hash=00aa\nseed=2 hash=00bb\n", "seed=2 hash=00bb\nseed=1 hash=00aa\n", ""},
+		{"a different final hash", "seed=1 hash=00aa\n", "seed=1 hash=00bb\n", "seed 1 ends at 00bb, was 00aa"},
+		{"a seed missing", "seed=1 hash=00aa\nseed=2 hash=00bb\n", "seed=1 hash=00aa\n", "seed 2 ends at , was 00bb"},
+		{"a seed added", "seed=1 hash=00aa\n", "seed=1 hash=00aa\nseed=2 hash=00bb\n", "2 seeds reported a hash, was 1"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := compareHashes(seedHashes([]byte(test.want)), seedHashes([]byte(test.got)))
+			if got != test.report {
+				t.Errorf("compareHashes = %q, want %q", got, test.report)
+			}
+		})
 	}
 }
