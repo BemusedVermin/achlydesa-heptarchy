@@ -11,6 +11,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
@@ -21,12 +22,10 @@ func (downCommand) CommandKind() string { return "test.down" }
 
 func TestADownedPartyWakesAtItsRestPlaceAfterTheWakeTime(t *testing.T) {
 	reg := contenttest.Sample(t)
-	var world *sim.World
-	g, err := game.New(game.Config{
+	g, world, _ := gametest.Start(t, game.Config{
 		Seed:    1,
 		Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {
-			world = w
 			return sim.Handle(w, func(w *sim.World, _ downCommand) (int64, error) {
 				for _, member := range anatomy.Members(w, controlledParty(w)) {
 					for _, part := range anatomy.Parts(w, member) {
@@ -40,9 +39,6 @@ func TestADownedPartyWakesAtItsRestPlaceAfterTheWakeTime(t *testing.T) {
 			})
 		},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 	party := controlledParty(world)
 	place := *ecs.NewMap[comp.RestPlace](world.ECS).Get(party)
 	start := world.Now

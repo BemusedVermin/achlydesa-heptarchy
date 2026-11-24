@@ -17,7 +17,11 @@ type ChunkKey struct{ Q, R, Depth int }
 
 // KeyOf is the key of the chunk holding c. It floors, so negative coordinates fall in the right chunk.
 func KeyOf(c api.Cell) ChunkKey {
-	return ChunkKey{Q: floorDiv(c.Hex.Q, ChunkSize), R: floorDiv(c.Hex.R, ChunkSize), Depth: floorDiv(c.Depth, ChunkSize)}
+	return ChunkKey{
+		Q:     floorDiv(c.Hex.Q, ChunkSize),
+		R:     floorDiv(c.Hex.R, ChunkSize),
+		Depth: floorDiv(c.Depth, ChunkSize),
+	}
 }
 
 // Origin is the lowest cell coordinate in the chunk.

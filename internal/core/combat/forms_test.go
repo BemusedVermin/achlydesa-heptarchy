@@ -18,6 +18,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
@@ -52,7 +53,7 @@ func person(t *testing.T, b *content.Bundle, controller string) content.Template
 func newRing(t *testing.T, at map[string]int) *ring {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	bundle.Start = content.Start{}
+	contenttest.NoStart(&bundle)
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{
 		Name: "text.item.test_arm", Part: &armPart, Data: content.Data{Tags: []string{"piece"}},
@@ -89,15 +90,11 @@ func newRing(t *testing.T, at map[string]int) *ring {
 		bundle.Templates["template.test."+name] = template
 		bundle.Text[string(textID)] = strings.ToUpper(name[:1]) + name[1:]
 	}
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	r := &ring{t: t, bodies: map[string]ecs.Entity{}}
-	r.g, err = game.New(game.Config{
+	r.g, r.w, _ = gametest.Start(t, game.Config{
 		Seed: 1, Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {
-			r.w = w
 			m := hexmap.NewMap(1, "room", hexmap.FuncSource(func(api.Cell) hexmap.Terrain {
 				return hexmap.Terrain{ID: "terrain.air"}
 			}), hexmap.Prisms{})
@@ -126,9 +123,6 @@ func newRing(t *testing.T, at map[string]int) *ring {
 			return nil
 		},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 	return r
 }
 

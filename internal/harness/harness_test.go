@@ -16,17 +16,8 @@ import (
 func load(t *testing.T) *content.Registry {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	// The sample moving clay hunts and kills random walkers, which would end runs early. These tests
-	// count rows, so they keep it standing.
-	movingClay := bundle.Templates["template.creature.moving_clay"]
-	movingClay.Actor = &content.ActorDef{Controller: "still"}
-	movingClay.Actions = nil
-	movingClay.Lists = nil
-	bundle.Templates["template.creature.moving_clay"] = movingClay
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	contenttest.StandingCrawler(&bundle)
+	reg := contenttest.Registry(t, bundle)
 	return reg
 }
 

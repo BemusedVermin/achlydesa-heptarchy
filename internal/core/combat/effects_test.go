@@ -14,6 +14,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -39,7 +40,7 @@ func newRig(t *testing.T) *rig { return newRigWith(t, nil) }
 func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	bundle.Start = content.Start{}
+	contenttest.NoStart(&bundle)
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Part: &armPart}
 	bundle.Statuses["status.braced"] = content.Status{Name: "text.status.braced"}
@@ -58,15 +59,11 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	if mutate != nil {
 		mutate(&bundle)
 	}
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	r := &rig{}
-	r.g, err = game.New(game.Config{
+	r.g, r.w, _ = gametest.Start(t, game.Config{
 		Seed: 1, Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {
-			r.w = w
 			w.Bus.SubscribeAll("test.events", func(_ *sim.World, e api.Event) { r.events = append(r.events, e) })
 			return timeline.RegisterResolver(w, "test.swing", timeline.Resolver{
 				Resolve: func(*sim.World, ecs.Entity) error { return nil },
@@ -82,23 +79,12 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 			return err
 		},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 	pos := here
 	ecs.NewMap[comp.Pos](r.w.ECS).Add(r.reaper, &pos)
 	return r
 }
 
 func ptr[T any](v T) *T { return &v }
-
-func do(name string, params ...string) content.EffectRef {
-	ref := content.EffectRef{Do: name, Params: map[string]string{}}
-	for i := 0; i < len(params); i += 2 {
-		ref.Params[params[i]] = params[i+1]
-	}
-	return ref
-}
 
 // apply runs the effects and returns the events they published.
 func (r *rig) apply(t *testing.T, ctx *effects.Context, refs ...content.EffectRef) []api.Event {
@@ -162,7 +148,7 @@ func TestDamage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := newRig(t)
 			target := anatomy.Members(r.w, r.party)[1]
-			events := r.apply(t, r.ctx(target), do("damage", "parts", "target:arm", "amount", tt.amount))
+			events := r.apply(t, r.ctx(target), contenttest.Do("damage", "parts", "target:arm", "amount", tt.amount))
 			if got := kinds(events, "combat."); !slices.Equal(got, tt.wantEvents) {
 				t.Errorf("events = %v, want %v", got, tt.wantEvents)
 			}
@@ -195,7 +181,7 @@ func TestDamageSeversWhereTheBodyStands(t *testing.T) {
 	maw := r.partsOf(r.crawler, "head")[0]
 	ctx := r.ctx(r.crawler)
 	ctx.TargetPart = maw
-	r.apply(t, ctx, do("damage", "parts", "target_part", "amount", "5"))
+	r.apply(t, ctx, contenttest.Do("damage", "parts", "target_part", "amount", "5"))
 	if got := r.partsOf(r.crawler, "head"); len(got) != 0 {
 		t.Fatal("the maw is still attached")
 	}
@@ -223,7 +209,7 @@ func TestSever(t *testing.T) {
 			ecs.NewMap[comp.Pos](r.w.ECS).Add(target, &here)
 			ctx := r.ctx(target)
 			ctx.TargetPart = arm
-			events := r.apply(t, ctx, do("sever", "parts", "target_part", "when", tt.when))
+			events := r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part", "when", tt.when))
 			if got := len(r.partsOf(target, "arm")); got != tt.wantArms {
 				t.Errorf("arms = %d, want %d", got, tt.wantArms)
 			}
@@ -263,7 +249,7 @@ func TestSeveringAnArmMidWindupCancelsTheSwing(t *testing.T) {
 	}
 	ctx := r.ctx(r.reaper)
 	ctx.TargetPart = arms[0]
-	events := r.apply(t, ctx, do("sever", "parts", "target_part"))
+	events := r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part"))
 	var canceled []api.ActionCanceled
 	for _, e := range events {
 		if c, ok := e.(api.ActionCanceled); ok {
@@ -284,13 +270,17 @@ func TestAddStatusExpiresByTick(t *testing.T) {
 	events := r.apply(
 		t,
 		r.ctx(r.crawler),
-		do("add_status", "bodies", "target", "status", "status.braced", "ticks", "10"),
+		contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "10"),
 	)
 	if len(events) != 1 || events[0].(api.StatusAdded).Until != r.w.Now+10 {
 		t.Fatalf("events = %+v", events)
 	}
 	// Adding it again keeps the later end.
-	r.apply(t, r.ctx(r.crawler), do("add_status", "bodies", "target", "status", "status.braced", "ticks", "3"))
+	r.apply(
+		t,
+		r.ctx(r.crawler),
+		contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "3"),
+	)
 	if got := statuses.Get(r.crawler).Active; len(got) != 1 || got[0].Until != r.w.Now+10 {
 		t.Fatalf("statuses = %+v, want one ending at %d", got, r.w.Now+10)
 	}
@@ -314,7 +304,11 @@ func TestAddStatusExpiresByTick(t *testing.T) {
 
 func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 	r := newRig(t)
-	r.apply(t, r.ctx(r.crawler), do("add_status", "bodies", "target", "status", "status.braced", "ticks", "10"))
+	r.apply(
+		t,
+		r.ctx(r.crawler),
+		contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "10"),
+	)
 	core := r.partsOf(r.crawler, "torso")[0]
 	ctx := r.ctx(r.crawler)
 	ctx.TargetPart = core
@@ -323,7 +317,7 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 	// 1 (braced) + 2 (weak) + 4 (height: 3 - 1 is 2, doubled) = 7, only if every field reads right.
 	formula := `("status.braced" in target.statuses ? 1 : 0) + (rule.weak ? 2 : 0) + (rule.immune ? 100 : 0) + ` +
 		`(target.locked ? 100 : 0) + (target.graft ? 100 : 0) + height * 2 + (target.integrity == target.max_integrity ? 0 : 100)`
-	r.apply(t, ctx, do("damage", "parts", "target_part", "amount", formula))
+	r.apply(t, ctx, contenttest.Do("damage", "parts", "target_part", "amount", formula))
 	if got := r.integrity(core); got != 8-7 {
 		t.Errorf("integrity = %d, want 1", got)
 	}
@@ -332,7 +326,7 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 func TestAttachPartFromTheInventory(t *testing.T) {
 	r := newRig(t)
 	target := anatomy.Members(r.w, r.party)[1]
-	attach := do("attach_part", "from", "inventory", "item", "item.test_arm")
+	attach := contenttest.Do("attach_part", "from", "inventory", "item", "item.test_arm")
 	before := len(timeline.Channels(r.w, target))
 	if ok, reason := effects.Check(
 		r.ctx(target),
@@ -366,8 +360,8 @@ func TestAttachPartFromSevered(t *testing.T) {
 	arm := r.partsOf(r.reaper, "arm")[0]
 	ctx := r.ctx(r.reaper)
 	ctx.TargetPart = arm
-	r.apply(t, ctx, do("sever", "parts", "target_part"))
-	attach := do("attach_part", "from", "severed")
+	r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part"))
+	attach := contenttest.Do("attach_part", "from", "severed")
 	if ok, reason := effects.Check(r.ctx(r.crawler), []content.EffectRef{attach}); !ok {
 		t.Fatalf("check = %v, %+v", ok, reason)
 	}
@@ -391,7 +385,7 @@ func TestAttachPartFromSevered(t *testing.T) {
 
 func TestRevealWritesAFactPerPart(t *testing.T) {
 	r := newRig(t)
-	r.apply(t, r.ctx(r.crawler), do(
+	r.apply(t, r.ctx(r.crawler), contenttest.Do(
 		"reveal", "claim", "claim.material", "value", "= target.material.id", "origin", "origin.sweep",
 	))
 	for _, part := range anatomy.Parts(r.w, r.crawler) {
@@ -408,7 +402,7 @@ func TestRevealWritesAFactPerPart(t *testing.T) {
 
 func TestConsume(t *testing.T) {
 	r := newRig(t)
-	consume := []content.EffectRef{do("consume", "item", "item.coal")}
+	consume := []content.EffectRef{contenttest.Do("consume", "item", "item.coal")}
 	if ok, _ := effects.Check(r.ctx(r.crawler), consume); !ok {
 		t.Fatal("the inventory has coal, but check refused")
 	}
@@ -434,12 +428,12 @@ func TestSpawnFromPart(t *testing.T) {
 	maw := r.partsOf(r.crawler, "head")[0]
 	ctx := r.ctx(r.crawler)
 	ctx.TargetPart = maw
-	spawn := do("spawn_from_part", "faction", "faction.wild", "controller", "idle")
+	spawn := contenttest.Do("spawn_from_part", "faction", "faction.wild", "controller", "idle")
 	r.apply(t, ctx, spawn) // nothing is severed yet
 	if ecs.NewMap[comp.Actor](r.w.ECS).Has(maw) {
 		t.Fatal("an attached part became a body")
 	}
-	r.apply(t, ctx, do("sever", "parts", "target_part"), spawn)
+	r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part"), spawn)
 	partOf := ecs.NewMap[comp.PartOf](r.w.ECS)
 	if !partOf.Has(maw) {
 		t.Fatal("the severed maw was not made a body")
@@ -468,7 +462,7 @@ func TestRaiseMaxIntegrityKeepsIntegrity(t *testing.T) {
 	arms := r.partsOf(target, "arm")
 	parts := ecs.NewMap[comp.Part](r.w.ECS)
 	before := *parts.Get(arms[0])
-	r.apply(t, r.ctx(target), do("raise_max_integrity", "parts", "target:arm", "amount", "3"))
+	r.apply(t, r.ctx(target), contenttest.Do("raise_max_integrity", "parts", "target:arm", "amount", "3"))
 	for _, arm := range arms {
 		if got := parts.Get(arm).MaxIntegrity; got != before.MaxIntegrity+3 {
 			t.Errorf("max integrity = %d, want %d", got, before.MaxIntegrity+3)
@@ -484,9 +478,9 @@ func TestCombatEventsNameTheirSource(t *testing.T) {
 	target := anatomy.Members(r.w, r.party)[1]
 	reaper := r.w.UIDOf(r.reaper)
 	events := r.apply(t, r.ctx(target),
-		do("damage", "parts", "target:arm", "amount", "1"),
-		do("add_status", "bodies", "target", "status", "status.braced", "ticks", "3"),
-		do("sever", "parts", "target:arm"),
+		contenttest.Do("damage", "parts", "target:arm", "amount", "1"),
+		contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "3"),
+		contenttest.Do("sever", "parts", "target:arm"),
 	)
 	seen := 0
 	for _, e := range events {

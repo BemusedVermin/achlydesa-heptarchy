@@ -16,6 +16,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
@@ -116,10 +117,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 	if o.dummyQ == 0 {
 		o.dummyQ = 1
 	}
-	reg, err := content.New(testBundle(t, o))
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, testBundle(t, o))
 	fx := &fixture{t: t}
 	fx.cfg = game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		fx.arms = nil
@@ -141,7 +139,6 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 		}
 		return nil
 	}, Install: func(w *sim.World, _ *clock.Clock) error {
-		fx.w = w
 		timeline.SetVisible(w, func(*sim.World, ecs.Entity) bool { return true })
 		timeline.SetChannels(w, func(_ *sim.World, body ecs.Entity) []timeline.Channel {
 			channels := []timeline.Channel{{Entity: body, Tags: []string{"body"}}}
@@ -152,7 +149,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 			}
 			return channels
 		})
-		err = effects.Register(w, effects.Primitive{
+		err := effects.Register(w, effects.Primitive{
 			Name: "test.hit", Apply: func(*effects.Context, effects.Params) error { fx.hits++; return nil },
 		})
 		if err != nil {
@@ -185,9 +182,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 		fx.addHooks(w)
 		return nil
 	}}
-	if fx.g, err = game.New(fx.cfg); err != nil {
-		t.Fatal(err)
-	}
+	fx.g, fx.w, fx.cfg = gametest.Start(t, fx.cfg)
 	return fx
 }
 
@@ -597,10 +592,7 @@ func TestGameNewRejectsActionsContentCannotRun(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			reg, err := content.New(testBundle(t, opts{mutate: tc.mutate}))
-			if err != nil {
-				t.Fatal(err)
-			}
+			reg := contenttest.Registry(t, testBundle(t, opts{mutate: tc.mutate}))
 			if _, err := game.New(
 				game.Config{Seed: 1, Content: reg},
 			); err == nil ||

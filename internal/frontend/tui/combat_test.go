@@ -6,7 +6,6 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
@@ -38,15 +37,8 @@ func fightApp(t *testing.T) *tui.App {
 func startApp(t *testing.T) *tui.App {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	movingClay := bundle.Templates["template.creature.moving_clay"]
-	movingClay.Actor = &content.ActorDef{Controller: "still"}
-	movingClay.Actions = nil
-	movingClay.Lists = nil
-	bundle.Templates["template.creature.moving_clay"] = movingClay
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	contenttest.StandingCrawler(&bundle)
+	reg := contenttest.Registry(t, bundle)
 	g, err := game.New(game.Config{Seed: 1, Content: reg})
 	if err != nil {
 		t.Fatal(err)

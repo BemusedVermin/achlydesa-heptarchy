@@ -10,7 +10,6 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
@@ -22,22 +21,9 @@ var update = flag.Bool("update", false, "rewrite the golden files")
 func config(t *testing.T) game.Config {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	// These tests walk and read goldens drawn for a party that can only step.
-	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
-		person := bundle.Templates[id]
-		person.Actions = []api.ContentID{"action.step"}
-		bundle.Templates[id] = person
-	}
-	// The sample moving clay hunts; these goldens were drawn with it standing still.
-	movingClay := bundle.Templates["template.creature.moving_clay"]
-	movingClay.Actor = &content.ActorDef{Controller: "still"}
-	movingClay.Actions = nil
-	movingClay.Lists = nil
-	bundle.Templates["template.creature.moving_clay"] = movingClay
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	contenttest.StepOnlyParty(&bundle)
+	contenttest.StandingCrawler(&bundle)
+	reg := contenttest.Registry(t, bundle)
 	return game.Config{Seed: 1, Content: reg}
 }
 

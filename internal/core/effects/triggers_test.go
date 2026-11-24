@@ -27,18 +27,10 @@ type triggerRig struct {
 	notes []string
 }
 
-func ref(name string, params ...string) content.EffectRef {
-	out := content.EffectRef{Do: name, Params: map[string]string{}}
-	for i := 0; i < len(params); i += 2 {
-		out.Params[params[i]] = params[i+1]
-	}
-	return out
-}
-
 func triggerBundle(t *testing.T, mutate func(*content.Bundle)) content.Bundle {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	bundle.Start = content.Start{}
+	contenttest.NoStart(&bundle)
 	body := api.ContentID("body.test.crawler")
 	bundle.Templates["template.test.crawler"] = content.Template{Body: &body}
 	bundle.Statuses["status.braced"] = content.Status{Name: "text.status.braced"}
@@ -49,13 +41,10 @@ func triggerBundle(t *testing.T, mutate func(*content.Bundle)) content.Bundle {
 
 func newTriggerRig(t *testing.T, mutate func(*content.Bundle)) (*triggerRig, error) {
 	t.Helper()
-	reg, err := content.New(triggerBundle(t, mutate))
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, triggerBundle(t, mutate))
 	r := &triggerRig{}
 	at := comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
-	_, err = game.New(game.Config{
+	_, err := game.New(game.Config{
 		Seed: 1, Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {
 			r.w = w
@@ -125,7 +114,7 @@ func TestTemplateTriggerFiresOnlyForItsBodysParts(t *testing.T) {
 	r := mustTriggerRig(t, func(b *content.Bundle) {
 		tmpl := b.Templates["template.test.crawler"]
 		tmpl.Triggers = []content.Trigger{
-			trigger("combat.part_severed", content.RoleTarget, "", ref("note", "text", "severed")),
+			trigger("combat.part_severed", content.RoleTarget, "", contenttest.Do("note", "text", "severed")),
 		}
 		b.Templates["template.test.crawler"] = tmpl
 	})
@@ -136,7 +125,7 @@ func TestTemplateTriggerFiresOnlyForItsBodysParts(t *testing.T) {
 	if err := r.apply(
 		t,
 		&effects.Context{World: r.w, Target: r.a, TargetPart: maw},
-		ref("sever", "parts", "target_part"),
+		contenttest.Do("sever", "parts", "target_part"),
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +140,7 @@ func TestMaterialTriggerHardensClayWhenBurned(t *testing.T) {
 		clay := b.Materials["material.clay"]
 		clay.Triggers = []content.Trigger{trigger(
 			"combat.part_damaged", content.RolePart, `chosen.type.id == "type.burn"`,
-			ref("raise_max_integrity", "parts", "target_part", "amount", "2"),
+			contenttest.Do("raise_max_integrity", "parts", "target_part", "amount", "2"),
 		)}
 		b.Materials["material.clay"] = clay
 	}
@@ -182,7 +171,7 @@ func TestMaterialTriggerHardensClayWhenBurned(t *testing.T) {
 				t.Fatal("the crawler has no clay part")
 			}
 			ctx := &effects.Context{World: r.w, Target: r.a, Choices: map[string]string{"type": tt.kind}}
-			if err := r.apply(t, ctx, ref("damage", "parts", "target:all", "amount", "1")); err != nil {
+			if err := r.apply(t, ctx, contenttest.Do("damage", "parts", "target:all", "amount", "1")); err != nil {
 				t.Fatal(err)
 			}
 			for e, was := range before {
@@ -209,18 +198,18 @@ func TestTriggersFireInUIDOrder(t *testing.T) {
 	r := mustTriggerRig(t, func(b *content.Bundle) {
 		tmpl := b.Templates["template.test.crawler"]
 		tmpl.Triggers = []content.Trigger{
-			trigger("combat.part_severed", content.RoleAny, "", ref("note", "text", "body")),
+			trigger("combat.part_severed", content.RoleAny, "", contenttest.Do("note", "text", "body")),
 		}
 		b.Templates["template.test.crawler"] = tmpl
 		clay := b.Materials["material.clay"]
 		clay.Triggers = []content.Trigger{
-			trigger("combat.part_severed", content.RoleAny, "", ref("note", "text", "part")),
+			trigger("combat.part_severed", content.RoleAny, "", contenttest.Do("note", "text", "part")),
 		}
 		b.Materials["material.clay"] = clay
 	})
 	core := r.part(r.a, "torso")
 	ctx := &effects.Context{World: r.w, Target: r.a, TargetPart: core}
-	if err := r.apply(t, ctx, ref("sever", "parts", "target_part")); err != nil {
+	if err := r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part")); err != nil {
 		t.Fatal(err)
 	}
 	uid := r.w.UIDOf(r.a)
@@ -237,7 +226,7 @@ func TestStatusTriggerFiresForBodiesUnderIt(t *testing.T) {
 	r := mustTriggerRig(t, func(b *content.Bundle) {
 		braced := b.Statuses["status.braced"]
 		braced.Triggers = []content.Trigger{
-			trigger("combat.part_severed", content.RoleTarget, "", ref("note", "text", "braced")),
+			trigger("combat.part_severed", content.RoleTarget, "", contenttest.Do("note", "text", "braced")),
 		}
 		b.Statuses["status.braced"] = braced
 	})
@@ -246,8 +235,8 @@ func TestStatusTriggerFiresForBodiesUnderIt(t *testing.T) {
 	if err := r.apply(
 		t,
 		ctx,
-		ref("add_status", "bodies", "target", "status", "status.braced", "ticks", "5"),
-		ref("sever", "parts", "target_part"),
+		contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "5"),
+		contenttest.Do("sever", "parts", "target_part"),
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -256,7 +245,7 @@ func TestStatusTriggerFiresForBodiesUnderIt(t *testing.T) {
 	}
 	r.notes = nil
 	bCtx := &effects.Context{World: r.w, Target: r.b, TargetPart: r.part(r.b, "head")}
-	if err := r.apply(t, bCtx, ref("sever", "parts", "target_part")); err != nil {
+	if err := r.apply(t, bCtx, contenttest.Do("sever", "parts", "target_part")); err != nil {
 		t.Fatal(err)
 	}
 	if len(r.notes) != 0 {
@@ -268,14 +257,14 @@ func TestItemTriggerFiresForHolders(t *testing.T) {
 	r := mustTriggerRig(t, func(b *content.Bundle) {
 		coal := b.Items["item.coal"]
 		coal.Triggers = []content.Trigger{
-			trigger("combat.part_severed", content.RoleTarget, "", ref("note", "text", "coal")),
+			trigger("combat.part_severed", content.RoleTarget, "", contenttest.Do("note", "text", "coal")),
 		}
 		b.Items["item.coal"] = coal
 	})
 	inventory.Add(r.w, r.a, comp.ItemStack{Item: "item.coal", Count: 1})
 	for _, body := range []ecs.Entity{r.a, r.b} {
 		ctx := &effects.Context{World: r.w, Target: body, TargetPart: r.part(body, "head")}
-		if err := r.apply(t, ctx, ref("sever", "parts", "target_part")); err != nil {
+		if err := r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part")); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -290,12 +279,12 @@ func TestSelfRefiringTriggerErrors(t *testing.T) {
 		tmpl := b.Templates["template.test.crawler"]
 		tmpl.Triggers = []content.Trigger{trigger(
 			"combat.status_added", content.RoleTarget, "",
-			ref("add_status", "bodies", "target", "status", "status.braced", "ticks", "5"),
+			contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "5"),
 		)}
 		b.Templates["template.test.crawler"] = tmpl
 	})
 	ctx := &effects.Context{World: r.w, Target: r.a}
-	err := r.apply(t, ctx, ref("add_status", "bodies", "target", "status", "status.braced", "ticks", "5"))
+	err := r.apply(t, ctx, contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "5"))
 	if err == nil || !strings.Contains(err.Error(), "cascade") {
 		t.Fatalf("a trigger that re-fires itself gave %v, want a cascade error", err)
 	}
@@ -306,12 +295,12 @@ func TestTriggerEffectErrorsSurfaceFromDrain(t *testing.T) {
 		tmpl := b.Templates["template.test.crawler"]
 		tmpl.Triggers = []content.Trigger{trigger(
 			"combat.part_severed", content.RoleTarget, "",
-			ref("add_status", "bodies", "target", "status", "status.braced", "ticks", "0"),
+			contenttest.Do("add_status", "bodies", "target", "status", "status.braced", "ticks", "0"),
 		)}
 		b.Templates["template.test.crawler"] = tmpl
 	})
 	ctx := &effects.Context{World: r.w, Target: r.a, TargetPart: r.part(r.a, "head")}
-	err := r.apply(t, ctx, ref("sever", "parts", "target_part"))
+	err := r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part"))
 	if err == nil || !strings.Contains(err.Error(), "ticks must be at least 1") {
 		t.Fatalf("a failing trigger effect gave %v", err)
 	}
@@ -328,7 +317,7 @@ func TestNewRejectsBadTriggers(t *testing.T) {
 			mutate: func(b *content.Bundle) {
 				clay := b.Materials["material.clay"]
 				clay.Triggers = []content.Trigger{
-					trigger("combat.no_such_event", content.RolePart, "", ref("note", "text", "x")),
+					trigger("combat.no_such_event", content.RolePart, "", contenttest.Do("note", "text", "x")),
 				}
 				b.Materials["material.clay"] = clay
 			},
@@ -339,7 +328,7 @@ func TestNewRejectsBadTriggers(t *testing.T) {
 			mutate: func(b *content.Bundle) {
 				clay := b.Materials["material.clay"]
 				clay.Triggers = []content.Trigger{
-					trigger("combat.part_damaged", content.RolePart, "", ref("no_such_primitive")),
+					trigger("combat.part_damaged", content.RolePart, "", contenttest.Do("no_such_primitive")),
 				}
 				b.Materials["material.clay"] = clay
 			},
@@ -362,10 +351,10 @@ func TestContentRejectsBadTriggerShapes(t *testing.T) {
 		trigger content.Trigger
 		want    string
 	}{
-		{"bad role", trigger("combat.part_damaged", "bystander", "", ref("note")), "role: unknown role"},
-		{"bad condition", trigger("combat.part_damaged", content.RoleAny, "nope +", ref("note")), "if:"},
+		{"bad role", trigger("combat.part_damaged", "bystander", "", contenttest.Do("note")), "role: unknown role"},
+		{"bad condition", trigger("combat.part_damaged", content.RoleAny, "nope +", contenttest.Do("note")), "if:"},
 		{"no effects", trigger("combat.part_damaged", content.RoleAny, ""), "do: at least one effect"},
-		{"no event", trigger("", content.RoleAny, "", ref("note")), "on: required"},
+		{"no event", trigger("", content.RoleAny, "", contenttest.Do("note")), "on: required"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -386,13 +375,13 @@ func TestSourceRoleTriggerFiresForTheActingBody(t *testing.T) {
 	r := mustTriggerRig(t, func(b *content.Bundle) {
 		tmpl := b.Templates["template.test.crawler"]
 		tmpl.Triggers = []content.Trigger{
-			trigger("combat.part_severed", content.RoleSource, "", ref("note", "text", "acted")),
+			trigger("combat.part_severed", content.RoleSource, "", contenttest.Do("note", "text", "acted")),
 		}
 		b.Templates["template.test.crawler"] = tmpl
 	})
 	// a acts on b: only a, the source, hears of it.
 	ctx := &effects.Context{World: r.w, Source: r.a, Target: r.b, TargetPart: r.part(r.b, "head")}
-	if err := r.apply(t, ctx, ref("sever", "parts", "target_part")); err != nil {
+	if err := r.apply(t, ctx, contenttest.Do("sever", "parts", "target_part")); err != nil {
 		t.Fatal(err)
 	}
 	want := []string{fmt.Sprintf("acted:%d", r.w.UIDOf(r.b))}

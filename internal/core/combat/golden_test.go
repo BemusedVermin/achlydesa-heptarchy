@@ -10,6 +10,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -170,7 +171,7 @@ func TestGoldenACrawlingPartOutlivesItsBody(t *testing.T) {
 	fieldEncounter(t, "crawling_part_outlives_body", f, func() {
 		reaper := f.members()[0]
 		arm := f.partOf(remnant, "arm")
-		f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
+		f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 		crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
 		// The source and the hall's own creature go down: only the crawling arm is left to see.
 		f.damage(reaper, remnant, "torso", "99")

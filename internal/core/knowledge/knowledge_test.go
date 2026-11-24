@@ -7,12 +7,12 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -176,26 +176,18 @@ func TestNoticedFactLogsTheValueAsText(t *testing.T) {
 
 func TestSaveAndLoadKeepEveryFact(t *testing.T) {
 	bundle := contenttest.SampleBundle(t)
-	bundle.Start = content.Start{}
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var world *sim.World
+	contenttest.NoStart(&bundle)
+	reg := contenttest.Registry(t, bundle)
 	var knower ecs.Entity
 	cfg := game.Config{
 		Seed: 1, Content: reg,
-		Install: func(w *sim.World, _ *clock.Clock) error { world = w; return nil },
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
 			var err error
 			knower, err = w.Spawn("template.person.reaper", nil)
 			return err
 		},
 	}
-	g, err := game.New(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g, world, cfg := gametest.Start(t, cfg)
 	subject := world.UIDOf(knower)
 	world.Now = 12
 	knowledge.Learn(

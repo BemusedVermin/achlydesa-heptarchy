@@ -28,7 +28,7 @@ func badActions(t *testing.T) map[string]content.ActionDef {
 
 func TestNewRejectsBadActionEffects(t *testing.T) {
 	bundle := contenttest.SampleBundle(t)
-	bundle.Start = content.Start{}
+	contenttest.NoStart(&bundle)
 	for id, def := range badActions(t) {
 		def.Name = api.ContentID("text." + id)
 		bundle.Text[string(def.Name)] = id

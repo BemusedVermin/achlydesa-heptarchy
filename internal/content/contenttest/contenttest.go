@@ -84,3 +84,12 @@ func StepOnlyParty(bundle *content.Bundle) {
 
 // NoStart removes the start scenario, for tests that spawn their own party.
 func NoStart(bundle *content.Bundle) { bundle.Start = content.Start{} }
+
+// Do builds an effect reference from the primitive's name and its parameters as name, value pairs.
+func Do(name string, params ...string) content.EffectRef {
+	ref := content.EffectRef{Do: name, Params: map[string]string{}}
+	for i := 0; i+1 < len(params); i += 2 {
+		ref.Params[params[i]] = params[i+1]
+	}
+	return ref
+}

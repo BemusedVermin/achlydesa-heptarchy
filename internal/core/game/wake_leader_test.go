@@ -11,17 +11,16 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
 func TestWakeWithADeadLeaderHandsTheLeadOverAndReordersTheParty(t *testing.T) {
 	reg := contenttest.Sample(t)
-	var world *sim.World
-	g, err := game.New(game.Config{
+	g, world, _ := gametest.Start(t, game.Config{
 		Seed:    1,
 		Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {
-			world = w
 			return sim.Handle(w, func(w *sim.World, _ downCommand) (int64, error) {
 				party := controlledParty(w)
 				leader := ecs.NewMap[comp.Party](w.ECS).Get(party).Leader
@@ -37,9 +36,6 @@ func TestWakeWithADeadLeaderHandsTheLeadOverAndReordersTheParty(t *testing.T) {
 			})
 		},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 	party := controlledParty(world)
 	state := ecs.NewMap[comp.Party](world.ECS).Get(party)
 	if len(state.Order) < 2 {

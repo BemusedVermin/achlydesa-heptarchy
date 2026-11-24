@@ -14,6 +14,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -29,57 +30,25 @@ type rig struct {
 func newBundle(t testing.TB) content.Bundle {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	// These tests walk. A member who can also fight is still ready while its legs recover, so they
-	// teach the party only the step.
-	for _, id := range []string{"template.person.reaper", "template.person.salken"} {
-		person := bundle.Templates[id]
-		person.Actions = []api.ContentID{"action.step"}
-		bundle.Templates[id] = person
-	}
-	// The sample moving clay hunts. Random walkers would be killed, so these tests keep it standing.
-	movingClay := bundle.Templates["template.creature.moving_clay"]
-	movingClay.Actor = &content.ActorDef{Controller: "still"}
-	movingClay.Actions = nil
-	movingClay.Lists = nil
-	bundle.Templates["template.creature.moving_clay"] = movingClay
+	contenttest.StepOnlyParty(&bundle)
+	contenttest.StandingCrawler(&bundle)
 	return bundle
 }
 
 func newRig(t testing.TB, seed uint64, bundle content.Bundle) *rig {
 	t.Helper()
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	r := &rig{}
-	r.cfg = game.Config{Seed: seed, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
-		r.w = w
-		return nil
-	}}
-	if r.g, err = game.New(r.cfg); err != nil {
-		t.Fatal(err)
-	}
+	r.cfg = game.Config{Seed: seed, Content: reg}
+	r.g, r.w, _ = gametest.Start(t, r.cfg)
 	return r
 }
 
 // reload saves g and loads the bytes into a new game with the same config.
 func reload(t testing.TB, cfg game.Config, g *game.Game) (*rig, []string) {
 	t.Helper()
-	var buf bytes.Buffer
-	if err := g.Save(&buf); err != nil {
-		t.Fatal(err)
-	}
-	r := &rig{}
-	cfg.Install = func(w *sim.World, _ *clock.Clock) error {
-		r.w = w
-		return nil
-	}
-	loaded, warnings, err := game.Load(cfg, &buf)
-	if err != nil {
-		t.Fatal(err)
-	}
-	r.cfg, r.g = cfg, loaded
-	return r, warnings
+	loaded, w, warnings := gametest.Reload(t, cfg, g)
+	return &rig{cfg: cfg, g: loaded, w: w}, warnings
 }
 
 func hash(t testing.TB, g *game.Game) [32]byte {
@@ -128,11 +97,8 @@ func TestSaveThenLoadAtTickZeroHasTheSameHash(t *testing.T) {
 
 func TestSaveThenLoadWithASpawnedActorHasTheSameHash(t *testing.T) {
 	bundle := newBundle(t)
-	bundle.Start = content.Start{} // the fixture spawns its own actor
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	contenttest.NoStart(&bundle) // the fixture spawns its own actor
+	reg := contenttest.Registry(t, bundle)
 	cfg := game.Config{Seed: 1, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		_, err := w.Spawn("template.person.reaper", nil)
 		return err

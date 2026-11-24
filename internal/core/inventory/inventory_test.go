@@ -1,7 +1,6 @@
 package inventory_test
 
 import (
-	"bytes"
 	"slices"
 	"strings"
 	"testing"
@@ -11,9 +10,9 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -126,10 +125,7 @@ func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
 	deep := bundle.Factions["faction.wild"]
 	deep.HostileTo = []api.ContentID{"faction.crawling"} // only the party's side of the feud is left one-sided
 	bundle.Factions["faction.wild"] = deep
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	hostility := 0
 	for _, warning := range reg.Warnings() {
 		if strings.Contains(warning, "hostile") {
@@ -166,15 +162,7 @@ func partyOf(t *testing.T, w *sim.World) ecs.Entity {
 
 func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
 	reg := contenttest.Sample(t)
-	var world *sim.World
-	cfg := game.Config{Seed: 1, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
-		world = w
-		return nil
-	}}
-	g, err := game.New(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	g, world, cfg := gametest.Start(t, game.Config{Seed: 1, Content: reg})
 	party := partyOf(t, world)
 	for _, item := range []api.ContentID{
 		"item.coal", "item.salk_dust", "item.lake_water", "item.daylight_jar", "item.violet_blood", "item.lees",
@@ -186,13 +174,7 @@ func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
 	inventory.Take(world, party, "item.coal", 0, 1)
 	before := stacks(world, party)
 
-	var buf bytes.Buffer
-	if err := g.Save(&buf); err != nil {
-		t.Fatal(err)
-	}
-	if _, _, err := game.Load(cfg, &buf); err != nil {
-		t.Fatal(err)
-	}
+	_, world, _ = gametest.Reload(t, cfg, g)
 	if got := stacks(world, partyOf(t, world)); !slices.Equal(got, before) {
 		t.Errorf("loaded inventory = %+v, want %+v", got, before)
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -49,10 +50,7 @@ func propertyConfig(t *testing.T, seed uint64, install func(w *sim.World)) game.
 	}
 	hall.Layers = []content.LayerDef{{Depth: hall.Layers[0].Depth, Rows: rows}}
 	bundle.Maps["map.test.hall"] = hall
-	reg, err := content.New(bundle)
-	if err != nil {
-		t.Fatal(err)
-	}
+	reg := contenttest.Registry(t, bundle)
 	return game.Config{Seed: seed, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
 		if install != nil {
 			install(w)
@@ -79,14 +77,9 @@ func newFight(t *testing.T, seed uint64) (*fight, game.Config) {
 	t.Helper()
 	f := &fight{}
 	cfg := propertyConfig(t, seed, func(w *sim.World) {
-		f.w = w
 		w.Bus.SubscribeAll("test.property", func(w *sim.World, e api.Event) { f.observe(w, e) })
 	})
-	g, err := game.New(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	f.g = g
+	f.g, f.w, _ = gametest.Start(t, cfg)
 	return f, cfg
 }
 
