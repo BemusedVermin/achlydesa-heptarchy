@@ -157,9 +157,9 @@ types: "type.cut": name: "text.type.cut"
 text: {"text.type.cut": "a", "text.item.x": "a"}
 `
 	tests := []struct {
-		name  string
-		extra string
-		want  string // empty means it loads
+		name    string
+		extra   string
+		wantErr string
 	}{
 		{"nothing declared", `
 items: "item.x": {name: "text.item.x", tags: ["whatever"]}
@@ -190,10 +190,10 @@ materials: "material.clay": lists: weak_to: ["type.cut"]
 		t.Run(test.name, func(t *testing.T) {
 			_, err := loadWith(t, test.extra)
 			switch {
-			case test.want == "" && err != nil:
+			case test.wantErr == "" && err != nil:
 				t.Errorf("Load failed: %v", err)
-			case test.want != "" && (err == nil || !strings.Contains(err.Error(), test.want)):
-				t.Errorf("Load error = %v, want it to contain %q", err, test.want)
+			case test.wantErr != "" && (err == nil || !strings.Contains(err.Error(), test.wantErr)):
+				t.Errorf("Load error = %v, want it to contain %q", err, test.wantErr)
 			}
 		})
 	}
@@ -267,9 +267,9 @@ func TestFollowActionIsChecked(t *testing.T) {
 
 func TestARecordsNameIsItsOwnIDAsText(t *testing.T) {
 	tests := []struct {
-		name  string
-		extra string
-		want  string // empty means it loads
+		name    string
+		extra   string
+		wantErr string
 	}{
 		{"beside its record", `
 types: "type.cut": name: "text.type.cut"
@@ -288,10 +288,10 @@ text: "text.a": "arm"
 		t.Run(test.name, func(t *testing.T) {
 			_, err := loadWith(t, test.extra)
 			switch {
-			case test.want == "" && err != nil:
+			case test.wantErr == "" && err != nil:
 				t.Errorf("Load failed: %v", err)
-			case test.want != "" && (err == nil || !strings.Contains(err.Error(), test.want)):
-				t.Errorf("Load = %v, want an error containing %q", err, test.want)
+			case test.wantErr != "" && (err == nil || !strings.Contains(err.Error(), test.wantErr)):
+				t.Errorf("Load = %v, want an error containing %q", err, test.wantErr)
 			}
 		})
 	}

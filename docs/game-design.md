@@ -104,7 +104,7 @@ The deep is generated around the fixed towns and populated by monsters and peopl
 
 ### The hex grid
 
-Exploring and fighting both happen on the hex grid, on the same clock; moves are picked from menus.
+Exploring and fighting both happen on the hex grid, on the same clock; actions are picked from menus.
 
 - **Why hexes suit the deep:** six even directions make organic caves and tunnels rather than corridors and rooms, and distances are uniform for creature movement.
 - **ASCII handles it:** each hex is one glyph, two columns wide, with alternate rows offset by one column. Terminal cells are about twice as tall as they are wide, so the hexes come out roughly even.
@@ -369,14 +369,14 @@ Fights happen on the same hex map and on the same clock as exploring, like a rog
 - **Parts act on their own time.** A step keeps the body busy for a time its legs set, and a swing keeps one arm busy. A body decides whenever one of its parts is free, so more arms means more swings in the air at once, and a swing can start while the legs recover from a step.
 - **Some actions need more than one part.** A Sweep takes both arms and a Graft takes two hands, and some effects hit several parts or stop everything a body is doing.
 - **Lead and follow.** The player moves a leader and the rest trail in single file, or controls each member directly, and can switch between the two at any time. A hostile coming into sight switches to individual control automatically, and the party goes back to following when the danger passes, unless the player chose the mode.
-- **Moves come from menus.** The player positions a member on the grid, then picks the action, type and target from a menu.
-- **Position matters.** A move reaches only what's in sight and in range. In a soop one cell wide only the front member can fight, and ledges and slopes give height.
+- **Actions come from menus.** The player positions a member on the grid, then picks the action, type and target from a menu.
+- **Position matters.** An action reaches only what's in sight and in range. In a soop one cell wide only the front member can fight, and ledges and slopes give height.
 - **The timeline strip.** Like the turn-order bars in many RPGs, a strip shows the upcoming ticks: an icon on each tick where something happens, +N when several things share one, and selecting a tick lists who acts and what lands.
 - **Fleeing is walking away.** A body with slower legs falls behind.
 
 ### Timing
 
-- **Wind-up and recovery.** Every move takes time to land and time to recover from. The form, the type (lake water is heavy), the part's material and grafts all change both.
+- **Wind-up and recovery.** Every action takes time to land and time to recover from. The form, the type (lake water is heavy), the part's material and grafts all change both.
 - **Dodging.** A swing is aimed when it starts. If its target is out of reach or out of sight when it lands, it misses, so stepping away in time is the answer to a slow, heavy blow.
 - **Hit-and-run.** Against something slower, swing, let it land, and step away while its own swing is still winding up. Against something faster, read its wind-ups on the timeline and choose your moment.
 - **Staggering.** Some hits cancel the swings a body has in progress. Cutting off the arm that's winding up cancels that swing for good.
@@ -401,7 +401,7 @@ Combat is meant to be lethal and short. If you go in without a plan, you lose.
 
 ### Moves = form × type
 
-A move is a character's **form** loaded with a **type**. Cut, Press, Relic and Name are innate. Every other type is a consumable material that has to be fetched.
+An action is a character's **form** loaded with a **type**. Cut, Press, Relic and Name are innate. Every other type is a consumable material that has to be fetched.
 
 ### Types
 
@@ -435,7 +435,7 @@ Name and Keepsake are never refused. Used on a body they don't belong to, the sw
 | Give | A character spends one arm's time so an ally can act at once |
 | Graft | Attaches a piece of Serilmen, or puts a severed part back (a reattach, which is not a graft), mid-fight. Graftable characters only |
 
-Example moves: lake water with Sweep douses every clay part on a body. A daylight jar with Sweep blinds every eye. A candidate's name with Pin stops the part that still remembers being him.
+Example actions: lake water with Sweep douses every clay part on a body. A daylight jar with Sweep blinds every eye. A candidate's name with Pin stops the part that still remembers being him.
 
 ### Grafts
 

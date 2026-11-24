@@ -87,7 +87,7 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-26](C1-cleanup/C1-26-design-doc-fixes-and-the-content-guide.md) | Design-doc fixes and the content guide | done | content | L | C1-17, C1-19 |
 | [C1-27](C1-cleanup/C1-27-lock-in-what-the-cleanup-decided.md) | Lock in what the cleanup decided | todo | debt | S | C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-26, C1-28, C1-29, C1-30 |
 | [C1-28](C1-cleanup/C1-28-foundation-comments-to-the-tightened-rule.md) | Foundation comments to the tightened rule | done | debt | M | none |
-| [C1-29](C1-cleanup/C1-29-content-comments-to-the-tightened-rule.md) | Content comments to the tightened rule | todo | debt | M | none |
+| [C1-29](C1-cleanup/C1-29-content-comments-to-the-tightened-rule.md) | Content comments to the tightened rule | done | debt | M | none |
 | [C1-30](C1-cleanup/C1-30-actions-comments-to-the-tightened-rule.md) | Actions comments to the tightened rule | done | debt | M | none |
 
 ## Later milestones (outlines)
@@ -118,7 +118,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | --- | --- | --- | --- | --- | --- |
 | [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | done | test | C1 | C1-23 |
 | [C1-23.F1](followups/C1-23.F1-reload-messages-in-content.md) | Move the hot reload's log messages into content text | obsolete | debt | C1 | C1-23 |
-| [C1-26.F1](followups/C1-26.F1-move-means-movement-in-game-design.md) | Use "move" only for movement in game-design.md | todo | debt | C1 | C1-26 |
+| [C1-26.F1.F1](followups/C1-26.F1.F1-rename-moves-form-type-heading.md) | Rename the "Moves = form × type" heading | proposed | debt | C1 | C1-26.F1 |
+| [C1-26.F1](followups/C1-26.F1-move-means-movement-in-game-design.md) | Use "move" only for movement in game-design.md | done | debt | C1 | C1-26 |
 | [C1-24.F2](followups/C1-24.F2-samebehavior-missing-seed-message.md) | samebehavior says clearly when a seed reports no hash | done | bug | C1 | C1-24 |
 | [C1-24.F1](followups/C1-24.F1-agentkit-tests-use-gittest.md) | agentkit's tests use gittest and build fewer repositories | obsolete | test | C1 | C1-24 |
 | [C1-21.F2](followups/C1-21.F2-check-pr-allowed-behavior-changes.md) | Let check-pr accept a cleanup task's named behavior changes | done | seam | C1 | C1-21 |

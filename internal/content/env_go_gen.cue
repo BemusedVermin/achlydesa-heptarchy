@@ -32,24 +32,46 @@ package content
 // A record is empty (ID "") when there's none.
 #BodyEnv: {
 	Template: #Record
-	Part:     #Record
+
+	// Part is the part's template.
+	Part: #Record
+
+	// Material is the part's own material, which a body plan may override.
 	Material: #Record
-	Grafts:   int
+
+	// Grafts is how many of the body's parts are grafts.
+	Grafts: int
 
 	// The rest are facts about the body or its part. They are false, 0 or empty when there is none.
-	Integrity:    int
+	Integrity: int
+
+	// MaxIntegrity is the part's integrity when whole.
 	MaxIntegrity: int
-	Locked:       bool
-	Graft:        bool
+
+	// Locked means the part is busy, as a lock leaves it.
+	Locked: bool
+
+	// Graft means the part is a graft.
+	Graft: bool
+
+	// Statuses are the body's status IDs.
 	Statuses: [...string] @go(,[]string)
+
+	// WindingUp means the body has a pending action.
 	WindingUp: bool
-	IsParty:   bool
+
+	// IsParty means the body belongs to the party the player commands (set only when scoring).
+	IsParty: bool
 }
 
 // EffectEnv is everything an effect formula can see.
 #EffectEnv: {
-	Now:      int64
-	Roll:     float64
+	Now: int64
+
+	// Roll is a fresh draw in [0,1) from the "effects" stream; refused in checks.
+	Roll: float64
+
+	// Distance is hexes from source to target, or 0.
 	Distance: int
 
 	// Source is the acting body; its part is the first channel the action occupies that is a part.
@@ -64,34 +86,64 @@ package content
 
 	// Inventory counts, per item ID, the stacks the source's inventory can use on the target.
 	Inventory: {[string]: int} @go(,map[string]int)
+
+	// Height is target depth minus source depth: positive when the source is above.
 	Height: int
-	Cells:  int
+
+	// Cells is the cells a fall dropped, or 0.
+	Cells: int
 }
 
 // ActionEnv is what an action's formulas see.
 #ActionEnv: {
-	Speed:     int
+	Speed: int
+
+	// StepTicks is the base ticks a step takes at this speed (timeline.step_ticks).
 	StepTicks: int64
-	Distance:  int
-	Used:      int
-	Source:    #BodyEnv
-	Target:    #BodyEnv
+
+	// Distance is hexes from the actor to its target, or 0.
+	Distance: int
+
+	// Used is how many channels it occupies.
+	Used: int
+
+	// Source is the actor and the first part it uses.
+	Source: #BodyEnv
+
+	// Target is the target body and part.
+	Target: #BodyEnv
+
+	// Chosen is the choices made, as the records they name.
 	Chosen: {[string]: #Record} @go(,map[string]Record)
+
+	// Inventory is per item, the stacks the actor's inventory can use on the target.
 	Inventory: {[string]: int} @go(,map[string]int)
 }
 
 // OfferEnv is what a choice's offer formula sees.
 #OfferEnv: {
+	// Record is the candidate.
 	#Record
+
+	// Source is the actor; only its template is filled in.
 	Source: #BodyEnv
+
+	// Inventory is the actor's whole inventory: there's no target yet, so bound stacks count.
 	Inventory: {[string]: int} @go(,map[string]int)
 }
 
 // ScoreEnv is what combat.ai_score sees of one intent a creature could start.
 #ScoreEnv: {
+	// Source is the actor and the first part it uses.
 	Source: #BodyEnv
+
+	// Target is the body aimed at and the part.
 	Target: #BodyEnv
+
+	// Chosen is the choices made, as the records they name.
 	Chosen: {[string]: #Record} @go(,map[string]Record)
+
+	// Inventory is per item, the stacks the actor's inventory can use on the target.
 	Inventory: {[string]: int} @go(,map[string]int)
 
 	// MaterialKnown is whether the source knows what the target part is made of.

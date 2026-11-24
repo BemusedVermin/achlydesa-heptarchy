@@ -13,19 +13,23 @@ import (
 
 // Registry is the immutable, validated content. Build one with [Load] or [New]. It is safe for concurrent use.
 type Registry struct {
-	bundle      Bundle
-	hash        string
-	moveCosts   map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
-	stepTicks   *vm.Program                          // compiled timeline.step_ticks formula
-	climbCost   *vm.Program                          // compiled party.climb_cost formula, nil when empty
-	templates   map[api.ContentID]*template.Template // parsed text, by text ID
-	actions     map[api.ContentID]compiledAction     // compiled action formulas
-	speed       *vm.Program                          // compiled timeline.speed formula
-	aiScore     *vm.Program                          // compiled combat.ai_score formula
-	aims        *vm.Program                          // compiled combat.aims formula
-	records     map[api.ContentID]Record             // the formula view of every record
-	offers      map[string]*vm.Program               // compiled choice offers; absent when a choice has none
-	mods        map[api.ContentID]compiledMods       // compiled mods of types and items
+	bundle Bundle
+	hash   string
+	// moveCosts is keyed by terrain ID.
+	moveCosts map[api.ContentID]*vm.Program
+	stepTicks *vm.Program
+	// climbCost is nil when party.climb_cost is empty.
+	climbCost *vm.Program
+	// templates is parsed text, keyed by text ID.
+	templates map[api.ContentID]*template.Template
+	actions   map[api.ContentID]compiledAction
+	speed     *vm.Program
+	aiScore   *vm.Program
+	aims      *vm.Program
+	records   map[api.ContentID]Record
+	// offers has no entry for a choice without an offer formula.
+	offers      map[string]*vm.Program
+	mods        map[api.ContentID]compiledMods
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

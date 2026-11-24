@@ -14,9 +14,15 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // TriggerSite is one trigger and the content that carries it.
 #TriggerSite: {
 	// ID names the trigger: the owner's ID, then "#", then the trigger's index in its list.
-	ID:      string
-	Owner:   string
+	ID: string
+
+	// Owner is one of the Owner kinds.
+	Owner: string
+
+	// OwnerID is the template, material, status or item ID.
 	OwnerID: api.#ContentID
+
+	// Path is where the trigger sits in content, for error messages.
 	Path:    string
 	#Trigger
 }
