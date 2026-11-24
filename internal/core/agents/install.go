@@ -3,6 +3,7 @@ package agents
 import (
 	"errors"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
@@ -12,7 +13,7 @@ import (
 const needsSystem = "agents.needs"
 
 // Install registers the needs spawner, the satisfy primitive, the needs system, the behavior
-// primitives and the agents controller. It needs effects and actions installed first.
+// primitives, the agents chooser and the agents controller. It needs effects and actions installed first.
 func Install(w *sim.World) error {
 	if w.Content == nil {
 		return errors.New("agents: install: world has no content")
@@ -30,6 +31,9 @@ func Install(w *sim.World) error {
 		if err := RegisterPrimitive(w, p); err != nil {
 			return err
 		}
+	}
+	if err := actions.RegisterChooser(w, chooserName, attackChooser{}); err != nil {
+		return err
 	}
 	return timeline.RegisterController(w, controllerName, controller{})
 }

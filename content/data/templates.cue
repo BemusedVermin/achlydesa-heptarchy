@@ -173,6 +173,26 @@ templates: {
 		lists: types: ["type.cut"]
 		behaviors: ["behavior.test.fight"]
 	}
+	// A body that goes for the slowly dying, picking its attacks with the agents chooser.
+	"template.test.predator": {
+		name: "text.template.test.predator"
+		appearance: {glyph: "p", color: "red"}
+		actor: {controller: "hunt", chooser: "agents"}
+		body:    "body.moving_clay"
+		faction: "faction.wild"
+		actions: ["action.step", "action.strike"]
+		lists: types: ["type.cut"]
+	}
+	// A body that steps out of reach of a swing aimed at it.
+	"template.test.dodger": {
+		name: "text.template.test.dodger"
+		appearance: {glyph: "q", color: "green"}
+		actor: controller: "agents"
+		body:    "body.human"
+		faction: "faction.wild"
+		actions: ["action.step"]
+		behaviors: ["behavior.test.dodge"]
+	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
 		// A few of each consumable to start with.
@@ -203,6 +223,8 @@ text: {
 	"text.template.test.runner":          "Runner"
 	"text.template.test.guard":           "Guard"
 	"text.template.test.engager":         "Fighter"
+	"text.template.test.predator":        "Predator"
+	"text.template.test.dodger":          "Dodger"
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"
 	"text.template.unknown":              "Someone"

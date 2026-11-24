@@ -289,6 +289,12 @@ type AgentsConfig struct {
 	KeepBonus float64 `json:"keep_bonus"`
 	// CellRadius is how far an agent looks for a cell target, in hexes and in depths.
 	CellRadius int `json:"cell_radius"`
+	// ScoreRule names the rule (without "rule.") that rates an intent for a body whose template
+	// picks attacks with the agents chooser; it is an Expr over ScoreEnv.
+	ScoreRule string `json:"score_rule"`
+	// DyingBelow is the fraction of its integrity at or below which a vital part marks its body as
+	// dying, as target.dying reads in a formula.
+	DyingBelow float64 `json:"dying_below"`
 }
 
 // NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1

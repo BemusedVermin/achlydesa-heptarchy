@@ -108,6 +108,7 @@ type chooser struct {
 	body   ecs.Entity
 	pos    comp.Pos
 	doing  comp.Doing
+	threat int64
 	source content.BodyEnv
 	phase  string
 	bodies []ecs.Entity
@@ -121,6 +122,7 @@ func newChooser(w *sim.World, body ecs.Entity) *chooser {
 		pos:    *ecs.NewMap[comp.Pos](w.ECS).Get(body),
 		source: effects.BodyEnvOf(w, body, ecs.Entity{}),
 		phase:  string(calendar.Phases[clock.New(calendar).Phase(w.Now)].ID),
+		threat: threatened(w, body),
 	}
 	if doing := ecs.NewMap[comp.Doing](w.ECS); doing.Has(body) {
 		c.doing = *doing.Get(body)
@@ -176,6 +178,7 @@ func (c *chooser) env(def content.BehaviorDef, target Target) content.ConsiderEn
 	env := content.ConsiderEnv{
 		Source: c.source, Target: effects.BodyEnvOf(c.w, target.Body, ecs.Entity{}),
 		Phase: c.phase, Now: c.w.Now, Doing: string(c.doing.Behavior),
+		Threatened: c.threat,
 	}
 	if def.Target != nil {
 		env.Distance = hexmap.CellDistance(c.pos.At, target.Cell)

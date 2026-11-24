@@ -140,7 +140,7 @@ A need's level runs from 0 (met) to 1 (desperate). A template lists the needs it
 
 ## Behaviors
 
-A body whose template has `actor: controller: "agents"` acts on the behaviors its template lists: `behaviors: ["behavior.test.wander", "behavior.test.to_water"]`. At each of its decisions every listed behavior is scored: the product of its `consider` formulas (1 when it has none). They see `source` (the agent, with its needs), `target` (the target body, when there is one), `distance` (hexes plus depths to the target), `phase` (the current phase ID), `now` and `doing` (the ID of the behavior it is doing, or `""`). The behavior it is already doing gets `agents.keep_bonus` added, so it doesn't switch back and forth between behaviors that score about the same. The best wins, and ties are drawn at random. A behavior that scores 0 or less is never chosen; with none left, the body waits.
+A body whose template has `actor: controller: "agents"` acts on the behaviors its template lists: `behaviors: ["behavior.test.wander", "behavior.test.to_water"]`. At each of its decisions every listed behavior is scored: the product of its `consider` formulas (1 when it has none). They see `source` (the agent, with its needs), `target` (the target body, when there is one), `distance` (hexes plus depths to the target), `phase` (the current phase ID), `now`, `doing` (the ID of the behavior it is doing, or `""`) and `threatened` (ticks until the soonest landing of a hostile's action aimed at the agent, or -1; the `dodge` primitive takes `within` ticks and steps out of range). The behavior it is already doing gets `agents.keep_bonus` added, so it doesn't switch back and forth between behaviors that score about the same. The best wins, and ties are drawn at random. A behavior that scores 0 or less is never chosen; with none left, the body waits.
 
 `do` names the behavior primitive that carries it out, one step per decision: `idle` waits, `wander` steps to a random open neighbour, and `move_toward` walks to the target with `combat.step_action`, until it stands on the cell (or next to the body). `params` give the primitive's parameters; one that a primitive doesn't take fails when a game starts.
 
@@ -164,7 +164,7 @@ Params that pick bodies or parts are selectors:
 3. Add its name to the `text:` block at the bottom of `templates.cue`.
 4. To meet it, put it on a map: a mark character in `marks` and the same character in `spawns` (see the map recipe).
 
-Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does. `actor.chooser` names the chooser its attacks are picked with; left out, it is `score`, which rates each attack with `ai_score`.
+Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does. `actor.chooser` names the chooser its attacks are picked with; left out, it is `score`, which rates each attack with `ai_score`. `agents` rates with the rule `agents.score_rule` names, which can read `source.needs` and `target.dying` (a vital part at or below `agents.dying_below` of its integrity), and lets the hunter pick among hostiles as near as its prey.
 
 ### A type, in `types.cue` with `#Consumable`
 

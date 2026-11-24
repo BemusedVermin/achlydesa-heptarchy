@@ -346,6 +346,14 @@ import (
 
 	// CellRadius is how far an agent looks for a cell target, in hexes and in depths.
 	cell_radius: int @go(CellRadius)
+
+	// ScoreRule names the rule (without "rule.") that rates an intent for a body whose template
+	// picks attacks with the agents chooser; it is an Expr over ScoreEnv.
+	score_rule: string @go(ScoreRule)
+
+	// DyingBelow is the fraction of its integrity at or below which a vital part marks its body as
+	// dying, as target.dying reads in a formula.
+	dying_below: float64 @go(DyingBelow)
 }
 
 // NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1

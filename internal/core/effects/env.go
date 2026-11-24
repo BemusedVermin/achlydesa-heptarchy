@@ -48,9 +48,17 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 			}
 		}
 		grafts := ecs.NewMap[comp.Graft](w.ECS)
+		partData := ecs.NewMap[comp.Part](w.ECS)
+		dyingBelow := w.Content.Agents().DyingBelow
 		for _, attached := range anatomy.Parts(w, body) {
 			if grafts.Has(attached) {
 				env.Grafts++
+			}
+			if !partData.Has(attached) {
+				continue
+			}
+			if data := partData.Get(attached); data.Vital && float64(data.Integrity) <= dyingBelow*float64(data.MaxIntegrity) {
+				env.Dying = true
 			}
 		}
 	}
