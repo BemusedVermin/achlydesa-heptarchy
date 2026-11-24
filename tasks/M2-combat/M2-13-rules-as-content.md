@@ -19,7 +19,7 @@ Every combat rule moves out of Go and into CUE: what makes a part weak or immune
 
 - AGENTS.md rule 4, "Content is data".
 - Tech design: "Designing for pivots" (the Actions and Rules seams), "Content pipeline".
-- Game design: "Combat → Moves = form × type", "Combat → Types".
+- Game design: "Combat → Actions = form × type", "Combat → Types".
 - This milestone's README, "The combat model" (Rules are content).
 - What's in Go today that this task moves into content:
   - `internal/core/effects/effects.go`, `partEnv`: `weak` and `immune` are computed in Go from `Material.WeakTo` and `ImmuneTo` and the choice named `"type"`.
