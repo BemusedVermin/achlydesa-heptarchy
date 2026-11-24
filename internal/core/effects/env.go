@@ -57,7 +57,8 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 			if !partData.Has(attached) {
 				continue
 			}
-			if data := partData.Get(attached); data.Vital && float64(data.Integrity) <= dyingBelow*float64(data.MaxIntegrity) {
+			data := partData.Get(attached)
+			if data.Vital && isDying(data, dyingBelow) {
 				env.Dying = true
 			}
 		}
@@ -73,6 +74,11 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 		}
 	}
 	return env
+}
+
+// isDying says whether the part's integrity is at or below the fraction of its maximum.
+func isDying(part *comp.Part, fraction float64) bool {
+	return float64(part.Integrity) <= fraction*float64(part.MaxIntegrity)
 }
 
 // ChosenRecords reads each choice's value as the record it names. A value that names no record,
