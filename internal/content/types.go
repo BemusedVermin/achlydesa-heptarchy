@@ -32,6 +32,10 @@ type Bundle struct {
 	Statuses map[string]Status `json:"statuses"`
 	// Needs are what bodies run low on ("need." IDs); a template says which ones its bodies carry.
 	Needs map[string]NeedDef `json:"needs"`
+	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
+	// bodies weigh.
+	Behaviors map[string]BehaviorDef `json:"behaviors"`
+	Agents    AgentsConfig           `json:"agents"`
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	Rules map[string]string `json:"rules,omitempty"`
 	// Choices are the choices actions may ask for, served from a collection of records.
@@ -226,6 +230,65 @@ type Template struct {
 	Faction *api.ContentID `json:"faction,omitempty"`
 	// Needs maps each need ("need." ID) a body of this template carries to its starting level, 0 to 1.
 	Needs map[string]float64 `json:"needs,omitempty"`
+	// Behaviors lists the behaviors ("behavior." IDs) the agents controller weighs for a body of this
+	// template.
+	Behaviors []api.ContentID `json:"behaviors,omitempty"`
+}
+
+// BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a
+// template lists and runs one step of the best.
+type BehaviorDef struct {
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Do names a registered behavior primitive.
+	Do string `json:"do"`
+	// Params are Expr sources or IDs, as the primitive declares.
+	Params map[string]string `json:"params,omitempty"`
+	// Consider are Expr floats over ConsiderEnv. The score is their product, 1 when there are none.
+	Consider []string `json:"consider,omitempty"`
+	// Target is what the behavior goes for: the nearest match on the agent's map. Nil means nothing.
+	Target *TargetDef `json:"target,omitempty"`
+}
+
+// BehaviorTargetKind is what a behavior goes for.
+type BehaviorTargetKind string
+
+// Kinds of a behavior's target.
+const (
+	BehaviorTargetBody BehaviorTargetKind = "body"
+	BehaviorTargetMark BehaviorTargetKind = "mark"
+	BehaviorTargetCell BehaviorTargetKind = "cell"
+)
+
+// behaviorTargetKinds lists the kinds a behavior's target may name, for bundles built in Go, which
+// skip the schema.
+func behaviorTargetKinds() []BehaviorTargetKind {
+	return []BehaviorTargetKind{BehaviorTargetBody, BehaviorTargetMark, BehaviorTargetCell}
+}
+
+// TargetDef is a filter for what a behavior goes for. Each field after Kind applies only to the kind
+// it names.
+type TargetDef struct {
+	Kind BehaviorTargetKind `json:"kind"`
+	// Tags are template tags a body must all have.
+	Tags []string `json:"tags,omitempty"`
+	// Dead asks for a dead or a living body; nil takes either.
+	Dead *bool `json:"dead,omitempty"`
+	// Hostile asks for a body hostile, or not, to the agent; nil takes either.
+	Hostile *bool `json:"hostile,omitempty"`
+	// Mark names a mark of the agent's map; required for a mark.
+	Mark string `json:"mark,omitempty"`
+	// Terrain is the cell's terrain ("terrain." ID); required for a cell.
+	Terrain api.ContentID `json:"terrain,omitempty"`
+}
+
+// AgentsConfig holds the numbers every agent shares.
+type AgentsConfig struct {
+	// KeepBonus is added to the score of the behavior an agent is already doing, so it does not
+	// switch back and forth between behaviors that score about the same.
+	KeepBonus float64 `json:"keep_bonus"`
+	// CellRadius is how far an agent looks for a cell target, in hexes and in depths.
+	CellRadius int `json:"cell_radius"`
 }
 
 // NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
@@ -413,6 +476,7 @@ const (
 	CollectionFactions  Collection = "factions"
 	CollectionStatuses  Collection = "statuses"
 	CollectionNeeds     Collection = "needs"
+	CollectionBehaviors Collection = "behaviors"
 )
 
 // TargetKind is what an action targets.

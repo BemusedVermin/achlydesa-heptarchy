@@ -41,6 +41,11 @@ import (
 	// Needs are what bodies run low on ("need." IDs); a template says which ones its bodies carry.
 	needs: {[string]: #NeedDef} @go(Needs,map[string]NeedDef)
 
+	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
+	// bodies weigh.
+	behaviors: {[string]: #BehaviorDef} @go(Behaviors,map[string]BehaviorDef)
+	agents: #AgentsConfig @go(Agents)
+
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	rules?: {[string]: string} @go(Rules,map[string]string)
 
@@ -275,6 +280,72 @@ import (
 
 	// Needs maps each need ("need." ID) a body of this template carries to its starting level, 0 to 1.
 	needs?: {[string]: float64} @go(Needs,map[string]float64)
+
+	// Behaviors lists the behaviors ("behavior." IDs) the agents controller weighs for a body of this
+	// template.
+	behaviors?: [...api.#ContentID] @go(Behaviors,[]api.ContentID)
+}
+
+// BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a
+// template lists and runs one step of the best.
+#BehaviorDef: {
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Do names a registered behavior primitive.
+	do: string @go(Do)
+
+	// Params are Expr sources or IDs, as the primitive declares.
+	params?: {[string]: string} @go(Params,map[string]string)
+
+	// Consider are Expr floats over ConsiderEnv. The score is their product, 1 when there are none.
+	consider?: [...string] @go(Consider,[]string)
+
+	// Target is what the behavior goes for: the nearest match on the agent's map. Nil means nothing.
+	target?: null | #TargetDef @go(Target,*TargetDef)
+}
+
+// BehaviorTargetKind is what a behavior goes for.
+#BehaviorTargetKind: #enumBehaviorTargetKind
+
+#enumBehaviorTargetKind:
+	#BehaviorTargetBody |
+	#BehaviorTargetMark |
+	#BehaviorTargetCell
+
+#BehaviorTargetBody: #BehaviorTargetKind & "body"
+#BehaviorTargetMark: #BehaviorTargetKind & "mark"
+#BehaviorTargetCell: #BehaviorTargetKind & "cell"
+
+// TargetDef is a filter for what a behavior goes for. Each field after Kind applies only to the kind
+// it names.
+#TargetDef: {
+	kind: #BehaviorTargetKind @go(Kind)
+
+	// Tags are template tags a body must all have.
+	tags?: [...string] @go(Tags,[]string)
+
+	// Dead asks for a dead or a living body; nil takes either.
+	dead?: null | bool @go(Dead,*bool)
+
+	// Hostile asks for a body hostile, or not, to the agent; nil takes either.
+	hostile?: null | bool @go(Hostile,*bool)
+
+	// Mark names a mark of the agent's map; required for a mark.
+	mark?: string @go(Mark)
+
+	// Terrain is the cell's terrain ("terrain." ID); required for a cell.
+	terrain?: api.#ContentID @go(Terrain)
+}
+
+// AgentsConfig holds the numbers every agent shares.
+#AgentsConfig: {
+	// KeepBonus is added to the score of the behavior an agent is already doing, so it does not
+	// switch back and forth between behaviors that score about the same.
+	keep_bonus: float64 @go(KeepBonus)
+
+	// CellRadius is how far an agent looks for a cell target, in hexes and in depths.
+	cell_radius: int @go(CellRadius)
 }
 
 // NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
@@ -491,7 +562,8 @@ import (
 	#CollectionItems |
 	#CollectionFactions |
 	#CollectionStatuses |
-	#CollectionNeeds
+	#CollectionNeeds |
+	#CollectionBehaviors
 
 #CollectionMaterials: #Collection & "materials"
 #CollectionTerrains:  #Collection & "terrains"
@@ -508,6 +580,7 @@ import (
 #CollectionFactions:  #Collection & "factions"
 #CollectionStatuses:  #Collection & "statuses"
 #CollectionNeeds:     #Collection & "needs"
+#CollectionBehaviors: #Collection & "behaviors"
 
 // TargetKind is what an action targets.
 #TargetKind: #enumTargetKind

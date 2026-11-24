@@ -103,6 +103,16 @@ templates: {
 		body: "body.human"
 		tags: ["crawls"]
 	}
+	// A body that wanders until thirsty, then walks to the map's water mark.
+	"template.test.drinker": {
+		name: "text.template.test.drinker"
+		appearance: {glyph: "w", color: "blue"}
+		actor: controller: "agents"
+		body: "body.human"
+		actions: ["action.step"]
+		needs: {"need.water": 0}
+		behaviors: ["behavior.test.wander", "behavior.test.to_water"]
+	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
 		// A few of each consumable to start with.
@@ -125,6 +135,7 @@ text: {
 	"text.template.test.dummy":           "Dummy"
 	"text.template.creature.moving_clay": "Moving clay"
 	"text.template.test.crawler":         "Crawler"
+	"text.template.test.drinker":         "Drinker"
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"
 	"text.template.unknown":              "Someone"

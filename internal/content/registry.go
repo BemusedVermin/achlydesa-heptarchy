@@ -28,9 +28,11 @@ type Registry struct {
 	aims      *vm.Program
 	records   map[api.ContentID]Record
 	// offers has no entry for a choice without an offer formula.
-	offers      map[string]*vm.Program
-	mods        map[api.ContentID]compiledMods
-	needs       map[api.ContentID]compiledNeed
+	offers map[string]*vm.Program
+	mods   map[api.ContentID]compiledMods
+	needs  map[api.ContentID]compiledNeed
+	// behaviors holds each behavior's considerations, in order.
+	behaviors   map[api.ContentID][]*vm.Program
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

@@ -21,6 +21,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
 | `needs.cue` | `needs`: what bodies run low on, how fast, and the thresholds that hurt them |
+| `behaviors.cue` | `behaviors`: what agents choose between, and `agents`, the numbers every agent shares |
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
 | `maps/` | `maps`: `maps.cue` holds the schema and `_#TestMap`, one file per map (`test_hall.cue`, `test_den.cue`, `test_descent.cue`) |
 | `start.cue` | `start`: the map, party template and mark a new game begins with |
@@ -56,6 +57,7 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `factions` | `faction.` | `faction.wild` |
 | `statuses` | `status.` | `status.standing` |
 | `needs` | `need.` | `need.water` |
+| `behaviors` | `behavior.` | `behavior.test.wander` |
 
 The day's phases in `calendar.cue` have IDs too (`phase.dawn`), and are named `text.<phase id>` like any record.
 
@@ -133,6 +135,14 @@ Several triggers that match one event fire in UID order of their carriers, then 
 ## Needs
 
 A need's level runs from 0 (met) to 1 (desperate). A template lists the needs its bodies carry, with starting levels: `needs: {"need.water": 0.2}`. At every day-phase boundary each living body's needs rise, in ID order, by their `rise` formula, and the level is kept within 0 to 1. Then each of the need's `thresholds` (in ascending `at`) whose `at` the level has reached applies its `do` effects, with the body as source and target. `rise` and `urge` see `level`, `phase` (the phase starting, such as `"phase.day"`) and `source`; any formula reads a body's levels as `source.needs.water`. The `satisfy` effect lowers the target's level by `amount` (a negative amount raises it) and does nothing to a body without that need.
+
+## Behaviors
+
+A body whose template has `actor: controller: "agents"` acts on the behaviors its template lists: `behaviors: ["behavior.test.wander", "behavior.test.to_water"]`. At each of its decisions every listed behavior is scored: the product of its `consider` formulas (1 when it has none). They see `source` (the agent, with its needs), `target` (the target body, when there is one), `distance` (hexes plus depths to the target), `phase` (the current phase ID), `now` and `doing` (the ID of the behavior it is doing, or `""`). The behavior it is already doing gets `agents.keep_bonus` added, so it doesn't switch back and forth between behaviors that score about the same. The best wins, and ties are drawn at random. A behavior that scores 0 or less is never chosen; with none left, the body waits.
+
+`do` names the behavior primitive that carries it out, one step per decision: `idle` waits, `wander` steps to a random open neighbour, and `move_toward` walks to the target with `combat.step_action`, until it stands on the cell (or next to the body). `params` give the primitive's parameters; one that a primitive doesn't take fails when a game starts.
+
+`target` says what a behavior goes for: the nearest match on the agent's map, or the behavior is not scored. `kind: "body"` takes another body, filtered by its template `tags`, `dead` and `hostile` (to the agent); `kind: "mark"` takes the `mark` of that name on the map; `kind: "cell"` takes the nearest cell of `terrain` within `agents.cell_radius`. While a behavior goes on, it keeps the body or cell it chose as long as that still matches.
 
 ## Effects
 

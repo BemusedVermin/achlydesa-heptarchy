@@ -212,6 +212,17 @@ type Needs struct {
 	Levels []NeedLevel `json:"levels"`
 }
 
+// Doing is the behavior an agent is carrying out and what it goes for. The agents controller keeps it.
+type Doing struct {
+	Behavior api.ContentID `json:"behavior"`
+	// Target is the body the behavior goes for, or 0.
+	Target api.UID `json:"target"`
+	// Cell is where the target is, when the behavior has one.
+	Cell api.Cell `json:"cell"`
+	// Since is the tick the behavior was chosen.
+	Since int64 `json:"since"`
+}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -244,4 +255,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Triggers](world)
 	ecs.ComponentID[Calm](world)
 	ecs.ComponentID[Needs](world)
+	ecs.ComponentID[Doing](world)
 }
