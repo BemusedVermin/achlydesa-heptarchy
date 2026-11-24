@@ -53,6 +53,8 @@ type BodyEnv struct {
 	Alert bool `expr:"alert"`
 	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
 	Needs map[string]float64 `expr:"needs"`
+	// Dying means a vital part is at or below agents.dying_below of its integrity.
+	Dying bool `expr:"dying"`
 }
 
 // NeedEnv is what a need's rise and urge formulas see.
@@ -77,6 +79,9 @@ type ConsiderEnv struct {
 	Now   int64  `expr:"now"`
 	// Doing is the ID of the behavior the agent is doing, or "".
 	Doing string `expr:"doing"`
+	// Threatened is the ticks until the soonest landing of a hostile's action aimed at the agent, or
+	// -1 when there is none.
+	Threatened int64 `expr:"threatened"`
 }
 
 // EffectEnv is everything an effect formula can see.

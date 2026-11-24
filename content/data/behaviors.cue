@@ -14,6 +14,10 @@ agents: {
 	keep_bonus: 0.1
 	// How far, in hexes and in depths, an agent looks for a cell of a terrain.
 	cell_radius: 6
+	// The rule that rates an attack for a creature whose template picks with the agents chooser.
+	score_rule: "agents_score"
+	// A body with a vital part at or below this fraction of its integrity is dying.
+	dying_below: 0.5
 }
 
 // For tests: a body that wanders while it has water, and walks to the map's water mark once
@@ -61,6 +65,12 @@ behaviors: {
 		do:   "engage"
 		consider: ["0.5"]
 	}
+	"behavior.test.dodge": {
+		name: "text.behavior.test.dodge"
+		do:   "dodge"
+		params: within: "4"
+		consider: ["threatened >= 0 && threatened <= 4 ? 1 : 0"]
+	}
 	"behavior.test.idle": {
 		name: "text.behavior.test.idle"
 		do:   "idle"
@@ -76,5 +86,6 @@ text: {
 	"text.behavior.test.run":         "running"
 	"text.behavior.test.guard_post":  "guarding a post"
 	"text.behavior.test.fight":       "fighting"
+	"text.behavior.test.dodge":       "dodging"
 	"text.behavior.test.idle":        "standing about"
 }

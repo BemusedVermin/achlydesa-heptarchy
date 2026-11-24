@@ -68,6 +68,9 @@ package content
 
 	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
 	Needs: {[string]: float64} @go(,map[string]float64)
+
+	// Dying means a vital part is at or below agents.dying_below of its integrity.
+	Dying: bool
 }
 
 // NeedEnv is what a need's rise and urge formulas see.
@@ -98,6 +101,10 @@ package content
 
 	// Doing is the ID of the behavior the agent is doing, or "".
 	Doing: string
+
+	// Threatened is the ticks until the soonest landing of a hostile's action aimed at the agent, or
+	// -1 when there is none.
+	Threatened: int64
 }
 
 // EffectEnv is everything an effect formula can see.

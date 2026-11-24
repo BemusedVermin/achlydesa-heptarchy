@@ -36,7 +36,7 @@ func RegisterChooser(w *sim.World, name string, c Chooser) error {
 // ChooserFor is the chooser the body's template names in actor.chooser, else [DefaultChooser]. It
 // reports false when that chooser is not registered.
 func ChooserFor(w *sim.World, body ecs.Entity) (Chooser, bool) {
-	c, ok := stateOf(w).choosers[chooserName(w, body)]
+	c, ok := stateOf(w).choosers[ChooserName(w, body)]
 	return c, ok
 }
 
@@ -51,7 +51,8 @@ func checkChooser(w *sim.World, _ ecs.Entity, t content.Template) error {
 	return nil
 }
 
-func chooserName(w *sim.World, body ecs.Entity) string {
+// ChooserName is the name of the chooser the body's template names in actor.chooser, else [DefaultChooser].
+func ChooserName(w *sim.World, body ecs.Entity) string {
 	t, ok := w.Content.Template(w.TemplateOf(body))
 	if !ok || t.Actor == nil || t.Actor.Chooser == "" {
 		return DefaultChooser

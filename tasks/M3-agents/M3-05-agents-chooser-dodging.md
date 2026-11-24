@@ -1,7 +1,7 @@
 ---
 id: M3-05
 title: The agents chooser for combat, and dodging
-status: todo
+status: done
 milestone: M3
 kind: feature
 depends_on: [M3-04]
@@ -42,10 +42,10 @@ Creatures with needs fight according to them. A registered `agents` chooser scor
 
 ## Acceptance criteria
 
-- [ ] A test creature with `actor.chooser: "agents"` and a rule preferring `target.dying` attacks a nearly dead body over a whole one at equal range.
-- [ ] A test creature with a dodge behavior steps out of range of a winding-up Strike, and the Strike misses on landing.
-- [ ] Creatures without a chooser in their template still fight exactly as before: `go tool task same-behavior` shows no change on the default seeds.
-- [ ] `go tool task check` passes.
+- [x] A test creature with `actor.chooser: "agents"` and a rule preferring `target.dying` attacks a nearly dead body over a whole one at equal range.
+- [x] A test creature with a dodge behavior steps out of range of a winding-up Strike, and the Strike misses on landing.
+- [x] Creatures without a chooser in their template still fight exactly as before: `go tool task same-behavior` shows no change on the default seeds.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -54,4 +54,11 @@ Creatures with needs fight according to them. A registered `agents` chooser scor
 
 ## Notes
 
+- `agents.score_rule` names a rule (`agents_score`); `agents.dying_below` is a fraction (0.5). Both are required content. The old `combat.ai_score` text moved to `rule.attack_score`, which `ai_score` and `agents_score` both use, so the default chooser rates as before.
+- `target.dying` is `BodyEnv.Dying`, filled by `effects.BodyEnvOf` for every formula.
+- The score environment is now built by `actions.ScoreEnvOf`, shared by both choosers; `combat.scoreOf` calls it. `actions.ChooserName` is newly exported.
+- Deviation in `combat`: the hunter used to offer only attacks on its nearest hostile, so no chooser could weigh two bodies at equal range. A body whose template names a non-default chooser may now also target hostiles exactly as near as its prey. The default chooser's bodies are unchanged.
+- `dodge` (param `within`) picks the safe step farthest from the threats; a threat's range is its action's `range` in hexes. It reads pending actions through `timeline.AimedAt`, the call the timeline view uses. It acts only if the behavior is chosen; `threatened` in `ConsiderEnv` is -1 with no hostile swing aimed at the body.
+- `go tool task same-behavior` reports a changed final hash only because the save header holds the content hash and content was added; the harness CSV is identical.
+- Test content added: `behavior.test.dodge`, `template.test.predator`, `template.test.dodger`. Docs: `docs/content-guide.md` updated.
 

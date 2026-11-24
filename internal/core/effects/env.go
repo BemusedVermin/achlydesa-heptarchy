@@ -48,9 +48,18 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 			}
 		}
 		grafts := ecs.NewMap[comp.Graft](w.ECS)
+		partData := ecs.NewMap[comp.Part](w.ECS)
+		dyingBelow := w.Content.Agents().DyingBelow
 		for _, attached := range anatomy.Parts(w, body) {
 			if grafts.Has(attached) {
 				env.Grafts++
+			}
+			if !partData.Has(attached) {
+				continue
+			}
+			data := partData.Get(attached)
+			if data.Vital && isDying(data, dyingBelow) {
+				env.Dying = true
 			}
 		}
 	}
@@ -65,6 +74,11 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 		}
 	}
 	return env
+}
+
+// isDying says whether the part's integrity is at or below the fraction of its maximum.
+func isDying(part *comp.Part, fraction float64) bool {
+	return float64(part.Integrity) <= fraction*float64(part.MaxIntegrity)
 }
 
 // ChosenRecords reads each choice's value as the record it names. A value that names no record,

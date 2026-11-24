@@ -10,7 +10,7 @@ import (
 )
 
 // controllerName is the controller a template names for a body that acts on its behaviors.
-const controllerName = "agents"
+const controllerName = chooserName
 
 // controller chooses among a body's behaviors at each decision and runs one step of the best.
 type controller struct{}

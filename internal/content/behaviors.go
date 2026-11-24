@@ -52,6 +52,16 @@ func (r *Registry) checkBehaviors() []error {
 	if cfg.CellRadius < 0 {
 		p.addf("agents.cell_radius: must not be negative, got %d", cfg.CellRadius)
 	}
+	if cfg.DyingBelow < 0 || cfg.DyingBelow > 1 {
+		p.addf("agents.dying_below: must be between 0 and 1, got %v", cfg.DyingBelow)
+	}
+	if cfg.ScoreRule == "" {
+		p.addf("agents.score_rule: required")
+	} else if program, err := r.Compile("rule."+cfg.ScoreRule, ScoreEnv{}, expr.AsFloat64()); err != nil {
+		p.addf("agents.score_rule: %w", err)
+	} else {
+		r.agentsScore = program
+	}
 	for _, key := range sortedKeys(r.bundle.Behaviors) {
 		def := r.bundle.Behaviors[key]
 		path := fmt.Sprintf("behaviors[%q]", key)

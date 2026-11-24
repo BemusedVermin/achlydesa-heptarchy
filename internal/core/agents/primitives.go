@@ -38,6 +38,7 @@ func primitives() []Primitive {
 		{Name: "carry", Params: []string{"item", "count", "to"}, Step: stepCarry},
 		{Name: "flee", Step: stepFlee},
 		{Name: "guard", Params: []string{"radius"}, Step: stepGuard},
+		{Name: "dodge", Params: []string{"within"}, Step: stepDodge},
 		{Name: "engage", Optional: []string{"controller"}, Step: stepEngage},
 	}
 }
@@ -319,6 +320,72 @@ func engageWith(w *sim.World, body ecs.Entity, name string) error {
 		return fmt.Errorf("unknown controller %q", name)
 	}
 	return controller.Decide(w, body)
+}
+
+// stepDodge steps to the open neighbour farthest from the hostiles whose actions land within
+// params.within ticks, when that takes the body out of every one's range. It does nothing when no
+// step does.
+func stepDodge(w *sim.World, body ecs.Entity, b content.BehaviorDef, _ Target) (bool, error) {
+	within, err := strconv.Atoi(b.Params["within"])
+	if err != nil || within < 0 {
+		return false, fmt.Errorf("within %q is not a whole number of ticks", b.Params["within"])
+	}
+	type reach struct {
+		from api.Cell
+		rng  int
+	}
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	landings := ecs.NewMap[comp.Landing](w.ECS)
+	var reaches []reach
+	for _, t := range threatsTo(w, body) {
+		if t.ticks > int64(within) || !landings.Has(t.pending) || !positions.Has(t.actor) {
+			continue
+		}
+		def, ok := w.Content.Action(landings.Get(t.pending).Action)
+		if !ok {
+			continue
+		}
+		reaches = append(reaches, reach{from: positions.Get(t.actor).At, rng: def.Range})
+	}
+	if len(reaches) == 0 {
+		return false, nil
+	}
+	from := *positions.Get(body)
+	m := w.Maps.Get(from.Map)
+	if m == nil {
+		return false, nil
+	}
+	rules := actions.StepRules(w)
+	var best actions.Intent
+	bestDistance := -1
+	for _, in := range startableSteps(w, body) {
+		step, can, err := m.Step(from.At, *in.Dir, rules)
+		if err != nil {
+			return false, err
+		}
+		if !can || (step.To.Map != 0 && step.To.Map != from.Map) {
+			continue
+		}
+		nearest := -1
+		safe := true
+		for _, r := range reaches {
+			d := hexmap.Distance(step.To.Cell.Hex, r.from.Hex)
+			if d <= r.rng {
+				safe = false
+				break
+			}
+			if nearest < 0 || d < nearest {
+				nearest = d
+			}
+		}
+		if safe && nearest > bestDistance {
+			best, bestDistance = in, nearest
+		}
+	}
+	if best.Action == "" {
+		return false, nil
+	}
+	return false, actions.Start(w, best)
 }
 
 // startableSteps lists the step action's intents the body can start now, in option order. The step

@@ -17,5 +17,11 @@ rules: {
 	// party what a part is made of before it has learned it.
 	hit: "rule.immune ? 0 : (rule.weak ? 6 : 3)"
 	// What a Sweep takes from each part it passes over.
-	graze: "rule.immune ? 0 : (rule.weak ? 2 : 1)"
+	// How an attack is rated: what a swing takes off (and so a weakness or an immunity the creature
+	// knows of), a kill about to happen, a party member over anyone else, a quick wind-up, and the
+	// high ground. Placeholder numbers.
+	attack_score: "(material_known && rule.immune ? -100 : rule.hit) + (target.integrity > 0 && rule.hit >= target.integrity ? 4 : 0) + (target.is_party ? 1 : 0) - windup * 0.1 + height * 0.5"
+	// A creature with needs rates the same, and prefers the slowly dying. Placeholder numbers.
+	agents_score: "rule.attack_score + (target.dying ? 3 : 0)"
+	graze:        "rule.immune ? 0 : (rule.weak ? 2 : 1)"
 }

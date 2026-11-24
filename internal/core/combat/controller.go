@@ -9,12 +9,8 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
 const (
@@ -56,24 +52,7 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 }
 
 func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error) {
-	source := effects.BodyEnvOf(w, actor, timeline.FirstPart(in.Channels))
-	env := content.ScoreEnv{
-		Source: source, Target: effects.BodyEnvOf(w, in.Target, in.TargetPart),
-		Chosen:    effects.ChosenRecords(w, in.Choices),
-		Inventory: inventory.Usable(w, actor, in.Target),
-		Windup:    actions.Windup(w, in),
-	}
-	env.Target.IsParty = anatomy.InControlledParty(w, in.Target)
-	if parts := ecs.NewMap[comp.Part](w.ECS); !in.TargetPart.IsZero() && parts.Has(in.TargetPart) {
-		_, env.MaterialKnown = knowledge.Best(
-			w, inventory.HolderOf(w, actor), w.UIDOf(in.TargetPart), w.Content.Combat().MaterialClaim,
-		)
-	}
-	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if positions.Has(actor) && positions.Has(in.Target) {
-		env.Height = positions.Get(in.Target).At.Depth - positions.Get(actor).At.Depth
-	}
-	return w.Content.AIScore(env)
+	return w.Content.AIScore(actions.ScoreEnvOf(w, actor, in))
 }
 
 // hunter is the controller of a creature that goes after the nearest hostile.
@@ -96,7 +75,7 @@ func (hunter) Decide(w *sim.World, body ecs.Entity) error {
 		if !isAttack(w, in) {
 			continue
 		}
-		if aims && in.Target != prey {
+		if aims && !mayTarget(w, body, in.Target, prey) {
 			continue
 		}
 		attacks = append(attacks, in)
@@ -108,6 +87,23 @@ func (hunter) Decide(w *sim.World, body ecs.Entity) error {
 		}
 	}
 	return stepToward(w, body, prey, startable)
+}
+
+// mayTarget says whether a body that aims may swing at target: the prey, or, for a body whose
+// template names its own chooser, any hostile as near as the prey, so the chooser decides between them.
+func mayTarget(w *sim.World, body, target, prey ecs.Entity) bool {
+	if target == prey {
+		return true
+	}
+	if actions.ChooserName(w, body) == actions.DefaultChooser || !anatomy.Hostile(w, body, target) {
+		return false
+	}
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	if !positions.Has(target) || !positions.Has(prey) || positions.Get(target).Map != positions.Get(prey).Map {
+		return false
+	}
+	from := positions.Get(body).At
+	return hexmap.CellDistance(from, positions.Get(target).At) == hexmap.CellDistance(from, positions.Get(prey).At)
 }
 
 // pick chooses among the attacks: by the chooser when the body aims, at random when it cannot.
