@@ -87,8 +87,8 @@ func TestTheFollowerStepsIntoTheCellTheLeaderLeftInTheSameApply(t *testing.T) {
 	}
 }
 
-// standingApart fails the test when two members share a cell and returns the members' positions.
-func (fx *fixture) standingApart() []comp.Pos {
+// standingApart fails the test when two members share a cell.
+func (fx *fixture) standingApart() {
 	fx.t.Helper()
 	var out []comp.Pos
 	for _, uid := range fx.members() {
@@ -98,7 +98,6 @@ func (fx *fixture) standingApart() []comp.Pos {
 		}
 		out = append(out, pos)
 	}
-	return out
 }
 
 func TestDownTheDescentTheFollowerTrailsSingleFileNeverSharingACell(t *testing.T) {

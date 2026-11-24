@@ -17,7 +17,7 @@ text: {
 	"text.explore.control_changed.individual": "Each member acts on their own."
 	"text.explore.leader_changed":             "{{.name}} leads."
 	"text.explore.party_woke":                 "The party wakes, bruised, where it last rested."
-	"text.explore.status.alert":              "ALERT: hostile in sight"
-	"text.explore.status.follow":             "Control: follow"
-	"text.explore.status.individual":         "Control: individual"
+	"text.explore.status.alert":               "ALERT: hostile in sight"
+	"text.explore.status.follow":              "Control: follow"
+	"text.explore.status.individual":          "Control: individual"
 }

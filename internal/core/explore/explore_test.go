@@ -199,7 +199,7 @@ func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
 func checkSlopeIsFloor(t *testing.T, fx *fixture, openingQ, row, leaderDepth int, when string) {
 	t.Helper()
 	view := fx.view()
-	for k := 0; k <= 4; k++ {
+	for k := range 5 {
 		h := api.Hex{Q: openingQ + k, R: row}
 		c, drawn := cellAt(view.Map, h)
 		if !drawn {

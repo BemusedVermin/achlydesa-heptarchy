@@ -13,18 +13,14 @@ func TestConcurrentUseIsSafe(t *testing.T) {
 
 	uids := make(chan uint64, workers*100)
 	for range workers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for range 100 {
 				uids <- uint64(w.NewUID())
 			}
-		}()
+		})
 	}
 	for worker := range workers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			Subscribe(w.Bus, fmt.Sprint("sub", worker), func(*World, pingEvent) {})
 			w.Bus.Publish(pingEvent{N: worker})
 			if _, err := w.Bus.Drain(w); err != nil {
@@ -34,7 +30,7 @@ func TestConcurrentUseIsSafe(t *testing.T) {
 			_ = w.Systems.Order(PerEntry)
 			_ = w.Commands.Kinds()
 			_, _ = w.Views.Build(w)
-		}()
+		})
 	}
 	wg.Wait()
 	close(uids)
@@ -57,13 +53,11 @@ func TestConcurrentUseIsSafe(t *testing.T) {
 	}
 	var runs sync.WaitGroup
 	for range workers {
-		runs.Add(1)
-		go func() {
-			defer runs.Done()
+		runs.Go(func() {
 			if err := w.Systems.Run(w, PerEntry); err != nil {
 				t.Error(err)
 			}
-		}()
+		})
 	}
 	runs.Wait()
 }

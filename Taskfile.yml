@@ -48,9 +48,10 @@ tasks:
       - go run ./internal/tools/cuefix internal
 
   content:
-    desc: Validate the content data against the schemas
+    desc: Validate the content data against the schemas, and check its formatting
     cmds:
       - go tool cue vet ./content/...
+      - go tool cue fmt --check ./content/...
 
   check:
     desc: Run every check before finishing (fmt-check, vet, test, lint, content)

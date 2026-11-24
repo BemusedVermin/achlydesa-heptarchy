@@ -19,3 +19,5 @@ Goal: one clear, concise name for each concept of the game and of its code, used
    - Propose a rename only where the confusion is real, never for taste.
 
 Report a table: concept, proposed term, one-line definition, current names with how often and where each appears, and whether it's **settled** (one name already used everywhere) or **contested** (several names, or a proposal that differs from what the design doc says). Settled terms go straight into the glossary; contested ones become questions for the owner.
+
+**Start from `docs/glossary.md`.** It holds the terms C1 settled (for example `moving_clay`, `inventory` not "pack", `faction.wild`, `still`, `source` and `target`, `out of the fight`, `party wipe`, `form` as a tag not a record, and `move` only for movement). Treat a term there as settled: report any place that still uses another name for it, and don't reopen the choice. Ask the owner only about concepts the glossary doesn't have.

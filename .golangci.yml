@@ -21,7 +21,17 @@ linters:
   enable:
     - depguard
     - forbidigo
+    - intrange
+    - modernize
+    - perfsprint
+    - predeclared
+    - thelper
+    - unparam
+    - usestdlibvars
   settings:
+    modernize:
+      disable:
+        - omitzero
     depguard:
       rules:
         core-is-pure:

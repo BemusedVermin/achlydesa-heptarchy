@@ -2,6 +2,7 @@ package effects_test
 
 import (
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -62,11 +63,11 @@ func newFixture(t *testing.T) *fixture {
 		}
 		return nil
 	})
-	fx.s = fx.spawn(t, "idle", 0, 0)
-	fx.a = fx.spawn(t, timeline.PlayerController, 2, 0)
-	fx.b = fx.spawn(t, "idle", -2, 0)
-	fx.h = fx.spawn(t, "idle", 5, 0)
-	fx.f = fx.spawn(t, "idle", 10, 0)
+	fx.s = fx.spawn(t, "idle", 0)
+	fx.a = fx.spawn(t, timeline.PlayerController, 2)
+	fx.b = fx.spawn(t, "idle", -2)
+	fx.h = fx.spawn(t, "idle", 5)
+	fx.f = fx.spawn(t, "idle", 10)
 	fx.arm1 = fx.part(t, fx.a, "arm")
 	fx.arm2 = fx.part(t, fx.a, "arm")
 	fx.leg = fx.part(t, fx.a, "leg")
@@ -84,9 +85,9 @@ func newFixture(t *testing.T) *fixture {
 	return fx
 }
 
-func (fx *fixture) spawn(t *testing.T, controller string, q, r int) ecs.Entity {
+func (fx *fixture) spawn(t *testing.T, controller string, q int) ecs.Entity {
 	t.Helper()
-	e, err := fx.w.Spawn("template.person.reaper", &comp.Pos{Map: mapID, At: api.Cell{Hex: api.Hex{Q: q, R: r}}})
+	e, err := fx.w.Spawn("template.person.reaper", &comp.Pos{Map: mapID, At: api.Cell{Hex: api.Hex{Q: q}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,10 +118,8 @@ func (fx *fixture) channelsOf(_ *sim.World, body ecs.Entity) []timeline.Channel 
 
 func (fx *fixture) channel(e ecs.Entity) timeline.Channel {
 	for body, parts := range fx.parts {
-		for _, part := range parts {
-			if part == e {
-				return timeline.Channel{Entity: e, Body: body, Tags: fx.partTags[e]}
-			}
+		if slices.Contains(parts, e) {
+			return timeline.Channel{Entity: e, Body: body, Tags: fx.partTags[e]}
 		}
 	}
 	return timeline.Channel{Entity: e, Tags: []string{"body"}}

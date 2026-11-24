@@ -33,3 +33,22 @@ The repository's own rules in `AGENTS.md` and `docs/go-technical-design.md` come
 For each convention broken more than once, name the golangci-lint linter or rule that would catch it from now on (for example `revive`'s `receiver-naming`, `errname`, `gocritic`). The lock-in step uses these.
 
 Report each finding with `file:line` (or a count and examples, when it's widespread) and the fix.
+
+## Already enforced: don't report these
+
+C1's lock-in turned these on, so `golangci-lint run` rejects them:
+
+- `modernize` (all analyzers except `omitzero`, which would make optional schema fields required), `intrange`, `usestdlibvars`, `predeclared`.
+- `perfsprint`: no `fmt.Sprintf` or `fmt.Errorf` where a plain conversion or `errors.New` will do.
+- `thelper`: `testing.TB` parameters are named `tb` and call `tb.Helper()`.
+- `unparam`: no parameter that every caller passes the same value for.
+- `cue fmt --check ./content/...`, as part of `go tool task content`.
+
+**Left off, on purpose:** `gochecknoglobals`. All 21 non-test hits are read-only lookup tables or the cached immutable sample registry, and the linter can't tell those from mutable state. Check by reading instead: report any package-level variable that something writes to after init (AGENTS.md, Style).
+
+**Decided, so not questions:**
+
+- Names come from `docs/glossary.md`.
+- A run-time content bug returns an error; nothing turns it into a default.
+- The frontend's own text is key help only.
+- `internal/tools/agentkit` keeps its own git helper; the other tools share `internal/tools/internal/gitcmd`.

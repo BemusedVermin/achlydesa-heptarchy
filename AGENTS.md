@@ -5,6 +5,8 @@ A turn-based dungeon crawler in Go: a pure engine core, content as CUE data, and
 Read before touching code:
 
 - `docs/game-design.md`: what the game is.
+- `docs/glossary.md`: the one name for each concept. Use these terms in code, content, docs and text.
+- `docs/content-guide.md`: how to make content in CUE.
 - `docs/go-technical-design.md`: how the code is laid out. Read **Designing for pivots** first.
 - `tasks/README.md`: how work is tracked. `tasks/INDEX.md`: what to do next.
 
@@ -76,7 +78,13 @@ If the follow-up blocks your task, set your task to `blocked`, say why in Notes,
 
 - gofmt. A `doc.go` with a package comment in every package. Every exported identifier has a doc comment.
 - Comments follow `.claude/rules/comments.md`. Doc comments say what a caller needs; any other comment only says why. No end-of-line comments, no comments in tests other than doc comments. Never restate the name, say that errors are returned on failure, narrate the code, or name a task. `go tool task comments -- <paths>` lists the ones that break it.
-- Descriptive names. Single letters only for loop indices and conventional uses such as `t *testing.T`.
+- Descriptive names, taken from `docs/glossary.md`. Single letters only for loop indices and conventional uses such as `t *testing.T`. A helper that takes `testing.TB` names it `tb` and calls `tb.Helper()`.
+- Modern Go: `range` over an integer, `slices`, `maps` and `strings.SplitSeq` rather than hand-written loops, `new(expr)` rather than a pointer helper, `sync.WaitGroup.Go`. `go tool task lint` enforces this (modernize, intrange, perfsprint, usestdlibvars, predeclared, unparam).
+- A package-level variable is a read-only table or a sentinel; nothing writes to it after init. The one cached value is the sample registry in `contenttest`, which is immutable, and tests that edit content take a copy of the bundle (`SampleBundle`).
+- A content bug found at run time, such as a formula that fails, returns an error and is reported. Nothing turns it into a default value.
+- The frontend's own text is key help (chrome) only. Every other word the player sees comes from the core's view.
+- A new shared helper lives in the lowest layer every user may import. Shared git code for the tools is `internal/tools/internal/gitcmd`; `internal/tools/agentkit` keeps its own copy, so an agent cannot change the guard.
+- Run `go tool cue fmt ./content/...` after editing content; `go tool task content` fails on unformatted CUE.
 - Table-driven tests; `pgregory.net/rapid` for properties; golden files under `testdata/`.
 - Return errors for programmer and content bugs (wrap with `%w`). An invalid player command is not an error: emit an `api.Rejected` event.
 - No global mutable state. Registries hang off a world or a content registry value.

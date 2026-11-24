@@ -56,7 +56,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	contenttest.NoStart(&bundle)
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{
-		Name: "text.item.test_arm", Part: &armPart, Data: content.Data{Tags: []string{"piece"}},
+		Name: "text.item.test_arm", Part: &armPart, Tags: []string{"piece"},
 	}
 	bundle.Text["text.item.test_arm"] = "spare arm"
 	bundle.Bodies["body.test.old"] = content.BodyPlan{Parts: []content.PlanPart{
@@ -72,14 +72,14 @@ func newRing(t *testing.T, at map[string]int) *ring {
 		"victim":  bundle.Templates["template.test.dummy"],
 	}
 	crawler := bundle.Templates["template.test.dummy"]
-	crawler.Body = ptr(api.ContentID("body.test.crawler"))
+	crawler.Body = new(api.ContentID("body.test.crawler"))
 	crawler.Tags = append(slices.Clone(crawler.Tags), "crawls")
 	templates["crawler"] = crawler
 	old := bundle.Templates["template.test.dummy"]
-	old.Body = ptr(api.ContentID("body.test.old"))
+	old.Body = new(api.ContentID("body.test.old"))
 	templates["relic"] = old
 	clay := bundle.Templates["template.test.dummy"]
-	clay.Body = ptr(api.ContentID("body.test.clay_arm"))
+	clay.Body = new(api.ContentID("body.test.clay_arm"))
 	templates["clay"] = clay
 	stone := bundle.Templates["template.test.dummy"]
 	stone.Tags = nil

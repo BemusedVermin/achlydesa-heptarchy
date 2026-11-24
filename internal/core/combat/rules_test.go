@@ -1,6 +1,7 @@
 package combat_test
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -16,10 +17,10 @@ import (
 const brittleWeak = `chosen.type.id in target.material.lists.weak_to || "brittle" in target.part.tags`
 
 // soakAll damages every part of the crawler by 2 where it is weak to the chosen type, and 1 elsewhere.
-func soakAll(t *testing.T, r *rig, kind string) map[string]int {
+func soakAll(t *testing.T, r *rig) map[string]int {
 	t.Helper()
 	ctx := r.ctx(r.crawler)
-	ctx.Choices = map[string]string{"type": kind}
+	ctx.Choices = map[string]string{"type": "type.soak"}
 	before := map[ecs.Entity]int{}
 	for _, slot := range []string{"head", "legs", "torso"} {
 		for _, part := range r.partsOf(r.crawler, slot) {
@@ -36,10 +37,8 @@ func soakAll(t *testing.T, r *rig, kind string) map[string]int {
 
 func partSlot(r *rig, part ecs.Entity) string {
 	for _, slot := range []string{"head", "legs", "torso"} {
-		for _, found := range r.partsOf(r.crawler, slot) {
-			if found == part {
-				return slot
-			}
+		if slices.Contains(r.partsOf(r.crawler, slot), part) {
+			return slot
 		}
 	}
 	return ""
@@ -47,7 +46,7 @@ func partSlot(r *rig, part ecs.Entity) string {
 
 func TestDamageIsEvaluatedPerPart(t *testing.T) {
 	r := newRig(t)
-	got := soakAll(t, r, "type.soak")
+	got := soakAll(t, r)
 	if got["torso"] != 2 || got["head"] != 1 || got["legs"] != 1 {
 		t.Errorf("lost = %v, want 2 from the clay core and 1 from every other part", got)
 	}
@@ -60,7 +59,7 @@ func TestChangingTheWeakRuleNeedsNoGoChange(t *testing.T) {
 		maw.Tags = []string{"brittle"}
 		b.Parts["part.test.crawler_maw"] = maw
 	})
-	got := soakAll(t, r, "type.soak")
+	got := soakAll(t, r)
 	if got["torso"] != 2 || got["head"] != 2 || got["legs"] != 1 {
 		t.Errorf("lost = %v, want the brittle maw to count as weak too", got)
 	}
@@ -68,7 +67,7 @@ func TestChangingTheWeakRuleNeedsNoGoChange(t *testing.T) {
 
 func TestSwappingContentRecomputesAFormulaAlreadyEvaluated(t *testing.T) {
 	r := newRig(t)
-	if got := soakAll(t, r, "type.soak"); got["head"] != 1 {
+	if got := soakAll(t, r); got["head"] != 1 {
 		t.Fatalf("before the swap the maw lost %d, want 1", got["head"])
 	}
 	bundle := contenttest.SampleBundle(t)
@@ -80,7 +79,7 @@ func TestSwappingContentRecomputesAFormulaAlreadyEvaluated(t *testing.T) {
 	if err := r.g.SwapContent(reg); err != nil {
 		t.Fatal(err)
 	}
-	if got := soakAll(t, r, "type.soak"); got["head"] != 2 {
+	if got := soakAll(t, r); got["head"] != 2 {
 		t.Errorf("after the swap the maw lost %d, want 2 by the new rule", got["head"])
 	}
 }

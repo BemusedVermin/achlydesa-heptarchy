@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,7 +36,7 @@ func recordLog(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return path, fmt.Sprintf("%x", hash)
+	return path, hex.EncodeToString(hash[:])
 }
 
 func runReplay(t *testing.T, args ...string) (string, error) {

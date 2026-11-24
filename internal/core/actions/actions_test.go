@@ -89,9 +89,9 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 	bundle.Templates["template.test.fighter"] = content.Template{
 		Faction: &party,
 		Actor:   &content.ActorDef{Controller: timeline.PlayerController}, Actions: known,
-		Data: content.Data{Lists: map[string][]string{
+		Lists: map[string][]string{
 			"types": {"type.cut", "type.name", "type.press", "type.relic"},
-		}},
+		},
 	}
 	bundle.Templates["template.test.dummy"] = content.Template{
 		Faction: &deep, Actor: &content.ActorDef{Controller: "idle"},
@@ -613,7 +613,7 @@ func TestBatchUsableHookAgreesWithTheChannelByChannelTest(t *testing.T) {
 		fx := newFixture(t, 1, opts{
 			actions: []api.ContentID{"action.step", "action.test.swing"}, dummyQ: dummyQ, hooks: true,
 		})
-		for step := 0; step < 6; step++ {
+		for step := range 6 {
 			for _, body := range []ecs.Entity{fx.fighter, fx.dummy} {
 				channels := timeline.Channels(fx.w, body)
 				got := actions.UsableChannels(fx.w, body, channels)
