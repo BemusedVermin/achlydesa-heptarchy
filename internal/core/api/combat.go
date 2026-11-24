@@ -15,22 +15,27 @@ const (
 
 // Causes of a [PartSevered].
 const (
-	SeveredWorn = "worn" // its integrity ran out
-	SeveredCut  = "cut"  // an effect took it off
+	// Its integrity ran out
+	SeveredWorn = "worn"
+	// An effect took it off
+	SeveredCut = "cut"
 )
 
 // Where an attached part came from, in [PartAttached].From.
 const (
-	AttachedFromInventory = "inventory" // a piece the party carried
-	AttachedFromSevered   = "severed"   // a severed part lying where the body stands
+	// A piece the party carried
+	AttachedFromInventory = "inventory"
+	// A severed part lying where the body stands
+	AttachedFromSevered = "severed"
 )
 
 // PartDamaged reports that a part lost integrity.
 type PartDamaged struct {
-	Body      UID `json:"body"`
-	Part      UID `json:"part"`
-	Amount    int `json:"amount"`    // the integrity it actually lost
-	Integrity int `json:"integrity"` // what it has left
+	Body UID `json:"body"`
+	Part UID `json:"part"`
+	// The integrity it actually lost
+	Amount    int `json:"amount"`
+	Integrity int `json:"integrity"`
 	// Chosen is every choice of the action that dealt the damage, such as "type": "type.cut"; the
 	// Params method returns it, so trigger formulas see it as chosen.
 	Chosen map[string]string `json:"choices,omitempty"`
@@ -44,9 +49,10 @@ func (PartDamaged) EventKind() string { return PartDamagedKind }
 
 // PartSevered reports that a part came off its body. It stays in the world, where the body stands.
 type PartSevered struct {
-	Body  UID    `json:"body"`
-	Part  UID    `json:"part"`
-	Cause string `json:"cause"` // SeveredWorn or SeveredCut
+	Body UID `json:"body"`
+	Part UID `json:"part"`
+	// SeveredWorn or SeveredCut
+	Cause string `json:"cause"`
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`
@@ -57,9 +63,10 @@ func (PartSevered) EventKind() string { return PartSeveredKind }
 
 // PartAttached reports that a part was fitted onto a body, which gains its channel.
 type PartAttached struct {
-	Body UID    `json:"body"`
-	Part UID    `json:"part"`
-	From string `json:"from"` // AttachedFromInventory or AttachedFromSevered
+	Body UID `json:"body"`
+	Part UID `json:"part"`
+	// AttachedFromInventory or AttachedFromSevered
+	From string `json:"from"`
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`
@@ -72,7 +79,8 @@ func (PartAttached) EventKind() string { return PartAttachedKind }
 type StatusAdded struct {
 	Body   UID       `json:"body"`
 	Status ContentID `json:"status"`
-	Until  int64     `json:"until"` // the tick it expires
+	// The tick it expires
+	Until int64 `json:"until"`
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`

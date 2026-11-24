@@ -13,7 +13,8 @@ import (
 // sim.World.Now.
 type Clock struct {
 	calendar content.Calendar
-	starts   []int64 // starts[i] is the tick within a day at which phase i begins
+	// Starts[i] is the tick within a day at which phase i begins
+	starts   []int64
 	dayTicks int64
 }
 

@@ -7,17 +7,22 @@ import (
 
 // The kinds of timeline entry, in TimelineEntry.Kind.
 const (
-	EntryReady = "ready" // a body is about to decide
-	EntryLands = "lands" // an action in flight is about to land
+	// A body is about to decide
+	EntryReady = "ready"
+	// An action in flight is about to land
+	EntryLands = "lands"
 )
 
 // Option IDs the core builds and a frontend must recognise. An ID is a slash-separated path.
 const (
-	OptionStepPrefix    = "step/"    // followed by a direction name
-	OptionControlPrefix = "control/" // followed by a control mode
-	OptionLeadPrefix    = "lead/"    // followed by the UID of the member to lead with
-	OptionWaitEvent     = "wait/event"
-	OptionWaitPhase     = "wait/phase"
+	// Followed by a direction name
+	OptionStepPrefix = "step/"
+	// Followed by a control mode
+	OptionControlPrefix = "control/"
+	// Followed by the UID of the member to lead with
+	OptionLeadPrefix = "lead/"
+	OptionWaitEvent  = "wait/event"
+	OptionWaitPhase  = "wait/phase"
 )
 
 // StepOption is the ID of the option that steps in the direction, named as in Dir.String.

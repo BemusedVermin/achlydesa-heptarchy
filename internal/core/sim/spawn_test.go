@@ -55,7 +55,6 @@ func TestSpawnParty(t *testing.T) {
 		}
 		colors = append(colors, look.Color)
 	}
-	// Queries order by archetype and creation, so UID order is template order.
 	if len(got) != 2 || got[0] != "template.person.reaper" || got[1] != "template.person.salken" {
 		t.Fatalf("members = %v", got)
 	}
@@ -123,7 +122,7 @@ func TestByUIDAndDespawn(t *testing.T) {
 	if _, ok := w.ByUID(uid); ok {
 		t.Error("ByUID finds a despawned entity")
 	}
-	w.Despawn(e) // harmless
+	w.Despawn(e)
 	next, err := w.Spawn("template.person.reaper", nil)
 	if err != nil {
 		t.Fatal(err)

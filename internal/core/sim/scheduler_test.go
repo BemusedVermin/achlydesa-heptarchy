@@ -13,7 +13,6 @@ func TestSchedulerOrderIsStable(t *testing.T) {
 	want := []string{"a.a", "b.b", "c.c", "d.d"}
 	for run := range 100 {
 		w := NewWorld(1)
-		// Register in a different order each run; the result must not change.
 		systems := []System{
 			{Name: "d.d", After: []string{"b.b", "c.c"}, Run: noop},
 			{Name: "c.c", After: []string{"a.a"}, Run: noop},

@@ -7,9 +7,11 @@ const ChunkSize = 16
 
 // Terrain is what one cell is made of.
 type Terrain struct {
-	ID     api.ContentID
-	Solid  bool // blocks movement and can be stood on
-	Opaque bool // blocks sight
+	ID api.ContentID
+	// Blocks movement and can be stood on
+	Solid bool
+	// Blocks sight
+	Opaque bool
 }
 
 // ChunkKey is a chunk's position: each cell coordinate floor-divided by ChunkSize.

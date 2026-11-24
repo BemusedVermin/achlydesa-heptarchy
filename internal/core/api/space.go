@@ -21,6 +21,7 @@ func (d Dir) Valid() bool { return d < DirCount }
 
 // Cell is one hex-prism cell of the world.
 type Cell struct {
-	Hex   Hex `json:"hex"`
-	Depth int `json:"depth"` // 0 is the salk's surface; larger is deeper; one cell per step
+	Hex Hex `json:"hex"`
+	// 0 is the salk's surface; larger is deeper; one cell per step
+	Depth int `json:"depth"`
 }

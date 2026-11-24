@@ -13,15 +13,17 @@ type BodiesView struct {
 
 // BodyView is one body.
 type BodyView struct {
-	UID     UID    `json:"uid"`
-	Name    string `json:"name"`
-	Faction string `json:"faction,omitempty"` // rendered faction name, or empty when it has none
+	UID  UID    `json:"uid"`
+	Name string `json:"name"`
+	// Rendered faction name, or empty when it has none
+	Faction string `json:"faction,omitempty"`
 	// Member is whether the body belongs to the party.
 	Member bool `json:"member"`
 	// Hostile is whether the body is an enemy of the party.
-	Hostile  bool          `json:"hostile"`
-	Statuses []string      `json:"statuses,omitempty"` // rendered names
-	Channels []ChannelView `json:"channels"`           // its parts, by UID
+	Hostile  bool     `json:"hostile"`
+	Statuses []string `json:"statuses,omitempty"`
+	// Its parts, by UID
+	Channels []ChannelView `json:"channels"`
 }
 
 // ChannelView is one part of a body, which acts on its own.
@@ -45,9 +47,11 @@ type ChannelView struct {
 
 // WindupView is an action in flight that uses a part.
 type WindupView struct {
-	Action string `json:"action"` // rendered action name
-	Target UID    `json:"target"` // the body aimed at, or 0
-	Lands  int64  `json:"lands"`  // ticks until it lands
+	Action string `json:"action"`
+	// The body aimed at, or 0
+	Target UID `json:"target"`
+	// Ticks until it lands
+	Lands int64 `json:"lands"`
 }
 
 // ThreatView is a pending action aimed at a member of the party.
@@ -55,7 +59,9 @@ type ThreatView struct {
 	Attacker   UID    `json:"attacker"`
 	Target     UID    `json:"target"`
 	TargetPart UID    `json:"target_part,omitempty"`
-	Action     string `json:"action"` // rendered action name
-	Lands      int64  `json:"lands"`  // ticks until it lands
-	Tick       int64  `json:"tick"`   // the tick it lands
+	Action     string `json:"action"`
+	// Ticks until it lands
+	Lands int64 `json:"lands"`
+	// The tick it lands
+	Tick int64 `json:"tick"`
 }
