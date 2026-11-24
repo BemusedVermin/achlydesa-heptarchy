@@ -17,7 +17,7 @@ _fallInjury: {
 // innate to grafts: the type choice offers it to a body that carries one.
 _actions: [
 	"action.step", "action.strike", "action.sweep", "action.sever", "action.pin", "action.stand",
-	"action.give", "action.graft",
+	"action.give", "action.graft", "action.eat", "action.drink",
 ]
 _innateTypes: ["type.cut", "type.name", "type.press"]
 
@@ -26,6 +26,7 @@ _#Person: {
 	body:      "body.human"
 	protected: true
 	faction:   "faction.party"
+	needs: {"need.food": 0, "need.water": 0}
 	tags: ["graftable"]
 	lists: types: _innateTypes
 	triggers: [_fallInjury]
@@ -106,9 +107,10 @@ templates: {
 		party: members: ["template.person.reaper", "template.person.salken"]
 		// A few of each consumable to start with.
 		inventory: [
+			{item: "item.ration", count: 6},
 			{item: "item.coal", count: 3},
 			{item: "item.salk_dust", count: 3},
-			{item: "item.lake_water", count: 3},
+			{item: "item.lake_water", count: 6},
 			{item: "item.daylight_jar", count: 3},
 			{item: "item.violet_blood", count: 3},
 			{item: "item.lees", count: 3},

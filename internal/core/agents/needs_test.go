@@ -34,7 +34,7 @@ func newFixture(t *testing.T, levels map[string]float64, mutate func(*content.Bu
 		contenttest.StandingCrawler(bundle)
 		contenttest.Edit(bundle.Needs, "need.water", func(need *content.NeedDef) { need.Rise = "0.1" })
 		contenttest.Edit(bundle.Needs, "need.food", func(need *content.NeedDef) { need.Rise = "0" })
-		for key, amount := range map[string]string{"drink": "0.25", "salt": "-5"} {
+		for key, amount := range map[string]string{"sip": "0.25", "salt": "-5"} {
 			id := "action.test." + key
 			bundle.Actions[id] = content.ActionDef{
 				Name: api.ContentID("text." + id), Key: key, Target: content.TargetSelf,
@@ -46,7 +46,7 @@ func newFixture(t *testing.T, levels map[string]float64, mutate func(*content.Bu
 		}
 		contenttest.Edit(bundle.Templates, leader, func(person *content.Template) {
 			person.Needs = levels
-			person.Actions = append(person.Actions, "action.test.drink", "action.test.salt")
+			person.Actions = append(person.Actions, "action.test.sip", "action.test.salt")
 		})
 		if mutate != nil {
 			mutate(bundle)
@@ -149,7 +149,7 @@ func TestNeedsRiseNoHigherThanOne(t *testing.T) {
 
 func TestSatisfyKeepsTheLevelInRange(t *testing.T) {
 	f := newFixture(t, map[string]float64{"need.water": 0.2}, nil)
-	f.do("action.test.drink")
+	f.do("action.test.sip")
 	f.wantLevel("need.water", 0)
 	f.nextPhase()
 	f.wantLevel("need.water", 0.1)
@@ -159,7 +159,7 @@ func TestSatisfyKeepsTheLevelInRange(t *testing.T) {
 
 func TestSatisfyIgnoresABodyWithoutTheNeed(t *testing.T) {
 	f := newFixture(t, map[string]float64{"need.food": 0.5}, nil)
-	f.do("action.test.drink")
+	f.do("action.test.sip")
 	f.wantLevel("need.food", 0.5)
 }
 
@@ -178,7 +178,7 @@ func TestThresholdAppliesWhileItHolds(t *testing.T) {
 	f.nextPhase()
 	f.wantLevel("need.water", 0.6)
 	f.wantLevel("need.food", 0.2)
-	f.do("action.test.drink")
+	f.do("action.test.sip")
 	f.nextPhase()
 	f.wantLevel("need.water", 0.45)
 	f.wantLevel("need.food", 0.2)

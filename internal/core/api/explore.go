@@ -189,4 +189,6 @@ type MemberView struct {
 	Color   string `json:"color,omitempty"`
 	Leader  bool   `json:"leader"`
 	Current bool   `json:"current"`
+	// Needs is one rendered line per need the member carries, in need ID order.
+	Needs []string `json:"needs,omitempty"`
 }

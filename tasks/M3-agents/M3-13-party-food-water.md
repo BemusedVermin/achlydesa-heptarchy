@@ -1,7 +1,7 @@
 ---
 id: M3-13
 title: The party eats and drinks
-status: todo
+status: done
 milestone: M3
 kind: feature
 depends_on: [M3-02]
@@ -42,10 +42,10 @@ Party members get hungry and thirsty. The player feeds them rations and lake wat
 
 ## Acceptance criteria
 
-- [ ] A test lets four days pass without eating: the member is slowed (steps take longer) after the first threshold and loses vital integrity after the second.
-- [ ] Drinking lake water lowers thirst and leaves one fewer lake water for Soak.
-- [ ] In the playground, the party panel shows hunger and thirst, and eating from the action menu lowers hunger.
-- [ ] `go tool task check` passes.
+- [x] A test lets four days pass without eating: the member is slowed (steps take longer) after the first threshold and loses vital integrity after the second.
+- [x] Drinking lake water lowers thirst and leaves one fewer lake water for Soak.
+- [x] In the playground, the party panel shows hunger and thirst, and eating from the action menu lowers hunger.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -54,4 +54,8 @@ Party members get hungry and thirsty. The player feeds them rations and lake wat
 
 ## Notes
 
-
+- **Content only, apart from the view.** Slowing uses rules: `rule.slowed` (the `status.slowed` status, put on by the need's lower threshold) lengthens `action.step`'s recovery and the forms' wind-ups (`rule.lag`). The upper threshold damages `self:torso`. Pace: both needs rise 0.0625 per phase, so slowed at 0.5 (two days) and damage from 0.9 (about four days), a point a phase. The sample `need.food` and `need.water` rises changed to match; `status.slowed` lasts 120 ticks, longer than any phase, so each boundary renews it. Amounts: a ration or a lake water lowers its need by 0.5. All placeholders for M7.
+- **Deviations:** "not in a fight's reach" is not enforced: no formula can see the alert (M3-13.F1). The playground (M3-07) does not exist yet, so the party panel criterion was checked against the sample game and a render test. The starting inventory has 6 rations and 6 lake water (was 3). `api.MemberView.Needs` and `text.explore.need` are new.
+- **Test changes outside the list:** `internal/core/game/game_test.go` waits shorter (the long waits now starve the party), `internal/core/agents/needs_test.go` test action `drink` renamed `sip` (key clash), four tui menu goldens regenerated (new options).
+- **Environment:** golangci-lint could not run here (the toolchain targets Go 1.27.4); format, vet, tests, content and comment checks passed.
+- **Follow-ups:** M3-13.F1.
