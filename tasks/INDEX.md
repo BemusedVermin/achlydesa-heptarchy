@@ -85,7 +85,8 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-24](C1-cleanup/C1-24-tools-fix-the-windows-test-shared-git-code-tests.md) | Tools: fix the Windows test, shared git code, tests, comments | todo | debt | L | C1-18, C1-15 |
 | [C1-25](C1-cleanup/C1-25-agentkit-cleanup-owner-does-this-one.md) | agentkit cleanup (owner does this one) | proposed | debt | L | C1-24, C1-14 |
 | [C1-26](C1-cleanup/C1-26-design-doc-fixes-and-the-content-guide.md) | Design-doc fixes and the content guide | todo | content | L | C1-17, C1-19 |
-| [C1-27](C1-cleanup/C1-27-lock-in-what-the-cleanup-decided.md) | Lock in what the cleanup decided | todo | debt | S | C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-25, C1-26 |
+| [C1-27](C1-cleanup/C1-27-lock-in-what-the-cleanup-decided.md) | Lock in what the cleanup decided | todo | debt | S | C1-17, C1-18, C1-19, C1-20, C1-21, C1-22, C1-23, C1-24, C1-25, C1-26, C1-28 |
+| [C1-28](C1-cleanup/C1-28-foundation-comments-to-the-tightened-rule.md) | Foundation comments to the tightened rule | todo | debt | M | none |
 
 ## Later milestones (outlines)
 

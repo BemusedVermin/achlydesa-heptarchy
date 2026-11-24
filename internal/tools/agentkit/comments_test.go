@@ -11,9 +11,9 @@ import (
 func TestReviewComments(t *testing.T) {
 	tests := []struct {
 		name string
-		file string // default file.go
+		file string
 		src  string
-		want []string // fragments of the findings, in order; none for clean code
+		want []string
 	}{
 		{
 			name: "the rule's good examples",
@@ -126,13 +126,61 @@ func Load() {}
 			name: "a long doc comment",
 			src: `package content
 
-// Load reads the content.
-// It walks the directory.
-// It compiles each file.
-// It returns the registry.
+// Load reads the content. It walks the directory, compiles each file, and checks every reference
+// between records before anything can use them, so a registry that loads is whole. Files load in
+// name order, so the same content always gives the same registry. A file the loader can't read
+// stops the load.
 func Load() {}
 `,
-			want: []string{"4-line doc comment"},
+		},
+		{
+			name: "end-of-line comments",
+			src: `package content
+
+// Claim is something a body asserts about the world.
+type Claim struct {
+	ID string // a claim ID
+	// Text is what the claim says, as a text ID.
+	Text string
+}
+
+func load() {
+	run() // TODO(M3-01): run it twice
+}
+`,
+			want: []string{"end-of-line comment"},
+		},
+		{
+			name: "comments in a test",
+			file: "load_test.go",
+			src: `package content
+
+// loadSample loads the sample content once for every test in the package.
+func loadSample() {}
+
+// TestLoad loads the sample and checks every record is reachable.
+func TestLoad(t *testing.T) {
+	tests := []struct {
+		// the content folder
+		dir string
+	}{}
+	// The arm frees first, at tick 4.
+	check(tests) // all of them
+}
+`,
+			want: []string{"comment in a test", "comment in a test", "comment in a test"},
+		},
+		{
+			name: "task IDs",
+			src: `package game
+
+// installAll calls each package's Install in a fixed order (M1-10 adds explore).
+func installAll() {}
+
+// TODO(M3-01.F2): one order per milestone.
+func order() {}
+`,
+			want: []string{"names task M1-10"},
 		},
 		{
 			name: "a long inline comment",
@@ -266,5 +314,44 @@ func TestCommentNote(t *testing.T) {
 	write("old.go", old)
 	if note := commentNote(top, "old.go"); note != "" {
 		t.Errorf("note = %q for an unchanged file, want none", note)
+	}
+}
+
+func TestRunComments(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+	files := map[string]string{
+		"clean.go":            "package thing\n\n// Load reads the content under dir.\nfunc Load(dir string) {}\n",
+		"inner/filler.go":     "package inner\n\nfunc load() {\n\trun() // and then run it\n}\n",
+		"testdata/fixture.go": "package fixture\n\nfunc f() {\n\trun() // a fixture may say anything\n}\n",
+	}
+	for name, src := range files {
+		if err := os.MkdirAll(filepath.Dir(name), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(name, []byte(src), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tests := []struct {
+		name   string
+		args   []string
+		status int
+		want   string
+	}{
+		{"everything", nil, exitFailed, "inner/filler.go:4: end-of-line comment"},
+		{"a package pattern", []string{"./inner/..."}, exitFailed, "inner/filler.go:4: end-of-line comment"},
+		{"a clean file", []string{"clean.go"}, exitOK, ""},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout, stderr strings.Builder
+			status := runComments(test.args, &stdout, &stderr)
+			if status != test.status || !strings.Contains(stdout.String(), test.want) ||
+				strings.Contains(stdout.String(), "fixture") {
+				t.Errorf("status %d, output %q, stderr %q; want %d and a line like %q",
+					status, stdout.String(), stderr.String(), test.status, test.want)
+			}
+		})
 	}
 }

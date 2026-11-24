@@ -85,7 +85,6 @@ func TestCheckPR(t *testing.T) {
 		"internal/core/old.go":        "package core\n\n// load loads. It returns an error if loading fails.\nfunc load() {}\n",
 	}
 	paths := map[string]string{"M3-01": "tasks/M3/M3-01.md", "C1-02": "tasks/C1/C1-02.md", "C1-03": "tasks/C1/C1-03.md"}
-	// done sets a task to done in its file and in the index.
 	done := func(id, kind, extra, criteria string) map[string]string {
 		row := "[" + id + "](" + strings.TrimPrefix(paths[id], "tasks/") + ")"
 		index := markDone(base["tasks/INDEX.md"], row)
@@ -103,10 +102,10 @@ func TestCheckPR(t *testing.T) {
 		branch       string
 		changes      map[string]string
 		sameBehavior bool
-		problems     []string // fragments, one per expected problem
+		problems     []string
 		warnings     []string
 		comments     []string
-		wantRenames  []string // renames passed to the same-behavior check; nil when it shouldn't run
+		wantRenames  []string
 	}{
 		{
 			name:   "a finished feature task",
@@ -161,7 +160,7 @@ func TestCheckPR(t *testing.T) {
 			branch: "task/C1-03-tests",
 			changes: with(
 				done("C1-03", "test", "", "- [x] one\n"),
-				map[string]string{"internal/core/rules_test.go": "package core\n\n// shorter\n"},
+				map[string]string{"internal/core/rules_test.go": "package core\n\nfunc helper() {}\n"},
 			),
 		},
 		{

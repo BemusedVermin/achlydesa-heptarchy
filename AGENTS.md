@@ -75,7 +75,7 @@ If the follow-up blocks your task, set your task to `blocked`, say why in Notes,
 ## Style
 
 - gofmt. A `doc.go` with a package comment in every package. Every exported identifier has a doc comment.
-- Comments are short. A doc comment is one line, and a second sentence only when it changes how a caller uses the thing. Any other comment only says why. Never restate the name, say that errors are returned on failure, or narrate the code. Examples: `.claude/rules/comments.md`.
+- Comments follow `.claude/rules/comments.md`. Doc comments say what a caller needs; any other comment only says why. No end-of-line comments, no comments in tests other than doc comments. Never restate the name, say that errors are returned on failure, narrate the code, or name a task. `go tool task comments -- <paths>` lists the ones that break it.
 - Descriptive names. Single letters only for loop indices and conventional uses such as `t *testing.T`.
 - Table-driven tests; `pgregory.net/rapid` for properties; golden files under `testdata/`.
 - Return errors for programmer and content bugs (wrap with `%w`). An invalid player command is not an error: emit an `api.Rejected` event.

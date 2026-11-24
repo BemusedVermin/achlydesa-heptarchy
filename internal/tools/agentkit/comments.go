@@ -4,6 +4,8 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
+	"io/fs"
 	"maps"
 	"math"
 	"os"
@@ -15,12 +17,8 @@ import (
 	"unicode"
 )
 
-// Line limits, counting prose lines only; indented code blocks in doc comments don't count.
-const (
-	maxDocLines     = 3
-	maxPackageLines = 6
-	maxOtherLines   = 3
-)
+// maxOtherLines caps a comment that isn't a doc comment. Doc comments may explain at any length.
+const maxOtherLines = 3
 
 var (
 	// errorTautology matches saying that a failure returns an error.
@@ -28,6 +26,10 @@ var (
 		`\b(fail(s|ed|ure)?|goes wrong|an error|errors? occurs?|unsuccessful)\b` +
 		`|\b(returns?|propagates?) (any |the |all )?errors?( that)?( it)? ` +
 		`(occur(s|red)?|happens?|arises?|encounters|encountered|gets|got)\b`)
+	// taskID matches a task or follow-up ID.
+	taskID = regexp.MustCompile(`\b[MC]\d+-\d+(\.F\d+)*\b`)
+	// todo matches a TODO naming its follow-up, the one place a task ID belongs.
+	todo = regexp.MustCompile(`TODO\([^)]*\)`)
 	// selfReference matches a comment that opens by describing itself as code.
 	selfReference = regexp.MustCompile(
 		`(?i)^(this|the) (function|method|type|struct|interface|package|test|helper|constant|variable|field)\b`,
@@ -76,6 +78,11 @@ func reviewComments(name string, src []byte) []commentFinding {
 			addDoc(docs, decl.Doc, decl.Names, !inTest)
 		case *ast.Field:
 			addDoc(docs, decl.Doc, decl.Names, false)
+			if decl.Doc != nil {
+				subject := docs[decl.Doc]
+				subject.field = true
+				docs[decl.Doc] = subject
+			}
 		}
 		return true
 	})
@@ -84,12 +91,18 @@ func reviewComments(name string, src []byte) []commentFinding {
 	for _, group := range file.Comments {
 		text := group.Text()
 		if strings.TrimSpace(text) == "" {
-			continue // directives only
+			continue
 		}
-		first, last := files.Position(group.Pos()).Line, files.Position(group.End()).Line
-		subject, isDoc := docs[group]
-		for _, why := range reviewGroup(text, subject, isDoc, group == file.Doc) {
-			found = append(found, commentFinding{first, last, why})
+		start := files.Position(group.Pos())
+		lineStart := strings.LastIndexByte(string(src[:start.Offset]), '\n') + 1
+		place := commentPlace{
+			isPackage: group == file.Doc,
+			endOfLine: strings.TrimSpace(string(src[lineStart:start.Offset])) != "",
+			inTest:    inTest,
+		}
+		place.subject, place.isDoc = docs[group]
+		for _, why := range reviewGroup(text, place) {
+			found = append(found, commentFinding{start.Line, files.Position(group.End()).Line, why})
 		}
 	}
 	return found
@@ -97,26 +110,45 @@ func reviewComments(name string, src []byte) []commentFinding {
 
 // documented is what a doc comment documents.
 type documented struct {
-	name      string   // the one identifier it documents; empty for a group, or the package
-	signature []string // a function's parameter names, which the comment needn't repeat either
-	required  bool     // whether lint requires the comment: exported, and not a field or in a test
+	// name is the one identifier the comment documents; empty for a group or the package.
+	name string
+	// signature is a function's parameter names, which the comment needn't repeat either.
+	signature []string
+	// required is set when lint requires the comment: exported, and not a field or in a test.
+	required bool
+	field    bool
+}
+
+// commentPlace is where a comment group sits.
+type commentPlace struct {
+	subject   documented
+	isDoc     bool
+	isPackage bool
+	endOfLine bool
+	inTest    bool
 }
 
 // reviewGroup says what is wrong with one comment group's text.
-func reviewGroup(text string, subject documented, isDoc, isPackage bool) []string {
+func reviewGroup(text string, place commentPlace) []string {
+	if strings.HasPrefix(strings.TrimSpace(text), "TODO(") {
+		return nil
+	}
+	isDoc, isPackage, subject := place.isDoc, place.isPackage, place.subject
+	switch {
+	case place.inTest && !isPackage && (!isDoc || subject.field):
+		return []string{"comment in a test: say it in the test or subtest name or the failure message, or cut it"}
+	case place.endOfLine:
+		return []string{"end-of-line comment: cut it; a field that needs a note gets a doc comment above it"}
+	}
+
 	var found []string
 	flag := func(why string) { found = append(found, why) }
-
-	limit, kind := maxOtherLines, "comment"
-	switch {
-	case isPackage:
-		limit, kind = maxPackageLines, "package comment"
-	case isDoc:
-		limit, kind = maxDocLines, "doc comment"
+	if id := taskID.FindString(todo.ReplaceAllString(text, "")); id != "" {
+		flag("names task " + id + ": say what the code does, not which task did it")
 	}
-	if lines := proseLines(text); lines > limit {
-		flag(strconv.Itoa(lines) + "-line " + kind + ": keep what a reader can't get from the code (at most " +
-			strconv.Itoa(limit) + " lines)")
+	if lines := proseLines(text); !isDoc && !isPackage && lines > maxOtherLines {
+		flag(strconv.Itoa(lines) + "-line comment: keep only the why (at most " + strconv.Itoa(maxOtherLines) +
+			" lines)")
 	}
 	if errorTautology.MatchString(text) {
 		flag("says errors are returned on failure: cut it, or name the error a caller should handle")
@@ -368,6 +400,50 @@ func commentsOnChangedLines(root string, changed map[string][]lineRange) []fileF
 		}
 	}
 	return found
+}
+
+// runComments is the comments command: it reviews every comment in the Go files under the given
+// paths, "." by default, and exits 1 when it finds any to cut or rewrite.
+func runComments(args []string, stdout, stderr io.Writer) int {
+	if len(args) == 0 {
+		args = []string{"."}
+	}
+	files := map[string][]lineRange{}
+	for _, arg := range args {
+		err := filepath.WalkDir(strings.TrimSuffix(arg, "/..."), func(path string, entry fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			name := entry.Name()
+			if entry.IsDir() && path != "." && (strings.HasPrefix(name, ".") || name == "testdata") {
+				return filepath.SkipDir
+			}
+			if !entry.IsDir() && strings.HasSuffix(name, ".go") {
+				files[filepath.ToSlash(path)] = []lineRange{{1, math.MaxInt}}
+			}
+			return nil
+		})
+		if err != nil {
+			warn(stderr, "agentkit comments:", err)
+			return exitFailed
+		}
+	}
+	found := commentsOnChangedLines(".", files)
+	var out strings.Builder
+	for _, finding := range found {
+		out.WriteString(finding.String() + "\n")
+	}
+	if len(found) > 0 {
+		out.WriteString(strconv.Itoa(len(found)) + " comments to cut or rewrite, as .claude/rules/comments.md says\n")
+	}
+	if _, err := io.WriteString(stdout, out.String()); err != nil {
+		warn(stderr, "agentkit comments:", err)
+		return exitFailed
+	}
+	if len(found) > 0 {
+		return exitFailed
+	}
+	return exitOK
 }
 
 // commentNote tells the agent about filler in the comments of file, relative to root, on the lines

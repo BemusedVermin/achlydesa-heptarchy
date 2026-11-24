@@ -8,6 +8,7 @@
 //	ready            lists the tasks an agent can start now
 //	check-pr         checks a branch's task bookkeeping and the comments it changed; CI runs it
 //	clean-worktrees  removes agent worktrees and branches whose work is pushed or merged
+//	comments         lists the comments under the given paths that break .claude/rules/comments.md
 //
 // The hooks catch the usual mistakes, not every one. A hook that fails, rather than refusing, lets
 // the tool call go ahead.

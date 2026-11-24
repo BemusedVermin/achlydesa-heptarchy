@@ -54,20 +54,21 @@ Findings:
 
 ### Comments: actions, effects, timeline
 
-About 15 comments are cut or fixed.
+Every comment `go tool task comments -- ./internal/core/actions ./internal/core/effects ./internal/core/timeline` lists is cut or fixed (97 when the rule tightened), along with the findings below.
 
 Findings:
 
 - Task IDs: `effects/effects.go:67,181,185`, `timeline/controllers.go:49,70`, `timeline/timeline.go:24,30` (replace by what the code does, e.g. "anatomy adds one per attached part").
 - `actions/export_test.go:15` history ("the per-channel test the batch hook replaced"); `actions/options.go:249-252` doc comment broken mid-reflow; `actions/actions.go:20,577` restate the name; `actions/actions.go:42` and `install.go:31` repeat "Combat uses it" (keep on `AddValidator`); `effects/doc.go:1` and `timeline/doc.go:3` "Foundation layer."; the effects package comment omits `Context`, selectors and the timing primitives; `timeline/timeline.go:367-374` `Run` doc is 8 lines, tighten to about 4.
 
-The policy is the comments lens: doc comments say what a thing is for and what a caller must know, and every sentence carries information (cut name-restatements, filler, history, task IDs). Other comments are terse and say only why. CUE follows the same rules. The examples below set the standard; sweep the whole area.
+The policy is `.claude/rules/comments.md`: doc comments say what a caller needs, and every sentence carries information; other comments say only why; no end-of-line comments, no comments in tests other than doc comments, no task IDs. CUE follows the same rules. The examples below set the standard; sweep the whole area.
 
 ## Acceptance criteria
 
 - [ ] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
 - [ ] The tests commit changed only `_test.go` files and `testdata/`
 - [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
+- [ ] `go tool task comments -- ./internal/core/actions ./internal/core/effects ./internal/core/timeline` reports nothing
 - [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
 - [ ] Only `_test.go` files and `testdata/` changed.
 
