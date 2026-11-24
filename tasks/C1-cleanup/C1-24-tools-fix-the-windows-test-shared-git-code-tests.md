@@ -1,7 +1,7 @@
 ---
 id: C1-24
 title: "Tools: fix the Windows test, shared git code, tests, comments"
-status: todo
+status: in-progress
 milestone: C1
 kind: debt
 depends_on: [C1-18, C1-15]
