@@ -1,12 +1,10 @@
 Actions
-[7m> Pin[m                       
-  Sever                     
-  Stand (lands in 0, busy 1)
-  Strike                    
-  Sweep                     
-                            
-                            
-                            
-                            
-                            
-                            
+[7m> Drink (lands in 0, busy 20)[m
+  Eat (lands in 0, busy 20)  
+  Pin                        
+  Sever                      
+  Stand (lands in 0, busy 1) 
+  Strike                     
+  Sweep                      
+                             
+                             

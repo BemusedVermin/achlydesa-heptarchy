@@ -229,3 +229,13 @@ func TestViewDrawsEveryPane(t *testing.T) {
 		}
 	}
 }
+
+func TestRenderPartyListsNeedsUnderTheMember(t *testing.T) {
+	party := &api.PartyView{Members: []api.MemberView{
+		{UID: 1, Name: "The Reaper", Glyph: "@", Leader: true, Needs: []string{"food 12%", "water 25%"}},
+	}}
+	got := tui.RenderParty(party)
+	if !strings.Contains(got, "food 12%  water 25%") {
+		t.Errorf("party panel = %q, want the needs line", got)
+	}
+}

@@ -4,6 +4,9 @@ rules: [string]: string
 
 // Named formulas any formula may use as rule.<name>. The compiler inlines them.
 rules: {
+	slowed: "\"status.slowed\" in source.statuses"
+	// The ticks a slowed body adds to a wind-up, provisional.
+	lag:  "rule.slowed ? 2 : 0"
 	weak: "chosen.type.id in target.material.lists.weak_to"
 	// A name or a keepsake works only on the body it is bound to. Not held for this body, it is not
 	// refused: the swing lands and does nothing, as an immunity does.

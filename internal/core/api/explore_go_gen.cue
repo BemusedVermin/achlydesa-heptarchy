@@ -151,4 +151,7 @@ package api
 	color?:  string @go(Color)
 	leader:  bool   @go(Leader)
 	current: bool   @go(Current)
+
+	// Needs is one rendered line per need the member carries, in need ID order.
+	needs?: [...string] @go(Needs,[]string)
 }

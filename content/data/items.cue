@@ -5,6 +5,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 items: [string]: content.#Item & {bound: *false | bool}
 
 items: {
+	"item.ration": {name: "text.item.ration", tags: ["consumable"]}
 	"item.coal": {name: "text.item.coal", tags: ["consumable"]}
 	"item.salk_dust": {name: "text.item.salk_dust", tags: ["consumable"]}
 	"item.lake_water": {name: "text.item.lake_water", tags: ["consumable"]}
@@ -35,6 +36,7 @@ items: "item.serilmen_arm": {
 text: {
 	"text.item.serilmen_arm": "a piece of Serilmen"
 	"text.item.name":         "a name"
+	"text.item.ration":       "ration"
 	"text.item.coal":         "coal"
 	"text.item.salk_dust":    "salk dust"
 	"text.item.lake_water":   "lake water"

@@ -338,6 +338,9 @@ func RenderParty(p *api.PartyView) string {
 			line = lipgloss.NewStyle().Bold(true).Reverse(true).Render(line)
 		}
 		lines = append(lines, line)
+		if len(member.Needs) > 0 {
+			lines = append(lines, "    "+strings.Join(member.Needs, "  "))
+		}
 	}
 	return strings.Join(lines, "\n")
 }
