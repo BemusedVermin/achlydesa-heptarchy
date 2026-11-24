@@ -234,7 +234,7 @@ func continuesIdentically(t rapid.TB, cfg game.Config, before, after []int) {
 		pick(t, loaded, choice)
 	}
 	if hash(t, loaded) != hash(t, g) {
-		t.Fatalf("hashes differ %d commands after loading", len(after))
+		t.Fatalf("hashes differ at the end, %d commands after loading", len(after))
 	}
 }
 

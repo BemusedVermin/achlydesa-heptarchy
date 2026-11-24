@@ -135,7 +135,7 @@ func PlayFight(reg *content.Registry, seed uint64, policy Policy, maxSteps int) 
 	}
 	track.noteView(view)
 	for steps < maxSteps && track.outcome == OutcomeNone {
-		events, ok, err := Step(g, policy)
+		events, ok, err := stepFrom(g, policy, view)
 		if err != nil {
 			return FightResult{}, fmt.Errorf("step %d: %w", steps+1, err)
 		}

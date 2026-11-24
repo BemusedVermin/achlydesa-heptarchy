@@ -266,6 +266,19 @@ func TestLookModeMovesACursorAndLeaves(t *testing.T) {
 	}
 }
 
+func TestLookingAtAnEmptyHexAndListingATickUseTheViewsText(t *testing.T) {
+	app := startApp(t)
+	if got := tui.RenderLook(app.State, api.Hex{Q: -100, R: -100}, panelWidth); got != app.State.Labels.LookEmpty ||
+		got == "" {
+		t.Errorf("look at an empty hex = %q, want the view's %q", got, app.State.Labels.LookEmpty)
+	}
+	press(app, "t")
+	want := app.State.Timeline.Entries[0].TickLabel
+	if want == "" || !strings.Contains(app.View().Content, want) {
+		t.Errorf("the tick popup does not head with %q:\n%s", want, app.View().Content)
+	}
+}
+
 func TestSeveredArmShowsOnThePanel(t *testing.T) {
 	app := startApp(t)
 	var victim api.BodyView

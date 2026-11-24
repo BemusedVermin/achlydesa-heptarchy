@@ -36,10 +36,10 @@ func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	step := func(each *game.Game) {
+	policy := harness.NewInformedPolicy(reg)
+	policy.Bind(g)
+	step := func(each *game.Game, policy harness.Policy) {
 		t.Helper()
-		policy := harness.NewInformedPolicy(reg)
-		policy.Bind(each)
 		if _, ok, err := harness.Step(each, policy); err != nil || !ok {
 			t.Fatalf("step: ok %v, err %v", ok, err)
 		}
@@ -48,7 +48,7 @@ func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 		if len(landsOf(t, g)) >= 2 {
 			break
 		}
-		step(g)
+		step(g, policy)
 	}
 	if len(landsOf(t, g)) < 2 {
 		t.Fatal("the fight never had two actions in flight")
@@ -64,9 +64,11 @@ func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 	if want, got := landsOf(t, g), landsOf(t, loaded.g); !reflect.DeepEqual(want, got) {
 		t.Fatalf("the actions in flight differ after loading:\nwant %+v\n got %+v", want, got)
 	}
+	loadedPolicy := harness.NewInformedPolicy(reg)
+	loadedPolicy.Bind(loaded.g)
 	for i := range 40 {
-		step(g)
-		step(loaded.g)
+		step(g, policy)
+		step(loaded.g, loadedPolicy)
 		if hash(t, loaded.g) != hash(t, g) {
 			t.Fatalf("hashes differ %d commands after loading", i+1)
 		}

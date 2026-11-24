@@ -52,6 +52,11 @@ func Step(g *game.Game, p Policy) (events []api.Event, ok bool, err error) {
 	if err != nil {
 		return nil, false, err
 	}
+	return stepFrom(g, p, view)
+}
+
+// stepFrom is Step for a caller that already holds g's current view.
+func stepFrom(g *game.Game, p Policy, view api.View) (events []api.Event, ok bool, err error) {
 	option, ok := p.Choose(view)
 	if !ok {
 		return nil, false, nil

@@ -87,7 +87,7 @@ func (a *App) Choose(id string) tea.Cmd {
 
 // ContentMsg carries a content reload in a dev build. The watcher sends it to the program, so Reload
 // runs on the Bubble Tea goroutine, between commands. An error Reload returns goes to the message
-// log, and the game plays on.
+// log, and the game plays on. Reload is required.
 type ContentMsg struct {
 	Reload func(*game.Game) error
 }
