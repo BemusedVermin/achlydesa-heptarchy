@@ -45,6 +45,33 @@ func (p *RandomPolicy) Choose(view api.View) (api.Option, bool) {
 	return enabled[p.rng.IntN(len(enabled))], true
 }
 
+// Step has the policy choose from g's view and applies its choice. ok is false, and nothing is
+// applied, when the policy has nothing to do.
+func Step(g *game.Game, p Policy) (events []api.Event, ok bool, err error) {
+	view, err := g.View()
+	if err != nil {
+		return nil, false, err
+	}
+	option, ok := p.Choose(view)
+	if !ok {
+		return nil, false, nil
+	}
+	if events, err = g.Apply(option.Command); err != nil {
+		return nil, false, err
+	}
+	return events, true, nil
+}
+
+// Play runs Step up to steps times, stopping early when the policy has nothing to do.
+func Play(g *game.Game, p Policy, steps int) error {
+	for range steps {
+		if _, ok, err := Step(g, p); err != nil || !ok {
+			return err
+		}
+	}
+	return nil
+}
+
 // Header is the first CSV row.
 var Header = []string{
 	"seed", "step", "tick", "day", "phase", "map", "q", "r", "depth", "events", "rejected",
@@ -99,17 +126,12 @@ func runSeed(cfg RunConfig, seed uint64, writer *csv.Writer) error {
 	}
 	track := newTracker()
 	for step := 1; step <= cfg.Steps; step++ {
-		view, err := g.View()
-		if err != nil {
-			return err
-		}
-		option, ok := policy.Choose(view)
-		if !ok {
-			break
-		}
-		events, err := g.Apply(option.Command)
+		events, ok, err := Step(g, policy)
 		if err != nil {
 			return fmt.Errorf("step %d: %w", step, err)
+		}
+		if !ok {
+			break
 		}
 		row, err := stepRow(g, seed, step, events, track)
 		if err != nil {

@@ -23,21 +23,15 @@ func BenchmarkStep(b *testing.B) {
 		return g, policy
 	}
 	g, policy := newGame()
-	b.ResetTimer()
-	for range b.N {
-		view, err := g.View()
+	for b.Loop() {
+		_, ok, err := harness.Step(g, policy)
 		if err != nil {
 			b.Fatal(err)
 		}
-		option, ok := policy.Choose(view)
 		if !ok {
 			b.StopTimer()
 			g, policy = newGame()
 			b.StartTimer()
-			continue
-		}
-		if _, err := g.Apply(option.Command); err != nil {
-			b.Fatal(err)
 		}
 	}
 }

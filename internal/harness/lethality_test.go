@@ -23,11 +23,9 @@ func playFights(t *testing.T, reg *content.Registry, newPolicy func() harness.Po
 	errs := make([]error, *lethalitySeeds)
 	var wg sync.WaitGroup
 	for i := range results {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			results[i], errs[i] = harness.PlayFight(reg, uint64(i+1), newPolicy(), lethalitySteps)
-		}()
+		})
 	}
 	wg.Wait()
 	for i, err := range errs {

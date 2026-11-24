@@ -58,19 +58,8 @@ func TestReplayPrintsTheGamesHash(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	policy := harness.NewRandomPolicy(7)
-	for range 50 {
-		view, err := g.View()
-		if err != nil {
-			t.Fatal(err)
-		}
-		option, ok := policy.Choose(view)
-		if !ok {
-			break
-		}
-		if _, err := g.Apply(option.Command); err != nil {
-			t.Fatal(err)
-		}
+	if err := harness.Play(g, harness.NewRandomPolicy(7), 50); err != nil {
+		t.Fatal(err)
 	}
 	var log bytes.Buffer
 	if err := g.Codec().WriteLog(&log, g.History()); err != nil {

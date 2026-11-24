@@ -21,6 +21,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
 )
 
 // rig is a game on the sample content's start scenario, with the world kept for tests that edit it.
@@ -63,13 +64,10 @@ func hash(t testing.TB, g *game.Game) [32]byte {
 	return sum
 }
 
-// pick applies the enabled option of the view that choice selects, wrapping around.
-func pick(t testing.TB, g *game.Game, choice int) {
-	t.Helper()
-	view, err := g.View()
-	if err != nil {
-		t.Fatal(err)
-	}
+// nth is a policy that takes the enabled option at its index, wrapping around.
+type nth int
+
+func (n nth) Choose(view api.View) (api.Option, bool) {
 	var enabled []api.Option
 	for _, option := range view.Options {
 		if option.Enabled {
@@ -77,10 +75,16 @@ func pick(t testing.TB, g *game.Game, choice int) {
 		}
 	}
 	if len(enabled) == 0 {
-		t.Fatal("no enabled option")
+		return api.Option{}, false
 	}
-	if _, err := g.Apply(enabled[choice%len(enabled)].Command); err != nil {
-		t.Fatal(err)
+	return enabled[int(n)%len(enabled)], true
+}
+
+// pick applies the enabled option of the view that choice selects, wrapping around.
+func pick(t testing.TB, g *game.Game, choice int) {
+	t.Helper()
+	if _, ok, err := harness.Step(g, nth(choice)); err != nil || !ok {
+		t.Fatalf("pick %d: ok %v, err %v", choice, ok, err)
 	}
 }
 

@@ -67,22 +67,20 @@ func (a *App) fail(err error) tea.Cmd {
 // Choose sends the command of the option with this ID, then re-reads the view. An option that is
 // absent does nothing; one that is disabled shows its reason and sends nothing.
 func (a *App) Choose(id string) tea.Cmd {
-	for _, option := range a.State.Options {
-		if option.ID != id {
-			continue
-		}
-		if !option.Enabled {
-			a.Status = option.Reason
-			return nil
-		}
-		a.Status = ""
-		if _, err := a.Game.Apply(option.Command); err != nil {
-			return a.fail(err)
-		}
-		if err := a.refresh(); err != nil {
-			return a.fail(err)
-		}
+	option, ok := optionByID(a.State, id)
+	switch {
+	case !ok:
 		return nil
+	case !option.Enabled:
+		a.Status = option.Reason
+		return nil
+	}
+	a.Status = ""
+	if _, err := a.Game.Apply(option.Command); err != nil {
+		return a.fail(err)
+	}
+	if err := a.refresh(); err != nil {
+		return a.fail(err)
 	}
 	return nil
 }

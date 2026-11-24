@@ -25,13 +25,7 @@ type placed struct {
 
 // NewSource builds the source of a map definition. Marked cells hold the map's Open terrain.
 func NewSource(reg *content.Registry, def content.MapDef) (*Source, error) {
-	terrain := func(id api.ContentID) (hexmap.Terrain, error) {
-		t, ok := reg.Terrain(id)
-		if !ok {
-			return hexmap.Terrain{}, fmt.Errorf("unknown terrain %q", id)
-		}
-		return hexmap.Terrain{ID: id, Solid: t.Solid, Opaque: t.Opaque}, nil
-	}
+	terrain := func(id api.ContentID) (hexmap.Terrain, error) { return Terrain(reg, id) }
 	src := &Source{authored: map[hexmap.ChunkKey][]placed{}, marks: map[string]api.Cell{}}
 	var err error
 	if src.fill, err = terrain(def.Fill); err != nil {
@@ -94,3 +88,12 @@ type Spawn struct {
 
 // Spawns lists the map's spawn marks in row order: layers as authored, then rows, then columns.
 func (s *Source) Spawns() []Spawn { return slices.Clone(s.spawns) }
+
+// Terrain resolves a terrain content ID to the map cell it stands for.
+func Terrain(reg *content.Registry, id api.ContentID) (hexmap.Terrain, error) {
+	t, ok := reg.Terrain(id)
+	if !ok {
+		return hexmap.Terrain{}, fmt.Errorf("unknown terrain %q", id)
+	}
+	return hexmap.Terrain{ID: id, Solid: t.Solid, Opaque: t.Opaque}, nil
+}

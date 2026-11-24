@@ -199,7 +199,7 @@ func (m *menuState) targetUID(bodies *api.BodiesView) api.UID {
 		return 0
 	}
 	var found api.UID
-	for _, segment := range strings.Split(node.prefix, "/") {
+	for segment := range strings.SplitSeq(node.prefix, "/") {
 		uid, err := strconv.ParseUint(segment, 10, 64)
 		if err != nil {
 			continue
@@ -217,7 +217,7 @@ func (m *menuState) targetUID(bodies *api.BodiesView) api.UID {
 func (m *menuState) Render() string {
 	path := []string{"Actions"}
 	if prefix := m.levels[len(m.levels)-1].prefix; prefix != "" {
-		for _, segment := range strings.Split(prefix, "/") {
+		for segment := range strings.SplitSeq(prefix, "/") {
 			path = append(path, m.segmentLabel(segment))
 		}
 	}

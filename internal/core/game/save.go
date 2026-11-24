@@ -12,7 +12,6 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
@@ -82,9 +81,6 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	if cfg.Content == nil {
-		return nil, nil, fmt.Errorf("game: no content")
-	}
 	cfg.Seed = snapshot.Header.Seed
 	g, err := build(cfg, explore.LoadMaps, nil)
 	if err != nil {
@@ -135,11 +131,10 @@ func applyEdits(w *sim.World, edits map[api.MapID][]save.MapEdit) error {
 			return fmt.Errorf("saved edits for unknown map %d", id)
 		}
 		for _, edit := range list {
-			def, ok := w.Content.Terrain(edit.Terrain)
-			if !ok {
-				return fmt.Errorf("saved edit uses unknown terrain %q", edit.Terrain)
+			terrain, err := explore.Terrain(w.Content, edit.Terrain)
+			if err != nil {
+				return fmt.Errorf("saved edit: %w", err)
 			}
-			terrain := hexmap.Terrain{ID: edit.Terrain, Solid: def.Solid, Opaque: def.Opaque}
 			if err := m.Set(edit.At, terrain); err != nil {
 				return err
 			}

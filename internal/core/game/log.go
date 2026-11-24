@@ -1,6 +1,8 @@
 package game
 
 import (
+	"slices"
+
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -13,17 +15,12 @@ const LogLines = 200
 func (g *Game) installLog() error {
 	g.world.Bus.SubscribeAll("game.log", func(w *sim.World, e api.Event) {
 		g.events = append(g.events, e)
-		loggable, ok := e.(api.Loggable)
-		if !ok {
-			return
-		}
-		g.log = append(g.log, api.LogLine{Tick: w.Now, Text: w.Content.Render(loggable.LogText())})
-		if len(g.log) > LogLines {
-			g.log = g.log[len(g.log)-LogLines:]
+		if loggable, ok := e.(api.Loggable); ok {
+			g.appendLog(w.Content.Render(loggable.LogText()))
 		}
 	})
 	err := g.world.Views.Register(sim.ViewBuilder{Name: "game.log", Build: func(_ *sim.World, v *api.View) error {
-		v.Log = append([]api.LogLine(nil), g.log...)
+		v.Log = slices.Clone(g.log)
 		return nil
 	}})
 	if err != nil {
@@ -33,4 +30,12 @@ func (g *Game) installLog() error {
 		v.Tick = w.Now
 		return nil
 	}})
+}
+
+// appendLog adds a line at the current tick, dropping the oldest beyond LogLines.
+func (g *Game) appendLog(text string) {
+	g.log = append(g.log, api.LogLine{Tick: g.world.Now, Text: text})
+	if len(g.log) > LogLines {
+		g.log = g.log[len(g.log)-LogLines:]
+	}
 }

@@ -25,6 +25,8 @@ type mapScreen struct {
 	look         *lookState // look mode, or nil
 }
 
+func newMapScreen() *mapScreen { return &mapScreen{} }
+
 // openMenu opens the action menu when the view offers anything to put in it.
 func (s *mapScreen) openMenu(app *App) bool {
 	s.menu = newMenu(app.State, sidePanelWidth, 10)
@@ -48,14 +50,9 @@ func (s *mapScreen) menuKey(msg tea.KeyPressMsg, app *App) tea.Cmd {
 	if id == "" {
 		return nil
 	}
-	enabled := false
-	for _, o := range app.State.Options {
-		if o.ID == id {
-			enabled = o.Enabled
-		}
-	}
+	option, _ := optionByID(app.State, id)
 	cmd := app.Choose(id)
-	if enabled || cmd != nil {
+	if option.Enabled || cmd != nil {
 		s.menu = nil
 	}
 	s.selectTick(app, s.selected)
@@ -82,8 +79,6 @@ func (s *mapScreen) lookKey(msg tea.KeyPressMsg, app *App) tea.Cmd {
 	}
 	return nil
 }
-
-func newMapScreen() *mapScreen { return &mapScreen{} }
 
 // Update implements [Screen].
 func (s *mapScreen) Update(msg tea.Msg, app *App) (Screen, tea.Cmd) {
@@ -143,14 +138,9 @@ func (s *mapScreen) vertical(app *App, up bool) tea.Cmd {
 	if !ok {
 		return nil
 	}
-	enabled := false
-	for _, o := range app.State.Options {
-		if o.ID == id {
-			enabled = o.Enabled
-		}
-	}
+	option, _ := optionByID(app.State, id)
 	cmd := app.Choose(id)
-	if enabled {
+	if option.Enabled {
 		s.lastVertical = id
 	}
 	s.selectTick(app, s.selected)

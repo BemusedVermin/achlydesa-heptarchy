@@ -21,19 +21,8 @@ func recordLog(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	policy := harness.NewRandomPolicy(3)
-	for range 20 {
-		view, err := g.View()
-		if err != nil {
-			t.Fatal(err)
-		}
-		option, ok := policy.Choose(view)
-		if !ok {
-			break
-		}
-		if _, err := g.Apply(option.Command); err != nil {
-			t.Fatal(err)
-		}
+	if err := harness.Play(g, harness.NewRandomPolicy(3), 20); err != nil {
+		t.Fatal(err)
 	}
 	var buf bytes.Buffer
 	if err := g.Codec().WriteLog(&buf, g.History()); err != nil {

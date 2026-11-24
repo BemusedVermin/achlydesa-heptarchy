@@ -61,9 +61,19 @@ func DefaultKeyMap() KeyMap {
 	}
 }
 
+// optionByID is the view's option with the ID, if the view offers it.
+func optionByID(v api.View, id string) (api.Option, bool) {
+	i := slices.IndexFunc(v.Options, func(o api.Option) bool { return o.ID == id })
+	if i < 0 {
+		return api.Option{}, false
+	}
+	return v.Options[i], true
+}
+
 // hasOption reports whether the view offers an option.
 func hasOption(v api.View, id string) bool {
-	return slices.ContainsFunc(v.Options, func(o api.Option) bool { return o.ID == id })
+	_, ok := optionByID(v, id)
+	return ok
 }
 
 // OptionFor is the option ID a key press stands for in this view, if any. It does not check the
@@ -107,16 +117,13 @@ func VerticalOptions(up bool, last string) [2]string {
 func VerticalOption(v api.View, up bool, last string) (string, bool) {
 	offered := ""
 	for _, id := range VerticalOptions(up, last) {
-		for _, o := range v.Options {
-			if o.ID != id {
-				continue
-			}
-			if o.Enabled {
-				return id, true
-			}
-			if offered == "" {
-				offered = id
-			}
+		o, ok := optionByID(v, id)
+		switch {
+		case !ok:
+		case o.Enabled:
+			return id, true
+		case offered == "":
+			offered = id
 		}
 	}
 	return offered, offered != ""

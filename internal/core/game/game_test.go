@@ -89,7 +89,7 @@ func waits(t *testing.T, cfg game.Config, n int) []api.Command {
 	}
 	actor := g.Current()
 	cmds := make([]api.Command, 0, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		cmds = append(cmds, api.Wait{Source: actor, Until: api.WaitTicks, Ticks: int64(1 + (i*37+11)%70)})
 	}
 	return cmds

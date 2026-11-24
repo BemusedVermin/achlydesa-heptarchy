@@ -37,23 +37,12 @@ func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	policy := harness.NewInformedPolicy(reg)
-	policy.Bind(g)
-	// step has the policy choose from the first game's view, and sends the same command to every game.
-	step := func(games ...*game.Game) {
+	step := func(each *game.Game) {
 		t.Helper()
-		view, err := g.View()
-		if err != nil {
-			t.Fatal(err)
-		}
-		option, ok := policy.Choose(view)
-		if !ok {
-			t.Fatal("the policy has nothing to do")
-		}
-		for _, each := range games {
-			if _, err := each.Apply(option.Command); err != nil {
-				t.Fatal(err)
-			}
+		policy := harness.NewInformedPolicy(reg)
+		policy.Bind(each)
+		if _, ok, err := harness.Step(each, policy); err != nil || !ok {
+			t.Fatalf("step: ok %v, err %v", ok, err)
 		}
 	}
 	for range 200 {
@@ -77,7 +66,8 @@ func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
 		t.Fatalf("the actions in flight differ after loading:\nwant %+v\n got %+v", want, got)
 	}
 	for i := range 40 {
-		step(g, loaded.g)
+		step(g)
+		step(loaded.g)
 		if hash(t, loaded.g) != hash(t, g) {
 			t.Fatalf("hashes differ %d commands after loading", i+1)
 		}
