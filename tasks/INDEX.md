@@ -116,7 +116,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | todo | test | C1 | C1-23 |
+| [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | done | test | C1 | C1-23 |
 | [C1-23.F1](followups/C1-23.F1-reload-messages-in-content.md) | Move the hot reload's log messages into content text | obsolete | debt | C1 | C1-23 |
 | [C1-26.F1](followups/C1-26.F1-move-means-movement-in-game-design.md) | Use "move" only for movement in game-design.md | todo | debt | C1 | C1-26 |
 | [C1-24.F2](followups/C1-24.F2-samebehavior-missing-seed-message.md) | samebehavior says clearly when a seed reports no hash | todo | bug | C1 | C1-24 |
