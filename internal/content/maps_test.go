@@ -32,7 +32,7 @@ func TestATownsStockAndStockMarksAreChecked(t *testing.T) {
 func TestARegionsDataIsTheMapsRecord(t *testing.T) {
 	bundle := sampleBundle(t)
 	def := bundle.Maps["map.test.gate_a"]
-	def.Region = &RegionDef{Data: Data{Props: map[string]float64{"decay": 2}}}
+	def.Region = &RegionDef{Props: map[string]float64{"decay": 2}}
 	bundle.Maps["map.test.gate_a"] = def
 	reg, err := New(bundle)
 	if err != nil {

@@ -18,7 +18,7 @@ maps: "map.play.hub": _#TestMap & {
 		"2": {to: "map.play.den", mark: "from_hub"}
 		"3": {to: "map.play.descent", mark: "from_hub"}
 	}
-	// The hub is a town, so its stock shows in the region panel.
+	// The hub is a town, so stocks can be tried by hand.
 	region: town: {
 		stock: [{item: "item.lake_water", count: 10}, {item: "item.ration", count: 5}]
 		stock_marks: ["stock"]
