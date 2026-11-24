@@ -34,10 +34,8 @@ func raise(t *testing.T, m *Map, cells ...api.Cell) {
 	}
 }
 
-// defaultStepRules are the limits most tests step under; content sets the game's own.
 func defaultStepRules() StepRules { return StepRules{MaxStepUp: 1, MaxStepDown: 1, MaxDrop: 8} }
 
-// shaft is the cells east of the origin from depth 1 down to depth, opened to fall into.
 func shaft(depth int) []api.Cell {
 	cells := make([]api.Cell, 0, depth)
 	for d := 1; d <= depth; d++ {
@@ -53,8 +51,8 @@ func TestStep(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		raise  []api.Cell // cells made solid before the step
-		dig    []api.Cell // cells opened before the step
+		raise  []api.Cell
+		dig    []api.Cell
 		rules  StepRules
 		want   Step
 		wantOK bool
