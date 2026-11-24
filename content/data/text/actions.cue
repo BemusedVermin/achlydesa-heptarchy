@@ -19,6 +19,7 @@ text: {
 	"text.actions.out_of_range":  "The target is out of range."
 	"text.actions.not_visible":   "The target cannot be seen."
 	"text.actions.requires":      "Not right now."
+	"text.actions.on_alert":      "Not with a hostile in sight."
 	"text.actions.bad_choice":    "That choice is not available."
 	"text.actions.no_connect":    "It does not connect."
 	"text.actions.channel_gone":  "A limb it needed is gone."

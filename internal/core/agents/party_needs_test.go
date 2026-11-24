@@ -157,3 +157,39 @@ func TestDrinkingSpendsLakeWaterAndLowersThirst(t *testing.T) {
 	}
 	t.Fatal("no drink option")
 }
+
+func TestEatingAndDrinkingAreRefusedWithAHostileInSight(t *testing.T) {
+	r := newPartyRig(t)
+	reaper := r.member("template.person.reaper")
+	party, ok := anatomy.PartyOf(r.w, reaper)
+	if !ok {
+		t.Fatal("the Reaper is in no party")
+	}
+	ecs.NewMap[comp.Party](r.w.ECS).Get(party).Alert = true
+
+	view, err := r.g.View()
+	if err != nil {
+		t.Fatal(err)
+	}
+	seen := map[api.ContentID]bool{}
+	for _, option := range view.Options {
+		do, isDo := option.Command.(api.Do)
+		if !isDo || (do.Action != "action.eat" && do.Action != "action.drink") {
+			continue
+		}
+		seen[do.Action] = true
+		want := r.w.Content.Render(api.Text{ID: "text.actions.on_alert"})
+		if option.Enabled || option.Reason != want {
+			t.Errorf(
+				"%s on alert: enabled=%v reason=%q, want disabled with %q",
+				option.ID,
+				option.Enabled,
+				option.Reason,
+				want,
+			)
+		}
+	}
+	if !seen["action.eat"] || !seen["action.drink"] {
+		t.Errorf("options seen %v, want eat and drink both listed", seen)
+	}
+}

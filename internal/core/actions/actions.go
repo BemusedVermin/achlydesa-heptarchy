@@ -69,7 +69,8 @@ type plan struct {
 	recovery int64
 	onStart  []content.EffectRef
 	onLand   []content.EffectRef
-	// refusal is why a chosen record's requires formula says the plan may not start, or empty.
+	// refusal is why the action's allowed formula, or a chosen record's requires formula, says the plan
+	// may not start, or empty.
 	refusal api.Text
 }
 
@@ -359,6 +360,13 @@ func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, err
 	}
 	if p.recovery, err = w.Content.ActionRecovery(in.Action, p.env); err != nil {
 		return nil, api.Text{}, err
+	}
+	allowed, refusal, err := w.Content.ActionAllowed(in.Action, p.env)
+	if err != nil {
+		return nil, api.Text{}, err
+	}
+	if !allowed {
+		p.refusal = api.Text{ID: refusal}
 	}
 	if err := ev.modify(&p); err != nil {
 		return nil, api.Text{}, err

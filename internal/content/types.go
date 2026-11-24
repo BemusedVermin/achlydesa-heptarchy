@@ -452,8 +452,13 @@ type ActionDef struct {
 	Sight bool `json:"sight,omitempty"`
 	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	Choices []string `json:"choices,omitempty"`
-	// Requires is an Expr bool over ActionEnv.
+	// Requires is an Expr bool over ActionEnv; false leaves the action out of the menu.
 	Requires string `json:"requires,omitempty"`
+	// Allowed is an Expr bool over ActionEnv; false keeps the action in the menu but disabled, with
+	// Refusal as the reason. Empty allows it.
+	Allowed string `json:"allowed,omitempty"`
+	// Refusal is a text ID; empty means text.actions.requires.
+	Refusal api.ContentID `json:"refusal,omitempty"`
 	// Windup is an Expr for ticks before it lands; 0 lands at once.
 	Windup string `json:"windup"`
 	// Recovery is an Expr for ticks the used channels stay busy after landing.

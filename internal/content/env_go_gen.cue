@@ -63,6 +63,9 @@ package content
 	// IsParty means the body belongs to the party the player commands (set only when scoring).
 	IsParty: bool
 
+	// Alert means the body's party has a hostile in sight; a body outside a party is never on alert.
+	Alert: bool
+
 	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
 	Needs: {[string]: float64} @go(,map[string]float64)
 }

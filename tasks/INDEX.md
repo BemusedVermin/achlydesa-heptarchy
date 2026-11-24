@@ -143,7 +143,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M3-13.F1](followups/M3-13.F1-eat-drink-not-in-a-fight.md) | Let an action's requires formula see whether the party is on alert | todo | seam | M3 | M3-13 |
+| [M3-13.F1](followups/M3-13.F1-eat-drink-not-in-a-fight.md) | Let an action's requires formula see whether the party is on alert | done | seam | M3 | M3-13 |
 | [M3-02.F1](followups/M3-02.F1-hot-reload-dropped-need.md) | Decide what happens to a body's need when hot-reloaded content drops it | done | debt | M3 | M3-02 |
 | [C1-31.F1](followups/C1-31.F1-collection-names-enum.md) | Collection names as an enforced set | done | debt | C1 | C1-31 |
 | [M3-01.F1](followups/M3-01.F1-install-hook-before-start.md) | Run game.Config.Install before the start map spawns its bodies | done | seam | M3 | M3-01 |

@@ -42,6 +42,11 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 				env.Needs[strings.TrimPrefix(string(level.Need), needPrefix)] = level.Level
 			}
 		}
+		if party, ok := anatomy.PartyOf(w, body); ok {
+			if parties := ecs.NewMap[comp.Party](w.ECS); parties.Has(party) {
+				env.Alert = parties.Get(party).Alert
+			}
+		}
 		grafts := ecs.NewMap[comp.Graft](w.ECS)
 		for _, attached := range anatomy.Parts(w, body) {
 			if grafts.Has(attached) {
