@@ -27,6 +27,8 @@ type Registry struct {
 	offers    map[string]*vm.Program               // compiled choice offers; absent when a choice has none
 	mods      map[api.ContentID]compiledMods       // compiled mods of types and items
 	warnings  []string
+	// collections is the table of the bundle's ID-keyed collections, built once.
+	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.
 	rulesUsed map[string]bool
 }

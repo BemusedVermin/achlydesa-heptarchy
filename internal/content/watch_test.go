@@ -8,7 +8,7 @@ import (
 )
 
 // testDebounce is short so the tests are quick, and long enough that one loop of writes is one burst.
-const testDebounce = 30 * time.Millisecond
+const testDebounce = 40 * time.Millisecond
 
 type reload struct {
 	reg *Registry

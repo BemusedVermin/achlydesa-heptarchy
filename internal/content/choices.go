@@ -36,7 +36,7 @@ func (r *Registry) checkChoices() []error {
 		if !keyPattern.MatchString(name) {
 			p.addf("%s: a choice name must be lower-case words", path)
 		}
-		if _, ok := recordCollection(def.From); !ok {
+		if _, ok := r.recordCollection(def.From); !ok {
 			p.addf("%s.from: %q is not a collection of records", path, def.From)
 		}
 		if def.Offer == "" {

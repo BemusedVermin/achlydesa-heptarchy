@@ -90,13 +90,14 @@ func cueFiles(dir string) ([]string, error) {
 // newRegistry validates a decoded bundle, compiles its formulas and templates, and hashes it.
 func newRegistry(bundle Bundle) (*Registry, error) {
 	registry := &Registry{
-		bundle:    bundle,
-		moveCosts: map[api.ContentID]*vm.Program{},
-		templates: map[api.ContentID]*template.Template{},
-		actions:   map[api.ContentID]compiledAction{},
-		offers:    map[string]*vm.Program{},
-		mods:      map[api.ContentID]compiledMods{},
-		rulesUsed: map[string]bool{},
+		bundle:      bundle,
+		moveCosts:   map[api.ContentID]*vm.Program{},
+		templates:   map[api.ContentID]*template.Template{},
+		actions:     map[api.ContentID]compiledAction{},
+		offers:      map[string]*vm.Program{},
+		mods:        map[api.ContentID]compiledMods{},
+		rulesUsed:   map[string]bool{},
+		collections: collections(),
 	}
 	var problems []error
 	problems = append(problems, registry.checkIDs()...)
@@ -355,12 +356,13 @@ func (r *Registry) checkParty() []error {
 	if cfg.SightRadius < 1 {
 		p.addf("party.sight_radius: must be at least 1, got %d", cfg.SightRadius)
 	}
-	for name, value := range map[string]int{
+	counts := map[string]int{
 		"sight_depth": cfg.SightDepth, "plan_range": cfg.PlanRange, "max_step_up": cfg.MaxStepUp, "max_step_down": cfg.MaxStepDown,
 		"max_drop": cfg.MaxDrop,
-	} {
-		if value < 0 {
-			p.addf("party.%s: must not be negative, got %d", name, value)
+	}
+	for _, name := range sortedKeys(counts) {
+		if counts[name] < 0 {
+			p.addf("party.%s: must not be negative, got %d", name, counts[name])
 		}
 	}
 	if follow, ok := ref(p, r.bundle.Actions, "party.follow_action", "action", cfg.FollowAction); ok &&

@@ -93,14 +93,15 @@ func described[V any](
 	return c
 }
 
+// shared marks a collection whose records may share one name.
 func shared(c collection) collection {
 	c.sharedNames = true
 	return c
 }
 
 // recordCollection finds the collection of records (one whose records carry [Data]) by its name.
-func recordCollection(name string) (collection, bool) {
-	for _, c := range collections() {
+func (r *Registry) recordCollection(name string) (collection, bool) {
+	for _, c := range r.collections {
 		if c.name == name && c.data != nil {
 			return c, true
 		}
@@ -110,7 +111,7 @@ func recordCollection(name string) (collection, bool) {
 
 // dataOf lists the Data of every record of a collection that has one, by ID.
 func (r *Registry) dataOf(name string) map[string]Data {
-	c, ok := recordCollection(name)
+	c, ok := r.recordCollection(name)
 	if !ok {
 		return map[string]Data{}
 	}
@@ -119,7 +120,7 @@ func (r *Registry) dataOf(name string) map[string]Data {
 
 // collectionIDs lists the IDs of any collection of the bundle, or false when there is none by that name.
 func (r *Registry) collectionIDs(name string) (map[string]bool, bool) {
-	for _, c := range collections() {
+	for _, c := range r.collections {
 		if c.name != name {
 			continue
 		}
@@ -135,15 +136,15 @@ func (r *Registry) collectionIDs(name string) (map[string]bool, bool) {
 
 // checkIDs checks that every key of every collection is an ID with the collection's prefix.
 func (r *Registry) checkIDs() []error {
-	var problems []error
-	for _, c := range collections() {
+	p := r.problems()
+	for _, c := range r.collections {
 		for _, key := range c.keys(&r.bundle) {
 			if err := checkID(c.name, key, c.prefix); err != nil {
-				problems = append(problems, err)
+				p.add(err)
 			}
 		}
 	}
-	return problems
+	return p.errs
 }
 
 // checkTextNames checks that a record's name is "text." plus the record's own ID, so a name is found
@@ -155,7 +156,7 @@ func (r *Registry) checkTextNames() []error {
 			p.addf("%s[%q].name: text ID is %q, want %q", collection, key, name, want)
 		}
 	}
-	for _, c := range collections() {
+	for _, c := range r.collections {
 		if c.recordName == nil || c.sharedNames {
 			continue
 		}
@@ -188,7 +189,7 @@ func recordOf(id string, data Data) Record {
 // buildRecords makes the formula view of every record, once per registry.
 func (r *Registry) buildRecords() {
 	r.records = map[api.ContentID]Record{}
-	for _, c := range collections() {
+	for _, c := range r.collections {
 		if c.data == nil {
 			continue
 		}
@@ -225,7 +226,7 @@ func (r *Registry) checkVocabulary() []error {
 	p := r.problems()
 	vocab := r.bundle.Vocabulary
 	for _, collection := range sortedKeys(vocab.Tags) {
-		if _, ok := recordCollection(collection); !ok {
+		if _, ok := r.recordCollection(collection); !ok {
 			p.addf("vocabulary.tags[%q]: not a collection of records", collection)
 			continue
 		}
@@ -252,7 +253,7 @@ func (r *Registry) checkVocabulary() []error {
 	}
 	for _, key := range sortedKeys(vocab.Lists) {
 		collection, list, ok := strings.Cut(key, ".")
-		if _, record := recordCollection(collection); !ok || !record {
+		if _, record := r.recordCollection(collection); !ok || !record {
 			p.addf("vocabulary.lists[%q]: want <collection of records>.<key>", key)
 			continue
 		}
@@ -276,7 +277,7 @@ func (r *Registry) checkVocabulary() []error {
 // RecordName returns the text ID of a record's name, or false when the ID is not a record or the
 // record has no name.
 func (r *Registry) RecordName(id api.ContentID) (api.ContentID, bool) {
-	for _, c := range collections() {
+	for _, c := range r.collections {
 		if c.data == nil || c.recordName == nil {
 			continue
 		}
