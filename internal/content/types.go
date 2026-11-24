@@ -58,13 +58,13 @@ type Vocabulary struct {
 	// Grants lists the grant kinds parts may give. Empty allows any.
 	Grants []string `json:"grants,omitempty"`
 	// Lists maps "<collection>.<key>" to the collection its values must name: "materials.<list>": "types".
-	Lists map[string]string `json:"lists,omitempty"`
+	Lists map[string]Collection `json:"lists,omitempty"`
 }
 
 // ChoiceDef is a choice an action can ask for, served from a collection of records.
 type ChoiceDef struct {
 	// From names a collection: "types", "items", ...
-	From string `json:"from"`
+	From Collection `json:"from"`
 	// Offer is an Expr bool over OfferEnv; empty offers every record.
 	Offer string `json:"offer,omitempty"`
 }
@@ -392,6 +392,28 @@ type EffectRef struct {
 	Do     string            `json:"do"`
 	Params map[string]string `json:"params"`
 }
+
+// Collection names a collection of records: "types", "items", ...
+type Collection string
+
+// Collections that hold records.
+const (
+	CollectionMaterials Collection = "materials"
+	CollectionTerrains  Collection = "terrains"
+	CollectionText      Collection = "text"
+	CollectionTemplates Collection = "templates"
+	CollectionActions   Collection = "actions"
+	CollectionMaps      Collection = "maps"
+	CollectionParts     Collection = "parts"
+	CollectionClaims    Collection = "claims"
+	CollectionOrigins   Collection = "origins"
+	CollectionBodies    Collection = "bodies"
+	CollectionTypes     Collection = "types"
+	CollectionItems     Collection = "items"
+	CollectionFactions  Collection = "factions"
+	CollectionStatuses  Collection = "statuses"
+	CollectionNeeds     Collection = "needs"
+)
 
 // TargetKind is what an action targets.
 type TargetKind string

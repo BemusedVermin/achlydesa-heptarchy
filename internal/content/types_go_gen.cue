@@ -73,13 +73,13 @@ import (
 	grants?: [...string] @go(Grants,[]string)
 
 	// Lists maps "<collection>.<key>" to the collection its values must name: "materials.<list>": "types".
-	lists?: {[string]: string} @go(Lists,map[string]string)
+	lists?: {[string]: #Collection} @go(Lists,map[string]Collection)
 }
 
 // ChoiceDef is a choice an action can ask for, served from a collection of records.
 #ChoiceDef: {
 	// From names a collection: "types", "items", ...
-	from: string @go(From)
+	from: #Collection @go(From)
 
 	// Offer is an Expr bool over OfferEnv; empty offers every record.
 	offer?: string @go(Offer)
@@ -472,6 +472,42 @@ import (
 	do: string @go(Do)
 	params: {[string]: string} @go(Params,map[string]string)
 }
+
+// Collection names a collection of records: "types", "items", ...
+#Collection: #enumCollection
+
+#enumCollection:
+	#CollectionMaterials |
+	#CollectionTerrains |
+	#CollectionText |
+	#CollectionTemplates |
+	#CollectionActions |
+	#CollectionMaps |
+	#CollectionParts |
+	#CollectionClaims |
+	#CollectionOrigins |
+	#CollectionBodies |
+	#CollectionTypes |
+	#CollectionItems |
+	#CollectionFactions |
+	#CollectionStatuses |
+	#CollectionNeeds
+
+#CollectionMaterials: #Collection & "materials"
+#CollectionTerrains:  #Collection & "terrains"
+#CollectionText:      #Collection & "text"
+#CollectionTemplates: #Collection & "templates"
+#CollectionActions:   #Collection & "actions"
+#CollectionMaps:      #Collection & "maps"
+#CollectionParts:     #Collection & "parts"
+#CollectionClaims:    #Collection & "claims"
+#CollectionOrigins:   #Collection & "origins"
+#CollectionBodies:    #Collection & "bodies"
+#CollectionTypes:     #Collection & "types"
+#CollectionItems:     #Collection & "items"
+#CollectionFactions:  #Collection & "factions"
+#CollectionStatuses:  #Collection & "statuses"
+#CollectionNeeds:     #Collection & "needs"
 
 // TargetKind is what an action targets.
 #TargetKind: #enumTargetKind
