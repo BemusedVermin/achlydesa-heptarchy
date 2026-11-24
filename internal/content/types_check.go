@@ -128,6 +128,9 @@ func (r *Registry) checkCombat() []error {
 	if cfg.AttackTag == "" {
 		p.addf("combat.attack_tag: required")
 	}
+	if cfg.CorpseTag == "" {
+		p.addf("combat.corpse_tag: required")
+	}
 	if step, ok := ref(p, r.bundle.Actions, "combat.step_action", "action", cfg.StepAction); ok &&
 		step.Target != TargetDirection {
 		p.addf("combat.step_action: %q must target a direction", cfg.StepAction)

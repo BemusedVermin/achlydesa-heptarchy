@@ -98,7 +98,7 @@ Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that
 
 An action's `requires` leaves it out of the menu when false, as `action.eat` does with no ration in the inventory. Its `allowed` keeps it in the menu but disabled, with its `refusal` text as the reason (`text.actions.requires` when it names none): `action.eat` and `action.drink` are `allowed: "!source.alert"`, so they are refused while the body's party has a hostile in sight. `source.alert` is false for a body outside a party.
 
-An action aimed at a body, an ally or a part refuses a dead body unless it sets `corpse: true`, as the test action `action.gnaw` does so that `consume` can eat a corpse. Corpses are never offered in the menu either way.
+An action aimed at a body, an ally or a part refuses a dead body unless it carries the tag named by `combat.corpse_tag` (`corpse`), as the test action `action.gnaw` does so that `consume` can eat a corpse. Corpses are never offered in the menu either way.
 
 ### Choices and mods
 

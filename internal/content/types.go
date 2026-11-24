@@ -395,6 +395,9 @@ type CombatConfig struct {
 	AttackTag string `json:"attack_tag"`
 	// StepAction is the action ("action." ID) a hunting creature closes in with; it targets a direction.
 	StepAction api.ContentID `json:"step_action"`
+	// CorpseTag is the action tag that lets a body, ally or part target be a dead body as well as a
+	// living one.
+	CorpseTag string `json:"corpse_tag"`
 	// MaterialClaim is the claim ("claim." ID) that says what a part is made of, so the bodies view
 	// can show "?" until the party has learned it. Empty means no material is ever known.
 	MaterialClaim api.ContentID `json:"material_claim"`
@@ -532,8 +535,6 @@ type ActionDef struct {
 	Range int `json:"range,omitempty"`
 	// Sight means the target must be visible from the source.
 	Sight bool `json:"sight,omitempty"`
-	// Corpse lets a body, ally or part target be a dead body as well as a living one.
-	Corpse bool `json:"corpse,omitempty"`
 	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	Choices []string `json:"choices,omitempty"`
 	// Requires is an Expr bool over ActionEnv; false leaves the action out of the menu.

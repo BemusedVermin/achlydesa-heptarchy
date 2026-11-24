@@ -219,7 +219,8 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 		dir := *in.Dir
 		p.dir = &dir
 	case content.TargetBody, content.TargetAlly, content.TargetPart:
-		if in.Target == in.Actor || in.Dir != nil || !ev.isBody(in.Target, def.Corpse) {
+		corpse := slices.Contains(def.Tags, ev.w.Content.Combat().CorpseTag)
+		if in.Target == in.Actor || in.Dir != nil || !ev.isBody(in.Target, corpse) {
 			return bad()
 		}
 		if def.Target == content.TargetPart {

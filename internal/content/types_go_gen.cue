@@ -474,6 +474,10 @@ import (
 	// StepAction is the action ("action." ID) a hunting creature closes in with; it targets a direction.
 	step_action: api.#ContentID @go(StepAction)
 
+	// CorpseTag is the action tag that lets a body, ally or part target be a dead body as well as a
+	// living one.
+	corpse_tag: string @go(CorpseTag)
+
 	// MaterialClaim is the claim ("claim." ID) that says what a part is made of, so the bodies view
 	// can show "?" until the party has learned it. Empty means no material is ever known.
 	material_claim: api.#ContentID @go(MaterialClaim)
@@ -643,9 +647,6 @@ import (
 
 	// Sight means the target must be visible from the source.
 	sight?: bool @go(Sight)
-
-	// Corpse lets a body, ally or part target be a dead body as well as a living one.
-	corpse?: bool @go(Corpse)
 
 	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	choices?: [...string] @go(Choices,[]string)
