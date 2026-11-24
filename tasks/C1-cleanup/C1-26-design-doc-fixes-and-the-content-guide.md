@@ -1,7 +1,7 @@
 ---
 id: C1-26
 title: "Design-doc fixes and the content guide"
-status: todo
+status: in-progress
 milestone: C1
 kind: content
 depends_on: [C1-17, C1-19]
