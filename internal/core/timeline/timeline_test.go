@@ -53,17 +53,17 @@ func newFixture(t tester, seed uint64) *fixture {
 	fx := &fixture{w: sim.NewWorld(seed), speeds: map[api.UID]int{}, stopAfter: 1 << 60}
 	fx.w.Content = reg
 	fx.clk = clock.New(reg.Calendar())
-	if err := clock.Install(fx.w, fx.clk, reg); err != nil {
+	if err := clock.Install(fx.w, fx.clk); err != nil {
 		t.Fatal(err)
 	}
 	if err := timeline.Install(fx.w, fx.clk); err != nil {
 		t.Fatal(err)
 	}
-	timeline.SetSpeed(fx.w, func(w *sim.World, e ecs.Entity) int {
+	timeline.SetSpeed(fx.w, func(w *sim.World, e ecs.Entity) (int, error) {
 		if speed, ok := fx.speeds[w.UIDOf(e)]; ok {
-			return speed
+			return speed, nil
 		}
-		return reg.Timeline().DefaultSpeed
+		return reg.Timeline().DefaultSpeed, nil
 	})
 	timeline.SetVisible(fx.w, func(*sim.World, ecs.Entity) bool { return true })
 	if err := timeline.RegisterController(fx.w, "record", recorder{fx}); err != nil {
@@ -509,7 +509,7 @@ func TestDefaultVisibilityIsTheParty(t *testing.T) {
 	w := sim.NewWorld(1)
 	w.Content = reg
 	clk := clock.New(reg.Calendar())
-	if err := clock.Install(w, clk, reg); err != nil {
+	if err := clock.Install(w, clk); err != nil {
 		t.Fatal(err)
 	}
 	if err := timeline.Install(w, clk); err != nil {

@@ -34,82 +34,85 @@ func raise(t *testing.T, m *Map, cells ...api.Cell) {
 	}
 }
 
+// defaultStepRules are the limits most tests step under; content sets the game's own.
+func defaultStepRules() StepRules { return StepRules{MaxStepUp: 1, MaxStepDown: 1, MaxDrop: 8} }
+
+// shaft is the cells east of the origin from depth 1 down to depth, opened to fall into.
+func shaft(depth int) []api.Cell {
+	cells := make([]api.Cell, 0, depth)
+	for d := 1; d <= depth; d++ {
+		cells = append(cells, cell(1, 0, d))
+	}
+	return cells
+}
+
 func TestStep(t *testing.T) {
 	from := cell(0, 0, 0)
 	east := cell(1, 0, 0)
-	rules := DefaultStepRules()
+	rules := defaultStepRules()
 
 	tests := []struct {
 		name   string
-		setup  func(t *testing.T, m *Map)
+		raise  []api.Cell // cells made solid before the step
+		dig    []api.Cell // cells opened before the step
 		rules  StepRules
 		want   Step
 		wantOK bool
 	}{
 		{
 			name:   "level",
-			setup:  func(*testing.T, *Map) {},
 			want:   Step{To: Link{Cell: east}, Kind: StepLevel},
 			wantOK: true,
 		},
 		{
 			name:   "up one",
-			setup:  func(t *testing.T, m *Map) { raise(t, m, east) },
+			raise:  []api.Cell{east},
 			want:   Step{To: Link{Cell: cell(1, 0, -1)}, Kind: StepUp},
 			wantOK: true,
 		},
 		{
 			name:  "up two refused",
-			setup: func(t *testing.T, m *Map) { raise(t, m, east, cell(1, 0, -1)) },
+			raise: []api.Cell{east, cell(1, 0, -1)},
 		},
 		{
-			name: "up two allowed with a higher limit",
-			setup: func(t *testing.T, m *Map) {
-				raise(t, m, east, cell(1, 0, -1))
-			},
+			name:   "up two allowed with a higher limit",
+			raise:  []api.Cell{east, cell(1, 0, -1)},
 			rules:  StepRules{MaxStepUp: 2, MaxStepDown: 1, MaxDrop: 8},
 			want:   Step{To: Link{Cell: cell(1, 0, -2)}, Kind: StepUp},
 			wantOK: true,
 		},
 		{
 			name:  "up refused without headroom",
-			setup: func(t *testing.T, m *Map) { raise(t, m, east, cell(0, 0, -1)) },
+			raise: []api.Cell{east, cell(0, 0, -1)},
 		},
 		{
 			name:   "down one",
-			setup:  func(t *testing.T, m *Map) { dig(t, m, cell(1, 0, 1)) },
+			dig:    []api.Cell{cell(1, 0, 1)},
 			want:   Step{To: Link{Cell: cell(1, 0, 1)}, Kind: StepDown},
 			wantOK: true,
 		},
 		{
 			name:   "drop of three",
-			setup:  func(t *testing.T, m *Map) { dig(t, m, cell(1, 0, 1), cell(1, 0, 2), cell(1, 0, 3)) },
+			dig:    shaft(3),
 			want:   Step{To: Link{Cell: cell(1, 0, 3)}, Kind: StepDrop, Fall: 3},
 			wantOK: true,
 		},
 		{
-			name: "drop of eight allowed",
-			setup: func(t *testing.T, m *Map) {
-				for d := 1; d <= 8; d++ {
-					dig(t, m, cell(1, 0, d))
-				}
-			},
+			name:   "drop of eight allowed",
+			dig:    shaft(8),
 			want:   Step{To: Link{Cell: cell(1, 0, 8)}, Kind: StepDrop, Fall: 8},
 			wantOK: true,
 		},
 		{
 			name: "drop past MaxDrop refused",
-			setup: func(t *testing.T, m *Map) {
-				for d := 1; d <= 9; d++ {
-					dig(t, m, cell(1, 0, d))
-				}
-			},
+			dig:  shaft(9),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := floorWorld()
-			tt.setup(t, m)
+			raise(t, m, tt.raise...)
+			dig(t, m, tt.dig...)
 			r := tt.rules
 			if r == (StepRules{}) {
 				r = rules
@@ -126,14 +129,14 @@ func TestStep(t *testing.T) {
 }
 
 func TestStepRejectsBadDirection(t *testing.T) {
-	if _, ok, err := floorWorld().Step(cell(0, 0, 0), api.Dir(9), DefaultStepRules()); ok || err == nil {
+	if _, ok, err := floorWorld().Step(cell(0, 0, 0), api.Dir(9), defaultStepRules()); ok || err == nil {
 		t.Errorf("Step with a bad direction = %v, %v; want an error", ok, err)
 	}
 }
 
 func TestStepFollowsLinksToOtherMaps(t *testing.T) {
 	m := NewMap(1, "linked", FuncSource(func(api.Cell) Terrain { return rock }), portalTopology{})
-	got, ok, err := m.Step(cell(0, 0, 0), api.DirE, DefaultStepRules())
+	got, ok, err := m.Step(cell(0, 0, 0), api.DirE, defaultStepRules())
 	want := Step{To: Link{Map: 7, Cell: cell(40, 0, 0)}, Kind: StepLevel}
 	if err != nil || !ok || got != want {
 		t.Errorf("Step = %+v, %v, %v; want %+v", got, ok, err, want)
@@ -166,7 +169,7 @@ func TestStepKeepsOverlappingTunnelsApart(t *testing.T) {
 		for q := 0; q <= 5; q++ {
 			from := cell(q, 0, depth)
 			for dir := api.DirE; dir.Valid(); dir++ {
-				step, ok, err := m.Step(from, dir, DefaultStepRules())
+				step, ok, err := m.Step(from, dir, defaultStepRules())
 				if err != nil {
 					t.Fatal(err)
 				}

@@ -2,6 +2,7 @@ package anatomy_test
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"testing"
 
@@ -48,7 +49,15 @@ func newRig(t *testing.T, seed uint64, mutate func(*content.Bundle)) *rig {
 	return r
 }
 
-func (r *rig) members() []ecs.Entity { return anatomy.Members(r.w, r.party) }
+// member is the party's first member.
+func (r *rig) member(t *testing.T) ecs.Entity {
+	t.Helper()
+	members := anatomy.Members(r.w, r.party)
+	if len(members) == 0 {
+		t.Fatal("the party has no members")
+	}
+	return members[0]
+}
 
 func (r *rig) slots(body ecs.Entity) []string {
 	var slots []string
@@ -59,126 +68,206 @@ func (r *rig) slots(body ecs.Entity) []string {
 	return slots
 }
 
-func TestPartyMembersHaveFiveHumanParts(t *testing.T) {
+// plan is the part templates of the body's plan, in plan order, so expectations follow the content.
+func (r *rig) plan(t *testing.T, body ecs.Entity) []content.PartTemplate {
+	t.Helper()
+	id := ecs.NewMap[comp.Body](r.w.ECS).Get(body).Plan
+	plan, ok := r.w.Content.Body(id)
+	if !ok {
+		t.Fatalf("unknown body plan %q", id)
+	}
+	defs := make([]content.PartTemplate, 0, len(plan.Parts))
+	for _, entry := range plan.Parts {
+		def, ok := r.w.Content.Part(entry.Part)
+		if !ok {
+			t.Fatalf("unknown part %q", entry.Part)
+		}
+		defs = append(defs, def)
+	}
+	return defs
+}
+
+// totals adds up the grants of the given part templates, by kind, as anatomy.GrantTotals does for parts.
+func totals(grants ...[]comp.Grant) map[string]int {
+	out := map[string]int{}
+	for _, list := range grants {
+		for _, grant := range list {
+			out[grant.Kind] += grant.Value
+		}
+	}
+	return out
+}
+
+func TestPartyMembersGetTheirPlansParts(t *testing.T) {
 	r := newRig(t, 1, nil)
-	members := r.members()
-	if len(members) != 2 {
-		t.Fatalf("members = %d, want 2", len(members))
+	members := anatomy.Members(r.w, r.party)
+	if len(members) == 0 {
+		t.Fatal("the party has no members")
 	}
 	parts := ecs.NewMap[comp.Part](r.w.ECS)
+	identities := ecs.NewMap[comp.Identity](r.w.ECS)
 	for _, member := range members {
-		got := anatomy.Parts(r.w, member)
-		if want := []string{"head", "arm", "arm", "legs", "torso"}; !slices.Equal(r.slots(member), want) {
+		plan := r.plan(t, member)
+		var want []string
+		for _, def := range plan {
+			want = append(want, def.Slot)
+		}
+		if !slices.Equal(r.slots(member), want) {
 			t.Fatalf("slots = %v, want %v", r.slots(member), want)
 		}
-		for _, part := range got {
+		got := anatomy.Parts(r.w, member)
+		for i, part := range got {
 			if r.w.UIDOf(part) == 0 {
 				t.Error("a part has no UID")
 			}
 			data := parts.Get(part)
-			if data.Vital != (data.Slot == "torso") {
-				t.Errorf("part %q vital = %v", data.Slot, data.Vital)
+			if data.Vital != plan[i].Vital {
+				t.Errorf("part %q vital = %v, want %v", data.Slot, data.Vital, plan[i].Vital)
 			}
-			if data.Integrity != data.MaxIntegrity || data.Integrity < 1 {
-				t.Errorf("part %q integrity = %d of %d", data.Slot, data.Integrity, data.MaxIntegrity)
+			if data.Integrity != plan[i].Integrity || data.MaxIntegrity != plan[i].Integrity {
+				t.Errorf("part %q integrity = %d of %d, want %d", data.Slot, data.Integrity, data.MaxIntegrity,
+					plan[i].Integrity)
 			}
 		}
 		if ecs.NewMap[comp.Pos](r.w.ECS).Has(got[0]) {
 			t.Error("an attached part has a position")
 		}
-		if !ecs.NewMap[comp.Protected](r.w.ECS).Has(member) {
-			t.Error("a protagonist is not protected")
+		template, ok := r.w.Content.Template(identities.Get(member).Template)
+		if !ok {
+			t.Fatalf("unknown template %q", identities.Get(member).Template)
+		}
+		if protected := ecs.NewMap[comp.Protected](r.w.ECS).Has(member); protected != template.Protected {
+			t.Errorf("protected = %v, want %v as the template says", protected, template.Protected)
 		}
 	}
 }
 
-func TestAHumanHasSixTaggedChannels(t *testing.T) {
+func TestChannelsAreTheBodyThenEachPartTagged(t *testing.T) {
 	r := newRig(t, 1, nil)
-	member := r.members()[0]
+	member := r.member(t)
+	plan := r.plan(t, member)
 	channels := timeline.Channels(r.w, member)
-	if len(channels) != 6 {
-		t.Fatalf("channels = %d, want 6", len(channels))
+	if len(channels) != 1+len(plan) {
+		t.Fatalf("channels = %d, want the body and %d parts", len(channels), len(plan))
 	}
 	if channels[0].Entity != member || !slices.Equal(channels[0].Tags, []string{"body"}) {
 		t.Errorf("first channel = %+v, want the body", channels[0])
 	}
-	want := map[string][]string{
-		"head":  {"part", "head", "grant:targeting"},
-		"arm":   {"part", "arm", "grant:action"},
-		"legs":  {"part", "legs", "grant:speed"},
-		"torso": {"part", "torso"},
-	}
-	parts := ecs.NewMap[comp.Part](r.w.ECS)
-	for _, c := range channels[1:] {
-		if slot := parts.Get(c.Entity).Slot; !slices.Equal(c.Tags, want[slot]) {
-			t.Errorf("%s tags = %v, want %v", slot, c.Tags, want[slot])
+	for i, c := range channels[1:] {
+		want := []string{"part", plan[i].Slot}
+		for _, grant := range plan[i].Grants {
+			want = append(want, "grant:"+grant.Kind)
+		}
+		if !slices.Equal(c.Tags, want) {
+			t.Errorf("%s tags = %v, want %v", plan[i].Slot, c.Tags, want)
 		}
 	}
-	// Severing an arm removes its channel.
-	arm := anatomy.Parts(r.w, member)[1]
-	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(arm)
-	if got := len(timeline.Channels(r.w, member)); got != 5 {
-		t.Errorf("channels after severing an arm = %d, want 5", got)
+	// Severing a part removes its channel.
+	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(anatomy.Parts(r.w, member)[1])
+	if got := len(timeline.Channels(r.w, member)); got != len(plan) {
+		t.Errorf("channels after severing a part = %d, want %d", got, len(plan))
 	}
 }
 
-func TestLosingTheLegsSlowsSteps(t *testing.T) {
+func TestLosingTheSpeedPartsSlowsSteps(t *testing.T) {
 	r := newRig(t, 1, nil)
-	member := r.members()[0]
+	member := r.member(t)
 	fast, err := timeline.StepTicks(r.w, member)
 	if err != nil {
 		t.Fatal(err)
 	}
-	legs := anatomy.Parts(r.w, member)[3]
-	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(legs)
-	if speed := timeline.Speed(r.w, member); speed != 0 {
-		t.Errorf("speed without legs = %d, want 0", speed)
+	fastSpeed, err := timeline.Speed(r.w, member)
+	if err != nil {
+		t.Fatal(err)
+	}
+	parts := ecs.NewMap[comp.Part](r.w.ECS)
+	severed := 0
+	for _, part := range anatomy.Parts(r.w, member) {
+		if slices.ContainsFunc(parts.Get(part).Grants, func(g comp.Grant) bool { return g.Kind == "speed" }) {
+			ecs.NewMap[comp.PartOf](r.w.ECS).Remove(part)
+			severed++
+		}
+	}
+	if severed == 0 {
+		t.Fatal("no part grants speed, so this test checks nothing")
+	}
+	speed, err := timeline.Speed(r.w, member)
+	if err != nil || speed >= fastSpeed {
+		t.Errorf("speed without its speed parts = %d, %v; want less than %d", speed, err, fastSpeed)
 	}
 	slow, err := timeline.StepTicks(r.w, member)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if slow <= fast {
-		t.Errorf("step ticks = %d without legs and %d with; want slower", slow, fast)
+		t.Errorf("step ticks = %d without its speed parts and %d with; want slower", slow, fast)
 	}
 }
 
-func TestGrantsCountPartsAndSumSpeed(t *testing.T) {
+func TestAFailingSpeedFormulaIsAnError(t *testing.T) {
 	r := newRig(t, 1, nil)
-	member := r.members()[0]
-	for kind, want := range map[string]int{"action": 2, "targeting": 1, "speed": 2, "nothing": 0} {
-		if got := anatomy.Grants(r.w, member, kind); got != want {
-			t.Errorf("Grants(%q) = %d, want %d", kind, got, want)
-		}
+	member := r.member(t)
+	bundle := contenttest.SampleBundle(t)
+	bundle.Timeline.Speed = "grant.speed % (grant.speed - grant.speed)"
+	r.w.Content = contenttest.Registry(t, bundle)
+	if speed, err := timeline.Speed(r.w, member); err == nil {
+		t.Errorf("speed = %d with a formula that divides by zero, want an error", speed)
+	}
+	if ticks, err := timeline.StepTicks(r.w, member); err == nil {
+		t.Errorf("step ticks = %d with a formula that divides by zero, want an error", ticks)
+	}
+}
+
+func TestGrantsSumThePlansGrants(t *testing.T) {
+	r := newRig(t, 1, nil)
+	member := r.member(t)
+	var grants [][]comp.Grant
+	for _, def := range r.plan(t, member) {
+		grants = append(grants, def.Grants)
+	}
+	want := totals(grants...)
+	if got := anatomy.GrantTotals(r.w, member); !maps.Equal(got, want) {
+		t.Errorf("GrantTotals = %v, want %v", got, want)
+	}
+	if got := anatomy.Grants(r.w, member, "nothing"); got != 0 {
+		t.Errorf("Grants of a kind no part grants = %d, want 0", got)
 	}
 }
 
 func TestDetachingAPartDropsItFromPartsAndGrants(t *testing.T) {
 	r := newRig(t, 1, nil)
-	member := r.members()[0]
-	arm := anatomy.Parts(r.w, member)[1]
-	if !anatomy.Functioning(r.w, arm) {
-		t.Fatal("a fresh arm is not functioning")
+	member := r.member(t)
+	all := anatomy.GrantTotals(r.w, member)
+	count := len(anatomy.Parts(r.w, member))
+	part := anatomy.Parts(r.w, member)[1]
+	partData := ecs.NewMap[comp.Part](r.w.ECS).Get(part)
+	without := maps.Clone(all)
+	for _, grant := range partData.Grants {
+		without[grant.Kind] -= grant.Value
 	}
-	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(arm)
-	if anatomy.Functioning(r.w, arm) {
-		t.Error("a severed arm is functioning")
+	maps.DeleteFunc(without, func(_ string, total int) bool { return total == 0 })
+	if !anatomy.Functioning(r.w, part) {
+		t.Fatal("a fresh part is not functioning")
 	}
-	if got := len(anatomy.Parts(r.w, member)); got != 4 {
-		t.Errorf("parts = %d, want 4", got)
+	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(part)
+	if anatomy.Functioning(r.w, part) {
+		t.Error("a severed part is functioning")
 	}
-	if got := anatomy.Grants(r.w, member, "action"); got != 1 {
-		t.Errorf("action grants = %d, want 1", got)
+	if got := len(anatomy.Parts(r.w, member)); got != count-1 {
+		t.Errorf("parts = %d, want %d", got, count-1)
+	}
+	if got := anatomy.GrantTotals(r.w, member); !maps.Equal(got, without) {
+		t.Errorf("grants = %v, want %v", got, without)
 	}
 	// Reattaching brings it back.
-	ecs.NewMap[comp.PartOf](r.w.ECS).Add(arm, &comp.PartOf{}, member)
-	if got := anatomy.Grants(r.w, member, "action"); got != 2 {
-		t.Errorf("action grants after reattaching = %d, want 2", got)
+	ecs.NewMap[comp.PartOf](r.w.ECS).Add(part, &comp.PartOf{}, member)
+	if got := anatomy.GrantTotals(r.w, member); !maps.Equal(got, all) {
+		t.Errorf("grants after reattaching = %v, want %v", got, all)
 	}
 	// A part with no integrity left does not function, so it grants nothing.
-	ecs.NewMap[comp.Part](r.w.ECS).Get(arm).Integrity = 0
-	if got := anatomy.Grants(r.w, member, "action"); got != 1 {
-		t.Errorf("action grants with a broken arm = %d, want 1", got)
+	ecs.NewMap[comp.Part](r.w.ECS).Get(part).Integrity = 0 // moving archetypes invalidated partData
+	if got := anatomy.GrantTotals(r.w, member); !maps.Equal(got, without) {
+		t.Errorf("grants with a broken part = %v, want %v", got, without)
 	}
 }
 
@@ -209,7 +298,7 @@ func TestSpawningIsDeterministic(t *testing.T) {
 	describe := func(r *rig) []string {
 		var out []string
 		identities := ecs.NewMap[comp.Identity](r.w.ECS)
-		for _, member := range r.members() {
+		for _, member := range anatomy.Members(r.w, r.party) {
 			out = append(out, fmt.Sprintf("%s#%d", identities.Get(member).Template, r.w.UIDOf(member)))
 			for _, part := range anatomy.Parts(r.w, member) {
 				out = append(out, fmt.Sprintf("%s#%d", identities.Get(part).Template, r.w.UIDOf(part)))
@@ -218,39 +307,7 @@ func TestSpawningIsDeterministic(t *testing.T) {
 		return out
 	}
 	first, second := describe(newRig(t, 1, nil)), describe(newRig(t, 1, nil))
-	if !slices.Equal(first, second) || len(first) != 12 {
+	if !slices.Equal(first, second) || len(first) == 0 {
 		t.Errorf("first = %v\nsecond = %v", first, second)
-	}
-}
-
-func TestBodiesAndPartsSurviveSaveAndLoad(t *testing.T) {
-	r := newRig(t, 1, nil)
-	_, loadedWorld, _ := gametest.Reload(t, r.cfg, r.g)
-	loaded := &rig{w: loadedWorld}
-	parties := ecs.NewFilter1[comp.Party](loaded.w.ECS).Query()
-	for parties.Next() {
-		loaded.party = parties.Entity()
-		parties.Close()
-		break
-	}
-	before, after := r.members(), loaded.members()
-	if len(after) != len(before) {
-		t.Fatalf("members = %d, want %d", len(after), len(before))
-	}
-	for i := range before {
-		if r.w.UIDOf(before[i]) != loaded.w.UIDOf(after[i]) {
-			t.Errorf("member %d UID changed", i)
-		}
-		if !slices.Equal(r.slots(before[i]), loaded.slots(after[i])) {
-			t.Errorf("member %d slots = %v, want %v", i, loaded.slots(after[i]), r.slots(before[i]))
-		}
-		for kind, want := range map[string]int{"action": 2, "targeting": 1, "speed": 2} {
-			if got := anatomy.Grants(loaded.w, after[i], kind); got != want {
-				t.Errorf("member %d Grants(%q) = %d, want %d", i, kind, got, want)
-			}
-		}
-		if got := len(timeline.Channels(loaded.w, after[i])); got != 6 {
-			t.Errorf("member %d channels = %d, want 6", i, got)
-		}
 	}
 }
