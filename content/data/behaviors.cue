@@ -30,6 +30,37 @@ behaviors: {
 		consider: ["source.needs.water"]
 		target: {kind: "mark", mark: "water"}
 	}
+	"behavior.test.gnaw_corpse": {
+		name: "text.behavior.test.gnaw_corpse"
+		do:   "consume"
+		params: action: "action.test.gnaw"
+		consider: ["0.5"]
+		target: {kind: "body", dead: true}
+	}
+	"behavior.test.haul_water": {
+		name: "text.behavior.test.haul_water"
+		do:   "carry"
+		params: {item: "item.lake_water", count: "2", to: "cistern"}
+		consider: ["0.5"]
+		target: {kind: "body", tags: ["well"]}
+	}
+	"behavior.test.run": {
+		name: "text.behavior.test.run"
+		do:   "flee"
+		consider: ["0.5"]
+	}
+	"behavior.test.guard_post": {
+		name: "text.behavior.test.guard_post"
+		do:   "guard"
+		params: radius: "2"
+		consider: ["0.5"]
+		target: {kind: "mark", mark: "post"}
+	}
+	"behavior.test.fight": {
+		name: "text.behavior.test.fight"
+		do:   "engage"
+		consider: ["0.5"]
+	}
 	"behavior.test.idle": {
 		name: "text.behavior.test.idle"
 		do:   "idle"
@@ -38,7 +69,12 @@ behaviors: {
 }
 
 text: {
-	"text.behavior.test.wander":   "wandering"
-	"text.behavior.test.to_water": "going for water"
-	"text.behavior.test.idle":     "standing about"
+	"text.behavior.test.wander":      "wandering"
+	"text.behavior.test.to_water":    "going for water"
+	"text.behavior.test.gnaw_corpse": "gnawing a corpse"
+	"text.behavior.test.haul_water":  "hauling water"
+	"text.behavior.test.run":         "running"
+	"text.behavior.test.guard_post":  "guarding a post"
+	"text.behavior.test.fight":       "fighting"
+	"text.behavior.test.idle":        "standing about"
 }

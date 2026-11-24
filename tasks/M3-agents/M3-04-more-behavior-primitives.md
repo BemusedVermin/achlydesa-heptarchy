@@ -1,7 +1,7 @@
 ---
 id: M3-04
 title: "Behavior primitives: consume, carry, flee, guard and engage"
-status: todo
+status: done
 milestone: M3
 kind: feature
 depends_on: [M3-01, M3-03]
@@ -41,12 +41,12 @@ Each new primitive is registered in `agents` with the parameters it declares; a 
 
 ## Acceptance criteria
 
-- [ ] A test creature with `consume` walks to a dead body and starts the named action on it.
-- [ ] A test hauler with `carry` moves 2 water from a well body's inventory to a cistern body's inventory, and the counts change by exactly 2.
-- [ ] A test creature whose `flee` scores highest moves away from a hostile until it is out of sight.
-- [ ] A `guard` creature stays within its radius while no hostile comes near, and attacks one that does.
-- [ ] An `engage` creature fights as a `hunt` creature does: a test with the same seed gives the same landings for both.
-- [ ] `go tool task check` passes.
+- [x] A test creature with `consume` walks to a dead body and starts the named action on it.
+- [x] A test hauler with `carry` moves 2 water from a well body's inventory to a cistern body's inventory, and the counts change by exactly 2.
+- [x] A test creature whose `flee` scores highest moves away from a hostile until it is out of sight.
+- [x] A `guard` creature stays within its radius while no hostile comes near, and attacks one that does.
+- [x] An `engage` creature fights as a `hunt` creature does: a test with the same seed gives the same landings for both.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -55,4 +55,11 @@ Each new primitive is registered in `agents` with the parameters it declares; a 
 
 ## Notes
 
-
+- `consume` is done when the action starts; the action's landing follows, and the behavior is not kept to see it land (provisional).
+- `carry` picks up and delivers at once when the body is next to the source or the owner, with no action time. A body standing on the `to` mark is the owner of the stock; a body on the map with no owner there waits.
+- Primitives gained `Optional` params (`agents.Primitive.Optional`), since `engage`'s `controller` has a default. `engage` refuses to hand the decision to `agents` itself.
+- `flee` and `guard` take sight from `combat.sight_radius` and `sight_depth`, and `guard` engages through `hunt`, which picks its own nearest hostile and may chase out of the radius.
+- Outside the file list: `internal/core/actions/actions.go` now lets an explicit intent target a corpse (dead bodies have no `comp.Actor`), which `consume` needs; content also gained test actions, templates and behaviors.
+- Params such as `count` and `radius` are read as whole numbers at run time; a bad one is an error then, not at load.
+- The tests rest on the party's stationary leader; tests wait only a few hundred ticks, since a very long wait with only the party crashed the timeline before M3-03.F1.
+- Follow-ups filed: M3-04.F1 (path around bodies), M3-04.F2 (corpse targeting opt-in).

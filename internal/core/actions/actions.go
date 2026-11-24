@@ -97,6 +97,7 @@ type evaluator struct {
 	identities *ecs.Map[comp.Identity]
 	positions  *ecs.Map[comp.Pos]
 	actors     *ecs.Map[comp.Actor]
+	dead       *ecs.Map[comp.Dead]
 	sight      map[ecs.Entity]map[ecs.Entity]bool
 	// Each actor's whole inventory, for choice offers.
 	inventory map[ecs.Entity]map[string]int
@@ -112,6 +113,7 @@ func newEvaluator(w *sim.World) *evaluator {
 		identities: ecs.NewMap[comp.Identity](w.ECS),
 		positions:  ecs.NewMap[comp.Pos](w.ECS),
 		actors:     ecs.NewMap[comp.Actor](w.ECS),
+		dead:       ecs.NewMap[comp.Dead](w.ECS),
 		sight:      map[ecs.Entity]map[ecs.Entity]bool{},
 	}
 }
@@ -242,9 +244,10 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 	return p, api.Text{}, nil
 }
 
-// isBody reports whether e is a body: a living entity on the timeline.
+// isBody reports whether e is a body: an entity on the timeline, or a corpse. A corpse is never
+// listed as a target, but an intent that names one is valid.
 func (ev *evaluator) isBody(e ecs.Entity) bool {
-	return ev.w.Alive(e) && ev.actors.Has(e)
+	return ev.w.Alive(e) && (ev.actors.Has(e) || ev.dead.Has(e))
 }
 
 // checkChoices checks that the intent made exactly the choices the action asks for, each one offered.

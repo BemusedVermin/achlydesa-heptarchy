@@ -46,10 +46,21 @@ actions: {
 		on_land: [{do: "satisfy", params: {need: "need.water", amount: "0.5"}}]
 		tags: ["supply"]
 	}
+	// For tests: a bite at a body next to the source, which may be a corpse.
+	"action.test.gnaw": {
+		name: "text.action.test.gnaw"
+		key:  "gnaw"
+		uses: [{tag: "body", count: 1}]
+		target:   "body"
+		range:    1
+		windup:   "2"
+		recovery: "5"
+	}
 }
 
 text: {
-	"text.action.step":  "Step"
-	"text.action.eat":   "Eat"
-	"text.action.drink": "Drink"
+	"text.action.test.gnaw": "Gnaw"
+	"text.action.step":      "Step"
+	"text.action.eat":       "Eat"
+	"text.action.drink":     "Drink"
 }

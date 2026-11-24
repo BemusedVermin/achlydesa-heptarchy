@@ -24,8 +24,10 @@ const rngStream = "agents"
 // Primitive is what a behavior does, in Go. Content composes primitives into behaviors.
 type Primitive struct {
 	Name string
-	// Params are the names of the params a behavior using it must give, and the only ones it may.
+	// Params are the names of the params a behavior using it must give.
 	Params []string
+	// Optional are the names of the params a behavior using it may give besides Params.
+	Optional []string
 	// Step does one decision's worth of the behavior: start an action, or report done. Doing
 	// neither lets the body wait until the next entry on the timeline.
 	Step func(w *sim.World, body ecs.Entity, b content.BehaviorDef, target Target) (done bool, err error)
@@ -66,7 +68,7 @@ func RegisterPrimitive(w *sim.World, p Primitive) error {
 }
 
 // ValidateContent checks what the loader cannot know: that every behavior names a registered
-// primitive and gives exactly the params it declares. It reports every problem.
+// primitive and gives the params it declares and no others. It reports every problem.
 func ValidateContent(w *sim.World) error {
 	st := stateOf(w)
 	var problems []error
@@ -83,7 +85,7 @@ func ValidateContent(w *sim.World) error {
 			}
 		}
 		for _, name := range slices.Sorted(maps.Keys(def.Params)) {
-			if !slices.Contains(p.Params, name) {
+			if !slices.Contains(p.Params, name) && !slices.Contains(p.Optional, name) {
 				problems = append(problems, fmt.Errorf("behaviors[%q].params: %q takes no %q", id, def.Do, name))
 			}
 		}
