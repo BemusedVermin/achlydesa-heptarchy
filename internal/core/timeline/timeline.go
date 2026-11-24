@@ -421,8 +421,10 @@ func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 		if !ok {
 			return ecs.Entity{}, errors.New("timeline: nobody is on the timeline")
 		}
-		if err := st.open(w, clk, body); err != nil {
+		if opened, err := st.open(w, clk, body); err != nil {
 			return ecs.Entity{}, err
+		} else if !opened {
+			continue
 		}
 		controller := st.actors.Get(body).Controller
 		if controller == PlayerController {
@@ -438,20 +440,24 @@ func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 	}
 }
 
-// open moves the clock to body's decision and announces it.
-func (st *state) open(w *sim.World, clk *clock.Clock, body ecs.Entity) error {
+// open moves the clock to body's decision and announces it. It reports false, announcing nothing,
+// when a system that ran on the way took body off the timeline.
+func (st *state) open(w *sim.World, clk *clock.Clock, body ecs.Entity) (bool, error) {
 	if tick := st.decisionTick(w, body); tick > w.Now {
 		if err := clk.Advance(w, tick-w.Now); err != nil {
-			return err
+			return false, err
 		}
+	}
+	if !w.ECS.Alive(body) || !st.actors.Has(body) {
+		return false, nil
 	}
 	st.current, st.hasCurrent = body, true
 	st.systemsDue = true
 	w.Bus.Publish(api.Ready{Source: w.UIDOf(body), Tick: w.Now})
 	if _, err := w.Bus.Drain(w); err != nil {
-		return fmt.Errorf("timeline: ready: %w", err)
+		return false, fmt.Errorf("timeline: ready: %w", err)
 	}
-	return nil
+	return true, nil
 }
 
 // decide runs a non-player body's controller, and makes the body wait if it did nothing.
