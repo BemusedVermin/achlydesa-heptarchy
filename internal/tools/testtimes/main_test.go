@@ -1,8 +1,10 @@
 package main
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -26,13 +28,8 @@ func TestParseLog(t *testing.T) {
 		"example.com/game/internal/harness":     72300 * time.Millisecond,
 		"example.com/game/internal/core/combat": 1500 * time.Millisecond,
 	}
-	if len(got) != len(want) {
-		t.Fatalf("parseLog = %v, want %v", got, want)
-	}
-	for pkg, took := range want {
-		if got[pkg] != took {
-			t.Errorf("%s: %v, want %v", pkg, got[pkg], took)
-		}
+	if !maps.Equal(got, want) {
+		t.Errorf("parseLog = %v, want %v", got, want)
 	}
 }
 
@@ -49,7 +46,7 @@ func TestSaveAndLoadTimes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if loaded["a"] != saved["a"] || loaded["b"] != saved["b"] {
+	if !maps.Equal(loaded, saved) {
 		t.Errorf("loadTimes = %v, want %v", loaded, saved)
 	}
 	missing, err := loadTimes(filepath.Join(t.TempDir(), "none.txt"))
@@ -77,13 +74,8 @@ func TestCompare(t *testing.T) {
 		{pkg: "new", took: 2 * time.Second},
 		{pkg: "rng", took: 300 * time.Millisecond, baseline: 100 * time.Millisecond},
 	}
-	if len(rows) != len(want) {
-		t.Fatalf("compare = %+v, want %+v", rows, want)
-	}
-	for i := range want {
-		if rows[i] != want[i] {
-			t.Errorf("row %d = %+v, want %+v", i, rows[i], want[i])
-		}
+	if !slices.Equal(rows, want) {
+		t.Errorf("compare = %+v, want %+v", rows, want)
 	}
 }
 
