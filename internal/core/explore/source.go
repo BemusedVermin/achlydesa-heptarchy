@@ -16,7 +16,18 @@ type Source struct {
 	authored map[hexmap.ChunkKey][]placed
 	marks    map[string]api.Cell
 	spawns   []Spawn
+	gates    []GateSite
 }
+
+// GateSite is a gate cell and the mark it leads to, before the maps are numbered.
+type GateSite struct {
+	Cell api.Cell
+	To   api.ContentID
+	Mark string
+}
+
+// Gates lists the map's gate cells in row order.
+func (s *Source) Gates() []GateSite { return slices.Clone(s.gates) }
 
 type placed struct {
 	cell    api.Cell
@@ -48,7 +59,9 @@ func NewSource(reg *content.Registry, def content.MapDef) (*Source, error) {
 						return nil, fmt.Errorf("legend %q: %w", string(char), err)
 					}
 				} else if name, ok := def.Marks[string(char)]; ok {
-					if template, spawns := def.Spawns[string(char)]; spawns {
+					if gate, isGate := def.Gates[string(char)]; isGate {
+						src.gates = append(src.gates, GateSite{Cell: cell, To: gate.To, Mark: gate.Mark})
+					} else if template, spawns := def.Spawns[string(char)]; spawns {
 						src.spawns = append(src.spawns, Spawn{Cell: cell, Template: template})
 					} else {
 						src.marks[name] = cell

@@ -22,6 +22,7 @@ type Map struct {
 	topo   Topology
 	chunks map[ChunkKey]*Chunk
 	edits  map[api.Cell]Terrain
+	gates  map[api.Cell]Gate
 	// sights remembers Visible results until the next edit. It is derived, never saved or hashed.
 	sights map[sightKey][]api.Cell
 }
