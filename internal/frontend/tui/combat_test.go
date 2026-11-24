@@ -180,6 +180,18 @@ func TestMenuLeafSendsTheOptionAndTheActorPanelShowsTheSwing(t *testing.T) {
 	}
 }
 
+func TestALongTargetNameWrapsTheSwingInsteadOfCuttingItsTick(t *testing.T) {
+	windup := &api.WindupView{Action: "Strike", Target: 2, Lands: 3, When: "lands at tick 86"}
+	bodies := &api.BodiesView{Bodies: []api.BodyView{
+		{UID: 1, Name: "The Reaper", Channels: []api.ChannelView{{UID: 3, Slot: "arm", Name: "arm", Windup: windup}}},
+		{UID: 2, Name: "The very long-named moving clay"},
+	}}
+	out := tui.RenderBody(bodies.Bodies[0], bodies, panelWidth)
+	if !strings.Contains(strings.ReplaceAll(out, "\n", " "), "lands at tick 86") {
+		t.Errorf("the swing line lost its tick:\n%s", out)
+	}
+}
+
 func currentMember(t *testing.T, app *tui.App) api.BodyView {
 	t.Helper()
 	return bodyOf(t, app, app.State.Bodies.Current)

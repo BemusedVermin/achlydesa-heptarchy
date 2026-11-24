@@ -88,7 +88,8 @@ func currentBody(bodies *api.BodiesView) (api.BodyView, bool) {
 }
 
 // RenderBody draws one body: a header, one line per part (slot, name, material, integrity bar and
-// state), and each swing being wound up with its target and landing tick.
+// state), and each swing being wound up with its target and landing tick. A line wider than width
+// wraps rather than lose its end, which holds the numbers.
 func RenderBody(body api.BodyView, bodies *api.BodiesView, width int) string {
 	names := bodyNames(bodies)
 	header := body.Name
@@ -102,7 +103,7 @@ func RenderBody(body api.BodyView, bodies *api.BodiesView, width int) string {
 	var swings []api.WindupView
 	for _, c := range body.Channels {
 		fields := []string{fmt.Sprintf("%-5s", c.Slot), c.Name, c.Material, bar(c.Integrity, c.MaxIntegrity), c.State}
-		lines = append(lines, lipgloss.NewStyle().MaxWidth(max(1, width)).Render(strings.Join(fields, " ")))
+		lines = append(lines, lipgloss.Wrap(strings.Join(fields, " "), max(1, width), ""))
 		if c.Windup != nil && (len(swings) == 0 || swings[len(swings)-1] != *c.Windup) {
 			swings = append(swings, *c.Windup)
 		}
@@ -113,7 +114,7 @@ func RenderBody(body api.BodyView, bodies *api.BodiesView, width int) string {
 			line += " -> " + name
 		}
 		line += ", " + s.When
-		lines = append(lines, lipgloss.NewStyle().MaxWidth(max(1, width)).Render(line))
+		lines = append(lines, lipgloss.Wrap(line, max(1, width), ""))
 	}
 	return strings.Join(lines, "\n")
 }
