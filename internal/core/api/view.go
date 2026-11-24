@@ -1,9 +1,8 @@
 package api
 
-// View is everything a frontend needs to draw the current state. It holds
-// display-ready strings; the core resolves text before building it. Later tasks
-// add a section each as a pointer field: Clock (M1-08), Timeline (M1-17), Map and Party (M1-10),
-// Combat (M2).
+// View is everything a frontend needs to draw the current state. It holds display-ready strings; the
+// core resolves text before building it. Each package fills its own section as a pointer field; nil
+// means the section is absent.
 type View struct {
 	Tick     int64         `json:"tick"`
 	Options  []Option      `json:"options"`

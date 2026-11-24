@@ -12,7 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// bodyTag and partTag tag the channels of a body and of its parts.
+// bodyTag and partTag tag the channels of a body and of its parts; grantTag prefixes each grant's kind.
 const (
 	bodyTag  = "body"
 	partTag  = "part"
