@@ -208,6 +208,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 - **On screen:** creatures and people near the party are full Ark entities with bodies, needs and memory.
 - **Off screen:** each region holds aggregate populations per creature family; each town runs its residents on coarse schedules.
 - **Promotion and demotion:** entering a region turns aggregates into full agents; leaving folds them back, keeping named agents and anyone with a grudge as individuals.
+- **A region is a map (until procgen).** Each town and each region of the deep is its own hand-made map, joined to the others by gates. Everyone on the party's map is a full agent; every other map runs as aggregates. M5 generates the deep's maps and stitches them to the same gates.
 
 ### Determinism rules
 
@@ -302,7 +303,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 
 - [ ] CUE or YAML plus JSON Schema? CUE removes the most custom validation code, but it has a learning curve for content authoring.
 - [x] Hex library: decided, gravitton/hexagon (double-width layout, field of view and line drawing).
-- [ ] The deep is infinite, so: how big is the level-of-detail radius, and what's the chunk memory budget? Together they set the off-screen tick budget.
+- [ ] The deep is infinite, so: what's the chunk memory budget? The level-of-detail radius is decided: it is the party's map (see Level of detail), so the budget follows from how big a generated region map is.
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
 - [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.
