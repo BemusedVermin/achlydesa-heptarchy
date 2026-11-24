@@ -17,8 +17,12 @@ type taskFile struct {
 	status    string
 	kind      string
 	dependsOn []string
-	renames   []string // old=new pairs a cleanup rename task makes
-	path      string   // slash-separated, relative to the repository root
+	// renames are the old=new pairs a cleanup rename task makes.
+	renames []string
+	// allowedDifferences are the lines of the same-behavior report a cleanup task causes on purpose.
+	allowedDifferences []string
+	// path is slash-separated, relative to the repository root.
+	path string
 }
 
 // parseFrontMatter reads the YAML front matter at the start of a task file: flat "key: value"
@@ -68,16 +72,31 @@ func unquote(value string) string {
 	return value
 }
 
-// parseList reads a flow list such as [M1-01, M1-02]. An empty list, null or "none" has no items.
+// parseList reads a flow list such as [a, b]. An item that starts with a quote may hold commas;
+// a quote later in an item is literal, as in YAML. An empty list, null or "none" has no items.
 func parseList(value string) []string {
 	value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, "["), "]"))
 	var items []string
-	for item := range strings.SplitSeq(value, ",") {
+	add := func(item string) {
 		item = unquote(strings.TrimSpace(item))
 		if item != "" && item != "null" && item != "none" {
 			items = append(items, item)
 		}
 	}
+	var quote rune
+	start := 0
+	for index, char := range value {
+		switch {
+		case quote != 0 && char == quote:
+			quote = 0
+		case quote == 0 && (char == '"' || char == '\'') && strings.TrimSpace(value[start:index]) == "":
+			quote = char
+		case quote == 0 && char == ',':
+			add(value[start:index])
+			start = index + 1
+		}
+	}
+	add(value[start:])
 	return items
 }
 
@@ -102,13 +121,14 @@ func loadTasks(root string) ([]taskFile, error) {
 			return err
 		}
 		tasks = append(tasks, taskFile{
-			id:        fields["id"],
-			title:     fields["title"],
-			status:    fields["status"],
-			kind:      fields["kind"],
-			dependsOn: parseList(fields["depends_on"]),
-			renames:   parseList(fields["renames"]),
-			path:      filepath.ToSlash(relative),
+			id:                 fields["id"],
+			title:              fields["title"],
+			status:             fields["status"],
+			kind:               fields["kind"],
+			dependsOn:          parseList(fields["depends_on"]),
+			renames:            parseList(fields["renames"]),
+			path:               filepath.ToSlash(relative),
+			allowedDifferences: parseList(fields["allowed_differences"]),
 		})
 		return nil
 	})

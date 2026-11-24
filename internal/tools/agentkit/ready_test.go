@@ -44,6 +44,8 @@ func TestParseList(t *testing.T) {
 		{"[M1-01]", []string{"M1-01"}},
 		{"[M1-11, M1-13]", []string{"M1-11", "M1-13"}},
 		{`["M1-11", 'M1-13']`, []string{"M1-11", "M1-13"}},
+		{`["a, b: c", d]`, []string{"a, b: c", "d"}},
+		{`["actor":"=@@KEEP@@, "actor":="source":]`, []string{`"actor":"=@@KEEP@@`, `"actor":="source":`}},
 		{"null", nil},
 		{"none", nil},
 	}
