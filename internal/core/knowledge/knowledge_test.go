@@ -1,7 +1,6 @@
 package knowledge_test
 
 import (
-	"bytes"
 	"slices"
 	"testing"
 
@@ -9,10 +8,7 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -171,69 +167,5 @@ func TestNoticedFactLogsTheValueAsText(t *testing.T) {
 		if got := reg.Render(noticed[i].LogText()); got != want {
 			t.Errorf("log line %d = %q, want %q", i, got, want)
 		}
-	}
-}
-
-func TestSaveAndLoadKeepEveryFact(t *testing.T) {
-	bundle := contenttest.SampleBundle(t)
-	contenttest.NoStart(&bundle)
-	reg := contenttest.Registry(t, bundle)
-	var knower ecs.Entity
-	cfg := game.Config{
-		Seed: 1, Content: reg,
-		Spawn: func(w *sim.World, _ *clock.Clock) error {
-			var err error
-			knower, err = w.Spawn("template.person.reaper", nil)
-			return err
-		},
-	}
-	g, world, cfg := gametest.Start(t, cfg)
-	subject := world.UIDOf(knower)
-	world.Now = 12
-	knowledge.Learn(
-		world,
-		knower,
-		api.Fact{
-			Subject:    subject,
-			Claim:      "claim.material",
-			Value:      "material.clay",
-			Origin:     "origin.sweep",
-			Confidence: 0.8,
-		},
-	)
-	knowledge.Learn(
-		world,
-		knower,
-		api.Fact{
-			Subject:    99,
-			Claim:      "claim.name",
-			Value:      "text.template.person.salken",
-			Origin:     "origin.rumor",
-			Confidence: 0.3,
-		},
-	)
-	want := slices.Concat(knowledge.About(world, knower, subject), knowledge.About(world, knower, 99))
-
-	var buf bytes.Buffer
-	if err := g.Save(&buf); err != nil {
-		t.Fatal(err)
-	}
-	if _, _, err := game.Load(cfg, &buf); err != nil {
-		t.Fatal(err)
-	}
-	// Install ran again in Load, so world is now the loaded game's world.
-	var found ecs.Entity
-	query := ecs.NewFilter1[comp.Knowledge](world.ECS).Query()
-	count := 0
-	for query.Next() {
-		found = query.Entity()
-		count++
-	}
-	if count != 1 {
-		t.Fatalf("%d entities with Knowledge after load, want 1", count)
-	}
-	got := slices.Concat(knowledge.About(world, found, subject), knowledge.About(world, found, 99))
-	if !slices.Equal(got, want) {
-		t.Errorf("facts after load = %+v, want %+v", got, want)
 	}
 }

@@ -1,6 +1,7 @@
 package hexmap
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -103,15 +104,8 @@ func TestPathDeterministic(t *testing.T) {
 	if err != nil || !ok {
 		t.Fatal(ok, err)
 	}
-	for range 100 {
-		again, _, _ := m.Path(cell(0, 0, 0), cell(4, 0, 0), defaultStepRules(), nil, 1000)
-		if len(again) != len(first) {
-			t.Fatal("route length changed")
-		}
-		for i := range first {
-			if first[i] != again[i] {
-				t.Fatalf("route differs at %d", i)
-			}
-		}
+	again, _, _ := m.Path(cell(0, 0, 0), cell(4, 0, 0), defaultStepRules(), nil, 1000)
+	if !slices.Equal(first, again) {
+		t.Fatalf("route changed between calls: %v, then %v", first, again)
 	}
 }

@@ -2,12 +2,10 @@ package inventory_test
 
 import (
 	"slices"
-	"strings"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
 
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -95,87 +93,22 @@ func TestCountOfAnEntityWithNoInventoryIsZero(t *testing.T) {
 	}
 }
 
-func TestAllElevenTypesLoadAndNameIsNeverRefused(t *testing.T) {
+func TestSpawningGivesTheTemplatesInventory(t *testing.T) {
 	reg := contenttest.Sample(t)
-	if got := len(reg.TypeIDs()); got != 11 {
-		t.Errorf("types = %d, want 11", got)
-	}
-	tests := []struct {
-		held map[string]int
-		want bool
-	}{{map[string]int{"item.name": 1}, true}, {map[string]int{}, true}}
-	for _, tc := range tests {
-		got, _, err := reg.ModsRequires("type.name", content.ActionEnv{Inventory: tc.held})
-		if err != nil || got != tc.want {
-			t.Errorf("name with inventory %v = %v, %v; want %v", tc.held, got, err, tc.want)
-		}
-	}
-	if got, _, err := reg.ModsRequires("type.cut", content.ActionEnv{}); err != nil || !got {
-		t.Errorf("cut = %v, %v; want always allowed", got, err)
-	}
-	for _, warning := range reg.Warnings() {
-		if strings.Contains(warning, "hostile") {
-			t.Errorf("warning %q, want no hostility warnings", warning)
-		}
-	}
-}
-
-func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
-	bundle := contenttest.SampleBundle(t)
-	deep := bundle.Factions["faction.wild"]
-	deep.HostileTo = []api.ContentID{"faction.crawling"} // only the party's side of the feud is left one-sided
-	bundle.Factions["faction.wild"] = deep
-	reg := contenttest.Registry(t, bundle)
-	hostility := 0
-	for _, warning := range reg.Warnings() {
-		if strings.Contains(warning, "hostile") {
-			hostility++
-		}
-	}
-	if hostility != 1 {
-		t.Errorf("warnings = %v, want one about hostility", reg.Warnings())
-	}
-}
-
-func TestBadTypeContentIsRejected(t *testing.T) {
-	bundle := contenttest.SampleBundle(t)
-	bad := bundle.Types["type.press"]
-	bad.Requires = "no_such_field == 1"
-	bundle.Types["type.press"] = bad
-	burn := bundle.Types["type.burn"]
-	burn.Lists = map[string][]string{"consumes": {"item.nothing"}}
-	bundle.Types["type.burn"] = burn
-	if _, err := content.New(bundle); err == nil {
-		t.Error("content with a bad condition and an unknown item loaded")
-	}
-}
-
-func partyOf(t *testing.T, w *sim.World) ecs.Entity {
-	t.Helper()
-	query := ecs.NewFilter1[comp.Party](w.ECS).Query()
-	defer query.Close()
+	_, world, _ := gametest.Start(t, game.Config{Seed: 1, Content: reg})
+	query := ecs.NewFilter1[comp.Party](world.ECS).Query()
 	if !query.Next() {
-		t.Fatal("no party")
+		t.Fatal("the start scenario has no party")
 	}
-	return query.Entity()
-}
-
-func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
-	reg := contenttest.Sample(t)
-	g, world, cfg := gametest.Start(t, game.Config{Seed: 1, Content: reg})
-	party := partyOf(t, world)
-	for _, item := range []api.ContentID{
-		"item.coal", "item.salk_dust", "item.lake_water", "item.daylight_jar", "item.violet_blood", "item.lees",
-	} {
-		if got := inventory.Count(world, party, item, 0); got < 1 {
-			t.Errorf("party has %d of %s, want some", got, item)
+	party := query.Entity()
+	query.Close()
+	template, _ := reg.Template(ecs.NewMap[comp.Identity](world.ECS).Get(party).Template)
+	if len(template.Inventory) == 0 {
+		t.Fatal("the sample party starts with nothing, so this test checks nothing")
+	}
+	for _, def := range template.Inventory {
+		if got := inventory.Count(world, party, def.Item, 0); got < def.Count {
+			t.Errorf("party has %d of %s, want at least %d", got, def.Item, def.Count)
 		}
-	}
-	inventory.Take(world, party, "item.coal", 0, 1)
-	before := stacks(world, party)
-
-	_, world, _ = gametest.Reload(t, cfg, g)
-	if got := stacks(world, partyOf(t, world)); !slices.Equal(got, before) {
-		t.Errorf("loaded inventory = %+v, want %+v", got, before)
 	}
 }

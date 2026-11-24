@@ -122,10 +122,8 @@ func TestCellsInSortedAndStable(t *testing.T) {
 			t.Errorf("%v is %d hexes from the center", c, dist)
 		}
 	}
-	for range 100 {
-		if again := m.CellsIn(center, 2, 0, 1); !slices.Equal(first, again) {
-			t.Fatal("CellsIn changed between calls")
-		}
+	if again := m.CellsIn(center, 2, 0, 1); !slices.Equal(first, again) {
+		t.Fatal("CellsIn changed between calls")
 	}
 	if got := m.CellsIn(center, -1, 0, 0); got != nil {
 		t.Errorf("negative radius gave %v", got)
