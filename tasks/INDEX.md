@@ -143,8 +143,13 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+<<<<<<< HEAD
 | [M3-02.F1](followups/M3-02.F1-hot-reload-dropped-need.md) | Decide what happens to a body's need when hot-reloaded content drops it | todo | debt | M3 | M3-02 |
 | [C1-31.F1](followups/C1-31.F1-collection-names-enum.md) | Collection names as an enforced set | done | debt | C1 | C1-31 |
+=======
+| [M3-02.F1](followups/M3-02.F1-hot-reload-dropped-need.md) | Decide what happens to a body's need when hot-reloaded content drops it | done | debt | M3 | M3-02 |
+| [C1-31.F1](followups/C1-31.F1-collection-names-enum.md) | Collection names as an enforced set | todo | debt | C1 | C1-31 |
+>>>>>>> origin/master
 | [M3-01.F1](followups/M3-01.F1-install-hook-before-start.md) | Run game.Config.Install before the start map spawns its bodies | done | seam | M3 | M3-01 |
 | [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | done | test | C1 | C1-23 |
 | [C1-23.F1](followups/C1-23.F1-reload-messages-in-content.md) | Move the hot reload's log messages into content text | obsolete | debt | C1 | C1-23 |

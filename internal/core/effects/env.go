@@ -36,6 +36,9 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 			levels := needs.Get(body).Levels
 			env.Needs = make(map[string]float64, len(levels))
 			for _, level := range levels {
+				if _, known := w.Content.Need(level.Need); !known {
+					continue
+				}
 				env.Needs[strings.TrimPrefix(string(level.Need), needPrefix)] = level.Level
 			}
 		}
