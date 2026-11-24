@@ -12,7 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// alertSystem is the name of the per-turn system that raises and ends the alert.
+// alertSystem is the name of the per-entry system that raises and ends the alert.
 const alertSystem = "combat.alert"
 
 // controlledParty returns the party the player commands.
@@ -28,7 +28,7 @@ func controlledParty(w *sim.World) (ecs.Entity, bool) {
 
 // livingMembers lists the members of a party that are neither dead nor downed, by UID.
 func livingMembers(w *sim.World, party ecs.Entity) []ecs.Entity {
-	return slices.DeleteFunc(anatomy.Members(w, party), func(e ecs.Entity) bool { return fallen(w, e) })
+	return slices.DeleteFunc(anatomy.Members(w, party), func(e ecs.Entity) bool { return outOfFight(w, e) })
 }
 
 // hostileCandidates lists every standing body with an allegiance, by UID.
@@ -36,7 +36,7 @@ func hostileCandidates(w *sim.World) []ecs.Entity {
 	var out []ecs.Entity
 	query := ecs.NewFilter2[comp.Pos, comp.Allegiance](w.ECS).Query()
 	for query.Next() {
-		if e := query.Entity(); !fallen(w, e) {
+		if e := query.Entity(); !outOfFight(w, e) {
 			out = append(out, e)
 		}
 	}

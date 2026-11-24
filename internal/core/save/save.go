@@ -15,7 +15,7 @@ import (
 const Format = "heptarchy-save"
 
 // CurrentVersion is the version Write produces. Raise it together with a migration from the old one.
-const CurrentVersion = 1
+const CurrentVersion = 2
 
 // Header says what the file is and what it was made from.
 type Header struct {
@@ -41,7 +41,7 @@ type Snapshot struct {
 	// RNG is the state of each named random stream.
 	RNG     map[string][]byte `json:"rng"`
 	NextUID api.UID           `json:"next_uid"`
-	// Timeline is the turn queue and the deciding body, which live outside the ECS components.
+	// Timeline is the queued entries and the deciding body, which live outside the ECS components.
 	Timeline timeline.Saved `json:"timeline"`
 	// MapEdits lists each map's edits. Maps themselves are rebuilt from content on load.
 	MapEdits map[api.MapID][]MapEdit `json:"map_edits"`

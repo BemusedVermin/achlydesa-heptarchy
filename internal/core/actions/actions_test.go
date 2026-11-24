@@ -94,7 +94,7 @@ func testBundle(t *testing.T, o opts) content.Bundle {
 	bundle.Text["text.template.test.fighter"] = "Clay-thing"
 	bundle.Text["text.template.test.dummy"] = "Dummy"
 	// Only an enemy in reach makes an arm worth stopping for.
-	party, deep := api.ContentID("faction.party"), api.ContentID("faction.deep")
+	party, deep := api.ContentID("faction.party"), api.ContentID("faction.wild")
 	bundle.Templates["template.test.fighter"] = content.Template{
 		Faction: &party,
 		Actor:   &content.ActorDef{Controller: timeline.PlayerController}, Actions: known,
@@ -254,7 +254,7 @@ func (fx *fixture) apply(cmd api.Command) []api.Event {
 
 func (fx *fixture) wait(ticks int64) []api.Event {
 	fx.t.Helper()
-	return fx.apply(api.Wait{Actor: fx.uid(fx.fighter), Until: api.WaitTicks, Ticks: ticks})
+	return fx.apply(api.Wait{Source: fx.uid(fx.fighter), Until: api.WaitTicks, Ticks: ticks})
 }
 
 func find[E api.Event](events []api.Event) (E, bool) {
@@ -477,7 +477,7 @@ func TestEveryOptionValidatesAndABusyChannelIsRejected(t *testing.T) {
 	if _, ok := find[api.Rejected](fx.apply(other)); !ok {
 		t.Error("a Do naming a channel that is not the actor's was accepted")
 	}
-	stranger := api.Do{Actor: fx.uid(fx.dummy), Action: "action.step", Dir: new(api.Dir)}
+	stranger := api.Do{Source: fx.uid(fx.dummy), Action: "action.step", Dir: new(api.Dir)}
 	if _, ok := find[api.Rejected](fx.apply(stranger)); !ok {
 		t.Error("a Do from a body that is not deciding was accepted")
 	}
@@ -500,7 +500,7 @@ func TestChoicesHooksAndOptionOrder(t *testing.T) {
 		t.Errorf("Startable = %v, want only type.b", got)
 	}
 	bad := api.Do{
-		Actor: fx.uid(fx.fighter), Action: "action.test.load", Choices: map[string]string{"type": "type.zzz"},
+		Source: fx.uid(fx.fighter), Action: "action.test.load", Choices: map[string]string{"type": "type.zzz"},
 	}
 	if rejected, ok := find[api.Rejected](fx.apply(bad)); !ok || rejected.Reason.ID != "text.actions.bad_choice" {
 		t.Errorf("an unoffered choice was not rejected as bad_choice")

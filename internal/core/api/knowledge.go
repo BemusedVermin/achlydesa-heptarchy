@@ -13,7 +13,7 @@ type Fact struct {
 	Subject    UID       `json:"subject"`    // who or what the fact is about
 	Claim      ContentID `json:"claim"`      // a claim ID
 	Value      string    `json:"value"`      // e.g. "material.clay"
-	Source     ContentID `json:"source"`     // a source ID
+	Origin     ContentID `json:"origin"`     // an origin ID
 	Confidence float64   `json:"confidence"` // 0..1
 	Tick       int64     `json:"tick"`
 }

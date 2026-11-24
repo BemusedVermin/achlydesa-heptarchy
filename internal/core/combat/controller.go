@@ -75,14 +75,13 @@ func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error)
 		}
 	}
 	env := content.ScoreEnv{
-		Source: effects.SideOf(w, actor, sourcePart), Target: effects.SideOf(w, in.Target, in.TargetPart),
-		Chosen: effects.ChosenRecords(w, in.Choices), Pack: inventory.Usable(w, actor, in.Target),
+		Source: effects.BodyEnvOf(w, actor, sourcePart), Target: effects.BodyEnvOf(w, in.Target, in.TargetPart),
+		Chosen: effects.ChosenRecords(w, in.Choices), Inventory: inventory.Usable(w, actor, in.Target),
 		Windup: actions.Windup(w, in),
 	}
-	env.TargetIsParty = ecs.NewMap[comp.MemberOf](w.ECS).Has(in.Target) && partyControlled(w, in.Target)
+	env.Target.IsParty = ecs.NewMap[comp.MemberOf](w.ECS).Has(in.Target) && partyControlled(w, in.Target)
 	if parts := ecs.NewMap[comp.Part](w.ECS); !in.TargetPart.IsZero() && parts.Has(in.TargetPart) {
-		env.TargetIntegrity = parts.Get(in.TargetPart).Integrity
-		_, env.ImmuneKnown = knowledge.Best(
+		_, env.MaterialKnown = knowledge.Best(
 			w, inventory.HolderOf(w, actor), w.UIDOf(in.TargetPart), w.Content.Combat().MaterialClaim,
 		)
 	}

@@ -1,3 +1,3 @@
-// Package inventory owns the pack: stacks of items held by an entity, and the spawner that fills
+// Package inventory owns the inventory: stacks of items held by an entity, and the spawner that fills
 // it from a template. Foundation layer.
 package inventory

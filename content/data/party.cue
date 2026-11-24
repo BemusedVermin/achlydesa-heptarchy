@@ -6,9 +6,9 @@ party: content.#PartyConfig
 
 // Placeholder numbers, for tuning.
 party: {
-	slots:         4
-	sight_radius:  6
-	sight_depth:   6
+	slots:        4
+	sight_radius: 6
+	sight_depth:  6
 	// The plan view draws floor out to this many steps of walking from the party; walls show elsewhere.
 	plan_range:    12
 	max_step_up:   1
@@ -18,7 +18,7 @@ party: {
 	climb_cost: "5"
 	// An alert puts every member under the player's hand, and gives single file back when it ends.
 	individual_on_alert: true
-	// A party that falls wakes at its last rest place this many ticks later.
+	// A party that is wiped out wakes at its last rest place this many ticks later.
 	wake_ticks: 600
 	// A follower steps with this action.
 	follow_action: "action.step"

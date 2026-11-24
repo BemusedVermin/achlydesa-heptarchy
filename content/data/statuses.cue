@@ -11,8 +11,5 @@ statuses: {
 }
 
 text: {
-	"text.status.standing":        "standing"
-	"text.combat.severed":         "The part was cut away."
-	"text.combat.pack_short":      "The pack has no {{.item}}."
-	"text.combat.no_severed_part": "There is no severed part to fit."
+	"text.status.standing": "standing"
 }

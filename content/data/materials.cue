@@ -16,7 +16,7 @@ materials: [string]: content.#Material & {
 // Read from the design table's Types section.
 materials: {
 	"material.clay": {
-		name:      "text.material.clay"
+		name: "text.material.clay"
 		lists: {weak_to: ["type.soak", "type.relic"], immune_to: []}
 		tags: ["clay"]
 		// Fire bakes clay hard: a burned clay part can take more before it gives.
@@ -28,28 +28,28 @@ materials: {
 		}]
 	}
 	"material.flesh": {
-		name:      "text.material.flesh"
+		name: "text.material.flesh"
 		lists: {weak_to: ["type.cut", "type.burn", "type.relic"], immune_to: []}
 		tags: ["flesh"]
 	}
 	"material.old_matter": {
-		name:      "text.material.old_matter"
+		name: "text.material.old_matter"
 		lists: {weak_to: ["type.rot"], immune_to: ["type.relic"]}
 		tags: ["old_matter"]
 	}
 	// Hollow things: skulls, shells.
 	"material.bone": {
-		name:      "text.material.bone"
+		name: "text.material.bone"
 		lists: {weak_to: ["type.press"], immune_to: []}
 		tags: ["bone"]
 	}
 	"material.eye": {
-		name:      "text.material.eye"
+		name: "text.material.eye"
 		lists: {weak_to: ["type.light"], immune_to: []}
 		tags: ["eye"]
 	}
 	"material.rift_flesh": {
-		name:      "text.material.rift_flesh"
+		name: "text.material.rift_flesh"
 		lists: {weak_to: ["type.violet"], immune_to: []}
 		tags: ["rift"]
 	}
@@ -60,4 +60,6 @@ text: {
 	"text.material.bone":       "bone"
 	"text.material.eye":        "eye"
 	"text.material.rift_flesh": "rift flesh"
+	"text.material.clay":       "clay"
+	"text.material.flesh":      "flesh"
 }

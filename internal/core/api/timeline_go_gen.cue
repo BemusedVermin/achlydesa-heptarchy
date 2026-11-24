@@ -13,15 +13,15 @@ package api
 
 // Wait makes the current player body skip deciding until something happens.
 #Wait: {
-	actor: #UID   @go(Actor)
-	until: string @go(Until)
-	ticks: int64  @go(Ticks)
+	source: #UID   @go(Source)
+	until:  string @go(Until)
+	ticks:  int64  @go(Ticks)
 }
 
 // Ready reports that a body may decide at Tick.
 #Ready: {
-	actor: #UID  @go(Actor)
-	tick:  int64 @go(Tick)
+	source: #UID  @go(Source)
+	tick:   int64 @go(Tick)
 }
 
 // TimelineView is the shared timeline: who decides now and what comes next.
@@ -36,7 +36,7 @@ package api
 #TimelineEntry: {
 	tick:   int64  @go(Tick)
 	kind:   string @go(Kind)
-	actor:  #UID   @go(Actor)
+	source: #UID   @go(Source)
 	glyph:  string @go(Glyph)
 	color:  string @go(Color)
 	target: #UID   @go(Target)
@@ -49,7 +49,7 @@ package api
 // ActionLanded reports that a pending action has landed and been resolved.
 #ActionLanded: {
 	kind:   string @go(Kind)
-	actor:  #UID   @go(Actor)
+	source: #UID   @go(Source)
 	target: #UID   @go(Target)
 	tick:   int64  @go(Tick)
 }
@@ -57,7 +57,7 @@ package api
 // ActionCanceled reports that a pending action was removed before it landed.
 #ActionCanceled: {
 	kind:   string @go(Kind)
-	actor:  #UID   @go(Actor)
+	source: #UID   @go(Source)
 	target: #UID   @go(Target)
 	tick:   int64  @go(Tick)
 	reason: #Text  @go(Reason)

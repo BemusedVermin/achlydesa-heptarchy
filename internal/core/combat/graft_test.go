@@ -41,7 +41,7 @@ func TestAGraftActsOnItsOwnAndLeavesTheOtherLimbsFree(t *testing.T) {
 	creature := f.creature()
 	party, _ := f.w.ByUID(f.view().Party.UID)
 	inventory.Add(f.w, party, comp.ItemStack{Item: "item.serilmen_arm", Count: 1})
-	f.apply(f.members()[0], creature, ecs.Entity{}, do("attach_part", "from", "pack", "item", "item.serilmen_arm"))
+	f.apply(f.members()[0], creature, ecs.Entity{}, do("attach_part", "from", "inventory", "item", "item.serilmen_arm"))
 	graft := f.partOf(creature, "arm")
 	maw := f.partOf(creature, "head")
 	if got := ecs.NewMap[comp.Graft](f.w.ECS).Get(graft).Piece; got != "item.serilmen_arm" {
@@ -65,7 +65,7 @@ func TestAGraftActsOnItsOwnAndLeavesTheOtherLimbsFree(t *testing.T) {
 	if !f.until(300, func() bool { return len(started) > 0 }) {
 		t.Fatal("the graft never acted on its own")
 	}
-	if started[0].Actor != uid || started[0].Action != "action.strike" {
+	if started[0].Source != uid || started[0].Action != "action.strike" {
 		t.Errorf("started = %+v, want the host's strike", started[0])
 	}
 	if graftFree[0] {
@@ -99,7 +99,7 @@ func remnantField(t *testing.T) (f *field, remnant ecs.Entity) {
 	t.Helper()
 	f = huntField(t, func(b *content.Bundle) {
 		template := b.Templates["template.creature.remnant"]
-		template.Triggers[0].If = rollAlways + " &&integrity > 0"
+		template.Triggers[0].If = rollAlways + " &&target.integrity > 0"
 		b.Templates["template.creature.remnant"] = template
 	})
 	pos := *ecs.NewMap[comp.Pos](f.w.ECS).Get(f.creature())
@@ -152,7 +152,7 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	members := f.memberUIDs()
 	var swing *api.ActionStarted
 	f.w.Bus.SubscribeAll("test.crawling_swing", func(_ *sim.World, e api.Event) {
-		if s, ok := e.(api.ActionStarted); ok && s.Actor == uid && swing == nil {
+		if s, ok := e.(api.ActionStarted); ok && s.Source == uid && swing == nil {
 			swing = &s
 		}
 	})
@@ -221,11 +221,11 @@ func TestTheAlertHoldsWhileACrawlingPartOutlivesItsSource(t *testing.T) {
 	arm := f.partOf(remnant, "arm")
 	f.apply(reaper, remnant, arm, do("sever", "parts", "target_part"))
 	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-	// The source and the hall's own creature fall: only the crawling arm is left to see.
+	// The source and the hall's own creature go down: only the crawling arm is left to see.
 	f.damage(reaper, remnant, "torso", "99")
 	f.damage(reaper, f.creature(), "torso", "99")
 	if !ecs.NewMap[comp.Dead](f.w.ECS).Has(remnant) {
-		t.Fatal("the remnant did not fall")
+		t.Fatal("the remnant did not go down")
 	}
 	for range 6 {
 		f.option("wait/event")
@@ -256,7 +256,7 @@ func TestRotEatsAGraftOnEitherSide(t *testing.T) {
 	grafts := ecs.NewMap[comp.Graft](r.w.ECS)
 	for name, body := range map[string]ecs.Entity{"ally": anatomy.Members(r.w, r.party)[1], "enemy": r.crawler} {
 		inventory.Add(r.w, r.party, comp.ItemStack{Item: "item.test_arm", Count: 1})
-		r.apply(t, r.ctx(body), do("attach_part", "from", "pack", "item", "item.test_arm"))
+		r.apply(t, r.ctx(body), do("attach_part", "from", "inventory", "item", "item.test_arm"))
 		seen := false
 		for _, part := range anatomy.Parts(r.w, body) {
 			before := parts.Get(part).Integrity
@@ -275,5 +275,28 @@ func TestRotEatsAGraftOnEitherSide(t *testing.T) {
 		if !seen {
 			t.Errorf("%s: no graft to eat", name)
 		}
+	}
+}
+
+func TestAReattachedLimbIsNotAGraftForRelicOrRot(t *testing.T) {
+	r := newRig(t)
+	rot, ok := r.w.Content.Type("type.rot")
+	if !ok {
+		t.Fatal("no rot")
+	}
+	arm := r.partsOf(r.reaper, "arm")[0]
+	ctx := r.ctx(r.reaper)
+	ctx.TargetPart = arm
+	r.apply(t, ctx, do("sever", "parts", "target_part"))
+	r.apply(t, r.ctx(r.reaper), do("attach_part", "from", "severed"))
+	if got := effects.BodyEnvOf(r.w, r.reaper, arm); got.Grafts != 0 || got.Graft {
+		t.Errorf("a reattached limb counts as a graft: grafts = %d, graft = %v", got.Grafts, got.Graft)
+	}
+	before := ecs.NewMap[comp.Part](r.w.ECS).Get(arm).Integrity
+	ctx = r.ctx(r.reaper)
+	ctx.TargetPart = arm
+	r.apply(t, ctx, rot.OnLand...)
+	if got := ecs.NewMap[comp.Part](r.w.ECS).Get(arm).Integrity; got != before {
+		t.Errorf("Rot ate a reattached limb: integrity %d, want %d", got, before)
 	}
 }

@@ -28,7 +28,7 @@ func TestLearnTwiceKeepsOneFactWithTheNewerValue(t *testing.T) {
 	fact := api.Fact{
 		Subject:    7,
 		Claim:      "claim.material",
-		Source:     "source.sweep",
+		Origin:     "origin.sweep",
 		Value:      "material.clay",
 		Confidence: 0.5,
 	}
@@ -47,19 +47,19 @@ func TestAboutIsSortedAndFiltersBySubject(t *testing.T) {
 	w := sim.NewWorld(1)
 	knower := newKnower(w)
 	for _, f := range []api.Fact{
-		{Subject: 9, Claim: "claim.name", Source: "source.rumor"},
-		{Subject: 3, Claim: "claim.name", Source: "source.sweep"},
-		{Subject: 3, Claim: "claim.material", Source: "source.sweep"},
-		{Subject: 3, Claim: "claim.material", Source: "source.rumor"},
+		{Subject: 9, Claim: "claim.name", Origin: "origin.rumor"},
+		{Subject: 3, Claim: "claim.name", Origin: "origin.sweep"},
+		{Subject: 3, Claim: "claim.material", Origin: "origin.sweep"},
+		{Subject: 3, Claim: "claim.material", Origin: "origin.rumor"},
 	} {
 		knowledge.Learn(w, knower, f)
 	}
 	got := knowledge.About(w, knower, 3)
 	var keys []string
 	for _, f := range got {
-		keys = append(keys, string(f.Claim)+"/"+string(f.Source))
+		keys = append(keys, string(f.Claim)+"/"+string(f.Origin))
 	}
-	want := []string{"claim.material/source.rumor", "claim.material/source.sweep", "claim.name/source.sweep"}
+	want := []string{"claim.material/origin.rumor", "claim.material/origin.sweep", "claim.name/origin.sweep"}
 	if !slices.Equal(keys, want) {
 		t.Errorf("About keys = %v, want %v", keys, want)
 	}
@@ -78,20 +78,20 @@ func TestBestTieBreaks(t *testing.T) {
 			"confidence first",
 			[]api.Fact{
 				{
-					Source:     "source.a",
+					Origin:     "origin.a",
 					Confidence: 0.9,
 				},
-				{Source: "source.b", Confidence: 0.4},
-				{Source: "source.c", Confidence: 0.6},
+				{Origin: "origin.b", Confidence: 0.4},
+				{Origin: "origin.c", Confidence: 0.6},
 			},
-			"source.a",
+			"origin.a",
 		},
 		{"newer tick on equal confidence", []api.Fact{
-			{Source: "source.a", Confidence: 0.5}, {Source: "source.b", Confidence: 0.5},
-		}, "source.b"},
+			{Origin: "origin.a", Confidence: 0.5}, {Origin: "origin.b", Confidence: 0.5},
+		}, "origin.b"},
 		{"source ID on equal confidence and tick", []api.Fact{
-			{Source: "source.b", Confidence: 0.5}, {Source: "source.a", Confidence: 0.5},
-		}, "source.a"},
+			{Origin: "origin.b", Confidence: 0.5}, {Origin: "origin.a", Confidence: 0.5},
+		}, "origin.a"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestBestTieBreaks(t *testing.T) {
 				knowledge.Learn(w, knower, f)
 			}
 			best, ok := knowledge.Best(w, knower, 1, "claim.material")
-			if !ok || best.Source != test.want {
+			if !ok || best.Origin != test.want {
 				t.Errorf("Best = %+v, %v; want source %s", best, ok, test.want)
 			}
 		})
@@ -126,7 +126,7 @@ func TestLearnAddsKnowledgeAndPublishesEvents(t *testing.T) {
 	party := ecs.NewMap1[comp.Controlled](w.ECS).NewEntity(&comp.Controlled{})
 	ecs.NewMap[comp.MemberOf](w.ECS).Add(member, &comp.MemberOf{}, party)
 
-	fact := api.Fact{Subject: 2, Claim: "claim.material", Value: "material.clay", Source: "source.sweep"}
+	fact := api.Fact{Subject: 2, Claim: "claim.material", Value: "material.clay", Origin: "origin.sweep"}
 	knowledge.Learn(w, member, fact)
 	knowledge.Learn(w, stranger, fact)
 	if _, err := w.Bus.Drain(w); err != nil {
@@ -161,8 +161,8 @@ func TestNoticedFactLogsTheValueAsText(t *testing.T) {
 	})
 	knower := newKnower(w)
 	ecs.NewMap[comp.Controlled](w.ECS).Add(knower, &comp.Controlled{})
-	clay := api.Fact{Subject: 2, Claim: "claim.material", Value: "material.clay", Source: "source.sweep"}
-	bram := api.Fact{Subject: 2, Claim: "claim.name", Value: "Bram", Source: "source.sweep"}
+	clay := api.Fact{Subject: 2, Claim: "claim.material", Value: "material.clay", Origin: "origin.sweep"}
+	bram := api.Fact{Subject: 2, Claim: "claim.name", Value: "Bram", Origin: "origin.sweep"}
 	knowledge.Learn(w, knower, clay)
 	knowledge.Learn(w, knower, bram)
 	if _, err := w.Bus.Drain(w); err != nil {
@@ -212,7 +212,7 @@ func TestSaveAndLoadKeepEveryFact(t *testing.T) {
 			Subject:    subject,
 			Claim:      "claim.material",
 			Value:      "material.clay",
-			Source:     "source.sweep",
+			Origin:     "origin.sweep",
 			Confidence: 0.8,
 		},
 	)
@@ -223,7 +223,7 @@ func TestSaveAndLoadKeepEveryFact(t *testing.T) {
 			Subject:    99,
 			Claim:      "claim.name",
 			Value:      "text.template.person.salken",
-			Source:     "source.rumor",
+			Origin:     "origin.rumor",
 			Confidence: 0.3,
 		},
 	)

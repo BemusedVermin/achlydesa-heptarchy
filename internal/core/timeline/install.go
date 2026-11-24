@@ -83,7 +83,7 @@ func nextPhaseBoundary(w *sim.World, clk *clock.Clock) int64 {
 }
 
 func handleWait(w *sim.World, clk *clock.Clock, cmd api.Wait) (int64, error) {
-	body, ok := currentPlayer(w, cmd.Actor)
+	body, ok := currentPlayer(w, cmd.Source)
 	if !ok {
 		reject(w, cmd.CommandKind(), "text.timeline.not_current")
 		return 0, nil
@@ -141,7 +141,7 @@ func (st *state) visibleEntries(w *sim.World) []api.TimelineEntry {
 		if d.tick > w.Now+st.cfg.WindowTicks || !st.visible(w, d.body) {
 			continue
 		}
-		entry := api.TimelineEntry{Tick: d.tick, Kind: "ready", Actor: w.UIDOf(d.body)}
+		entry := api.TimelineEntry{Tick: d.tick, Kind: "ready", Source: w.UIDOf(d.body)}
 		if appearances.Has(d.body) {
 			look := appearances.Get(d.body)
 			entry.Glyph, entry.Color = look.Glyph, look.Color
@@ -195,7 +195,7 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 		api.Option{
 			ID:      "wait/event",
 			Label:   w.Content.Render(api.Text{ID: "text.timeline.wait_event"}),
-			Command: api.Wait{Actor: view.Current, Until: api.WaitEvent},
+			Command: api.Wait{Source: view.Current, Until: api.WaitEvent},
 			Enabled: true,
 		},
 		api.Option{
@@ -204,7 +204,7 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 				ID:   "text.timeline.wait_phase",
 				Args: map[string]string{"phase": phaseName},
 			}),
-			Command: api.Wait{Actor: view.Current, Until: api.WaitPhase},
+			Command: api.Wait{Source: view.Current, Until: api.WaitPhase},
 			Enabled: true,
 		},
 	)

@@ -24,7 +24,7 @@ const sampleDir = "../../../content/data"
 // here is where the test bodies stand.
 var here = comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
 
-// rig is a game with the sample party, a crawler standing at here, and a piece in the pack.
+// rig is a game with the sample party, a crawler standing at here, and a piece in the inventory.
 type rig struct {
 	g       *game.Game
 	w       *sim.World
@@ -58,7 +58,7 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	}
 	bundle.Text["text.item.test_arm"] = "spare arm"
 	bundle.Text["text.status.braced"] = "braced"
-	bundle.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.crawler"))}
+	bundle.Templates["template.test.crawler"] = content.Template{Body: ptr(api.ContentID("body.test.crawler"))}
 	if mutate != nil {
 		mutate(&bundle)
 	}
@@ -217,7 +217,7 @@ func TestSever(t *testing.T) {
 	}{
 		{"holds", "true", 1, true},
 		{"false is a no-op", "false", 2, false},
-		{"integrity decides", "integrity > 99", 2, false},
+		{"integrity decides", "target.integrity > 99", 2, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -255,12 +255,12 @@ func TestSeveringAnArmMidWindupCancelsTheSwing(t *testing.T) {
 	r := newRig(t)
 	arms := r.partsOf(r.reaper, "arm")
 	if _, err := timeline.Schedule(r.w, comp.Pending{
-		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Part: r.w.UIDOf(arms[0]), Lands: r.w.Now + 5,
+		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Channel: r.w.UIDOf(arms[0]), Lands: r.w.Now + 5,
 	}); err != nil {
 		t.Fatal(err)
 	}
 	other, err := timeline.Schedule(r.w, comp.Pending{
-		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Part: r.w.UIDOf(arms[1]), Lands: r.w.Now + 6,
+		Kind: "test.swing", Actor: r.w.UIDOf(r.reaper), Channel: r.w.UIDOf(arms[1]), Lands: r.w.Now + 6,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -274,7 +274,7 @@ func TestSeveringAnArmMidWindupCancelsTheSwing(t *testing.T) {
 			canceled = append(canceled, c)
 		}
 	}
-	if len(canceled) != 1 || canceled[0].Kind != "test.swing" || canceled[0].Actor != r.w.UIDOf(r.reaper) {
+	if len(canceled) != 1 || canceled[0].Kind != "test.swing" || canceled[0].Source != r.w.UIDOf(r.reaper) {
 		t.Fatalf("canceled = %+v, want the one swing by the reaper", canceled)
 	}
 	if !r.w.ECS.Alive(other) || len(timeline.PendingOf(r.w, r.w.UIDOf(r.reaper))) != 1 {
@@ -300,7 +300,7 @@ func TestAddStatusExpiresByTick(t *testing.T) {
 	}
 	run := func() {
 		t.Helper()
-		if err := r.w.Systems.Run(r.w, sim.PerTurn); err != nil {
+		if err := r.w.Systems.Run(r.w, sim.PerEntry); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -325,32 +325,32 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 	ctx.Choices = map[string]string{"type": "type.soak"} // the clay core is weak to soak
 	ecs.NewMap[comp.Pos](r.w.ECS).Get(r.reaper).At.Depth = 1
 	// 1 (braced) + 2 (weak) + 4 (height: 3 - 1 is 2, doubled) = 7, only if every field reads right.
-	formula := `("status.braced" in statuses ? 1 : 0) + (rule.weak ? 2 : 0) + (rule.immune ? 100 : 0) + ` +
-		`(locked ? 100 : 0) + (graft ? 100 : 0) + height * 2 + (integrity == max_integrity ? 0 : 100)`
+	formula := `("status.braced" in target.statuses ? 1 : 0) + (rule.weak ? 2 : 0) + (rule.immune ? 100 : 0) + ` +
+		`(target.locked ? 100 : 0) + (target.graft ? 100 : 0) + height * 2 + (target.integrity == target.max_integrity ? 0 : 100)`
 	r.apply(t, ctx, do("damage", "parts", "target_part", "amount", formula))
 	if got := r.integrity(core); got != 8-7 {
 		t.Errorf("integrity = %d, want 1", got)
 	}
 }
 
-func TestAttachPartFromThePack(t *testing.T) {
+func TestAttachPartFromTheInventory(t *testing.T) {
 	r := newRig(t)
 	target := anatomy.Members(r.w, r.party)[1]
-	attach := do("attach_part", "from", "pack", "item", "item.test_arm")
+	attach := do("attach_part", "from", "inventory", "item", "item.test_arm")
 	before := len(timeline.Channels(r.w, target))
 	if ok, reason := effects.Check(
 		r.ctx(target),
 		[]content.EffectRef{attach},
 	); ok ||
-		reason.ID != "text.combat.pack_short" {
-		t.Fatalf("check on an empty pack = %v, %+v", ok, reason)
+		reason.ID != "text.combat.inventory_short" {
+		t.Fatalf("check on an empty inventory = %v, %+v", ok, reason)
 	}
 	if events := r.apply(t, r.ctx(target), attach); len(events) != 0 {
 		t.Fatalf("an impossible attach published %v", events)
 	}
 	inventory.Add(r.w, r.party, comp.ItemStack{Item: "item.test_arm", Count: 1})
 	events := r.apply(t, r.ctx(target), attach)
-	if len(events) != 1 || events[0].(api.PartAttached).From != api.AttachedFromPack {
+	if len(events) != 1 || events[0].(api.PartAttached).From != api.AttachedFromInventory {
 		t.Fatalf("events = %+v", events)
 	}
 	if got := len(timeline.Channels(r.w, target)); got != before+1 {
@@ -385,6 +385,9 @@ func TestAttachPartFromSevered(t *testing.T) {
 	if ecs.NewMap[comp.Pos](r.w.ECS).Has(arm) {
 		t.Error("an attached part kept a position")
 	}
+	if ecs.NewMap[comp.Graft](r.w.ECS).Has(arm) || !ecs.NewMap[comp.Reattached](r.w.ECS).Has(arm) {
+		t.Error("a reattached limb should be marked Reattached and not be a graft")
+	}
 	if ok, reason := effects.Check(r.ctx(r.crawler), []content.EffectRef{attach}); ok || reason.ID == "" {
 		t.Errorf("nothing is left to attach, but check = %v, %+v", ok, reason)
 	}
@@ -393,12 +396,12 @@ func TestAttachPartFromSevered(t *testing.T) {
 func TestRevealWritesAFactPerPart(t *testing.T) {
 	r := newRig(t)
 	r.apply(t, r.ctx(r.crawler), do(
-		"reveal", "claim", "claim.material", "value", "= target.material.id", "source", "source.sweep",
+		"reveal", "claim", "claim.material", "value", "= target.material.id", "origin", "origin.sweep",
 	))
 	for _, part := range anatomy.Parts(r.w, r.crawler) {
 		fact, ok := knowledge.Best(r.w, r.party, r.w.UIDOf(part), "claim.material")
 		want := ecs.NewMap[comp.Part](r.w.ECS).Get(part).Material
-		if !ok || fact.Value != string(want) || fact.Source != "source.sweep" {
+		if !ok || fact.Value != string(want) || fact.Origin != "origin.sweep" {
 			t.Errorf("fact = %+v, %v; want %s from a sweep", fact, ok, want)
 		}
 	}
@@ -411,22 +414,22 @@ func TestConsume(t *testing.T) {
 	r := newRig(t)
 	consume := []content.EffectRef{do("consume", "item", "item.coal")}
 	if ok, _ := effects.Check(r.ctx(r.crawler), consume); !ok {
-		t.Fatal("the pack has coal, but check refused")
+		t.Fatal("the inventory has coal, but check refused")
 	}
 	r.apply(t, r.ctx(r.crawler), consume...)
 	if got := inventory.Count(r.w, r.party, "item.coal", 0); got != 2 {
 		t.Errorf("coal = %d, want 2", got)
 	}
-	// Using up what is left leaves a pack that cannot pay.
+	// Using up what is left leaves an inventory that cannot pay.
 	r.apply(t, r.ctx(r.crawler), consume...)
 	r.apply(t, r.ctx(r.crawler), consume...)
 	ok, reason := effects.Check(r.ctx(r.crawler), consume)
-	if ok || reason.ID != "text.combat.pack_short" || reason.Args["item"] != "coal" {
-		t.Errorf("check on a short pack = %v, %+v", ok, reason)
+	if ok || reason.ID != "text.combat.inventory_short" || reason.Args["item"] != "coal" {
+		t.Errorf("check on a short inventory = %v, %+v", ok, reason)
 	}
 	r.apply(t, r.ctx(r.crawler), consume...)
 	if got := inventory.Count(r.w, r.party, "item.coal", 0); got != 0 {
-		t.Errorf("coal = %d, a short pack must not go negative", got)
+		t.Errorf("coal = %d, a short inventory must not go negative", got)
 	}
 }
 
@@ -435,7 +438,7 @@ func TestSpawnFromPart(t *testing.T) {
 	maw := r.partsOf(r.crawler, "head")[0]
 	ctx := r.ctx(r.crawler)
 	ctx.TargetPart = maw
-	spawn := do("spawn_from_part", "faction", "faction.deep", "controller", "idle")
+	spawn := do("spawn_from_part", "faction", "faction.wild", "controller", "idle")
 	r.apply(t, ctx, spawn) // nothing is severed yet
 	if ecs.NewMap[comp.Actor](r.w.ECS).Has(maw) {
 		t.Fatal("an attached part became a body")
@@ -449,7 +452,7 @@ func TestSpawnFromPart(t *testing.T) {
 	if got := anatomy.Parts(r.w, body); len(got) != 1 || got[0] != maw {
 		t.Errorf("the new body's parts = %v, want just the maw", got)
 	}
-	if faction := ecs.NewMap[comp.Allegiance](r.w.ECS).Get(body).Faction; faction != "faction.deep" {
+	if faction := ecs.NewMap[comp.Allegiance](r.w.ECS).Get(body).Faction; faction != "faction.wild" {
 		t.Errorf("faction = %q", faction)
 	}
 	if controller := ecs.NewMap[comp.Actor](r.w.ECS).Get(body).Controller; controller != "idle" {

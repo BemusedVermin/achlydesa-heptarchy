@@ -74,9 +74,9 @@ type Actor struct {
 // Pending is an action in flight, on an entity of its own: one per action. Whatever the action
 // needs beyond this lives in a kind-specific component on the same entity.
 type Pending struct {
-	Kind    string  `json:"kind"`    // the resolver's name, e.g. "combat.move"
+	Kind    string  `json:"kind"`    // the resolver's name, e.g. "actions.land"
 	Actor   api.UID `json:"actor"`   // the body acting
-	Part    api.UID `json:"part"`    // the channel it uses (an arm), or the body
+	Channel api.UID `json:"channel"` // the channel it uses (an arm), or the body
 	Target  api.UID `json:"target"`  // the body it is aimed at, or 0
 	Started int64   `json:"started"` // the tick it was started
 	Lands   int64   `json:"lands"`   // the tick it lands
@@ -152,7 +152,7 @@ type Dead struct {
 	Tick int64 `json:"tick"`
 }
 
-// Downed marks a protected body that has fallen.
+// Downed marks a protected body that is out of the fight.
 type Downed struct{}
 
 // StatusEntry is one status a body is under, and the tick it ends.
@@ -167,10 +167,13 @@ type Statuses struct {
 	Active []StatusEntry `json:"active"`
 }
 
-// Graft marks a part grown or fitted onto a body that it was not made with.
+// Graft marks a fitted piece of Serilmen. A body's own severed part put back is a Reattached, not a graft.
 type Graft struct {
-	Piece api.ContentID `json:"piece,omitempty"` // the item it came from, or empty for a reattached limb
+	Piece api.ContentID `json:"piece"` // the item it came from
 }
+
+// Reattached marks a body's own severed part that was put back. Unlike a Graft, Relic and Rot ignore it.
+type Reattached struct{}
 
 // Allegiance is the side a body fights for.
 type Allegiance struct {
@@ -210,6 +213,7 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Inventory](world)
 	ecs.ComponentID[Statuses](world)
 	ecs.ComponentID[Graft](world)
+	ecs.ComponentID[Reattached](world)
 	ecs.ComponentID[Allegiance](world)
 	ecs.ComponentID[Triggers](world)
 	ecs.ComponentID[Calm](world)

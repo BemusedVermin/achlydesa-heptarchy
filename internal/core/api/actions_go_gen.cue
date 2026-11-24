@@ -11,7 +11,7 @@ package api
 // Do makes the current player body start one of its actions. The options of the view carry ready
 // built Do commands; a frontend sends one of those.
 #Do: {
-	actor:  #UID       @go(Actor)
+	source: #UID       @go(Source)
 	action: #ContentID @go(Action)
 	channels?: [...#UID] @go(Channels,[]UID)
 	target?:      #UID        @go(Target)
@@ -22,7 +22,7 @@ package api
 
 // ActionStarted reports that a body began an action that lands later.
 #ActionStarted: {
-	actor:  #UID       @go(Actor)
+	source: #UID       @go(Source)
 	action: #ContentID @go(Action)
 	target: #UID       @go(Target)
 	tick:   int64      @go(Tick)
@@ -35,7 +35,7 @@ package api
 // ActionMissed reports that an action landed and did nothing: its target was out of reach, or one of
 // its effects could no longer apply.
 #ActionMissed: {
-	actor:  #UID       @go(Actor)
+	source: #UID       @go(Source)
 	action: #ContentID @go(Action)
 	target: #UID       @go(Target)
 	tick:   int64      @go(Tick)

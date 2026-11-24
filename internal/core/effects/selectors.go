@@ -136,7 +136,7 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 	}
 	if s.Tag != "" {
 		out = slices.DeleteFunc(out, func(body ecs.Entity) bool {
-			return !slices.Contains(SideOf(w, body, ecs.Entity{}).Template.Tags, s.Tag)
+			return !slices.Contains(BodyEnvOf(w, body, ecs.Entity{}).Template.Tags, s.Tag)
 		})
 	}
 	sortByUID(w, out)

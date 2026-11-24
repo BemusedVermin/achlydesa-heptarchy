@@ -73,7 +73,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 		"victim":  bundle.Templates["template.test.dummy"],
 	}
 	crawler := bundle.Templates["template.test.dummy"]
-	crawler.Body = ptr(api.ContentID("body.crawler"))
+	crawler.Body = ptr(api.ContentID("body.test.crawler"))
 	crawler.Tags = append(slices.Clone(crawler.Tags), "crawls")
 	templates["crawler"] = crawler
 	old := bundle.Templates["template.test.dummy"]
@@ -86,8 +86,10 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	stone.Tags = nil
 	templates["stone"] = stone
 	for name, template := range templates {
+		textID := api.ContentID("text.template.test." + name)
+		template.Name = &textID
 		bundle.Templates["template.test."+name] = template
-		bundle.Text["text.template.test."+name] = strings.ToUpper(name[:1]) + name[1:]
+		bundle.Text[string(textID)] = strings.ToUpper(name[:1]) + name[1:]
 	}
 	reg, err := content.New(bundle)
 	if err != nil {
@@ -183,7 +185,7 @@ func (r *ring) do(segments ...string) []api.Event {
 
 func (r *ring) wait(ticks int64) []api.Event {
 	r.t.Helper()
-	return r.apply(api.Wait{Actor: r.w.UIDOf(r.body("fighter")), Until: api.WaitTicks, Ticks: ticks})
+	return r.apply(api.Wait{Source: r.w.UIDOf(r.body("fighter")), Until: api.WaitTicks, Ticks: ticks})
 }
 
 // part is the body's first attached part of the slot.
@@ -224,7 +226,7 @@ func (r *ring) busyChannels(body ecs.Entity) int {
 	return n
 }
 
-// give puts items in the fighter's pack, bound to someone or to no one.
+// give puts items in the fighter's inventory, bound to someone or to no one.
 func (r *ring) give(item api.ContentID, count int, boundTo ecs.Entity) {
 	stack := comp.ItemStack{Item: item, Count: count}
 	if !boundTo.IsZero() {
@@ -469,7 +471,7 @@ func TestNameAndKeepsakeOnTheirOwnerAndOnTheWrongBody(t *testing.T) {
 			}
 			held := inventory.Count(r.w, inventory.HolderOf(r.w, r.body("fighter")), tt.item, r.w.UIDOf(owner))
 			if held != tt.wantRemaining {
-				t.Errorf("%s left in the pack = %d, want %d", tt.item, held, tt.wantRemaining)
+				t.Errorf("%s left in the inventory = %d, want %d", tt.item, held, tt.wantRemaining)
 			}
 		})
 	}
@@ -525,12 +527,12 @@ func TestStandBracesDelaysTheCrawlersAndLeavesTheStanderFree(t *testing.T) {
 	}
 }
 
-func TestGraftNeedsAGraftableAllyAndAPieceFromThePack(t *testing.T) {
+func TestGraftNeedsAGraftableAllyAndAPieceFromTheInventory(t *testing.T) {
 	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "stone": -1})
 	fighter, victim := r.body("fighter"), r.body("victim")
 	for _, id := range r.optionIDs() {
 		if strings.HasPrefix(id, "graft") {
-			t.Fatalf("Graft is offered with no piece in the pack: %q", id)
+			t.Fatalf("Graft is offered with no piece in the inventory: %q", id)
 		}
 	}
 	r.give("item.test_arm", 1, ecs.Entity{})
@@ -543,7 +545,7 @@ func TestGraftNeedsAGraftableAllyAndAPieceFromThePack(t *testing.T) {
 		t.Errorf("a Graft occupies %d channels, want both arms", got)
 	}
 	events = append(events, r.wait(6)...)
-	if !has(events, func(e api.PartAttached) bool { return e.From == api.AttachedFromPack }) ||
+	if !has(events, func(e api.PartAttached) bool { return e.From == api.AttachedFromInventory }) ||
 		len(timeline.Channels(r.w, victim)) != before+1 {
 		t.Errorf("the graft did not fit: %v", events)
 	}

@@ -284,8 +284,9 @@ func TestTheRangeCapLeavesFarSlopeFloorToTheWalls(t *testing.T) {
 
 func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
 	fx := newFixture(t, "map.test.ledge", func(b *content.Bundle) {
+		b.Text["text.map.test.ledge"] = "ledge"
 		b.Maps["map.test.ledge"] = content.MapDef{
-			Name: "text.map.test_descent", Fill: "terrain.packed_clay", Open: "terrain.air",
+			Name: "text.map.test.ledge", Fill: "terrain.packed_clay", Open: "terrain.air",
 			Legend: map[string]api.ContentID{"#": "terrain.packed_clay", ".": "terrain.air"},
 			Marks:  map[string]string{"@": "party_start"},
 			Layers: []content.LayerDef{
@@ -554,7 +555,7 @@ func TestAThreeCellDropInjuresTheLegsAndAOneCellStepDownDoesNot(t *testing.T) {
 
 	// A fall of one cell is a step down, and the trigger's condition leaves it alone.
 	before = fx.legsIntegrity()
-	fx.w.Bus.Publish(api.Fell{Actor: leader, Cells: 1})
+	fx.w.Bus.Publish(api.Fell{Body: leader, Cells: 1})
 	if _, err := fx.w.Bus.Drain(fx.w); err != nil {
 		t.Fatal(err)
 	}

@@ -4,7 +4,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
 // A hall, a soop sloping down to a chamber, a ledge, and a soop that crosses under the hall.
 maps: "map.test.descent": content.#MapDef & {
-	name: "text.map.test_descent"
+	name: "text.map.test.descent"
 	fill: "terrain.packed_clay"
 	open: "terrain.air"
 	legend: {
@@ -12,7 +12,7 @@ maps: "map.test.descent": content.#MapDef & {
 		".": "terrain.air"
 	}
 	marks: {"@": "party_start", "c": "creature"}
-	spawns: "c": "template.creature.crawler"
+	spawns: "c": "template.creature.moving_clay"
 	layers: [
 		{
 			depth: 0
@@ -85,4 +85,8 @@ maps: "map.test.descent": content.#MapDef & {
 			]
 		},
 	]
+}
+
+text: {
+	"text.map.test.descent": "The test descent"
 }

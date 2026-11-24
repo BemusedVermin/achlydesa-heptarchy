@@ -10,7 +10,7 @@ const (
 	AlertEndedKind   = "combat.alert_ended"
 	BodyDiedKind     = "combat.body_died"
 	BodyDownedKind   = "combat.body_downed"
-	PartyLostKind    = "combat.party_lost"
+	PartyWipedKind   = "combat.party_wiped"
 )
 
 // Causes of a [PartSevered].
@@ -21,8 +21,8 @@ const (
 
 // Where an attached part came from, in [PartAttached].From.
 const (
-	AttachedFromPack    = "pack"    // a piece the party carried
-	AttachedFromSevered = "severed" // a severed part lying where the body stands
+	AttachedFromInventory = "inventory" // a piece the party carried
+	AttachedFromSevered   = "severed"   // a severed part lying where the body stands
 )
 
 // PartDamaged reports that a part lost integrity.
@@ -32,7 +32,7 @@ type PartDamaged struct {
 	Amount    int `json:"amount"`    // the integrity it actually lost
 	Integrity int `json:"integrity"` // what it has left
 	// Chosen is every choice of the action that dealt the damage, such as "type": "type.cut"; the
-	// Choices method returns it, so trigger formulas see it as chosen.
+	// Params method returns it, so trigger formulas see it as chosen.
 	Chosen map[string]string `json:"choices,omitempty"`
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
@@ -59,7 +59,7 @@ func (PartSevered) EventKind() string { return PartSeveredKind }
 type PartAttached struct {
 	Body UID    `json:"body"`
 	Part UID    `json:"part"`
-	From string `json:"from"` // AttachedFromPack or AttachedFromSevered
+	From string `json:"from"` // AttachedFromInventory or AttachedFromSevered
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`
@@ -156,20 +156,20 @@ func (b BodyDowned) LogText() Text {
 	return Text{ID: "text.combat.body_downed", Args: map[string]string{"name": b.Name}}
 }
 
-// PartyLost reports that every member of the controlled party is dead or downed.
-type PartyLost struct {
+// PartyWiped reports that every member of the controlled party is dead or downed.
+type PartyWiped struct {
 	Party UID   `json:"party"`
 	Tick  int64 `json:"tick"`
 }
 
 // EventKind implements [Event].
-func (PartyLost) EventKind() string { return PartyLostKind }
+func (PartyWiped) EventKind() string { return PartyWipedKind }
 
 // LogText implements [Loggable].
-func (PartyLost) LogText() Text { return Text{ID: "text.combat.party_lost"} }
+func (PartyWiped) LogText() Text { return Text{ID: "text.combat.party_wiped"} }
 
-// Choices implements [Chosen]: every choice of the action that dealt the damage.
-func (e PartDamaged) Choices() map[string]string { return e.Chosen }
+// Params implements [Params]: every choice of the action that dealt the damage.
+func (e PartDamaged) Params() map[string]string { return e.Chosen }
 
 func partSubjects(body, part, source UID) map[string]UID {
 	return withSource(map[string]UID{SubjectTarget: body, SubjectPart: part}, source)

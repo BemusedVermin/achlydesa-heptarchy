@@ -131,8 +131,8 @@ func runTriggers(w *sim.World, e api.Event) {
 		return a.order - b.order
 	})
 	var choices map[string]string
-	if chosen, ok := e.(api.Chosen); ok {
-		choices = chosen.Choices()
+	if withParams, ok := e.(api.Params); ok {
+		choices = withParams.Params()
 	}
 	for _, f := range firings {
 		ctx := &Context{World: w, Choices: choices}
@@ -206,8 +206,8 @@ func carries(w *sim.World, e ecs.Entity, site content.TriggerSite) bool {
 			return entry.Status == site.OwnerID
 		})
 	case content.OwnerItem:
-		packs := ecs.NewMap[comp.Inventory](w.ECS)
-		return packs.Has(e) && slices.ContainsFunc(packs.Get(e).Stacks, func(stack comp.ItemStack) bool {
+		inventories := ecs.NewMap[comp.Inventory](w.ECS)
+		return inventories.Has(e) && slices.ContainsFunc(inventories.Get(e).Stacks, func(stack comp.ItemStack) bool {
 			return stack.Item == site.OwnerID && stack.Count > 0
 		})
 	}

@@ -18,8 +18,8 @@ type Saved struct {
 	Line []SavedSlot `json:"line"`
 	// Current is the body deciding now, or 0 when there is none.
 	Current api.UID `json:"current"`
-	// Pending says the last entry has not had its per-turn systems run yet.
-	Pending bool `json:"pending"`
+	// SystemsDue says the last entry has not had its per-entry systems run yet.
+	SystemsDue bool `json:"systems_due"`
 	// Sleeping lists, by UID, the bodies whose last decision only waited.
 	Sleeping []api.UID `json:"sleeping,omitempty"`
 	// Changes is the counter that tells whether a controller did anything.
@@ -35,7 +35,7 @@ type SavedSlot struct {
 // Export returns the timeline's state for a save. Stale entries are left out.
 func Export(w *sim.World) Saved {
 	st := stateOf(w)
-	saved := Saved{Line: []SavedSlot{}, Pending: st.pending, Changes: st.changes}
+	saved := Saved{Line: []SavedSlot{}, SystemsDue: st.systemsDue, Changes: st.changes}
 	for _, s := range st.line {
 		if st.live(w, s) {
 			saved.Line = append(saved.Line, SavedSlot{Tick: s.tick, UID: s.uid})
@@ -87,6 +87,6 @@ func Import(w *sim.World, saved Saved) error {
 		}
 		st.current, st.hasCurrent = e, true
 	}
-	st.pending, st.changes = saved.Pending, saved.Changes
+	st.systemsDue, st.changes = saved.SystemsDue, saved.Changes
 	return nil
 }

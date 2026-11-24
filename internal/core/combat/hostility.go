@@ -30,8 +30,8 @@ func lists(w *sim.World, faction, other api.ContentID) bool {
 
 func live(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }
 
-// fallen reports whether a body is dead or downed.
-func fallen(w *sim.World, body ecs.Entity) bool {
+// outOfFight reports whether a body is dead or downed.
+func outOfFight(w *sim.World, body ecs.Entity) bool {
 	return ecs.NewMap[comp.Dead](w.ECS).Has(body) || ecs.NewMap[comp.Downed](w.ECS).Has(body)
 }
 
