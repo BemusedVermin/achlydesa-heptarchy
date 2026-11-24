@@ -78,26 +78,23 @@ func (r *Registry) ItemTriggerIDs(item api.ContentID) []string {
 // checkTriggers checks each trigger's role and effects, and compiles its condition. Whether the
 // event kind exists is for the game to check: only it knows which kinds are registered.
 func (r *Registry) checkTriggers() []error {
-	var problems []error
+	p := r.problems()
 	for _, site := range r.TriggerSites() {
 		trigger := site.Trigger
 		if trigger.On == "" {
-			problems = append(problems, fmt.Errorf("%s.on: required", site.Path))
+			p.addf("%s.on: required", site.Path)
 		}
-		if !slices.Contains(TriggerRoles, trigger.Role) {
-			problems = append(
-				problems,
-				fmt.Errorf("%s.role: unknown role %q (want one of %v)", site.Path, trigger.Role, TriggerRoles),
-			)
+		if !slices.Contains(triggerRoles(), trigger.Role) {
+			p.addf("%s.role: unknown role %q (want one of %v)", site.Path, trigger.Role, triggerRoles())
 		}
 		if trigger.If != "" {
 			if _, err := r.Compile(trigger.If, EffectEnv{}, expr.AsBool()); err != nil {
-				problems = append(problems, fmt.Errorf("%s.if: %w", site.Path, err))
+				p.addf("%s.if: %w", site.Path, err)
 			}
 		}
 		if len(trigger.Do) == 0 {
-			problems = append(problems, fmt.Errorf("%s.do: at least one effect is required", site.Path))
+			p.addf("%s.do: at least one effect is required", site.Path)
 		}
 	}
-	return problems
+	return p.errs
 }

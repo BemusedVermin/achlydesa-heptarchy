@@ -17,12 +17,12 @@ The foundation packages' comments meet `.claude/rules/comments.md`.
 
 ## Context
 
-- C1-22 trimmed the foundation's comments before the rule tightened. The owner then ruled out end-of-line comments, comments in tests other than doc comments, and task IDs in comments.
+- C1-22 trimmed these comments before the owner tightened the rule: no end-of-line comments, no comments in tests other than doc comments, no task IDs in comments.
 - `go tool task comments -- <paths>` lists every comment that breaks the rule.
 
 ## Deliverables
 
-- One pull request that changes only comments in the foundation packages: `internal/core/api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `hexmap`, `knowledge` and `inventory`.
+- One pull request that changes only comments in `internal/core/api`, `internal/core/sim`, `internal/core/comp`, `internal/core/anatomy`, `internal/core/rng`, `internal/core/clock`, `internal/core/hexmap`, `internal/core/knowledge`, `internal/core/inventory`.
 
 ## Spec
 
@@ -43,7 +43,7 @@ Leave doc comments alone otherwise: the owner is happy with them.
 
 ## Out of scope
 
-- Comments outside the foundation packages: each area's cleanup task covers its own.
+- Comments in other packages: each area's cleanup task covers its own.
 
 ## Notes
 

@@ -56,13 +56,3 @@ func ChosenRecords(w *sim.World, choices map[string]string) map[string]content.R
 	}
 	return out
 }
-
-// firstPart is the first channel that is a part of a body, or the zero entity.
-func firstPart(channels []timeline.Channel) ecs.Entity {
-	for _, c := range channels {
-		if !c.Body.IsZero() && c.Entity != c.Body {
-			return c.Entity
-		}
-	}
-	return ecs.Entity{}
-}
