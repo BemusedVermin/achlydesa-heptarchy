@@ -30,6 +30,7 @@ type Registry struct {
 	// offers has no entry for a choice without an offer formula.
 	offers      map[string]*vm.Program
 	mods        map[api.ContentID]compiledMods
+	needs       map[api.ContentID]compiledNeed
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

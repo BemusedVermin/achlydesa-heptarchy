@@ -38,6 +38,9 @@ import (
 	// Statuses are the conditions a body can be under for a while ("status." IDs).
 	statuses: {[string]: #Status} @go(Statuses,map[string]Status)
 
+	// Needs are what bodies run low on ("need." IDs); a template says which ones its bodies carry.
+	needs: {[string]: #NeedDef} @go(Needs,map[string]NeedDef)
+
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	rules?: {[string]: string} @go(Rules,map[string]string)
 
@@ -269,6 +272,32 @@ import (
 
 	// Faction is the side ("faction." ID) a body of this template fights for.
 	faction?: null | api.#ContentID @go(Faction,*api.ContentID)
+
+	// Needs maps each need ("need." ID) a body of this template carries to its starting level, 0 to 1.
+	needs?: {[string]: float64} @go(Needs,map[string]float64)
+}
+
+// NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
+// (desperate) and rises at every day-phase boundary.
+#NeedDef: {
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Rise is an Expr float over NeedEnv: how much the level rises per phase.
+	rise: string @go(Rise)
+
+	// Urge is an Expr float over NeedEnv: how pressing the need is at this level, 0 to 1.
+	urge: string @go(Urge)
+
+	// Thresholds are in ascending At.
+	thresholds?: [...#Threshold] @go(Thresholds,[]Threshold)
+}
+
+// Threshold applies effects to a body once per phase while its level of the need is at least At.
+// The body is both source and target.
+#Threshold: {
+	at: float64 @go(At)
+	do: [...#EffectRef] @go(Do,[]EffectRef)
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.

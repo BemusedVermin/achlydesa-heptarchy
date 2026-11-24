@@ -1,7 +1,7 @@
 ---
 id: M3-02
 title: "Needs: records, levels, a per-phase tick and the satisfy effect"
-status: todo
+status: done
 milestone: M3
 kind: seam
 depends_on: []
@@ -64,11 +64,11 @@ type Needs struct { Levels []NeedLevel } // sorted by Need, none twice
 
 ## Acceptance criteria
 
-- [ ] A test body with `need.water` at 0.2 and a rise of 0.1 reads 0.3 after one phase boundary and 0.4 after two.
-- [ ] A content action whose `on_land` is `satisfy` lowers the level, and the level never leaves 0..1.
-- [ ] A threshold at 0.5 applies its effect each phase while the level is at or above 0.5, and stops once `satisfy` drops it below.
-- [ ] A save taken with needs set loads back with the same levels and the same `Game.Hash`.
-- [ ] `go tool task check` passes.
+- [x] A test body with `need.water` at 0.2 and a rise of 0.1 reads 0.3 after one phase boundary and 0.4 after two.
+- [x] A content action whose `on_land` is `satisfy` lowers the level, and the level never leaves 0..1.
+- [x] A threshold at 0.5 applies its effect each phase while the level is at or above 0.5, and stops once `satisfy` drops it below.
+- [x] A save taken with needs set loads back with the same levels and the same `Game.Hash`.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -78,4 +78,13 @@ type Needs struct { Levels []NeedLevel } // sorted by Need, none twice
 
 ## Notes
 
+- **Deviation:** the need names sit beside the records in `content/data/needs.cue`, not in `content/data/text/agents.cue`, because `.claude/rules/content.md` puts a record's name beside the record and keeps `text/` for engine messages. `agents` has no engine messages yet, so `text/agents.cue` doesn't exist.
+- **Decisions where the spec is silent (all reversible):**
+  - A body's needs tick in ID order, each one reading a fresh `BodyEnv`, so a threshold on one need can affect the rise of the next.
+  - Threshold `at` must be from 0 to 1 and strictly ascending, and starting levels must be from 0 to 1. Both fail at load.
+  - `satisfy` acts on the effect's target only, and publishes no event. `need` is a text param: a literal need ID is checked when a game starts.
+  - The sample `need.water` and `need.food` have placeholder rises (0.05 and 0.02 per phase), `urge: "level"`, no thresholds, and are named "water" and "food". No sample template carries a need, so sample games behave as before. The party's needs belong to M3-13.
+  - Bodies with `comp.Dead` are skipped. Downed bodies still tick.
+- **Files outside Deliverables:** `internal/content/needs.go` (loader checks and accessors), `actions.go` (threshold effects are effect sites, so `effects.ValidateContent` checks them when a game starts), `records.go`, `registry.go`, `load.go`; `internal/core/effects/env.go` (fills `BodyEnv.Needs`); `internal/core/save/save_test.go` (the migration test builds its no-op chain up to `CurrentVersion` instead of hard-coding two steps); `docs/content-guide.md` (needs in the layout and ID tables, a Needs section, `satisfy` in the primitive list).
+- **Follow-ups:** M3-02.F1 (a need dropped by hot-reloaded content stops the game at the next phase boundary).
 

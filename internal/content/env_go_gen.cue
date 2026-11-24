@@ -62,6 +62,20 @@ package content
 
 	// IsParty means the body belongs to the party the player commands (set only when scoring).
 	IsParty: bool
+
+	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
+	Needs: {[string]: float64} @go(,map[string]float64)
+}
+
+// NeedEnv is what a need's rise and urge formulas see.
+#NeedEnv: {
+	Level: float64
+
+	// Phase is the ID of the day phase that is starting, such as "phase.dawn".
+	Phase: string
+
+	// Source is the body carrying the need.
+	Source: #BodyEnv
 }
 
 // EffectEnv is everything an effect formula can see.

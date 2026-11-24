@@ -1,6 +1,8 @@
 package effects
 
 import (
+	"strings"
+
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
@@ -10,6 +12,9 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
+
+// needPrefix is dropped from a need's ID to give its key in BodyEnv.Needs.
+const needPrefix = "need."
 
 // BodyEnvOf is what a formula sees of a body and one of its parts: their records and facts. An entity that is
 // gone, zero or has no such component reads as an empty record.
@@ -25,6 +30,13 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 		if statuses := ecs.NewMap[comp.Statuses](w.ECS); statuses.Has(body) {
 			for _, entry := range statuses.Get(body).Active {
 				env.Statuses = append(env.Statuses, string(entry.Status))
+			}
+		}
+		if needs := ecs.NewMap[comp.Needs](w.ECS); needs.Has(body) {
+			levels := needs.Get(body).Levels
+			env.Needs = make(map[string]float64, len(levels))
+			for _, level := range levels {
+				env.Needs[strings.TrimPrefix(string(level.Need), needPrefix)] = level.Level
 			}
 		}
 		grafts := ecs.NewMap[comp.Graft](w.ECS)

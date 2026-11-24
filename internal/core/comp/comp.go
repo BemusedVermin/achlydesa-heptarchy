@@ -201,6 +201,17 @@ type Triggers struct {
 	IDs []string `json:"ids"`
 }
 
+// NeedLevel is how far one need has gone unmet, from 0 (met) to 1 (desperate).
+type NeedLevel struct {
+	Need  api.ContentID `json:"need"`
+	Level float64       `json:"level"`
+}
+
+// Needs is the needs a body carries, sorted by need ID with none twice.
+type Needs struct {
+	Levels []NeedLevel `json:"levels"`
+}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -232,4 +243,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Allegiance](world)
 	ecs.ComponentID[Triggers](world)
 	ecs.ComponentID[Calm](world)
+	ecs.ComponentID[Needs](world)
 }
