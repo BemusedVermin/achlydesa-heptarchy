@@ -200,6 +200,13 @@ func (r *Registry) EffectSites() []EffectSite {
 	for _, id := range sortedKeys(r.bundle.Items) {
 		sites = append(sites, modSites(fmt.Sprintf("items[%q]", id), r.bundle.Items[id].Mods)...)
 	}
+	for _, id := range sortedKeys(r.bundle.Needs) {
+		for i, threshold := range r.bundle.Needs[id].Thresholds {
+			if len(threshold.Do) > 0 {
+				sites = append(sites, EffectSite{Path: fmt.Sprintf("needs[%q].thresholds[%d].do", id, i), Refs: threshold.Do})
+			}
+		}
+	}
 	for _, site := range r.TriggerSites() {
 		if len(site.Trigger.Do) > 0 {
 			sites = append(sites, EffectSite{Path: site.Path + ".do", Refs: site.Trigger.Do})

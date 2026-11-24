@@ -1,7 +1,7 @@
 ---
 id: M3-02
 title: "Needs: records, levels, a per-phase tick and the satisfy effect"
-status: todo
+status: in-progress
 milestone: M3
 kind: seam
 depends_on: []

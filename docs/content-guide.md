@@ -20,6 +20,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `items.cue` | `items`: what the inventory carries |
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
+| `needs.cue` | `needs`: what bodies run low on, how fast, and the thresholds that hurt them |
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
 | `maps/` | `maps`: `maps.cue` holds the schema and `_#TestMap`, one file per map (`test_hall.cue`, `test_den.cue`, `test_descent.cue`) |
 | `start.cue` | `start`: the map, party template and mark a new game begins with |
@@ -54,6 +55,7 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `items` | `item.` | `item.lake_water` |
 | `factions` | `faction.` | `faction.wild` |
 | `statuses` | `status.` | `status.standing` |
+| `needs` | `need.` | `need.water` |
 
 The day's phases in `calendar.cue` have IDs too (`phase.dawn`), and are named `text.<phase id>` like any record.
 
@@ -126,9 +128,13 @@ triggers: [{
 
 Several triggers that match one event fire in UID order of their carriers, then in the order content lists them.
 
+## Needs
+
+A need's level runs from 0 (met) to 1 (desperate). A template lists the needs its bodies carry, with starting levels: `needs: {"need.water": 0.2}`. At every day-phase boundary each living body's needs rise, in ID order, by their `rise` formula, and the level is kept within 0 to 1. Then each of the need's `thresholds` (in ascending `at`) whose `at` the level has reached applies its `do` effects, with the body as source and target. `rise` and `urge` see `level`, `phase` (the phase starting, such as `"phase.day"`) and `source`; any formula reads a body's levels as `source.needs.water`. The `satisfy` effect lowers the target's level by `amount` (a negative amount raises it) and does nothing to a body without that need.
+
 ## Effects
 
-An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part` and `step`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
+An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
 
 Params that pick bodies or parts are selectors:
 

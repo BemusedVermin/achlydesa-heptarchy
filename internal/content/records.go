@@ -56,6 +56,8 @@ func collections() []collection {
 			func(f Faction) Data { return f.Data }, func(f Faction) (api.ContentID, bool) { return f.Name, true }),
 		described("statuses", "status", func(b *Bundle) map[string]Status { return b.Statuses },
 			func(s Status) Data { return s.Data }, func(s Status) (api.ContentID, bool) { return s.Name, true }),
+		described("needs", "need", func(b *Bundle) map[string]NeedDef { return b.Needs },
+			nil, func(n NeedDef) (api.ContentID, bool) { return n.Name, true }),
 	}
 }
 

@@ -205,3 +205,14 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Triggers: {
 	ids: [...string] @go(IDs,[]string)
 }
+
+// NeedLevel is how far one need has gone unmet, from 0 (met) to 1 (desperate).
+#NeedLevel: {
+	need:  api.#ContentID @go(Need)
+	level: float64        @go(Level)
+}
+
+// Needs is the needs a body carries, sorted by need ID with none twice.
+#Needs: {
+	levels: [...#NeedLevel] @go(Levels,[]NeedLevel)
+}

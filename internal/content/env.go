@@ -49,6 +49,17 @@ type BodyEnv struct {
 	WindingUp bool `expr:"winding_up"`
 	// IsParty means the body belongs to the party the player commands (set only when scoring).
 	IsParty bool `expr:"is_party"`
+	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
+	Needs map[string]float64 `expr:"needs"`
+}
+
+// NeedEnv is what a need's rise and urge formulas see.
+type NeedEnv struct {
+	Level float64 `expr:"level"`
+	// Phase is the ID of the day phase that is starting, such as "phase.dawn".
+	Phase string `expr:"phase"`
+	// Source is the body carrying the need.
+	Source BodyEnv `expr:"source"`
 }
 
 // EffectEnv is everything an effect formula can see.

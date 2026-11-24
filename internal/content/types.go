@@ -30,6 +30,8 @@ type Bundle struct {
 	Factions map[string]Faction `json:"factions"`
 	// Statuses are the conditions a body can be under for a while ("status." IDs).
 	Statuses map[string]Status `json:"statuses"`
+	// Needs are what bodies run low on ("need." IDs); a template says which ones its bodies carry.
+	Needs map[string]NeedDef `json:"needs"`
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	Rules map[string]string `json:"rules,omitempty"`
 	// Choices are the choices actions may ask for, served from a collection of records.
@@ -222,6 +224,28 @@ type Template struct {
 	Triggers []Trigger `json:"triggers,omitempty"`
 	// Faction is the side ("faction." ID) a body of this template fights for.
 	Faction *api.ContentID `json:"faction,omitempty"`
+	// Needs maps each need ("need." ID) a body of this template carries to its starting level, 0 to 1.
+	Needs map[string]float64 `json:"needs,omitempty"`
+}
+
+// NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
+// (desperate) and rises at every day-phase boundary.
+type NeedDef struct {
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Rise is an Expr float over NeedEnv: how much the level rises per phase.
+	Rise string `json:"rise"`
+	// Urge is an Expr float over NeedEnv: how pressing the need is at this level, 0 to 1.
+	Urge string `json:"urge"`
+	// Thresholds are in ascending At.
+	Thresholds []Threshold `json:"thresholds,omitempty"`
+}
+
+// Threshold applies effects to a body once per phase while its level of the need is at least At.
+// The body is both source and target.
+type Threshold struct {
+	At float64     `json:"at"`
+	Do []EffectRef `json:"do"`
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.
