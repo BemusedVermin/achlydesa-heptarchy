@@ -13,21 +13,20 @@ import (
 
 // Registry is the immutable, validated content. Build one with [Load] or [New]. It is safe for concurrent use.
 type Registry struct {
-	bundle    Bundle
-	hash      string
-	moveCosts map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
-	stepTicks *vm.Program                          // compiled timeline.step_ticks formula
-	climbCost *vm.Program                          // compiled party.climb_cost formula, nil when empty
-	templates map[api.ContentID]*template.Template // parsed text, by text ID
-	actions   map[api.ContentID]compiledAction     // compiled action formulas
-	speed     *vm.Program                          // compiled timeline.speed formula
-	aiScore   *vm.Program                          // compiled combat.ai_score formula
-	aims      *vm.Program                          // compiled combat.aims formula
-	records   map[api.ContentID]Record             // the formula view of every record
-	offers    map[string]*vm.Program               // compiled choice offers; absent when a choice has none
-	mods      map[api.ContentID]compiledMods       // compiled mods of types and items
-	warnings  []string
-	// collections is the table of the bundle's ID-keyed collections, built once.
+	bundle      Bundle
+	hash        string
+	moveCosts   map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
+	stepTicks   *vm.Program                          // compiled timeline.step_ticks formula
+	climbCost   *vm.Program                          // compiled party.climb_cost formula, nil when empty
+	templates   map[api.ContentID]*template.Template // parsed text, by text ID
+	actions     map[api.ContentID]compiledAction     // compiled action formulas
+	speed       *vm.Program                          // compiled timeline.speed formula
+	aiScore     *vm.Program                          // compiled combat.ai_score formula
+	aims        *vm.Program                          // compiled combat.aims formula
+	records     map[api.ContentID]Record             // the formula view of every record
+	offers      map[string]*vm.Program               // compiled choice offers; absent when a choice has none
+	mods        map[api.ContentID]compiledMods       // compiled mods of types and items
+	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.
 	rulesUsed map[string]bool

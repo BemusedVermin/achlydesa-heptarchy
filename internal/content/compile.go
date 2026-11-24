@@ -32,8 +32,6 @@ func (r *Registry) Compile(src string, env any, options ...expr.Option) (*vm.Pro
 	return program, nil
 }
 
-// run runs a compiled formula against env and checks it returned a T. what names the formula in
-// errors, such as `terrain "terrain.air" move_cost`.
 func run[T any](program *vm.Program, env any, what string) (T, error) {
 	var zero T
 	out, err := expr.Run(program, env)
@@ -131,7 +129,6 @@ func (in *inliner) expand(name string) (ast.Node, error) {
 	return tree.Node, nil
 }
 
-// ruleRefs lists the rules a rule's source names, in the order found.
 func ruleRefs(src string) ([]string, error) {
 	tree, err := parser.Parse(src)
 	if err != nil {
@@ -156,8 +153,6 @@ func (f *ruleFinder) Visit(node *ast.Node) {
 	}
 }
 
-// checkRules checks rule names and syntax, that every rule they use exists, and that no rules use
-// each other in a cycle.
 func (r *Registry) checkRules() []error {
 	p := r.problems()
 	refs := map[string][]string{}
@@ -200,7 +195,6 @@ func (r *Registry) checkRules() []error {
 	return p.errs
 }
 
-// warnUnusedRules records a warning for each rule no formula used.
 func (r *Registry) warnUnusedRules() {
 	for _, name := range sortedKeys(r.bundle.Rules) {
 		if !r.rulesUsed[name] {

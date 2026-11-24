@@ -1,8 +1,6 @@
 package data
 
-// An attack form reaches the next hex and needs sight of its target; connects is the default (still
-// in range and in sight). It is loaded with a type (choices.cue); what the type does to the form is in
-// types.cue and the rules that read it (weak, immune, hit, graze) are in rules.cue.
+// An attack form is loaded with a type (choices.cue); types.cue and rules.cue say what each type does.
 _#Attack: {
 	range: 1
 	sight: true

@@ -114,9 +114,10 @@ Tests (commit "content tests load once and assert less", `_test.go` files only):
 Comments (commit "content comments say what callers need"):
 
 - `newRegistry`'s doc is on `newRegistry`; `actions.cue` M1-10 line cut; `Registry` says "[Load] or [New]".
-- History and task IDs cut: `Bundle` "Later tasks add fields", `Template` "Later: Combatant, Needs", `ActionDef.Choices` "(M2)", `EffectEnv` and `ActionEnv` "deliberately", `types.cue` (M2-05), `bodies.cue` (M2-11). "for M7's tuning" became "for tuning" in `types.cue`, `templates.cue`, `items.cue` and `forms.cue`. The `templates.cue:88` line number no longer matched anything with history after C1-17; the whole file was swept.
+- History and task IDs cut: `Bundle` "Later tasks add fields", `Template` "Later: Combatant, Needs", `ActionDef.Choices` "(M2)", `EffectEnv` and `ActionEnv` "deliberately", `types.cue` (M2-05, the sentence cut), `bodies.cue` (M2-11). "for M7's tuning" became "for tuning" in `types.cue`, `templates.cue`, `items.cue` and `forms.cue`. The `templates.cue:88` line number no longer matched anything with history after C1-17; the whole file was swept.
 - Tuning values cut from the `PartyConfig` docs and "Placeholders to tune." from `CombatConfig`; the generated schemas follow.
-- `Terrain.Name` is commented `// a text ID`; `Start.Map` `// a map ID` (it holds a map ID, not text).
+- `Terrain.Name` is commented `// a text ID`. `Start.Map`: dropped, it holds a map ID, not text.
+- Net effect, measured with `git diff origin/master` over Go and CUE (generated schemas left out): comment lines +39 -59 (net -20), words +296 -597 (net -301). The new unexported helpers (the collections table, `problems`, `run`) carry no comments; several unexported doc comments that restated their names were cut, and the PartyConfig, forms and types.cue comments shortened.
 
 ### Deliberate behavior changes
 

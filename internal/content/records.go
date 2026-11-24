@@ -9,20 +9,15 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// collection is one ID-keyed collection of the bundle, seen through the accessors the loader needs.
 type collection struct {
-	name   string // the Bundle's json key
-	prefix string // every ID starts with prefix + "."
-	keys   func(*Bundle) []string
-	// data is nil when the records carry no [Data], so the collection holds no records formulas read.
-	data func(*Bundle) map[string]Data
-	// recordName is nil when the records have no name; its false means this record has none.
-	recordName func(b *Bundle, key string) (api.ContentID, bool)
-	// sharedNames lets several records share one name, so it need not be text.<ID>.
+	name        string
+	prefix      string
+	keys        func(*Bundle) []string
+	data        func(*Bundle) map[string]Data
+	recordName  func(b *Bundle, key string) (api.ContentID, bool)
 	sharedNames bool
 }
 
-// collections lists every ID-keyed collection of the bundle, in the order their problems are reported.
 func collections() []collection {
 	return []collection{
 		described("materials", "material", func(b *Bundle) map[string]Material { return b.Materials },
@@ -64,7 +59,6 @@ func collections() []collection {
 	}
 }
 
-// described builds a collection from its map. data and name may be nil when the records have none.
 func described[V any](
 	name, prefix string,
 	records func(*Bundle) map[string]V,
@@ -93,13 +87,11 @@ func described[V any](
 	return c
 }
 
-// shared marks a collection whose records may share one name.
 func shared(c collection) collection {
 	c.sharedNames = true
 	return c
 }
 
-// recordCollection finds the collection of records (one whose records carry [Data]) by its name.
 func (r *Registry) recordCollection(name string) (collection, bool) {
 	for _, c := range r.collections {
 		if c.name == name && c.data != nil {
@@ -109,7 +101,6 @@ func (r *Registry) recordCollection(name string) (collection, bool) {
 	return collection{}, false
 }
 
-// dataOf lists the Data of every record of a collection that has one, by ID.
 func (r *Registry) dataOf(name string) map[string]Data {
 	c, ok := r.recordCollection(name)
 	if !ok {
@@ -118,7 +109,6 @@ func (r *Registry) dataOf(name string) map[string]Data {
 	return c.data(&r.bundle)
 }
 
-// collectionIDs lists the IDs of any collection of the bundle, or false when there is none by that name.
 func (r *Registry) collectionIDs(name string) (map[string]bool, bool) {
 	for _, c := range r.collections {
 		if c.name != name {
@@ -134,7 +124,6 @@ func (r *Registry) collectionIDs(name string) (map[string]bool, bool) {
 	return nil, false
 }
 
-// checkIDs checks that every key of every collection is an ID with the collection's prefix.
 func (r *Registry) checkIDs() []error {
 	p := r.problems()
 	for _, c := range r.collections {
@@ -147,8 +136,6 @@ func (r *Registry) checkIDs() []error {
 	return p.errs
 }
 
-// checkTextNames checks that a record's name is "text." plus the record's own ID, so a name is found
-// beside its record.
 func (r *Registry) checkTextNames() []error {
 	p := r.problems()
 	check := func(collection, key string, name api.ContentID) {
@@ -186,7 +173,6 @@ func recordOf(id string, data Data) Record {
 	return record
 }
 
-// buildRecords makes the formula view of every record, once per registry.
 func (r *Registry) buildRecords() {
 	r.records = map[api.ContentID]Record{}
 	for _, c := range r.collections {
@@ -221,7 +207,6 @@ func (r *Registry) RecordIDs(collection string) []api.ContentID {
 	return sortedIDs(r.dataOf(collection))
 }
 
-// checkVocabulary checks tags, grant kinds and list values against what content declared closed.
 func (r *Registry) checkVocabulary() []error {
 	p := r.problems()
 	vocab := r.bundle.Vocabulary

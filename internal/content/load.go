@@ -274,7 +274,6 @@ func (r *Registry) checkCalendar() []error {
 	return p.errs
 }
 
-// checkTerrains checks each terrain's name and compiles its move cost.
 func (r *Registry) checkTerrains() []error {
 	p := r.problems()
 	for _, key := range sortedKeys(r.bundle.Terrains) {

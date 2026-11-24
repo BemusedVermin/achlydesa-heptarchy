@@ -236,11 +236,8 @@ import (
 	// SightDepth is how many cells up and down the party sees.
 	sight_depth: int @go(SightDepth)
 
-	// PlanRange is how many steps of walking from the focus the plan view looks for reachable floor,
-	// by the party's step rules. Reachable floor is drawn over the walls and ledges that share its hex.
-	plan_range: int @go(PlanRange)
-
-	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules.
+	// PlanRange is how many steps of walking from the focus the plan view draws reachable floor.
+	plan_range:    int @go(PlanRange)
 	max_step_up:   int @go(MaxStepUp)
 	max_step_down: int @go(MaxStepDown)
 	max_drop:      int @go(MaxDrop)

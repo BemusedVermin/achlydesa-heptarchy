@@ -21,7 +21,6 @@ _actions: [
 ]
 _innateTypes: ["type.cut", "type.name", "type.press"]
 
-// A member of the party.
 _#Person: {
 	actions:   _actions
 	body:      "body.human"
@@ -33,7 +32,6 @@ _#Person: {
 	...
 }
 
-// A wild creature that hunts the party and bites with Cut.
 _#Hunter: {
 	actor: controller: "hunt"
 	actions: ["action.step", "action.strike"]

@@ -26,7 +26,6 @@ types: {
 	"type.relic": {name: "text.type.relic"}
 	// A name works only on its owner, but it is not refused elsewhere: the swing lands and does
 	// nothing (rule.unheld, in rules.cue), so the menu never tells whose name the party holds.
-	// Using a name up when it is spoken in the deep belongs in a trigger.
 	"type.name": {name: "text.type.name"}
 	"type.burn": #Consumable & {_item: "item.coal", name: "text.type.burn"}
 	// Rot also eats a graft on whichever side it lands. A placeholder 2.

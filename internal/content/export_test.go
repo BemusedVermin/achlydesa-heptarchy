@@ -9,14 +9,12 @@ import (
 
 const dataPath = "../../content/data"
 
-// sampleRegistry and sampleBundle twin contenttest, which this package cannot import without a cycle.
-// Both load content/data once per test binary.
+// These twin contenttest, which this package cannot import without a cycle.
 var (
 	sample     = sync.OnceValues(func() (*Registry, error) { return Load(dataPath) })
 	sampleJSON = sync.OnceValues(func() ([]byte, error) { return loadBundleJSON(dataPath) })
 )
 
-// sampleBundle returns a copy of the sample bundle that the test may change.
 func sampleBundle(t testing.TB) Bundle {
 	t.Helper()
 	return copyBundle(t, sampleJSON)
@@ -39,7 +37,6 @@ func loadBundleJSON(dir string) ([]byte, error) {
 	return json.Marshal(bundle)
 }
 
-// copyBundle decodes a fresh bundle from its encoding, so a test may change every part of it.
 func copyBundle(t testing.TB, encoded func() ([]byte, error)) Bundle {
 	t.Helper()
 	data, err := encoded()
@@ -53,7 +50,6 @@ func copyBundle(t testing.TB, encoded func() ([]byte, error)) Bundle {
 	return bundle
 }
 
-// requireErrContains fails the test unless err is an error whose text holds every fragment.
 func requireErrContains(t testing.TB, err error, fragments ...string) {
 	t.Helper()
 	if err == nil {

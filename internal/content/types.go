@@ -223,10 +223,8 @@ type PartyConfig struct {
 	SightRadius int `json:"sight_radius"` // hexes
 	// SightDepth is how many cells up and down the party sees.
 	SightDepth int `json:"sight_depth"`
-	// PlanRange is how many steps of walking from the focus the plan view looks for reachable floor,
-	// by the party's step rules. Reachable floor is drawn over the walls and ledges that share its hex.
-	PlanRange int `json:"plan_range"`
-	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules.
+	// PlanRange is how many steps of walking from the focus the plan view draws reachable floor.
+	PlanRange   int `json:"plan_range"`
 	MaxStepUp   int `json:"max_step_up"`
 	MaxStepDown int `json:"max_step_down"`
 	MaxDrop     int `json:"max_drop"`
@@ -295,7 +293,7 @@ type LayerDef struct {
 
 // Start is the scenario a new game begins with: a party placed at a mark on a map.
 type Start struct {
-	Map         api.ContentID `json:"map"`           // a map ID
+	Map         api.ContentID `json:"map"`
 	Party       api.ContentID `json:"party"`         // a party template ID
 	PartyAtMark string        `json:"party_at_mark"` // a mark name of the map
 }
