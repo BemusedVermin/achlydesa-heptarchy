@@ -49,23 +49,12 @@ func TestCUEConstraintsHoldAgainstTheRealSchema(t *testing.T) {
 	if _, err := Load(dir); err != nil {
 		t.Fatalf("the copied sample does not load: %v", err)
 	}
-	// Flesh is weak to Cut, so making it immune to Cut too must be refused by materials.cue.
-	file := filepath.Join(dir, "materials.cue")
-	data, err := os.ReadFile(file)
-	if err != nil {
-		t.Fatal(err)
-	}
-	const original = `lists: weak_to: ["type.cut", "type.burn", "type.relic"]`
-	changed := strings.Replace(
-		string(data),
-		original,
-		`lists: {weak_to: ["type.cut", "type.burn", "type.relic"], immune_to: ["type.cut"]}`,
-		1,
-	)
-	if changed == string(data) {
-		t.Fatal("the sample's flesh material no longer reads as this test expects")
-	}
-	if err := os.WriteFile(file, []byte(changed), 0o600); err != nil {
+	// A material both weak and immune to one type must be refused by materials.cue.
+	const override = `package data
+
+materials: "material.both": {name: "text.material.both", lists: {weak_to: ["type.cut"], immune_to: ["type.cut"]}}
+`
+	if err := os.WriteFile(filepath.Join(dir, "override.cue"), []byte(override), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Load(dir); err == nil || !strings.Contains(err.Error(), "_overlap") {
