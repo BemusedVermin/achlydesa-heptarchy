@@ -1,13 +1,8 @@
 package combat_test
 
 import (
-	"encoding/json"
 	"flag"
-	"fmt"
-	"os"
-	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
@@ -203,72 +198,6 @@ func TestThreatsListTheSwingUntilItLandsOrMisses(t *testing.T) {
 	}
 }
 
-func TestSteppingOutOfReachBeforeTheSwingLandsMakesItMiss(t *testing.T) {
-	f := huntField(t, nil)
-	creature := f.creature()
-	uid := f.w.UIDOf(creature)
-	f.moveParty(east(f.at(creature), -4))
-	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
-		t.Fatal("the creature never attacked")
-	}
-	swing, _ := f.started(uid)
-	// Let the target, whoever decides for it, step away. Both members are the player's now.
-	f.until(10, func() bool { return f.view().Timeline.Current == swing.Target })
-	if f.view().Timeline.Current != swing.Target {
-		t.Fatal("the target never got a turn before the swing landed")
-	}
-	if f.w.Now >= swing.Lands {
-		t.Fatalf("the target's turn came at %d, after the swing landed at %d", f.w.Now, swing.Lands)
-	}
-	f.option("step/w")
-	f.until(20, func() bool { return f.w.Now > swing.Lands })
-	var missed bool
-	for _, e := range f.events {
-		if m, ok := e.(api.ActionMissed); ok && m.Source == uid && m.Tick == swing.Lands {
-			missed = true
-		}
-		if d, ok := e.(api.PartDamaged); ok && d.Source == uid && d.Tick == swing.Lands {
-			t.Errorf("the swing landed anyway: %+v", d)
-		}
-	}
-	if !missed {
-		t.Error("the swing never missed")
-	}
-}
-
-func TestACreatureWithItsLegsSeveredFallsBehindAndTheAlertEnds(t *testing.T) {
-	// A short sight, so the hall is big enough to walk out of it.
-	f := huntField(t, func(b *content.Bundle) { b.Combat.SightRadius = 4 })
-	creature := f.creature()
-	f.damage(f.members()[0], creature, "legs", "99")
-	start := f.at(creature)
-	f.place(f.members()[0], east(start, -3))
-	f.place(f.members()[1], east(start, -2))
-	f.events = nil
-	ended := f.until(600, func() bool {
-		for _, e := range f.events {
-			if _, ok := e.(api.AlertEnded); ok {
-				return true
-			}
-		}
-		for _, o := range f.view().Options {
-			if o.ID == "step/w" && o.Enabled {
-				if _, err := f.g.Apply(o.Command); err != nil {
-					t.Fatal(err)
-				}
-				return false
-			}
-		}
-		return false
-	})
-	if !ended {
-		t.Fatal("the alert never ended")
-	}
-	if crawled, walked := f.moves(f.w.UIDOf(creature)), f.moves(f.memberUIDs()[0]); crawled >= walked {
-		t.Errorf("the legless creature took %d steps to the walker's %d: it did not fall behind", crawled, walked)
-	}
-}
-
 func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 	f := huntField(t, func(b *content.Bundle) {
 		hall := b.Maps["map.test.hall"]
@@ -302,12 +231,9 @@ func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 	f.events = nil
 	a, b := f.w.UIDOf(fighters[0]), f.w.UIDOf(fighters[1])
 	damaged := f.until(400, func() bool {
-		for _, e := range f.events {
-			if d, ok := e.(api.PartDamaged); ok && (d.Source == a && d.Body == b || d.Source == b && d.Body == a) {
-				return true
-			}
-		}
-		return false
+		return has(f.events, func(d api.PartDamaged) bool {
+			return d.Source == a && d.Body == b || d.Source == b && d.Body == a
+		})
 	})
 	if !damaged {
 		t.Fatal("the two creatures never hurt each other")
@@ -436,49 +362,7 @@ func TestOneAlertPublishesOneAlertStarted(t *testing.T) {
 	creature := f.creature()
 	f.moveParty(east(f.at(creature), -4))
 	f.until(20, func() bool { return f.w.Now >= 20 })
-	count := 0
-	for _, e := range f.events {
-		if _, ok := e.(api.AlertStarted); ok {
-			count++
-		}
-	}
-	if count != 1 {
-		t.Errorf("AlertStarted published %d times for one alert, want 1", count)
-	}
-}
-
-func TestAScriptedEncounterMatchesItsGoldenLog(t *testing.T) {
-	f := huntField(t, nil)
-	creature := f.creature()
-	f.moveParty(east(f.at(creature), -4))
-	f.until(60, func() bool { return f.w.Now >= 120 })
-	var lines []string
-	for _, e := range f.events {
-		switch e.(type) {
-		case api.Ready, api.PhaseStarted:
-			continue
-		}
-		data, err := json.Marshal(e)
-		if err != nil {
-			t.Fatal(err)
-		}
-		lines = append(lines, fmt.Sprintf("%s %s", e.EventKind(), data))
-	}
-	got := strings.Join(lines, "\n") + "\n"
-	path := filepath.Join("testdata", "hunt.golden")
-	if *update {
-		if err := os.MkdirAll("testdata", 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(path, []byte(got), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	want, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got != string(want) {
-		t.Errorf("the encounter differs from %s; run go test ./internal/core/combat -update\n%s", path, got)
+	if got := count[api.AlertStarted](f.events); got != 1 {
+		t.Errorf("AlertStarted published %d times for one alert, want 1", got)
 	}
 }

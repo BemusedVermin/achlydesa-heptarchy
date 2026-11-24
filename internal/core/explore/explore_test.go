@@ -14,7 +14,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
@@ -454,41 +453,6 @@ func TestMapViewHasNoDepthOrLayerKeys(t *testing.T) {
 				t.Errorf("%s view has a field named %q", name, key)
 			}
 		}
-	}
-}
-
-func TestReplayOfRandomStepsGivesTheSameHash(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
-	rnd := rng.New(7).Get("test.steps")
-	moved := 0
-	for range 200 {
-		var steps []api.Option
-		for _, o := range fx.view().Options {
-			if strings.HasPrefix(o.ID, "step/") && o.Enabled {
-				steps = append(steps, o)
-			}
-		}
-		if len(steps) == 0 {
-			t.Fatal("no enabled step")
-		}
-		events := fx.apply(steps[rnd.IntN(len(steps))].Command)
-		if _, ok := find[api.Moved](events); ok {
-			moved++
-		}
-	}
-	if moved == 0 {
-		t.Fatal("no random step moved anyone")
-	}
-	want, err := fx.g.Hash()
-	if err != nil {
-		t.Fatal(err)
-	}
-	replayed, err := game.Replay(fx.cfg, fx.g.History())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got, err := replayed.Hash(); err != nil || got != want {
-		t.Errorf("replay hash = %x, %v; want %x", got, err, want)
 	}
 }
 

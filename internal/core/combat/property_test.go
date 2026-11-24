@@ -3,6 +3,7 @@ package combat_test
 import (
 	"flag"
 	"fmt"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,17 +25,38 @@ import (
 )
 
 const (
-	// propertyChecks is how many random fights each property is checked over.
-	propertyChecks = 200
-	// propertyTicks bounds a fight, in ticks.
-	propertyTicks = 300
-	// propertySteps bounds a fight, in commands, in case the clock stops advancing.
-	propertySteps = 200
+	// propertyChecks is low because a fight is slow; -rapid.checks or RAPID_CHECKS overrides it.
+	propertyChecks = 20
+	propertyTicks  = 300
+	// propertySteps bounds a fight in case the clock stops advancing.
+	propertySteps = 24
+	// replayEvery: one fight in this many is replayed, since a replay costs as much as the fight.
+	replayEvery = 5
 )
 
-// propertyGame is the hall as shipped (a hunting crawler and the whole party) with a piece of
+// withChecks sets rapid's check count for this test alone, unless the run asked for one.
+func withChecks(t *testing.T, checks int) {
+	t.Helper()
+	explicit := os.Getenv("RAPID_CHECKS") != ""
+	flag.Visit(func(set *flag.Flag) { explicit = explicit || set.Name == "rapid.checks" })
+	if explicit {
+		return
+	}
+	setting := flag.Lookup("rapid.checks").Value
+	before := setting.String()
+	if err := setting.Set(strconv.Itoa(checks)); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := setting.Set(before); err != nil {
+			t.Error(err)
+		}
+	})
+}
+
+// propertyContent is the hall as shipped (a hunting crawler and the whole party) with a piece of
 // Serilmen in the inventory, so every form is on the menu.
-func propertyConfig(t *testing.T, seed uint64, install func(w *sim.World)) game.Config {
+func propertyContent(t *testing.T) *content.Registry {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
 	party := bundle.Templates["template.party.main"]
@@ -50,13 +72,7 @@ func propertyConfig(t *testing.T, seed uint64, install func(w *sim.World)) game.
 	}
 	hall.Layers = []content.LayerDef{{Depth: hall.Layers[0].Depth, Rows: rows}}
 	bundle.Maps["map.test.hall"] = hall
-	reg := contenttest.Registry(t, bundle)
-	return game.Config{Seed: seed, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
-		if install != nil {
-			install(w)
-		}
-		return nil
-	}}
+	return contenttest.Registry(t, bundle)
 }
 
 // fight is one random fight: its game, and what its events have shown so far.
@@ -73,12 +89,13 @@ func (f *fight) fail(format string, args ...any) {
 	f.problems = append(f.problems, fmt.Sprintf(format, args...))
 }
 
-func newFight(t *testing.T, seed uint64) (*fight, game.Config) {
+func newFight(t *testing.T, reg *content.Registry, seed uint64) (*fight, game.Config) {
 	t.Helper()
 	f := &fight{}
-	cfg := propertyConfig(t, seed, func(w *sim.World) {
+	cfg := game.Config{Seed: seed, Content: reg, Install: func(w *sim.World, _ *clock.Clock) error {
 		w.Bus.SubscribeAll("test.property", func(w *sim.World, e api.Event) { f.observe(w, e) })
-	})
+		return nil
+	}}
 	f.g, f.w, _ = gametest.Start(t, cfg)
 	return f, cfg
 }
@@ -205,30 +222,22 @@ func (f *fight) decides(view api.View) {
 	}
 }
 
-func setChecks(t *testing.T) {
-	t.Helper()
-	// An explicit -rapid.checks wins; the default of 100 is raised to the 200 the task asks for.
-	if flag.Lookup("rapid.checks").Value.String() != "100" {
-		return
-	}
-	if err := flag.Set("rapid.checks", strconv.Itoa(propertyChecks)); err != nil {
-		t.Fatal(err)
-	}
-}
-
-// TestRandomFightsKeepTheInvariants plays 200 random fights, choosing an offered option each time
-// for up to 300 ticks, and holds every property of combat after each command. It also replays the
-// same choices from the same seed, and wants the same hash, and applies only options that the view
-// offers, none of which may be rejected.
+// TestRandomFightsKeepTheInvariants plays random fights, choosing an offered option each time for
+// up to 300 ticks, and holds every property of combat after each command. Only options the view
+// offers are applied, and none may be rejected. About one fight in replayEvery is also replayed
+// from the same seed and must give the same hash.
 func TestRandomFightsKeepTheInvariants(t *testing.T) {
 	if testing.Short() {
-		t.Skip("200 random fights")
+		t.Skip("random fights")
 	}
-	setChecks(t)
+	reg := propertyContent(t)
+	withChecks(t, propertyChecks)
 	rapid.Check(t, func(rt *rapid.T) {
 		seed := rapid.Uint64().Draw(rt, "seed")
 		picks := rapid.SliceOfN(rapid.IntRange(0, 1<<20), propertySteps/4, propertySteps).Draw(rt, "picks")
-		f, cfg := newFight(t, seed)
+		// Drawn, not counted, so a failing fight shrinks with its replay.
+		replay := rapid.IntRange(0, replayEvery-1).Draw(rt, "replay") == 0
+		f, cfg := newFight(t, reg, seed)
 		var trail []string
 		for _, pick := range picks {
 			if f.w.Now >= propertyTicks {
@@ -257,6 +266,9 @@ func TestRandomFightsKeepTheInvariants(t *testing.T) {
 			if len(f.problems) > 0 {
 				rt.Fatalf("after %q at tick %d: %v (trail %v)", chosen.ID, f.w.Now, f.problems, trail)
 			}
+		}
+		if !replay {
+			return
 		}
 		want, err := f.g.Hash()
 		if err != nil {

@@ -221,37 +221,6 @@ func TestAPartOfAThingThatDiesNormallyDoesNotCrawl(t *testing.T) {
 	}
 }
 
-func TestTheAlertHoldsWhileACrawlingPartOutlivesItsSource(t *testing.T) {
-	f, remnant := remnantField(t)
-	reaper := f.members()[0]
-	arm := f.partOf(remnant, "arm")
-	f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
-	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-	// The source and the hall's own creature go down: only the crawling arm is left to see.
-	f.damage(reaper, remnant, "torso", "99")
-	f.damage(reaper, f.creature(), "torso", "99")
-	if !ecs.NewMap[comp.Dead](f.w.ECS).Has(remnant) {
-		t.Fatal("the remnant did not go down")
-	}
-	for range 6 {
-		f.option("wait/event")
-	}
-	if !f.view().Party.Alert {
-		t.Fatal("the alert dropped while the crawling arm still lived")
-	}
-	f.damage(reaper, crawling, "arm", "99")
-	if !ecs.NewMap[comp.Dead](f.w.ECS).Has(crawling) {
-		t.Fatal("the crawling arm did not fall")
-	}
-	for range 400 {
-		if !f.view().Party.Alert {
-			return
-		}
-		f.option("wait/event")
-	}
-	t.Error("the alert never ended after the crawling arm died")
-}
-
 func TestRotEatsAGraftOnEitherSide(t *testing.T) {
 	r := newRig(t)
 	rot, ok := r.w.Content.Type("type.rot")

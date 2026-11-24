@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
-	"slices"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
@@ -183,10 +182,13 @@ func TestGoldenACrawlingPartOutlivesItsBody(t *testing.T) {
 		for range 6 {
 			f.option("wait/event")
 		}
-		if !f.view().Party.Alert || hasEvent[api.AlertEnded](f.events) {
+		if !f.view().Party.Alert || has(f.events, always[api.AlertEnded]) {
 			t.Fatal("the alert dropped while the crawling arm still lived")
 		}
 		f.damage(reaper, crawling, "arm", "99")
+		if !dead.Has(crawling) {
+			t.Fatal("the crawling arm did not fall")
+		}
 		if !f.until(400, func() bool { return !f.view().Party.Alert }) {
 			t.Error("the alert never ended after the crawling arm died")
 		}
@@ -209,12 +211,11 @@ func TestGoldenADodgeStepsOutOfReachBeforeTheSwingLands(t *testing.T) {
 		}
 		f.option("step/w")
 		f.until(20, func() bool { return f.w.Now > swing.Lands })
-		missed := slices.ContainsFunc(f.events, func(e api.Event) bool {
-			m, ok := e.(api.ActionMissed)
-			return ok && m.Source == uid && m.Tick == swing.Lands
-		})
-		if !missed {
+		if !has(f.events, func(e api.ActionMissed) bool { return e.Source == uid && e.Tick == swing.Lands }) {
 			t.Error("the swing did not miss the dodging target")
+		}
+		if has(f.events, func(e api.PartDamaged) bool { return e.Source == uid && e.Tick == swing.Lands }) {
+			t.Error("the swing landed anyway")
 		}
 	})
 }
@@ -228,7 +229,7 @@ func TestGoldenOutpacingACreatureWithItsLegsSevered(t *testing.T) {
 	f.place(f.members()[1], east(start, -2))
 	fieldEncounter(t, "outpaced", f, func() {
 		ended := f.until(600, func() bool {
-			if hasEvent[api.AlertEnded](f.events) {
+			if has(f.events, always[api.AlertEnded]) {
 				return true
 			}
 			for _, o := range f.view().Options {
@@ -243,6 +244,9 @@ func TestGoldenOutpacingACreatureWithItsLegsSevered(t *testing.T) {
 		})
 		if !ended {
 			t.Fatal("the alert never ended")
+		}
+		if crawled, walked := f.moves(f.w.UIDOf(creature)), f.moves(f.memberUIDs()[0]); crawled >= walked {
+			t.Errorf("the legless creature took %d steps to the walker's %d: it did not fall behind", crawled, walked)
 		}
 	})
 }

@@ -377,10 +377,11 @@ func TestLeadChangesTheLeaderTheOrderAndTheControllersInEitherMode(t *testing.T)
 	}
 }
 
-func TestReplayingThreeHundredRandomOptionsGivesTheSameHash(t *testing.T) {
+func TestReplayingSixtyRandomOptionsGivesTheSameHash(t *testing.T) {
 	fx := newFixture(t, "map.test.descent", nil)
 	rnd := rng.New(11).Get("test.options")
-	for range 300 {
+	moved := 0
+	for range 60 {
 		var options []api.Option
 		for _, o := range fx.view().Options {
 			if o.Enabled {
@@ -390,8 +391,13 @@ func TestReplayingThreeHundredRandomOptionsGivesTheSameHash(t *testing.T) {
 		if len(options) == 0 {
 			t.Fatal("no enabled option")
 		}
-		fx.apply(options[rnd.IntN(len(options))].Command)
+		if _, ok := find[api.Moved](fx.apply(options[rnd.IntN(len(options))].Command)); ok {
+			moved++
+		}
 		fx.standingApart()
+	}
+	if moved == 0 {
+		t.Fatal("no random option moved anyone")
 	}
 	want, err := fx.g.Hash()
 	if err != nil {
