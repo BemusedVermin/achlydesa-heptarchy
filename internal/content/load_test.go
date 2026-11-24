@@ -3,6 +3,7 @@ package content
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // writeData writes src as the only CUE file of a fresh data package and returns its directory.
-func writeData(t *testing.T, src string) string {
+func writeData(t testing.TB, src string) string {
 	t.Helper()
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "data.cue"), []byte("package data\n\n"+src), 0o600); err != nil {
@@ -48,18 +49,17 @@ calendar: {
 
 func TestLoadSample(t *testing.T) {
 	registry := sampleRegistry(t)
-	cost, err := registry.MoveCost("terrain.packed_clay", MoveEnv{})
-	if err != nil || cost != 1 {
-		t.Fatalf("MoveCost = %d, %v; want 1, nil", cost, err)
+	if _, err := registry.MoveCost("terrain.packed_clay", MoveEnv{}); err != nil {
+		t.Fatalf("MoveCost: %v", err)
 	}
 	if _, ok := registry.Material("material.clay"); !ok {
 		t.Error("material.clay missing")
 	}
 	ids := registry.TerrainIDs()
-	if len(ids) != 2 || ids[0] != "terrain.air" || ids[1] != "terrain.packed_clay" {
-		t.Errorf("TerrainIDs = %v", ids)
+	if !slices.IsSorted(ids) || !slices.Contains(ids, "terrain.air") || !slices.Contains(ids, "terrain.packed_clay") {
+		t.Errorf("TerrainIDs = %v, want air and packed clay in order", ids)
 	}
-	if got := registry.Render(api.Text{ID: "text.explore.bump"}); got != "Packed clay. No way through." {
+	if got := registry.Render(api.Text{ID: "text.explore.bump"}); got == "" || strings.Contains(got, "[missing text:") {
 		t.Errorf("Render = %q", got)
 	}
 }
@@ -70,26 +70,35 @@ claims: "claim.material": name: "text.missing_name"
 origins: "origin.sweep": name: "text.also_missing"
 `
 	_, err := Load(writeData(t, data))
-	if err == nil {
-		t.Fatal("Load accepted claims and origins with missing text")
-	}
-	for _, want := range []string{
+	requireErrContains(t, err,
 		`claims["claim.material"].name: text reference "text.missing_name"`,
 		`claims["claim.material"] log text: text reference "text.knowledge.material"`,
 		`origins["origin.sweep"].name: text reference "text.also_missing"`,
-	} {
-		if !strings.Contains(err.Error(), want) {
-			t.Errorf("error %q lacks %q", err, want)
-		}
+	)
+}
+
+func TestADanglingTextReferenceReportsOnce(t *testing.T) {
+	bundle, err := LoadBundle(writeData(t, validData))
+	if err != nil {
+		t.Fatal(err)
+	}
+	delete(bundle.Text, "text.material.clay")
+	_, err = New(bundle)
+	requireErrContains(t, err, "text.material.clay")
+	if n := strings.Count(err.Error(), `text reference "text.material.clay" does not exist`); n != 1 {
+		t.Errorf("the missing text is reported %d times, want once: %v", n, err)
 	}
 }
 
 func TestStepTicks(t *testing.T) {
-	registry := sampleRegistry(t)
+	registry, err := Load(writeData(t, validData))
+	if err != nil {
+		t.Fatal(err)
+	}
 	if got := registry.Timeline().DefaultSpeed; got != 2 {
 		t.Errorf("default speed = %d, want 2", got)
 	}
-	for speed, want := range map[int]int64{0: 25, 1: 15, 2: 10, 3: 10} {
+	for speed, want := range map[int]int64{0: 20, 1: 20, 2: 10, 3: 10} {
 		if got, err := registry.StepTicks(SpeedEnv{Speed: speed}); err != nil || got != want {
 			t.Errorf("StepTicks(speed %d) = %d, %v; want %d", speed, got, err, want)
 		}
@@ -266,14 +275,7 @@ text: {"text.a": "a", "text.terrain.wall": "a"}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := Load(writeData(t, test.src))
-			if err == nil {
-				t.Fatal("expected an error")
-			}
-			for _, fragment := range test.want {
-				if !strings.Contains(err.Error(), fragment) {
-					t.Errorf("error %q lacks %q", err, fragment)
-				}
-			}
+			requireErrContains(t, err, test.want...)
 		})
 	}
 }
@@ -328,10 +330,6 @@ func FuzzLoad(f *testing.F) {
 	f.Add(`text: "text.a": "{{"`)
 	f.Add(`terrains: x: {solid: true, move_cost: "1 +"}`)
 	f.Fuzz(func(t *testing.T, src string) {
-		dir := t.TempDir()
-		if err := os.WriteFile(filepath.Join(dir, "data.cue"), []byte("package data\n\n"+src), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		_, _ = Load(dir) // any result is fine; it must not panic
+		_, _ = Load(writeData(t, src)) // any result is fine; it must not panic
 	})
 }

@@ -2,7 +2,7 @@ package data
 
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
-parts: [string]:  content.#PartTemplate
+parts: [string]: content.#PartTemplate & {grants: *[] | [...]}
 bodies: [string]: content.#BodyPlan
 
 // Placeholder numbers, for tuning. Lethal from the start: an ordinary Strike (3) takes off an arm or a
@@ -35,7 +35,6 @@ parts: {
 		material:  "material.flesh"
 		integrity: 5
 		vital:     true
-		grants: []
 	}
 	// The arm of a piece of Serilmen, and the limbs of a pre-entropy remnant.
 	"part.serilmen_arm": {
@@ -60,7 +59,6 @@ parts: {
 		material:  "material.old_matter"
 		integrity: 8
 		vital:     true
-		grants: []
 	}
 	"part.test.crawler_maw": {
 		name:      "text.part.maw"
@@ -82,11 +80,10 @@ parts: {
 		material:  "material.flesh"
 		integrity: 8
 		vital:     true
-		grants: []
 	}
 	// The parts of the moving clay: clay through and through, tougher than the test crawler's,
 	// with two maws to bite with. Placeholder numbers, tuned so a party that does not know
-	// clay loses (M2-11).
+	// clay loses.
 	"part.moving_clay_maw": {
 		name:      "text.part.maw"
 		slot:      "head"
@@ -107,7 +104,6 @@ parts: {
 		material:  "material.clay"
 		integrity: 12
 		vital:     true
-		grants: []
 	}
 	// A flesh creature of the shallows: a skull to bite with, an eye that sees for it, legs and a core.
 	"part.beast_skull": {
@@ -137,7 +133,6 @@ parts: {
 		material:  "material.flesh"
 		integrity: 7
 		vital:     true
-		grants: []
 	}
 }
 

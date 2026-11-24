@@ -1,7 +1,6 @@
 package content
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -121,14 +120,7 @@ func TestLoadRejectsBadActions(t *testing.T) {
 			bundle := sampleBundle(t)
 			tc.mutate(&bundle)
 			_, err := New(bundle)
-			if err == nil {
-				t.Fatal("New accepted bad content")
-			}
-			for _, fragment := range tc.want {
-				if !strings.Contains(err.Error(), fragment) {
-					t.Errorf("error %q lacks %q", err, fragment)
-				}
-			}
+			requireErrContains(t, err, tc.want...)
 		})
 	}
 }

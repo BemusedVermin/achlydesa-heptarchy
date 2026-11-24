@@ -7,7 +7,7 @@ import (
 )
 
 materials: [string]: content.#Material & {
-	lists: {weak_to: [...string], immune_to: [...string]}
+	lists: {weak_to: [...string], immune_to: *[] | [...string]}
 	// A weakness can't also be an immunity: the overlap must be empty.
 	_overlap: [for t in lists.weak_to if list.Contains(lists.immune_to, t) {t}]
 	_overlap: []
@@ -17,7 +17,7 @@ materials: [string]: content.#Material & {
 materials: {
 	"material.clay": {
 		name: "text.material.clay"
-		lists: {weak_to: ["type.soak", "type.relic"], immune_to: []}
+		lists: weak_to: ["type.soak", "type.relic"]
 		tags: ["clay"]
 		// Fire bakes clay hard: a burned clay part can take more before it gives.
 		triggers: [{
@@ -29,7 +29,7 @@ materials: {
 	}
 	"material.flesh": {
 		name: "text.material.flesh"
-		lists: {weak_to: ["type.cut", "type.burn", "type.relic"], immune_to: []}
+		lists: weak_to: ["type.cut", "type.burn", "type.relic"]
 		tags: ["flesh"]
 	}
 	"material.old_matter": {
@@ -40,17 +40,17 @@ materials: {
 	// Hollow things: skulls, shells.
 	"material.bone": {
 		name: "text.material.bone"
-		lists: {weak_to: ["type.press"], immune_to: []}
+		lists: weak_to: ["type.press"]
 		tags: ["bone"]
 	}
 	"material.eye": {
 		name: "text.material.eye"
-		lists: {weak_to: ["type.light"], immune_to: []}
+		lists: weak_to: ["type.light"]
 		tags: ["eye"]
 	}
 	"material.rift_flesh": {
 		name: "text.material.rift_flesh"
-		lists: {weak_to: ["type.violet"], immune_to: []}
+		lists: weak_to: ["type.violet"]
 		tags: ["rift"]
 	}
 }

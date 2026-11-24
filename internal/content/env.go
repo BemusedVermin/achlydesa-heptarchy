@@ -42,7 +42,7 @@ type BodyEnv struct {
 	IsParty      bool     `expr:"is_party"`      // the body belongs to the party the player commands (set only when scoring)
 }
 
-// EffectEnv is everything an effect formula can see. Later tasks add fields deliberately.
+// EffectEnv is everything an effect formula can see.
 type EffectEnv struct {
 	Now      int64   `expr:"now"`
 	Roll     float64 `expr:"roll"`     // a fresh draw in [0,1) from the "effects" stream; refused in checks
@@ -62,7 +62,7 @@ type EffectEnv struct {
 	Cells  int `expr:"cells"`  // the cells a fall dropped, or 0
 }
 
-// ActionEnv is what an action's formulas see. Grow it deliberately.
+// ActionEnv is what an action's formulas see.
 type ActionEnv struct {
 	Speed     int               `expr:"speed"`
 	StepTicks int64             `expr:"step_ticks"` // the base ticks a step takes at this speed (timeline.step_ticks)

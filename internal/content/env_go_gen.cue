@@ -46,7 +46,7 @@ package content
 	IsParty:   bool
 }
 
-// EffectEnv is everything an effect formula can see. Later tasks add fields deliberately.
+// EffectEnv is everything an effect formula can see.
 #EffectEnv: {
 	Now:      int64
 	Roll:     float64
@@ -68,7 +68,7 @@ package content
 	Cells:  int
 }
 
-// ActionEnv is what an action's formulas see. Grow it deliberately.
+// ActionEnv is what an action's formulas see.
 #ActionEnv: {
 	Speed:     int
 	StepTicks: int64

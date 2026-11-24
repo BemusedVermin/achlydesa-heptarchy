@@ -2,32 +2,32 @@ package content
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 	"text/template"
 
-	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// Registry is the immutable, validated content. Build one with [Load]. It is safe for concurrent use.
+// Registry is the immutable, validated content. Build one with [Load] or [New]. It is safe for concurrent use.
 type Registry struct {
-	bundle    Bundle
-	hash      string
-	moveCosts map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
-	stepTicks *vm.Program                          // compiled timeline.step_ticks formula
-	climbCost *vm.Program                          // compiled party.climb_cost formula, nil when empty
-	templates map[api.ContentID]*template.Template // parsed text, by text ID
-	actions   map[api.ContentID]compiledAction     // compiled action formulas
-	speed     *vm.Program                          // compiled timeline.speed formula
-	aiScore   *vm.Program                          // compiled combat.ai_score formula
-	aims      *vm.Program                          // compiled combat.aims formula
-	records   map[api.ContentID]Record             // the formula view of every record
-	offers    map[string]*vm.Program               // compiled choice offers; absent when a choice has none
-	mods      map[api.ContentID]compiledMods       // compiled mods of types and items
-	warnings  []string
+	bundle      Bundle
+	hash        string
+	moveCosts   map[api.ContentID]*vm.Program        // compiled move_cost formulas, by terrain
+	stepTicks   *vm.Program                          // compiled timeline.step_ticks formula
+	climbCost   *vm.Program                          // compiled party.climb_cost formula, nil when empty
+	templates   map[api.ContentID]*template.Template // parsed text, by text ID
+	actions     map[api.ContentID]compiledAction     // compiled action formulas
+	speed       *vm.Program                          // compiled timeline.speed formula
+	aiScore     *vm.Program                          // compiled combat.ai_score formula
+	aims        *vm.Program                          // compiled combat.aims formula
+	records     map[api.ContentID]Record             // the formula view of every record
+	offers      map[string]*vm.Program               // compiled choice offers; absent when a choice has none
+	mods        map[api.ContentID]compiledMods       // compiled mods of types and items
+	warnings    []string
+	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.
 	rulesUsed map[string]bool
 }
@@ -85,14 +85,7 @@ func (r *Registry) Terrain(id api.ContentID) (Terrain, bool) {
 }
 
 // TerrainIDs lists every terrain ID in sorted order.
-func (r *Registry) TerrainIDs() []api.ContentID {
-	ids := make([]api.ContentID, 0, len(r.bundle.Terrains))
-	for key := range r.bundle.Terrains {
-		ids = append(ids, api.ContentID(key))
-	}
-	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	return ids
-}
+func (r *Registry) TerrainIDs() []api.ContentID { return sortedIDs(r.bundle.Terrains) }
 
 // MoveCost is the ticks it costs to walk on top of the terrain. A terrain with no formula costs 0.
 func (r *Registry) MoveCost(terrain api.ContentID, env MoveEnv) (int64, error) {
@@ -103,21 +96,13 @@ func (r *Registry) MoveCost(terrain api.ContentID, env MoveEnv) (int64, error) {
 	if !ok {
 		return 0, nil
 	}
-	out, err := expr.Run(program, env)
-	if err != nil {
-		return 0, fmt.Errorf("content: terrain %q move_cost: %w", terrain, err)
-	}
-	cost, ok := out.(int64)
-	if !ok {
-		return 0, fmt.Errorf("content: terrain %q move_cost returned %T, not an integer", terrain, out)
-	}
-	return cost, nil
+	return run[int64](program, env, fmt.Sprintf("terrain %q move_cost", terrain))
 }
 
 // Calendar returns the calendar. Phases is a copy.
 func (r *Registry) Calendar() Calendar {
 	cal := r.bundle.Calendar
-	cal.Phases = append([]Phase(nil), cal.Phases...)
+	cal.Phases = slices.Clone(cal.Phases)
 	return cal
 }
 
@@ -152,28 +137,13 @@ func (r *Registry) Timeline() TimelineConfig { return r.bundle.Timeline }
 
 // StepTicks is the base ticks a step keeps its channels busy for an entity with env's speed.
 func (r *Registry) StepTicks(env SpeedEnv) (int64, error) {
-	out, err := expr.Run(r.stepTicks, env)
-	if err != nil {
-		return 0, fmt.Errorf("content: timeline.step_ticks: %w", err)
-	}
-	ticks, ok := out.(int64)
-	if !ok {
-		return 0, fmt.Errorf("content: timeline.step_ticks returned %T, not an integer", out)
-	}
-	return ticks, nil
+	return run[int64](r.stepTicks, env, "timeline.step_ticks")
 }
 
 // Speed is a body's speed, from the totals of its functioning parts' grants.
 func (r *Registry) Speed(env GrantEnv) (int, error) {
-	out, err := expr.Run(r.speed, env)
-	if err != nil {
-		return 0, fmt.Errorf("content: timeline.speed: %w", err)
-	}
-	speed, ok := out.(int64)
-	if !ok {
-		return 0, fmt.Errorf("content: timeline.speed returned %T, not an integer", out)
-	}
-	return int(speed), nil
+	speed, err := run[int64](r.speed, env, "timeline.speed")
+	return int(speed), err
 }
 
 // EffectSite is a place in content that holds effects, named by its path for error messages.
@@ -184,26 +154,10 @@ type EffectSite struct {
 
 // AIScore rates an intent for a hunting creature, by combat.ai_score.
 func (r *Registry) AIScore(env ScoreEnv) (float64, error) {
-	out, err := expr.Run(r.aiScore, env)
-	if err != nil {
-		return 0, fmt.Errorf("content: combat.ai_score: %w", err)
-	}
-	score, ok := out.(float64)
-	if !ok {
-		return 0, fmt.Errorf("content: combat.ai_score returned %T, not a number", out)
-	}
-	return score, nil
+	return run[float64](r.aiScore, env, "combat.ai_score")
 }
 
 // Aims says whether a body with the grant totals can pick its target, by combat.aims.
 func (r *Registry) Aims(env GrantEnv) (bool, error) {
-	out, err := expr.Run(r.aims, env)
-	if err != nil {
-		return false, fmt.Errorf("content: combat.aims: %w", err)
-	}
-	aims, ok := out.(bool)
-	if !ok {
-		return false, fmt.Errorf("content: combat.aims returned %T, not a bool", out)
-	}
-	return aims, nil
+	return run[bool](r.aims, env, "combat.aims")
 }
