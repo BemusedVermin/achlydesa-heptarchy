@@ -1,6 +1,7 @@
 package contenttest
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"runtime"
 	"sync"
@@ -36,11 +37,24 @@ func Sample(t T) *content.Registry {
 	return reg
 }
 
-// SampleBundle loads the sample content again, so the test may change the bundle it gets.
-func SampleBundle(t T) content.Bundle {
-	t.Helper()
+var sampleBundle = sync.OnceValues(func() ([]byte, error) {
 	bundle, err := content.LoadBundle(Dir())
 	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(bundle)
+})
+
+// SampleBundle returns a copy of the sample content that the test may change. The CUE is parsed once
+// per binary; each call decodes its own copy.
+func SampleBundle(t T) content.Bundle {
+	t.Helper()
+	encoded, err := sampleBundle()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var bundle content.Bundle
+	if err := json.Unmarshal(encoded, &bundle); err != nil {
 		t.Fatal(err)
 	}
 	return bundle

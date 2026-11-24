@@ -122,7 +122,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [C1-24.F2](followups/C1-24.F2-samebehavior-missing-seed-message.md) | samebehavior says clearly when a seed reports no hash | done | bug | C1 | C1-24 |
 | [C1-24.F1](followups/C1-24.F1-agentkit-tests-use-gittest.md) | agentkit's tests use gittest and build fewer repositories | obsolete | test | C1 | C1-24 |
 | [C1-21.F2](followups/C1-21.F2-check-pr-allowed-behavior-changes.md) | Let check-pr accept a cleanup task's named behavior changes | todo | seam | C1 | C1-21 |
-| [C1-21.F1](followups/C1-21.F1-combat-tests-load-content-each-time.md) | Stop reparsing the sample content in every combat test | todo | test | C1 | C1-21 |
+| [C1-21.F1](followups/C1-21.F1-combat-tests-load-content-each-time.md) | Stop reparsing the sample content in every combat test | done | test | C1 | C1-21 |
 | [C1-17.F2](followups/C1-17.F2-tui-line-cuts-the-tick.md) | The actor panel cuts a line's last digit when the target's name is long | obsolete | bug | C1 | C1-17 |
 | [C1-17.F1](followups/C1-17.F1-content-rules-text-ids.md) | Correct .claude/rules/content.md for the text ID shape | done | debt | C1 | C1-17 |
 | [M2-11.F2](followups/M2-11.F2-where-the-three-creatures-spawn.md) | Where do the sample's three creatures spawn? | obsolete | question | M2 | M2-11 |
