@@ -24,12 +24,14 @@ type Config struct {
 	Seed uint64
 	// Content is required.
 	Content *content.Registry
-	// Install, when set, runs after the standard packages are installed and before the scheduler
-	// freezes. Tests and the harness use it to register hooks. It runs in New and in Load, so it
+	// Install, when set, runs after the standard packages are installed and before any map is built
+	// or any body spawned, so the start map's bodies may name the controllers and choosers it
+	// registers. Tests and the harness use it to register hooks. It runs in New and in Load, so it
 	// must not spawn entities.
 	Install func(w *sim.World, clk *clock.Clock) error
-	// Spawn, when set, runs after Install and adds the entities a scenario needs, such as a test
-	// actor. New runs it; Load skips it, because the save holds the entities.
+	// Spawn, when set, runs after the start map's bodies are spawned and adds the entities a
+	// scenario needs, such as a test actor. New runs it; Load skips it, because the save holds the
+	// entities.
 	Spawn func(w *sim.World, clk *clock.Clock) error
 }
 
@@ -70,7 +72,8 @@ func New(cfg Config) (*Game, error) {
 }
 
 // build is the path New and Load share: an empty world with every package installed, the content
-// checked and the scheduler frozen. scenario fills the world with its first entities and maps.
+// checked and the scheduler frozen. scenario builds the maps and their first entities, after
+// cfg.Install.
 func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World, *clock.Clock) error) (*Game, error) {
 	if cfg.Content == nil {
 		return nil, errors.New("game: no content")
@@ -86,13 +89,13 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 	if err := installAll(g.world, g.clock); err != nil {
 		return nil, fmt.Errorf("game: install: %w", err)
 	}
-	if err := scenario(g.world); err != nil {
-		return nil, err
-	}
 	if cfg.Install != nil {
 		if err := cfg.Install(g.world, g.clock); err != nil {
 			return nil, fmt.Errorf("game: install hook: %w", err)
 		}
+	}
+	if err := scenario(g.world); err != nil {
+		return nil, err
 	}
 	if spawn != nil {
 		if err := spawn(g.world, g.clock); err != nil {
