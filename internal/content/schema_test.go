@@ -61,3 +61,42 @@ materials: "material.both": {name: "text.material.both", lists: {weak_to: ["type
 		t.Errorf("a type that is both a weakness and an immunity loaded: err = %v", err)
 	}
 }
+
+func TestLoadRejectsAValueOutsideItsSet(t *testing.T) {
+	tests := []struct {
+		name, src, want string
+	}{
+		{
+			"action target",
+			`actions: "action.typo": {name: "text.action.step", key: "typo", uses: [], target: "slef", windup: "0", recovery: "0"}`,
+			`actions."action.typo".target`,
+		},
+		{
+			"trigger role",
+			`templates: "template.typo": triggers: [{on: "combat.hit", if: "", do: [], role: "bystander"}]`,
+			`templates."template.typo".triggers.0.role`,
+		},
+		{
+			"claim value",
+			`claims: "claim.typo": {name: "text.claim.typo", value: "colour"}`,
+			`claims."claim.typo".value`,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			dir := copySchemaTree(t)
+			if err := os.WriteFile(
+				filepath.Join(dir, "typo.cue"),
+				[]byte("package data\n\n"+test.src+"\n"),
+				0o600,
+			); err != nil {
+				t.Fatal(err)
+			}
+			_, err := Load(dir)
+			if err == nil || !strings.Contains(err.Error(), test.want+": ") ||
+				!strings.Contains(err.Error(), "empty disjunction") {
+				t.Errorf("Load err = %v, want an empty disjunction at %s", err, test.want)
+			}
+		})
+	}
+}

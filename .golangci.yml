@@ -20,6 +20,7 @@ linters:
   default: standard
   enable:
     - depguard
+    - exhaustive
     - forbidigo
     - intrange
     - modernize
@@ -29,6 +30,8 @@ linters:
     - unparam
     - usestdlibvars
   settings:
+    exhaustive:
+      default-signifies-exhaustive: true
     modernize:
       disable:
         - omitzero

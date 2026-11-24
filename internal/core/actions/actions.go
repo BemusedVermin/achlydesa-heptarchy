@@ -489,6 +489,7 @@ func (ev *evaluator) connects(p *plan) (api.Text, error) {
 		if p.def.Target == content.TargetPart && !ev.hasPart(p.target, p.part) {
 			return why("bad_target"), nil
 		}
+	case content.TargetNone, content.TargetSelf, content.TargetDirection, content.TargetCell:
 	}
 	return api.Text{}, nil
 }
@@ -605,7 +606,7 @@ func labelLanding(w *sim.World, pending ecs.Entity) string {
 // range and whether the target must be in sight.
 type targetKey struct {
 	actor  ecs.Entity
-	target string
+	target content.TargetKind
 	rng    int
 	sight  bool
 }

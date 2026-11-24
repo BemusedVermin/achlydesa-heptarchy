@@ -28,8 +28,9 @@ func (m mark) apply(text string) string {
 		return lipgloss.NewStyle().Reverse(true).Bold(true).Render(text)
 	case markCursor:
 		return lipgloss.NewStyle().Reverse(true).Underline(true).Render(text)
+	default:
+		return text
 	}
-	return text
 }
 
 // MapOverlay is what combat draws over the map.

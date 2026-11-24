@@ -118,13 +118,22 @@ import (
 	// Name is a text ID.
 	name: api.#ContentID @go(Name)
 
-	// Value says what a fact's value of this claim holds: "material" (a material ID, shown as its
-	// name), "text" (a text ID, shown rendered) or empty (a literal, shown as it is).
-	value?: string @go(Value)
+	// Value says what a fact's value of this claim holds; empty means a literal, shown as it is.
+	value?: #ValueKind @go(Value)
 }
 
-#ValueMaterial: "material"
-#ValueText:     "text"
+// ValueKind says what a fact's value holds and how it is shown.
+#ValueKind: #enumValueKind
+
+#enumValueKind:
+	#ValueMaterial |
+	#ValueText
+
+// ValueMaterial is a material ID, shown as the material's name.
+#ValueMaterial: #ValueKind & "material"
+
+// ValueText is a text ID, shown rendered.
+#ValueText: #ValueKind & "text"
 
 // Origin is where a fact came from, such as a sweep.
 #Origin: {
@@ -262,10 +271,19 @@ import (
 	faction?: null | api.#ContentID @go(Faction,*api.ContentID)
 }
 
-#RoleSource: "source"
-#RoleTarget: "target"
-#RolePart:   "part"
-#RoleAny:    "any"
+// TriggerRole is which subject of an event a trigger's entity must be.
+#TriggerRole: #enumTriggerRole
+
+#enumTriggerRole:
+	#RoleSource |
+	#RoleTarget |
+	#RolePart |
+	#RoleAny
+
+#RoleSource: #TriggerRole & "source"
+#RoleTarget: #TriggerRole & "target"
+#RolePart:   #TriggerRole & "part"
+#RoleAny:    #TriggerRole & "any"
 
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
@@ -278,9 +296,7 @@ import (
 
 	// Do lists effects to apply, with the event's subjects as source, target and part.
 	do: [...#EffectRef] @go(Do,[]EffectRef)
-
-	// Role is which subject of the event this entity must be: one of the Role constants.
-	role: string @go(Role)
+	role: #TriggerRole @go(Role)
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -428,13 +444,25 @@ import (
 	params: {[string]: string} @go(Params,map[string]string)
 }
 
-#TargetNone:      "none"
-#TargetSelf:      "self"
-#TargetDirection: "direction"
-#TargetBody:      "body"
-#TargetPart:      "part"
-#TargetAlly:      "ally"
-#TargetCell:      "cell"
+// TargetKind is what an action targets.
+#TargetKind: #enumTargetKind
+
+#enumTargetKind:
+	#TargetNone |
+	#TargetSelf |
+	#TargetDirection |
+	#TargetBody |
+	#TargetPart |
+	#TargetAlly |
+	#TargetCell
+
+#TargetNone:      #TargetKind & "none"
+#TargetSelf:      #TargetKind & "self"
+#TargetDirection: #TargetKind & "direction"
+#TargetBody:      #TargetKind & "body"
+#TargetPart:      #TargetKind & "part"
+#TargetAlly:      #TargetKind & "ally"
+#TargetCell:      #TargetKind & "cell"
 
 // ActionDef is something a body does over time: a step, a swing, a graft taking both hands. It says
 // which channels it occupies, how long it winds up and recovers, what it targets, and which effects
@@ -448,9 +476,7 @@ import (
 
 	// Uses are the channels it occupies; every requirement must be met by free channels.
 	uses: [...#Requirement] @go(Uses,[]Requirement)
-
-	// Target is one of the Target constants.
-	target: string @go(Target)
+	target: #TargetKind @go(Target)
 
 	// Range is in hexes, for body/part/ally/cell targets.
 	range?: int @go(Range)

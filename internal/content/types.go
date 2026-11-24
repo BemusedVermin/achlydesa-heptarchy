@@ -97,19 +97,20 @@ type Status struct {
 type Claim struct {
 	// Name is a text ID.
 	Name api.ContentID `json:"name"`
-	// Value says what a fact's value of this claim holds: "material" (a material ID, shown as its
-	// name), "text" (a text ID, shown rendered) or empty (a literal, shown as it is).
-	Value string `json:"value,omitempty"`
+	// Value says what a fact's value of this claim holds; empty means a literal, shown as it is.
+	Value ValueKind `json:"value,omitempty"`
 }
+
+// ValueKind says what a fact's value holds and how it is shown.
+type ValueKind string
 
 // Value kinds of a claim.
 const (
-	ValueMaterial = "material"
-	ValueText     = "text"
+	// ValueMaterial is a material ID, shown as the material's name.
+	ValueMaterial ValueKind = "material"
+	// ValueText is a text ID, shown rendered.
+	ValueText ValueKind = "text"
 )
-
-// valueKinds lists the non-empty value kinds a claim may name.
-func valueKinds() []string { return []string{ValueMaterial, ValueText} }
 
 // Origin is where a fact came from, such as a sweep.
 type Origin struct {
@@ -223,16 +224,19 @@ type Template struct {
 	Faction *api.ContentID `json:"faction,omitempty"`
 }
 
+// TriggerRole is which subject of an event a trigger's entity must be.
+type TriggerRole string
+
 // Roles a trigger's entity may play in the event.
 const (
-	RoleSource = "source"
-	RoleTarget = "target"
-	RolePart   = "part"
-	RoleAny    = "any"
+	RoleSource TriggerRole = "source"
+	RoleTarget TriggerRole = "target"
+	RolePart   TriggerRole = "part"
+	RoleAny    TriggerRole = "any"
 )
 
-// triggerRoles lists the roles a trigger may name.
-func triggerRoles() []string { return []string{RoleSource, RoleTarget, RolePart, RoleAny} }
+// triggerRoles lists the roles a trigger may name, for bundles built in Go, which skip the schema.
+func triggerRoles() []TriggerRole { return []TriggerRole{RoleSource, RoleTarget, RolePart, RoleAny} }
 
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
@@ -242,9 +246,8 @@ type Trigger struct {
 	// If is an Expr bool over EffectEnv; empty means always.
 	If string `json:"if"`
 	// Do lists effects to apply, with the event's subjects as source, target and part.
-	Do []EffectRef `json:"do"`
-	// Role is which subject of the event this entity must be: one of the Role constants.
-	Role string `json:"role"`
+	Do   []EffectRef `json:"do"`
+	Role TriggerRole `json:"role"`
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -366,20 +369,24 @@ type EffectRef struct {
 	Params map[string]string `json:"params"`
 }
 
+// TargetKind is what an action targets.
+type TargetKind string
+
 // Target kinds of an action.
 const (
-	TargetNone      = "none"
-	TargetSelf      = "self"
-	TargetDirection = "direction"
-	TargetBody      = "body"
-	TargetPart      = "part"
-	TargetAlly      = "ally"
-	TargetCell      = "cell"
+	TargetNone      TargetKind = "none"
+	TargetSelf      TargetKind = "self"
+	TargetDirection TargetKind = "direction"
+	TargetBody      TargetKind = "body"
+	TargetPart      TargetKind = "part"
+	TargetAlly      TargetKind = "ally"
+	TargetCell      TargetKind = "cell"
 )
 
-// targetKinds lists the target kinds an action may name.
-func targetKinds() []string {
-	return []string{TargetNone, TargetSelf, TargetDirection, TargetBody, TargetPart, TargetAlly, TargetCell}
+// targetKinds lists the target kinds an action may name, for bundles built in Go, which skip the
+// schema.
+func targetKinds() []TargetKind {
+	return []TargetKind{TargetNone, TargetSelf, TargetDirection, TargetBody, TargetPart, TargetAlly, TargetCell}
 }
 
 // ActionDef is something a body does over time: a step, a swing, a graft taking both hands. It says
@@ -391,9 +398,8 @@ type ActionDef struct {
 	// Key is a short option-ID segment, e.g. "step", "strike".
 	Key string `json:"key"`
 	// Uses are the channels it occupies; every requirement must be met by free channels.
-	Uses []Requirement `json:"uses"`
-	// Target is one of the Target constants.
-	Target string `json:"target"`
+	Uses   []Requirement `json:"uses"`
+	Target TargetKind    `json:"target"`
 	// Range is in hexes, for body/part/ally/cell targets.
 	Range int `json:"range,omitempty"`
 	// Sight means the target must be visible from the source.

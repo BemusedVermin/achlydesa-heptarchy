@@ -5,7 +5,7 @@
 package api
 
 // Dir is one of the six horizontal directions, pointy-top, counter-clockwise from east.
-#Dir: uint8 // #enumDir
+#Dir: #enumDir
 
 #enumDir:
 	#DirE |

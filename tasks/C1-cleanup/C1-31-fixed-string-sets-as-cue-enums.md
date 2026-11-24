@@ -1,7 +1,7 @@
 ---
 id: C1-31
 title: Fixed string sets as CUE enums
-status: todo
+status: in-progress
 milestone: C1
 kind: debt
 depends_on: []
