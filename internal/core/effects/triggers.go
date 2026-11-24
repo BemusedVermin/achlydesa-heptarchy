@@ -161,7 +161,7 @@ func fire(ctx *Context, trigger content.Trigger) error {
 }
 
 // roleUIDs lists the subjects a trigger of the role could apply to, in UID order.
-func roleUIDs(subjects map[string]api.UID, role string) []api.UID {
+func roleUIDs(subjects map[string]api.UID, role content.TriggerRole) []api.UID {
 	var uids []api.UID
 	if role == content.RoleAny {
 		for _, uid := range subjects {
@@ -172,7 +172,7 @@ func roleUIDs(subjects map[string]api.UID, role string) []api.UID {
 		slices.Sort(uids)
 		return uids
 	}
-	if uid := subjects[role]; uid != 0 {
+	if uid := subjects[string(role)]; uid != 0 {
 		uids = append(uids, uid)
 	}
 	return uids

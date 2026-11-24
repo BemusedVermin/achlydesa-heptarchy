@@ -1,7 +1,7 @@
 ---
 id: C1-31
 title: Fixed string sets as CUE enums
-status: todo
+status: done
 milestone: C1
 kind: debt
 depends_on: []
@@ -65,14 +65,14 @@ Audit for the rest: every `string` field in `internal/content` and in the `api` 
 
 ## Acceptance criteria
 
-- [ ] Every fixed string set found by the audit is a named type, and its generated schema is an enforced disjunction.
-- [ ] `go tool task content` rejects a scratch content file with an out-of-set value (checked by hand, not committed), and accepts the real content.
-- [ ] `content.Load` rejects an out-of-set value, covered by a test.
-- [ ] `cuefix` has a test for the enum rewrite.
-- [ ] `exhaustive` is on in `.golangci.yml`, and `go tool task lint` passes.
-- [ ] The schema guard test fails on a generated file whose `#X` doesn't use its `#enumX` (shown by a test case), and passes on the committed schemas.
-- [ ] `go tool task same-behavior` shows no change.
-- [ ] `go tool task check` passes.
+- [x] Every fixed string set found by the audit is a named type, and its generated schema is an enforced disjunction.
+- [x] `go tool task content` rejects a scratch content file with an out-of-set value (checked by hand, not committed), and accepts the real content.
+- [x] `content.Load` rejects an out-of-set value, covered by a test.
+- [x] `cuefix` has a test for the enum rewrite.
+- [x] `exhaustive` is on in `.golangci.yml`, and `go tool task lint` passes.
+- [x] The schema guard test fails on a generated file whose `#X` doesn't use its `#enumX` (shown by a test case), and passes on the committed schemas.
+- [x] `go tool task same-behavior` shows no change.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -82,3 +82,16 @@ Audit for the rest: every `string` field in `internal/content` and in the `api` 
 ## Notes
 
 - Triaged 2026-11-24: todo in C1, as the owner decided. It edits `internal/content/types.go`, so it can't run beside M3-02 or M3-06.
+
+### Implementation
+
+- **Audit.** Three fixed sets had Go constants, and each is now a named type: `TargetKind` (`ActionDef.Target`), `TriggerRole` (`Trigger.Role`) and `ValueKind` (`Claim.Value`, still optional, so empty stays the literal kind). Classed as not fixed: grant kinds (`comp.Grant.Kind`, declared by `vocabulary.grants`), slots, channel tags, controllers, choosers, event kinds and effect primitives. Collection names (`ChoiceDef.From`, `Vocabulary.Lists` values) are fixed in Go but only as literals in the `collections()` table, so I left them and filed C1-31.F1.
+- **Numeric enums.** The cuefix rewrite also enforces `api.Dir` (`#Dir: #enumDir`). No content sets a `Dir`.
+- **Go checks kept** for bundles built in Go (`content.New`), with messages unchanged: `checkActionShape`'s target check (`actions_test` "sideways") and `checkTriggers`' role check (`effects/triggers_test` "bad role"), so `targetKinds()` and `triggerRoles()` stay. **Removed:** `valueKinds()` and its `checkKnowledge` check, which no Go-built bundle relied on. A Go-built claim with an unknown value kind now renders its values as literals instead of failing `New`.
+- **Load test** is `TestLoadRejectsAValueOutsideItsSet` in `schema_test.go`, not `load_test.go`: the plain temp-dir data there doesn't import the schemas, so it needs `copySchemaTree`.
+- **Schema guard** is `TestCommittedSchemasEnforceEverySet` in `internal/tools/cuefix`, with `TestUnenforced` covering the failing cases. Checked by hand that it fails on the committed `space_go_gen.cue` with the old `#Dir: uint8 // #enumDir` line.
+- **`exhaustive` findings**, fixed without changing behaviour: `actions.go` `connects` (listed the kinds that need no reach check), `options.go` `targets` and `worthWaking` (the trailing return became `default`), `effects/selectors.go` `Resolve` inner switch (listed `BodiesSelf, BodiesTarget`, handled by the outer switch), `tui/actorpanel.go` `mark.apply` (trailing return became `default`).
+- **Hand check:** `target: "slef"` in `content/data/actions.cue` fails `go tool task content` with the allowed values listed; reverted.
+- **Files outside the Deliverables:** `internal/core/actions/{actions,options}.go`, `internal/core/effects/{triggers,triggers_test,selectors}.go`, `internal/frontend/tui/actorpanel.go`, `internal/content/load.go`. `docs/content-guide.md` gained the line on adding a value to a fixed set.
+- **Content:** unchanged; no content held an out-of-set value.
+- **Follow-ups:** C1-31.F1.

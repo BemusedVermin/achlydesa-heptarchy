@@ -137,6 +137,7 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 				if !isSource && hostile(w, ctx.Source, body) {
 					out = append(out, body)
 				}
+			case BodiesSelf, BodiesTarget:
 			}
 		}
 	}

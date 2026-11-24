@@ -32,6 +32,8 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 
 The schemas themselves (`content.#Type` and the rest) are generated from the Go structs in `internal/content` into the `*_go_gen.cue` files. Never edit those by hand; a field the schema lacks needs an engine change.
 
+A field with a fixed set of values, such as an action's `target`, takes a named Go type, and the schema accepts only its constants. To add a value, add a constant of that type in `internal/content` and run `go tool task schema`.
+
 ## IDs
 
 An ID is lower-case words joined by dots, such as `material.clay` or `template.creature.beast`: letters, digits and `_`, each word starting with a letter. The first word says the collection, and the loader rejects a record whose ID has the wrong prefix.

@@ -106,7 +106,7 @@ func (r *triggerRig) part(body ecs.Entity, slot string) ecs.Entity {
 	return ecs.Entity{}
 }
 
-func trigger(on, role, ifExpr string, do ...content.EffectRef) content.Trigger {
+func trigger(on string, role content.TriggerRole, ifExpr string, do ...content.EffectRef) content.Trigger {
 	return content.Trigger{On: on, If: ifExpr, Do: do, Role: role}
 }
 

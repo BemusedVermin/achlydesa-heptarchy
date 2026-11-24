@@ -110,9 +110,10 @@ func (ev *evaluator) targets(actor ecs.Entity, def content.ActionDef) ([]Intent,
 		return out, nil
 	case content.TargetBody, content.TargetAlly, content.TargetPart:
 		return ev.bodyTargets(actor, def)
+	default:
+		// Cell targets wait for a cell in the intent.
+		return nil, nil
 	}
-	// Cell targets wait for a cell in the intent.
-	return nil, nil
 }
 
 func (ev *evaluator) bodyTargets(actor ecs.Entity, def content.ActionDef) ([]Intent, error) {
@@ -223,8 +224,9 @@ func (ev *evaluator) worthWaking(in Intent) bool {
 		return false
 	case content.TargetBody, content.TargetPart:
 		return effects.Hostile(ev.w, in.Actor, in.Target)
+	default:
+		return true
 	}
-	return true
 }
 
 // usableChannels is the timeline's usable hook: a channel is usable when an action worth stopping

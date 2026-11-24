@@ -156,9 +156,6 @@ func (r *Registry) checkKnowledge() []error {
 	for _, key := range sortedKeys(r.bundle.Claims) {
 		p.text(fmt.Sprintf("claims[%q].name", key), r.bundle.Claims[key].Name)
 		p.text(fmt.Sprintf("claims[%q] log text", key), api.KnowledgeTextID(api.ContentID(key)))
-		if kind := r.bundle.Claims[key].Value; kind != "" && !slices.Contains(valueKinds(), kind) {
-			p.addf("claims[%q].value: unknown value kind %q", key, kind)
-		}
 	}
 	for _, key := range sortedKeys(r.bundle.Origins) {
 		p.text(fmt.Sprintf("origins[%q].name", key), r.bundle.Origins[key].Name)
