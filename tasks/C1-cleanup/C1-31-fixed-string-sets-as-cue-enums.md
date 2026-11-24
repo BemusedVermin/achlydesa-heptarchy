@@ -6,7 +6,7 @@ milestone: unplanned
 kind: debt
 depends_on: []
 discovered_by: null
-size: M
+size: L
 ---
 
 # C1-31 · Fixed string sets as CUE enums
@@ -16,6 +16,8 @@ size: M
 Every fixed set of strings in the content schemas is a named Go string type, and the generated CUE schema accepts only its values. A typo such as `target: "slef"` then fails at `cue vet` and at load, at the line that holds it. Today it passes the schema and is caught only by hand-written Go checks.
 
 Raised by the owner, not by a task.
+
+**Decided by the owner:** two checks keep it enforced. One is golangci-lint's `exhaustive` linter. The other is a test that every generated enum is enforced. This task may edit `.golangci.yml` to turn `exhaustive` on: an owner-approved exception to the AGENTS.md rule that task branches leave it alone.
 
 ## Context
 
@@ -48,6 +50,8 @@ Audit for the rest: every `string` field in `internal/content` and in the `api` 
 - Remove the `xKinds()` lists and Go checks whose only job the schema now does. Keep any check a Go-built bundle relies on, with its error message unchanged, and say which in Notes.
 - Tests: a `content` test that a bundle with an out-of-set value fails `Load` with an error naming the field.
 - `docs/content-guide.md`: one line on how to add a value to a fixed set.
+- `.golangci.yml` (owner-approved exception): enable `exhaustive`. Fix what it finds in code.
+- A schema guard test, in `internal/tools/cuefix` or `internal/content`: it fails when any `*_go_gen.cue` defines an `#enumX` that its `#X` doesn't use.
 
 ## Spec
 
@@ -56,12 +60,17 @@ Audit for the rest: every `string` field in `internal/content` and in the `api` 
 - **Same behaviour.** `go tool task same-behavior` shows no change.
 - **Same content.** No content file changes, unless one already holds an out-of-set value. In that case it is a bug: say so in Notes.
 
+- **`exhaustive` (suggestion).** Set `default-signifies-exhaustive: true`, so a `switch` with a `default` passes. Leave the map-literal check off. The linter also covers existing named types such as `api.Dir`, so expect findings there too. Fix them, and list them in Notes. If a finding needs a behaviour change, file it as a follow-up and don't fix it here.
+- **Schema guard.** It reads the committed `*_go_gen.cue` files, so it also fails when someone regenerates without running cuefix.
+
 ## Acceptance criteria
 
 - [ ] Every fixed string set found by the audit is a named type, and its generated schema is an enforced disjunction.
 - [ ] `go tool task content` rejects a scratch content file with an out-of-set value (checked by hand, not committed), and accepts the real content.
 - [ ] `content.Load` rejects an out-of-set value, covered by a test.
 - [ ] `cuefix` has a test for the enum rewrite.
+- [ ] `exhaustive` is on in `.golangci.yml`, and `go tool task lint` passes.
+- [ ] The schema guard test fails on a generated file whose `#X` doesn't use its `#enumX` (shown by a test case), and passes on the committed schemas.
 - [ ] `go tool task same-behavior` shows no change.
 - [ ] `go tool task check` passes.
 
