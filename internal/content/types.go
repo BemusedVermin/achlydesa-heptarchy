@@ -526,6 +526,8 @@ type ActionDef struct {
 	Range int `json:"range,omitempty"`
 	// Sight means the target must be visible from the source.
 	Sight bool `json:"sight,omitempty"`
+	// Corpse lets a body, ally or part target be a dead body as well as a living one.
+	Corpse bool `json:"corpse,omitempty"`
 	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	Choices []string `json:"choices,omitempty"`
 	// Requires is an Expr bool over ActionEnv; false leaves the action out of the menu.

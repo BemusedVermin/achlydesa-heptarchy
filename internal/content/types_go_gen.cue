@@ -636,6 +636,9 @@ import (
 	// Sight means the target must be visible from the source.
 	sight?: bool @go(Sight)
 
+	// Corpse lets a body, ally or part target be a dead body as well as a living one.
+	corpse?: bool @go(Corpse)
+
 	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	choices?: [...string] @go(Choices,[]string)
 

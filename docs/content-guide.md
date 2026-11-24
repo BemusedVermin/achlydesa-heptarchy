@@ -98,6 +98,8 @@ Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that
 
 An action's `requires` leaves it out of the menu when false, as `action.eat` does with no ration in the inventory. Its `allowed` keeps it in the menu but disabled, with its `refusal` text as the reason (`text.actions.requires` when it names none): `action.eat` and `action.drink` are `allowed: "!source.alert"`, so they are refused while the body's party has a hostile in sight. `source.alert` is false for a body outside a party.
 
+An action aimed at a body, an ally or a part refuses a dead body unless it sets `corpse: true`, as the test action `action.gnaw` does so that `consume` can eat a corpse. Corpses are never offered in the menu either way.
+
 ### Choices and mods
 
 A form can ask the player to pick a record as well as a target. `choices.cue` defines each choice: the collection it draws from (`from`) and an `offer` formula that says which records to offer. The `type` choice offers the types a body knows innately (its template's `lists.types`), Relic to a body with a graft, and any type whose item the inventory holds. An action lists the choices it asks for, as Strike does with `choices: ["type"]`.
