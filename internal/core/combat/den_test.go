@@ -22,7 +22,6 @@ func TestEachCreatureOfTheDenSpawnsAndFightsBack(t *testing.T) {
 					person.Actions = []api.ContentID{"action.step", "action.strike", "action.sweep"}
 					b.Templates[id] = person
 				}
-				// One creature at a time: with both, the party is gone before the slower one arrives.
 				den := b.Maps["map.test.den"]
 				den.Spawns = maps.Clone(den.Spawns)
 				for mark, spawned := range den.Spawns {

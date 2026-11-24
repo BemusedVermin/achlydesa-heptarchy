@@ -2,6 +2,8 @@ package explore
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -12,8 +14,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// SetRestPlace records where the party last rested, which is where it wakes after a wipe. The
-// party starts with the cell it began on, until towns and resting exist to move it.
+// SetRestPlace records where the party wakes after a wipe.
 func SetRestPlace(w *sim.World, party ecs.Entity, id api.MapID, at api.Cell) {
 	sim.Put(w, party, comp.RestPlace{Map: id, At: at})
 }
@@ -115,18 +116,13 @@ func leadFromStanding(w *sim.World, party ecs.Entity) {
 	}
 }
 
-// markSeenByParty records what the woken party sees where it stands.
 func markSeenByParty(w *sim.World, party ecs.Entity) error {
 	sight, err := partySight(w, party)
 	if err != nil {
 		return err
 	}
 	for id, set := range sight {
-		cells := make([]api.Cell, 0, len(set))
-		for cell := range set {
-			cells = append(cells, cell)
-		}
-		markSeen(w, party, id, cells)
+		markSeen(w, party, id, slices.Collect(maps.Keys(set)))
 	}
 	return nil
 }

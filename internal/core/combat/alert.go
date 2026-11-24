@@ -11,7 +11,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// alertSystem is the name of the per-entry system that raises and ends the alert.
 const alertSystem = "combat.alert"
 
 // livingMembers lists the members of a party that are neither dead nor downed, by UID.
@@ -54,7 +53,8 @@ func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) 
 			if first.IsZero() || w.UIDOf(other) < w.UIDOf(first) {
 				first = other
 			}
-			break // candidates are in UID order: nothing later can beat this one
+			// Candidates are in UID order: nothing later can beat this one.
+			break
 		}
 	}
 	return first, !first.IsZero(), nil

@@ -1,7 +1,6 @@
 package combat_test
 
 import (
-	"slices"
 	"strconv"
 	"testing"
 
@@ -118,10 +117,6 @@ func (f *field) moveParty(at api.Cell) {
 	}
 }
 
-func hasEvent[T api.Event](events []api.Event) bool {
-	return slices.ContainsFunc(events, func(e api.Event) bool { _, ok := e.(T); return ok })
-}
-
 func TestWalkingIntoSightOfTheHallsCreatureRaisesTheAlert(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	before := f.view().Party
@@ -150,7 +145,7 @@ func TestWalkingIntoSightOfTheHallsCreatureRaisesTheAlert(t *testing.T) {
 	if !after.Alert || after.Control != api.ControlIndividual {
 		t.Errorf("party after the alert = alert %v, control %q; want alert and individual", after.Alert, after.Control)
 	}
-	if !hasEvent[api.ControlChanged](f.events) {
+	if !has(f.events, always[api.ControlChanged]) {
 		t.Error("no ControlChanged was published for the switch")
 	}
 }
@@ -170,10 +165,9 @@ func TestThereIsNoSightThroughRock(t *testing.T) {
 			t.Fatal("the party raised an alert standing over the creature, with rock between")
 		}
 	}
-	if hasEvent[api.AlertStarted](f.events) {
+	if has(f.events, always[api.AlertStarted]) {
 		t.Error("AlertStarted was published")
 	}
-	// The same distance with nothing between does raise it.
 	f.moveParty(api.Cell{Hex: api.Hex{Q: at.At.Hex.Q + 2, R: at.At.Hex.R}, Depth: 2})
 	f.option("wait/event")
 	if !f.view().Party.Alert {
@@ -197,7 +191,7 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 			}
 			near := *ecs.NewMap[comp.Pos](f.w.ECS).Get(f.creature())
 			f.moveParty(api.Cell{Hex: api.Hex{Q: near.At.Hex.Q - 3, R: near.At.Hex.R}})
-			f.option("wait/event") // the per-entry systems run at the next apply when every member is the player's
+			f.option("wait/event")
 			f.option("wait/event")
 			if !f.view().Party.Alert {
 				t.Fatal("no alert beside the creature")
@@ -207,14 +201,14 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 			f.events = nil
 			calm := f.w.Content.Combat().CalmTicks
 			partyEntity, _ := f.w.ByUID(f.view().Party.UID)
-			start := ecs.NewMap[comp.Calm](f.w.ECS).Get(partyEntity).Since // when a hostile was last in sight
+			start := ecs.NewMap[comp.Calm](f.w.ECS).Get(partyEntity).Since
 			for range 400 {
-				if hasEvent[api.AlertEnded](f.events) {
+				if has(f.events, always[api.AlertEnded]) {
 					break
 				}
 				f.option("wait/event")
 			}
-			if !hasEvent[api.AlertEnded](f.events) {
+			if !has(f.events, always[api.AlertEnded]) {
 				t.Fatal("the alert never ended")
 			}
 			if waited := f.w.Now - start; waited < calm {
@@ -285,8 +279,8 @@ func TestLosingEveryVitalPartKillsABodyAndLeavesACorpse(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	creature, hero := f.creature(), f.members()[0]
 	f.events = nil
-	f.damage(hero, creature, "head", "99") // not vital: the creature lives
-	if hasEvent[api.BodyDied](f.events) {
+	f.damage(hero, creature, "head", "99")
+	if has(f.events, always[api.BodyDied]) {
 		t.Fatal("the creature died with its core intact")
 	}
 	f.damage(hero, creature, "torso", "99")
@@ -313,14 +307,12 @@ func TestLosingEveryVitalPartKillsABodyAndLeavesACorpse(t *testing.T) {
 	if !ecs.NewMap[comp.Pos](f.w.ECS).Has(creature) {
 		t.Error("the corpse left the map")
 	}
-	// It never decides again, however long the clock runs.
 	for range 40 {
 		f.option("wait/event")
 	}
 	if ecs.NewMap[comp.Actor](f.w.ECS).Has(creature) || f.g.Current() == f.w.UIDOf(creature) {
 		t.Error("the corpse decided again")
 	}
-	// A dead body is not a danger: nothing is hostile to see.
 	if f.view().Party.Alert {
 		t.Error("a corpse keeps the alert up")
 	}
@@ -351,17 +343,17 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 	members := f.members()
 	f.events = nil
 	f.damage(members[1], members[1], "torso", "99")
-	if !hasEvent[api.BodyDowned](f.events) || hasEvent[api.BodyDied](f.events) {
+	if !has(f.events, always[api.BodyDowned]) || has(f.events, always[api.BodyDied]) {
 		t.Fatalf("events = %v, want the protected member downed, not dead", f.events)
 	}
-	if hasEvent[api.PartyWiped](f.events) {
+	if has(f.events, always[api.PartyWiped]) {
 		t.Fatal("the party was lost with a member standing")
 	}
 	if !ecs.NewMap[comp.Downed](f.w.ECS).Has(members[1]) || ecs.NewMap[comp.Actor](f.w.ECS).Has(members[1]) {
 		t.Error("the downed member is not downed and off the timeline")
 	}
 	f.damage(members[0], members[0], "torso", "99")
-	if !hasEvent[api.PartyWiped](f.events) {
+	if !has(f.events, always[api.PartyWiped]) {
 		t.Fatal("no PartyWiped after every member went down")
 	}
 	for _, e := range f.events {

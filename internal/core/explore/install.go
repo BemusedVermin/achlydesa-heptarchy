@@ -16,8 +16,8 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// Install registers the step effect primitive, the event types, the timeline's visibility hook and
-// the view builders "explore.map" and "explore.party". It must run after effects and timeline.
+// Install registers stepping, the maps, party control and their views. It must run after effects
+// and timeline.
 func Install(w *sim.World) error {
 	if w.Content == nil {
 		return errors.New("explore: install: world has no content")
@@ -87,9 +87,9 @@ func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
 	return true, api.Text{}
 }
 
-// occupant finds the body in the cell a step leads to. A step into a cell of another member of the
-// same party swaps the two, unless the step is a drop or leaves the map, which cannot be reversed;
-// stepping into anyone else's cell is refused. M2 turns that refusal into an attack option.
+// occupant finds the body in the cell a step leads to. A step onto another member of the same party
+// swaps the two, unless it is a drop or leaves the map, which cannot be reversed; a step onto anyone
+// else is refused.
 func occupant(
 	w *sim.World,
 	source ecs.Entity,
@@ -110,7 +110,6 @@ func occupant(
 	return other, true, swappable
 }
 
-// setTrail records the cell a party member just left, if it keeps a trail.
 func setTrail(w *sim.World, e ecs.Entity, cell api.Cell) {
 	if trails := ecs.NewMap[comp.Trail](w.ECS); trails.Has(e) {
 		trails.Get(e).Last = cell

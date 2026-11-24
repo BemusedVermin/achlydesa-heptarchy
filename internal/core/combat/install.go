@@ -11,8 +11,69 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// installSides registers the alert and death events, the allegiance spawner, the hostility hook,
-// the alert system and the death subscribers.
+const expireSystem = "combat.expire_statuses"
+
+// Install registers the combat events, the primitives and the system that expires statuses. It
+// needs effects installed first.
+func Install(w *sim.World) error {
+	for _, register := range []func(*api.Codec) error{
+		api.RegisterEvent[api.PartDamaged],
+		api.RegisterEvent[api.PartSevered],
+		api.RegisterEvent[api.PartAttached],
+		api.RegisterEvent[api.StatusAdded],
+	} {
+		if err := register(w.Codec); err != nil {
+			return err
+		}
+	}
+	for _, p := range primitives() {
+		if err := effects.Register(w, p); err != nil {
+			return err
+		}
+	}
+	if err := installSides(w); err != nil {
+		return err
+	}
+	return w.Systems.Register(sim.System{Name: expireSystem, Cadence: sim.PerEntry, Run: expireStatuses})
+}
+
+func primitives() []effects.Primitive {
+	parts := map[string]effects.Kind{"parts": effects.KindChannels}
+	return []effects.Primitive{
+		{Name: "damage", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyDamage},
+		{Name: "sever", Params: []string{"parts"}, Optional: []string{"when"}, Kinds: parts, Apply: applySever},
+		{
+			Name: "add_status", Params: []string{"bodies", "status", "ticks"},
+			Kinds:         map[string]effects.Kind{"bodies": effects.KindBodies, "status": effects.KindText},
+			VerifyContent: verifyKnownIDs, Apply: applyAddStatus,
+		},
+		{
+			Name: "attach_part", Params: []string{"from"}, Optional: []string{"item"},
+			Kinds:  map[string]effects.Kind{"from": effects.KindText, "item": effects.KindText},
+			Verify: verifyAttach, VerifyContent: verifyAttachContent, Apply: applyAttach, Check: checkAttach,
+		},
+		{Name: "raise_max_integrity", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyRaiseMaxIntegrity},
+		{
+			Name: "reveal", Params: []string{"claim", "value", "origin"}, Optional: []string{"parts"},
+			Kinds: map[string]effects.Kind{
+				"claim": effects.KindText, "value": effects.KindText, "origin": effects.KindText,
+				"parts": effects.KindChannels,
+			},
+			VerifyContent: verifyKnownIDs, Apply: applyReveal,
+		},
+		{
+			Name: "consume", Params: []string{"item"}, Kinds: map[string]effects.Kind{"item": effects.KindText},
+			VerifyContent: verifyKnownIDs, Apply: applyConsume, Check: checkConsume,
+		},
+		{Name: "act_alone", Apply: applyActAlone},
+		{
+			Name: "spawn_from_part", Params: []string{"faction", "controller"},
+			Kinds:         map[string]effects.Kind{"faction": effects.KindText, "controller": effects.KindText},
+			VerifyContent: verifyKnownIDs, Apply: applySpawnFromPart,
+		},
+	}
+}
+
 func installSides(w *sim.World) error {
 	for _, register := range []func(*api.Codec) error{
 		api.RegisterEvent[api.AlertStarted],

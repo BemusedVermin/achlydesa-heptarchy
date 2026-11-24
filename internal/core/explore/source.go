@@ -2,6 +2,7 @@ package explore
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -92,4 +93,4 @@ type Spawn struct {
 }
 
 // Spawns lists the map's spawn marks in row order: layers as authored, then rows, then columns.
-func (s *Source) Spawns() []Spawn { return append([]Spawn(nil), s.spawns...) }
+func (s *Source) Spawns() []Spawn { return slices.Clone(s.spawns) }

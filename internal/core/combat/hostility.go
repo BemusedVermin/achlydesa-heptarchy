@@ -21,7 +21,6 @@ func Hostile(w *sim.World, a, b ecs.Entity) bool {
 	return lists(w, factionA, factionB) || lists(w, factionB, factionA)
 }
 
-// lists reports whether the faction names the other among those it is hostile to.
 func lists(w *sim.World, faction, other api.ContentID) bool {
 	def, ok := w.Content.Faction(faction)
 	return ok && slices.Contains(def.HostileTo, other)

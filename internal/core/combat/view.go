@@ -3,6 +3,7 @@ package combat
 import (
 	"cmp"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -15,7 +16,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// bodiesView is the name of the view builder of the bodies section.
 const bodiesView = "combat.bodies"
 
 // unknownMaterial is shown for a part whose material the party has not learned.
@@ -63,15 +63,9 @@ func visibleBodies(w *sim.World, party ecs.Entity) ([]ecs.Entity, error) {
 			}
 		}
 	}
-	out := make([]ecs.Entity, 0, len(chosen))
-	for body := range chosen {
-		out = append(out, body)
-	}
-	w.SortByUID(out)
-	return out, nil
+	return slices.SortedFunc(maps.Keys(chosen), w.CompareUID), nil
 }
 
-// buildBodies fills the bodies section of the view.
 func buildBodies(w *sim.World, v *api.View) error {
 	party, ok := anatomy.ControlledParty(w)
 	if !ok {

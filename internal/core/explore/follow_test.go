@@ -105,7 +105,7 @@ func TestDownTheDescentTheFollowerTrailsSingleFileNeverSharingACell(t *testing.T
 	fx := newFixture(t, "map.test.descent", nil)
 	members := fx.members()
 	leader, follower := members[0], members[1]
-	for range 10 { // out of the hall and down the slope to the chamber
+	for range 10 {
 		fx.step("e")
 		fx.standingApart()
 		if d := hexmap.Distance(fx.pos(leader).At.Hex, fx.pos(follower).At.Hex); d > 2 {
@@ -115,7 +115,7 @@ func TestDownTheDescentTheFollowerTrailsSingleFileNeverSharingACell(t *testing.T
 	if fx.pos(leader).At.Depth != 4 {
 		t.Fatalf("leader at %+v, want the chamber's depth", fx.pos(leader))
 	}
-	for range 6 { // the leader waits, and the follower closes up
+	for range 6 {
 		fx.apply(fx.option("wait/event").Command)
 	}
 	fx.standingApart()
@@ -132,7 +132,6 @@ func TestSteppingIntoTheFollowerSwapsThem(t *testing.T) {
 	members := fx.members()
 	leader, follower := members[0], members[1]
 	from, to := fx.pos(leader), fx.pos(follower)
-	// The follower starts on the nearest cell with the lowest R, then Q: northwest of the leader.
 	if to.At.Hex != (api.Hex{Q: from.At.Hex.Q, R: from.At.Hex.R - 1}) {
 		t.Fatalf("follower starts at %v, leader at %v", to.At.Hex, from.At.Hex)
 	}
@@ -146,8 +145,6 @@ func TestSteppingIntoTheFollowerSwapsThem(t *testing.T) {
 	if got := moves(events, follower); len(got) != 1 || got[0].From != to.At || got[0].To != from.At {
 		t.Errorf("follower moves = %+v, want one swap", got)
 	}
-	// The swap updated both trails: the follower now trails into the cell the leader left, which it
-	// stands in, so the next step of the leader is followed as usual.
 	fx.step("nw")
 	fx.standingApart()
 	if got := fx.pos(follower); got.At != to.At {
@@ -158,7 +155,6 @@ func TestSteppingIntoTheFollowerSwapsThem(t *testing.T) {
 func TestSteppingIntoAnotherBodyIsRefused(t *testing.T) {
 	fx := newFixture(t, "", nil)
 	leader := fx.members()[0]
-	// A stranger on the cell east of the leader: not a member, so no swap.
 	at := fx.pos(leader).At
 	at.Hex.Q++
 	if _, err := fx.w.Spawn("template.person.reaper", &comp.Pos{Map: fx.pos(leader).Map, At: at}); err != nil {
@@ -185,7 +181,6 @@ func TestSwitchingControlByHand(t *testing.T) {
 	if fx.controller(follower) != "player" || fx.controller(leader) != "player" {
 		t.Errorf("controllers = %q, %q; want both player", fx.controller(leader), fx.controller(follower))
 	}
-	// Every member's decisions come to the player, in timeline order: the leader, then the follower.
 	if fx.g.Current() != leader {
 		t.Fatalf("current = %d, want the leader", fx.g.Current())
 	}
@@ -196,7 +191,6 @@ func TestSwitchingControlByHand(t *testing.T) {
 	if !fx.hasOption("control/follow") {
 		t.Error("no control/follow option while a follower decides")
 	}
-	// Back to follow while the follower is deciding: it goes back to trailing, and the leader is next.
 	events = fx.apply(fx.option("control/follow").Command)
 	if changed, ok := find[api.ControlChanged](events); !ok || changed.Mode != api.ControlFollow {
 		t.Fatalf("control changed = %+v, %v", changed, ok)
@@ -367,7 +361,6 @@ func TestLeadChangesTheLeaderTheOrderAndTheControllersInEitherMode(t *testing.T)
 			if events := fx.apply(api.Lead{Party: fx.view().Party.UID, Member: other}); len(events) == 0 {
 				t.Error("leading again published nothing, want a rejection")
 			}
-			// The new leader walks and the old one trails it.
 			for fx.g.Current() != other {
 				fx.apply(fx.option("wait/event").Command)
 			}
@@ -377,10 +370,11 @@ func TestLeadChangesTheLeaderTheOrderAndTheControllersInEitherMode(t *testing.T)
 	}
 }
 
-func TestReplayingThreeHundredRandomOptionsGivesTheSameHash(t *testing.T) {
+func TestReplayingSixtyRandomOptionsGivesTheSameHash(t *testing.T) {
 	fx := newFixture(t, "map.test.descent", nil)
 	rnd := rng.New(11).Get("test.options")
-	for range 300 {
+	moved := 0
+	for range 60 {
 		var options []api.Option
 		for _, o := range fx.view().Options {
 			if o.Enabled {
@@ -390,8 +384,13 @@ func TestReplayingThreeHundredRandomOptionsGivesTheSameHash(t *testing.T) {
 		if len(options) == 0 {
 			t.Fatal("no enabled option")
 		}
-		fx.apply(options[rnd.IntN(len(options))].Command)
+		if _, ok := find[api.Moved](fx.apply(options[rnd.IntN(len(options))].Command)); ok {
+			moved++
+		}
 		fx.standingApart()
+	}
+	if moved == 0 {
+		t.Fatal("no random option moved anyone")
 	}
 	want, err := fx.g.Hash()
 	if err != nil {

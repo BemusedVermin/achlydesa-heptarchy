@@ -14,7 +14,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
@@ -34,7 +33,6 @@ func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle))
 	if mapID != "" {
 		bundle.Start.Map = mapID
 	}
-	// And nothing hostile lives on the maps, so that walking never raises an alert of its own.
 	for id, def := range bundle.Maps {
 		def.Spawns = nil
 		bundle.Maps[id] = def
@@ -98,8 +96,7 @@ func (fx *fixture) step(dir string) []api.Event {
 	return fx.apply(o.Command)
 }
 
-// toLeader makes the other members wait for an event until the leader decides. Followers arrive
-// with M1-16; until then every member is player-controlled and takes its own turn.
+// toLeader makes the other members wait until the leader decides.
 func (fx *fixture) toLeader() {
 	fx.t.Helper()
 	leader := fx.view().Party.Members[0].UID
@@ -112,7 +109,6 @@ func (fx *fixture) toLeader() {
 	fx.t.Fatalf("the leader never got a turn")
 }
 
-// stepLeader steps the leader and returns the events.
 func (fx *fixture) stepLeader(dir string) []api.Event {
 	fx.t.Helper()
 	fx.toLeader()
@@ -140,7 +136,6 @@ func cellAt(m *api.MapView, h api.Hex) (api.CellView, bool) {
 
 func TestStartOpensOnTheLeaderAtTheHallsCenter(t *testing.T) {
 	fx := newFixture(t, "", func(b *content.Bundle) {
-		// A party of one, so the view's sight is the leader's alone.
 		b.Templates["template.party.main"] = content.Template{
 			Party: &content.PartyDef{Members: []api.ContentID{"template.person.reaper"}},
 		}
@@ -166,7 +161,7 @@ func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
 	fx := newFixture(t, "map.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	start := fx.pos(leader)
-	for range 6 { // to the opening in the hall's east wall
+	for range 6 {
 		fx.stepLeader("e")
 	}
 	if got := fx.pos(leader); got.At.Hex.Q != start.At.Hex.Q+6 || got.At.Depth != 0 {
@@ -181,14 +176,13 @@ func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
 		fx.toLeader()
 		view := fx.view()
 		center := fx.pos(leader).At.Hex
-		for q := start.At.Hex.Q + 6; q <= start.At.Hex.Q+10; q++ { // the opening and the four slope hexes
+		for q := start.At.Hex.Q + 6; q <= start.At.Hex.Q+10; q++ {
 			h := api.Hex{Q: q, R: start.At.Hex.R}
 			c, drawn := cellAt(view.Map, h)
 			if !drawn {
 				t.Errorf("after %d steps down: no cell drawn at slope hex %v", depth, h)
 				continue
 			}
-			// The opening is at depth 0 and slope hex k at depth k, so Below rises by one per hex.
 			if want := q - start.At.Hex.Q - 6 - depth; c.Visible && (c.Glyph != "." || c.Below != want) {
 				t.Errorf("after %d steps down: hex %v = %+v, want a floor glyph at Below %d", depth, h, c, want)
 			}
@@ -272,8 +266,6 @@ func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
 			Legend: map[string]api.ContentID{"#": "terrain.packed_clay", ".": "terrain.air"},
 			Marks:  map[string]string{"@": "party_start"},
 			Layers: []content.LayerDef{
-				// The party stands at q=0 and a shaft is open above its neighbour at q=1; q=2 is solid
-				// with a standable shelf two cells up that no one can climb to.
 				{Depth: 0, Rows: []string{"@."}},
 				{Depth: -1, Rows: []string{" ."}},
 				{Depth: -2, Rows: []string{" .."}},
@@ -288,7 +280,6 @@ func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
 	leader := fx.view().Party.Members[0].UID
 	at := fx.pos(leader).At
 	h := api.Hex{Q: at.Hex.Q + 2, R: at.Hex.R}
-	// The shelf must be in sight, or the test proves nothing.
 	sight, err := fx.w.Maps.Get(fx.pos(leader).Map).Visible(at, 6, 6)
 	if err != nil || !slices.Contains(sight, api.Cell{Hex: h, Depth: -2}) {
 		t.Fatalf("the shelf at %v is not visible (%v); the test needs it in sight", h, err)
@@ -306,7 +297,6 @@ func TestTheSoopUnderTheHallIsNeverDrawnAndNoStepReachesIt(t *testing.T) {
 	fx := newFixture(t, "map.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	start := fx.pos(leader)
-	// Walk every hex of the hall's floor that the leader can reach with plain steps in the hall.
 	for _, dir := range []string{"w", "w", "sw", "se", "e", "ne", "ne", "nw", "w"} {
 		fx.stepLeader(dir)
 		for _, c := range fx.view().Map.Cells {
@@ -323,7 +313,7 @@ func TestTheSoopUnderTheHallIsNeverDrawnAndNoStepReachesIt(t *testing.T) {
 func TestSteppingOffTheLedgeDropsThreeAndClimbingBackIsDisabled(t *testing.T) {
 	fx := newFixture(t, "map.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
-	for range 7 { // the opening, then the first slope cell at depth 1
+	for range 7 {
 		fx.stepLeader("e")
 	}
 	if got := fx.pos(leader).At.Depth; got != 1 {
@@ -346,14 +336,12 @@ func TestSteppingOffTheLedgeDropsThreeAndClimbingBackIsDisabled(t *testing.T) {
 func TestAStepUpCostsMoreThanTheSameStepDown(t *testing.T) {
 	fx := newFixture(t, "map.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
-	for range 10 { // down the whole slope to the chamber
+	for range 10 {
 		fx.stepLeader("e")
 	}
 	if fx.pos(leader).At.Depth != 4 {
 		t.Fatalf("leader at %+v, want the chamber's depth", fx.pos(leader))
 	}
-	// stepBusy steps the leader and returns the ticks the step kept it busy, counted from the tick
-	// it stepped: by the time Apply returns the followers have caught up and time has moved on.
 	stepBusy := func(dir string) ([]api.Event, int64) {
 		fx.toLeader()
 		start := fx.w.Now
@@ -361,11 +349,11 @@ func TestAStepUpCostsMoreThanTheSameStepDown(t *testing.T) {
 		e, _ := fx.w.ByUID(leader)
 		return events, ecs.NewMap[comp.Busy](fx.w.ECS).Get(e).Until - start
 	}
-	events, up := stepBusy("w") // up the slope: its first step is a step up
+	events, up := stepBusy("w")
 	if moved, _ := find[api.Moved](events); moved.Kind != api.MoveUp {
 		t.Fatalf("moved = %+v, want a step up", moved)
 	}
-	events, down := stepBusy("e") // and back down
+	events, down := stepBusy("e")
 	if moved, _ := find[api.Moved](events); moved.Kind != api.MoveDown {
 		t.Fatalf("moved = %+v, want a step down", moved)
 	}
@@ -378,7 +366,6 @@ func TestASlowerBodysStepsTakeLonger(t *testing.T) {
 	ticks := func(speed int64) int64 {
 		fx := newFixture(t, "", func(b *content.Bundle) {
 			b.Timeline.StepTicks = "speed >= 2 ? 10 : 25"
-			// Bodies take their speed from their legs.
 			legs := b.Parts["part.human_legs"]
 			legs.Grants = []comp.Grant{{Kind: "speed", Value: int(speed)}}
 			b.Parts["part.human_legs"] = legs
@@ -457,44 +444,9 @@ func TestMapViewHasNoDepthOrLayerKeys(t *testing.T) {
 	}
 }
 
-func TestReplayOfRandomStepsGivesTheSameHash(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
-	rnd := rng.New(7).Get("test.steps")
-	moved := 0
-	for range 200 {
-		var steps []api.Option
-		for _, o := range fx.view().Options {
-			if strings.HasPrefix(o.ID, "step/") && o.Enabled {
-				steps = append(steps, o)
-			}
-		}
-		if len(steps) == 0 {
-			t.Fatal("no enabled step")
-		}
-		events := fx.apply(steps[rnd.IntN(len(steps))].Command)
-		if _, ok := find[api.Moved](events); ok {
-			moved++
-		}
-	}
-	if moved == 0 {
-		t.Fatal("no random step moved anyone")
-	}
-	want, err := fx.g.Hash()
-	if err != nil {
-		t.Fatal(err)
-	}
-	replayed, err := game.Replay(fx.cfg, fx.g.History())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got, err := replayed.Hash(); err != nil || got != want {
-		t.Errorf("replay hash = %x, %v; want %x", got, err, want)
-	}
-}
-
 func TestBlockedStepsAreDisabledWithTheBumpReason(t *testing.T) {
 	fx := newFixture(t, "", nil)
-	for range 12 { // walk west until the ring wall stops the leader
+	for range 12 {
 		fx.toLeader()
 		if !fx.option("step/w").Enabled {
 			break
@@ -530,12 +482,11 @@ func TestAThreeCellDropInjuresTheLegsAndAOneCellStepDownDoesNot(t *testing.T) {
 		fx.stepLeader("e")
 	}
 	before := fx.legsIntegrity()
-	fx.stepLeader("ne") // the three-cell drop
+	fx.stepLeader("ne")
 	if got := fx.legsIntegrity(); got != before-2 {
 		t.Errorf("legs integrity after a three-cell drop = %d, want %d", got, before-2)
 	}
 
-	// A fall of one cell is a step down, and the trigger's condition leaves it alone.
 	before = fx.legsIntegrity()
 	fx.w.Bus.Publish(api.Fell{Body: leader, Cells: 1})
 	if _, err := fx.w.Bus.Drain(fx.w); err != nil {

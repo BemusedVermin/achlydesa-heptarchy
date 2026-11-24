@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	// huntController is the name of the controller of a creature that hunts the party.
 	huntController = "hunt"
 	// scoreChooser is the name the content-scored chooser is registered under, and the one the
 	// hunt controller asks for.
@@ -30,8 +29,7 @@ const (
 	rngStream = "combat"
 )
 
-// Chooser picks one of the intents a body could start. Choosers are registered by name, so a
-// smarter one can replace the scored one later.
+// Chooser picks one of the intents a body could start. Choosers are registered by name.
 type Chooser interface {
 	// Choose returns the intent to start, or false when it wants none.
 	Choose(w *sim.World, actor ecs.Entity, intents []actions.Intent) (actions.Intent, bool)
@@ -48,7 +46,8 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 	for _, in := range intents {
 		score, err := scoreOf(w, actor, in)
 		if err != nil {
-			continue // a formula that cannot rate this intent leaves it out
+			// A formula that cannot rate this intent leaves it out.
+			continue
 		}
 		switch {
 		case len(best) == 0 || score > top:
@@ -66,7 +65,6 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 	return best[w.RNG.Get(rngStream).IntN(len(best))], true
 }
 
-// scoreOf rates one intent by the content formula.
 func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error) {
 	source := effects.BodyEnvOf(w, actor, timeline.FirstPart(in.Channels))
 	env := content.ScoreEnv{
@@ -98,21 +96,6 @@ func RegisterChooser(w *sim.World, name string, c Chooser) error {
 	return nil
 }
 
-// state is what combat keeps on the world, as an Ark resource.
-type state struct {
-	choosers map[string]Chooser
-}
-
-func stateOf(w *sim.World) *state {
-	res := ecs.NewResource[state](w.ECS)
-	if res.Has() {
-		return res.Get()
-	}
-	st := &state{choosers: map[string]Chooser{}}
-	res.Add(st)
-	return st
-}
-
 // hunter is the controller of a creature that goes after the nearest hostile.
 type hunter struct{}
 
@@ -123,7 +106,6 @@ func (hunter) Decide(w *sim.World, body ecs.Entity) error {
 	if err != nil || !found {
 		return err
 	}
-	cfg := w.Content.Combat()
 	startable := actions.Startable(w, body)
 	aims, err := w.Content.Aims(content.GrantEnv{Grant: anatomy.GrantTotals(w, body)})
 	if err != nil {
@@ -131,7 +113,7 @@ func (hunter) Decide(w *sim.World, body ecs.Entity) error {
 	}
 	var attacks []actions.Intent
 	for _, in := range startable {
-		if def, ok := w.Content.Action(in.Action); !ok || !slices.Contains(def.Tags, cfg.AttackTag) {
+		if !isAttack(w, in) {
 			continue
 		}
 		if aims && in.Target != prey {
@@ -153,11 +135,21 @@ func pick(w *sim.World, body ecs.Entity, attacks []actions.Intent, aims bool) (a
 	if !aims {
 		return attacks[w.RNG.Get(rngStream).IntN(len(attacks))], true
 	}
-	chooser, ok := stateOf(w).choosers[scoreChooser]
+	chooser, ok := scoredChooser(w)
 	if !ok {
 		return actions.Intent{}, false
 	}
 	return chooser.Choose(w, body, attacks)
+}
+
+func isAttack(w *sim.World, in actions.Intent) bool {
+	def, ok := w.Content.Action(in.Action)
+	return ok && slices.Contains(def.Tags, w.Content.Combat().AttackTag)
+}
+
+func scoredChooser(w *sim.World) (Chooser, bool) {
+	chooser, ok := stateOf(w).choosers[scoreChooser]
+	return chooser, ok
 }
 
 // nearestHostile finds the visible hostile closest by hex distance plus depth difference, then UID.
@@ -173,7 +165,8 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 	}
 	var best ecs.Entity
 	bestDistance := 0
-	for _, other := range hostileCandidates(w) { // in UID order, so the first of equals wins
+	// In UID order, so the first of equals wins.
+	for _, other := range hostileCandidates(w) {
 		pos := positions.Get(other)
 		if pos.Map != from.Map || !seen[pos.At] || !Hostile(w, body, other) {
 			continue

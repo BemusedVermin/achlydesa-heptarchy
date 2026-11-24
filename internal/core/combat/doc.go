@@ -1,6 +1,3 @@
-// Package combat holds the effect primitives fights are made of: damage and severing, statuses,
-// grafting, revealing materials, using up items, and turning a severed part into a body. Each is
-// registered with the effects package by Install and works the same with nothing hostile around.
-// Forms, triggers and death build on them in later tasks. Feature layer: it imports only
-// foundation packages.
+// Package combat holds fights: the effect primitives, hostility between factions, the alert, the
+// hunt controller, death and downing, and the bodies view. Feature layer.
 package combat
