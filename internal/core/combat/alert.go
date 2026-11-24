@@ -53,7 +53,8 @@ func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) 
 			if first.IsZero() || w.UIDOf(other) < w.UIDOf(first) {
 				first = other
 			}
-			break // candidates are in UID order: nothing later can beat this one
+			// Candidates are in UID order: nothing later can beat this one.
+			break
 		}
 	}
 	return first, !first.IsZero(), nil

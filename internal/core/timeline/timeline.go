@@ -22,13 +22,12 @@ const MaxAITurns = 10_000
 // bodyTag is the tag of a body's own channel.
 const bodyTag = "body"
 
-// Channel is something that can be busy: the body itself, or one of its parts. Actions (M1-20)
-// say which channels they occupy by tag.
+// Channel is something that can be busy: a body itself, or one of its parts.
 type Channel struct {
 	Entity ecs.Entity // the body, or one of its parts
 	// Body is the body the channel belongs to. The zero entity means Entity is the body.
 	Body ecs.Entity
-	Tags []string // "body" for the body itself; M2-02 gives parts their slot and grants
+	Tags []string // "body" for the body itself; a part's are its slot and what it grants
 }
 
 // body returns the body that owns c.
@@ -37,6 +36,28 @@ func (c Channel) body() ecs.Entity {
 		return c.Entity
 	}
 	return c.Body
+}
+
+// IsPart reports whether the channel is one of a body's parts rather than the body itself.
+func (c Channel) IsPart() bool { return !c.Body.IsZero() && c.Entity != c.Body }
+
+// FirstPart is the entity of the first channel that is a part, or the zero entity when none is.
+func FirstPart(channels []Channel) ecs.Entity {
+	for _, c := range channels {
+		if c.IsPart() {
+			return c.Entity
+		}
+	}
+	return ecs.Entity{}
+}
+
+// UIDs lists the UIDs of the channels' entities, in the channels' order.
+func UIDs(w *sim.World, channels []Channel) []api.UID {
+	uids := make([]api.UID, len(channels))
+	for i, c := range channels {
+		uids[i] = w.UIDOf(c.Entity)
+	}
+	return uids
 }
 
 // slot is one timeline entry. Entries go stale when the body's decision tick changes or it is
@@ -363,14 +384,8 @@ func (st *state) nextOtherEntry(w *sim.World, body ecs.Entity) int64 {
 	return max(best, w.Now+1)
 }
 
-// Run plays the timeline forward. While the current body is player-controlled and still has a free
-// usable channel at this tick, it returns at once: the player can act again, for example with a
-// second arm. Otherwise it takes the earliest entry, advances the clock to its tick (running
-// per-phase and per-day systems), publishes Ready for a decision and either stops (player) or runs
-// the body's controller. A controller must occupy a channel or wait; if it does neither, the loop
-// makes it wait until the next entry. PerEntry systems run after every entry. It errors after
-// MaxAITurns AI decisions in one call, so a world with no player can't hang.
-// It returns the zero entity at once, without error, when the halt check (SetHalt) holds.
+// Run plays the timeline forward until a player body decides, and returns it: the zero entity when
+// SetHalt's check holds. It errors after MaxAITurns non-player decisions.
 func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 	st := stateOf(w)
 	aiTurns := 0
@@ -475,10 +490,5 @@ func Reschedule(w *sim.World, body ecs.Entity) {
 	}
 }
 
-// Speed is the body's speed, as the world's speed hook gives it. An error is a content bug in the
-// speed formula.
+// Speed is the body's speed from the world's speed hook; an error is a content bug.
 func Speed(w *sim.World, body ecs.Entity) (int, error) { return stateOf(w).speed(w, body) }
-
-// CurrentPlayer returns the body deciding now when it is the player-controlled body with the UID.
-// Commands from the player use it to reject anyone else.
-func CurrentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) { return currentPlayer(w, uid) }

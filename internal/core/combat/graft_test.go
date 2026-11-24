@@ -148,8 +148,6 @@ func TestACrawlingArmSwingsAtAPartyMemberInReach(t *testing.T) {
 	arm := f.partOf(remnant, "arm")
 	f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 	crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-	// The source and the hall's own creature fall, and the party stands next to the arm: the only
-	// hostiles in its reach are the party.
 	f.damage(reaper, remnant, "torso", "99")
 	f.damage(reaper, f.creature(), "torso", "99")
 	f.moveParty(east(f.at(crawling), -1))

@@ -80,6 +80,11 @@ tasks:
     cmds:
       - go run ./internal/tools/samebehavior {{.CLI_ARGS}}
 
+  comments:
+    desc: "List the comments that break .claude/rules/comments.md (-- ./internal/core/combat ./internal/content)"
+    cmds:
+      - go run ./internal/tools/agentkit comments {{.CLI_ARGS}}
+
   clean-worktrees:
     desc: "Remove agent worktrees and merged agent branches that hold nothing unsaved (-- --dry-run to preview)"
     cmds:

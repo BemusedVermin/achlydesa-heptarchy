@@ -21,6 +21,10 @@ const watchDebounce = 150 * time.Millisecond
 // of Watch's own, never twice at once, so a caller that owns state must hand the result over to the
 // goroutine that owns it. stop ends the watch and waits for a running callback to finish.
 func Watch(dir string, onChange func(*Registry, error)) (stop func(), err error) {
+	return watch(dir, watchDebounce, onChange)
+}
+
+func watch(dir string, debounce time.Duration, onChange func(*Registry, error)) (stop func(), err error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("content: watch %q: %w", dir, err)
@@ -33,7 +37,7 @@ func Watch(dir string, onChange func(*Registry, error)) (stop func(), err error)
 	finished := make(chan struct{})
 	go func() {
 		defer close(finished)
-		watchLoop(watcher, dir, onChange, done)
+		watchLoop(watcher, dir, debounce, onChange, done)
 	}()
 	var once sync.Once
 	return func() {
@@ -52,12 +56,15 @@ func relevant(path string) bool {
 	return ext == ".cue" || ext == ""
 }
 
-func watchLoop(watcher *fsnotify.Watcher, dir string, onChange func(*Registry, error), done <-chan struct{}) {
-	timer := time.NewTimer(watchDebounce)
-	if !timer.Stop() {
-		<-timer.C
-	}
-	defer timer.Stop()
+func watchLoop(
+	watcher *fsnotify.Watcher,
+	dir string,
+	debounce time.Duration,
+	onChange func(*Registry, error),
+	done <-chan struct{},
+) {
+	timer := time.NewTimer(debounce)
+	timer.Stop()
 	for {
 		select {
 		case <-done:
@@ -74,8 +81,7 @@ func watchLoop(watcher *fsnotify.Watcher, dir string, onChange func(*Registry, e
 			if !relevant(event.Name) {
 				continue
 			}
-			// Reset on a stopped or fired timer is safe from Go 1.23 on.
-			timer.Reset(watchDebounce)
+			timer.Reset(debounce)
 		case watchErr, ok := <-watcher.Errors:
 			if !ok {
 				return

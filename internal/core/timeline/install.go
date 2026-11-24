@@ -64,8 +64,8 @@ func spawnActor(w *sim.World, e ecs.Entity, t content.Template) error {
 	return nil
 }
 
-// currentPlayer returns the current body when it is the player-controlled body with the UID.
-func currentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) {
+// CurrentPlayer returns the deciding body when it is player-controlled and has the UID.
+func CurrentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) {
 	e, ok := Current(w)
 	if !ok || uid == 0 || w.UIDOf(e) != uid {
 		return ecs.Entity{}, false
@@ -79,7 +79,7 @@ func nextPhaseBoundary(w *sim.World, clk *clock.Clock) int64 {
 }
 
 func handleWait(w *sim.World, clk *clock.Clock, cmd api.Wait) (int64, error) {
-	body, ok := currentPlayer(w, cmd.Source)
+	body, ok := CurrentPlayer(w, cmd.Source)
 	if !ok {
 		w.Bus.Publish(api.Reject(cmd.CommandKind(), "text.timeline.not_current"))
 		return 0, nil
@@ -164,7 +164,7 @@ func buildView(w *sim.World, clk *clock.Clock, v *api.View) {
 		return
 	}
 	view.Current = w.UIDOf(body)
-	if _, player := currentPlayer(w, view.Current); !player {
+	if _, player := CurrentPlayer(w, view.Current); !player {
 		return
 	}
 	phases := w.Content.Calendar().Phases

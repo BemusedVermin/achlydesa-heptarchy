@@ -7,8 +7,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// Install registers the clock's events and its view builder, which renders phase names with the
-// world's content.
+// Install registers the clock's events and its view builder.
 func Install(w *sim.World, c *Clock) error {
 	if w.Content == nil {
 		return errors.New("clock: install: world has no content")

@@ -54,20 +54,21 @@ Findings:
 
 ### Comments: combat and explore
 
-About 14 comments are cut or fixed.
+Every comment `go tool task comments -- ./internal/core/combat ./internal/core/explore` lists is cut or fixed (69 when the rule tightened), along with the findings below.
 
 Findings:
 
 - `combat/doc.go:1-5` is stale ("build on them in later tasks"): it names none of hostility, alert, the hunt controller, death, the bodies view, or the effect primitives. `combat/rest.go:15-16` (M2-08), `explore/install.go:91` (M2), `combat/effects_test.go:51` (M7), `explore/explore_test.go:119-120` (false), `combat/property_test.go:33` names `propertyGame` but the function is `propertyConfig`, `:229` cites "the task".
 - `explore/explore.go:351` → "terrainOf is the content record of a terrain, or the zero record when content lacks it." Narration to cut: `explore/project.go:120,146`; the doc comments on `installSides` (`combat/install.go:14`) and `installControl` (`explore/control.go:15`) list what the body registers; `explore` `Install` (`install.go:18`) names two view builders but not `explore.control`.
 
-The policy is the comments lens: doc comments say what a thing is for and what a caller must know, and every sentence carries information (cut name-restatements, filler, history, task IDs). Other comments are terse and say only why. CUE follows the same rules. The examples below set the standard; sweep the whole area.
+The policy is `.claude/rules/comments.md`: doc comments say what a caller needs, and every sentence carries information; other comments say only why; no end-of-line comments, no comments in tests other than doc comments, no task IDs. CUE follows the same rules. The examples below set the standard; sweep the whole area.
 
 ## Acceptance criteria
 
 - [x] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
 - [x] The tests commit changed only `_test.go` files and `testdata/`
 - [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
+- [x] `go tool task comments -- ./internal/core/combat ./internal/core/explore` reports nothing
 - [x] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
 - [x] Only `_test.go` files and `testdata/` changed.
 - [ ] `go tool task test -- ./internal/core/combat` runs in under 10s.
@@ -110,7 +111,8 @@ Comments:
 - `project.go`: two narrating comments are cut.
 - `installSides` and `installControl`: their list-of-registrations doc comments are cut. explore's `Install` doc no longer lists builders, which also fixes the missing `explore.control`.
 - Sweep: name-restating doc comments on unexported identifiers are cut in `alert.go`, `view.go`, `death.go`, `controller.go`, `hostility.go`, `project.go`, `install.go`, `explore.go`, `follow.go` and `wake.go`, and "later"/"until towns exist" history is cut in `controller.go` and `wake.go`.
-- Net over the branch, as the owner asked, measured on `git diff -U0 origin/master` of `.go` comment lines, with moved comments counted on both sides: 30 lines (391 words) added, 62 lines (807 words) removed. That is 32 lines and 416 words fewer.
+- Net over the branch, as the owner asked, measured on `git diff -U0 origin/master` of `.go` comment lines, with moved comments counted on both sides: 32 lines (412 words) added, 111 lines (1530 words) removed, which is 79 lines and 1118 words fewer. Another 21 end-of-line comments are cut.
+- After merging master: the new `go tool task comments` criterion passes for combat and explore. To get there I cut the comments inside tests and the end-of-line comments, and moved the three end-of-line why-comments in `alert.go` and `controller.go` onto their own lines above.
 - After review: cut the restating comments on `expireSystem` and `stillController`, and shortened the comment on combat's `state`. explore's `Install` now names what it registers, and `KnownIDs` says what a caller must know.
 
 Other:

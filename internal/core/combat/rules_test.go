@@ -47,7 +47,6 @@ func partSlot(r *rig, part ecs.Entity) string {
 
 func TestDamageIsEvaluatedPerPart(t *testing.T) {
 	r := newRig(t)
-	// Soak: the clay core (torso) is weak to it; the maw and legs are flesh.
 	got := soakAll(t, r, "type.soak")
 	if got["torso"] != 2 || got["head"] != 1 || got["legs"] != 1 {
 		t.Errorf("lost = %v, want 2 from the clay core and 1 from every other part", got)
@@ -105,7 +104,6 @@ func TestTextParameterFormulas(t *testing.T) {
 
 func TestRuleReadingRollIsRefusedWhereAPrimitiveChecks(t *testing.T) {
 	r := newRigWith(t, func(b *content.Bundle) { b.Rules["lucky"] = "roll < 0.5" })
-	// attach_part has a Check; its parameters are text, so a formula in one is what could draw.
 	err := effects.Validate(r.w, "test", []content.EffectRef{
 		contenttest.Do("attach_part", "from", "= rule.lucky ? \"inventory\" : \"severed\"", "item", "item.test_arm"),
 	})

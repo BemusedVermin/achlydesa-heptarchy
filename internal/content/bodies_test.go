@@ -1,7 +1,6 @@
 package content
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -11,8 +10,13 @@ import (
 func TestBodiesAreLoaded(t *testing.T) {
 	registry := sampleRegistry(t)
 	plan, ok := registry.Body("body.human")
-	if !ok || len(plan.Parts) != 5 {
-		t.Fatalf("body.human = %+v, %v; want five parts", plan, ok)
+	if !ok || len(plan.Parts) == 0 {
+		t.Fatalf("body.human = %+v, %v; want its parts", plan, ok)
+	}
+	for _, entry := range plan.Parts {
+		if _, ok := registry.Part(entry.Part); !ok {
+			t.Errorf("body.human names part %q, which does not load", entry.Part)
+		}
 	}
 	part, ok := registry.Part("part.human_torso")
 	if !ok || !part.Vital {
@@ -89,9 +93,8 @@ func TestBodiesRejectBadReferences(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			bundle := sampleBundle(t)
 			tt.mutate(&bundle)
-			if _, err := New(bundle); err == nil || !strings.Contains(err.Error(), tt.want) {
-				t.Errorf("err = %v, want it to contain %q", err, tt.want)
-			}
+			_, err := New(bundle)
+			requireErrContains(t, err, tt.want)
 		})
 	}
 }

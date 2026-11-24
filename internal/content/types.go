@@ -5,7 +5,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 )
 
-// Bundle is the whole of content/data as decoded. Later tasks add fields.
+// Bundle is the whole of content/data as decoded.
 type Bundle struct {
 	Materials map[string]Material  `json:"materials"`
 	Terrains  map[string]Terrain   `json:"terrains"`
@@ -96,8 +96,8 @@ const (
 	ValueText     = "text"
 )
 
-// ValueKinds lists the non-empty value kinds a claim may name.
-var ValueKinds = []string{ValueMaterial, ValueText}
+// valueKinds lists the non-empty value kinds a claim may name.
+func valueKinds() []string { return []string{ValueMaterial, ValueText} }
 
 // Origin is where a fact came from, such as a sweep.
 type Origin struct {
@@ -148,7 +148,7 @@ type StackDef struct {
 
 // Terrain is what one cell of the world is made of: solid (clay, rock) or open (air, later water).
 type Terrain struct {
-	Name       api.ContentID `json:"name"`
+	Name       api.ContentID `json:"name"`                  // a text ID
 	Solid      bool          `json:"solid"`                 // blocks movement; can be stood on
 	Opaque     bool          `json:"opaque"`                // blocks sight
 	FloorGlyph string        `json:"floor_glyph,omitempty"` // drawn when you stand on it
@@ -190,7 +190,6 @@ type Template struct {
 	Triggers []Trigger `json:"triggers,omitempty"`
 	// Faction is the side ("faction." ID) a body of this template fights for.
 	Faction *api.ContentID `json:"faction,omitempty"`
-	// Later: Combatant, Needs, ...
 }
 
 // Roles a trigger's entity may play in the event.
@@ -201,8 +200,8 @@ const (
 	RoleAny    = "any"
 )
 
-// TriggerRoles lists the roles a trigger may name.
-var TriggerRoles = []string{RoleSource, RoleTarget, RolePart, RoleAny}
+// triggerRoles lists the roles a trigger may name.
+func triggerRoles() []string { return []string{RoleSource, RoleTarget, RolePart, RoleAny} }
 
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
@@ -210,7 +209,7 @@ type Trigger struct {
 	On   string      `json:"on"`   // an event kind, e.g. "combat.part_severed"
 	If   string      `json:"if"`   // Expr bool over EffectEnv; empty means always
 	Do   []EffectRef `json:"do"`   // effects to apply, with the event's subjects as source, target and part
-	Role string      `json:"role"` // which subject of the event this entity must be: one of TriggerRoles
+	Role string      `json:"role"` // which subject of the event this entity must be: one of the Role constants
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -220,15 +219,12 @@ type PartyDef struct {
 
 // PartyConfig holds the numbers every party shares.
 type PartyConfig struct {
-	Slots       int `json:"slots"`        // fighters at a time; 4 to start
-	SightRadius int `json:"sight_radius"` // hexes; 6 to start
-	// SightDepth is how many cells up and down the party sees; 6 to start.
+	Slots       int `json:"slots"`        // fighters at a time
+	SightRadius int `json:"sight_radius"` // hexes
+	// SightDepth is how many cells up and down the party sees.
 	SightDepth int `json:"sight_depth"`
-	// PlanRange is how many steps of walking from the focus the plan view looks for reachable floor,
-	// by the party's step rules; 12 to start. Reachable floor is drawn over the walls and ledges
-	// that share its hex.
-	PlanRange int `json:"plan_range"`
-	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules: 1, 1 and 8 to start.
+	// PlanRange is how many steps of walking from the focus the plan view draws reachable floor.
+	PlanRange   int `json:"plan_range"`
 	MaxStepUp   int `json:"max_step_up"`
 	MaxStepDown int `json:"max_step_down"`
 	MaxDrop     int `json:"max_drop"`
@@ -236,7 +232,7 @@ type PartyConfig struct {
 	// step_ticks. Climbing costs more than descending on purpose. Empty means no extra cost.
 	ClimbCost string `json:"climb_cost,omitempty"`
 	// IndividualOnAlert says whether an alert switches the party to individual control, and back
-	// when it ends. True to start.
+	// when it ends.
 	IndividualOnAlert bool `json:"individual_on_alert"`
 	// WakeTicks is how long a wiped-out party is out before it wakes at its last rest place.
 	WakeTicks int64 `json:"wake_ticks"`
@@ -244,7 +240,7 @@ type PartyConfig struct {
 	FollowAction api.ContentID `json:"follow_action"`
 }
 
-// CombatConfig is the numbers of alert and death. Placeholders to tune.
+// CombatConfig is the numbers of alert and death.
 type CombatConfig struct {
 	// CalmTicks is how long no hostile may be in sight before an alert ends.
 	CalmTicks int64 `json:"calm_ticks"`
@@ -334,9 +330,9 @@ const (
 	TargetCell      = "cell"
 )
 
-// TargetKinds lists the target kinds an action may name.
-var TargetKinds = []string{
-	TargetNone, TargetSelf, TargetDirection, TargetBody, TargetPart, TargetAlly, TargetCell,
+// targetKinds lists the target kinds an action may name.
+func targetKinds() []string {
+	return []string{TargetNone, TargetSelf, TargetDirection, TargetBody, TargetPart, TargetAlly, TargetCell}
 }
 
 // ActionDef is something a body does over time: a step, a swing, a graft taking both hands. It says
@@ -346,10 +342,10 @@ type ActionDef struct {
 	Name     api.ContentID `json:"name"`               // a text ID
 	Key      string        `json:"key"`                // short option-ID segment, e.g. "step", "strike"
 	Uses     []Requirement `json:"uses"`               // channels it occupies; every requirement must be met by free channels
-	Target   string        `json:"target"`             // one of TargetKinds
+	Target   string        `json:"target"`             // one of the Target constants
 	Range    int           `json:"range,omitempty"`    // hexes, for body/part/ally/cell targets
 	Sight    bool          `json:"sight,omitempty"`    // the target must be visible from the source
-	Choices  []string      `json:"choices,omitempty"`  // extra choices the player makes, by provider name, e.g. "type" (M2)
+	Choices  []string      `json:"choices,omitempty"`  // extra choices the player makes, by provider name, e.g. "type"
 	Requires string        `json:"requires,omitempty"` // Expr bool over ActionEnv
 	Windup   string        `json:"windup"`             // Expr ticks before it lands; 0 lands at once
 	Recovery string        `json:"recovery"`           // Expr ticks the used channels stay busy after landing

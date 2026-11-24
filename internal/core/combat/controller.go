@@ -15,6 +15,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
 const (
@@ -45,7 +46,8 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 	for _, in := range intents {
 		score, err := scoreOf(w, actor, in)
 		if err != nil {
-			continue // a formula that cannot rate this intent leaves it out
+			// A formula that cannot rate this intent leaves it out.
+			continue
 		}
 		switch {
 		case len(best) == 0 || score > top:
@@ -64,17 +66,12 @@ func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Int
 }
 
 func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error) {
-	var sourcePart ecs.Entity
-	for _, c := range in.Channels {
-		if !c.Body.IsZero() && c.Entity != c.Body {
-			sourcePart = c.Entity
-			break
-		}
-	}
+	source := effects.BodyEnvOf(w, actor, timeline.FirstPart(in.Channels))
 	env := content.ScoreEnv{
-		Source: effects.BodyEnvOf(w, actor, sourcePart), Target: effects.BodyEnvOf(w, in.Target, in.TargetPart),
-		Chosen: effects.ChosenRecords(w, in.Choices), Inventory: inventory.Usable(w, actor, in.Target),
-		Windup: actions.Windup(w, in),
+		Source: source, Target: effects.BodyEnvOf(w, in.Target, in.TargetPart),
+		Chosen:    effects.ChosenRecords(w, in.Choices),
+		Inventory: inventory.Usable(w, actor, in.Target),
+		Windup:    actions.Windup(w, in),
 	}
 	env.Target.IsParty = anatomy.InControlledParty(w, in.Target)
 	if parts := ecs.NewMap[comp.Part](w.ECS); !in.TargetPart.IsZero() && parts.Has(in.TargetPart) {
@@ -168,7 +165,8 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 	}
 	var best ecs.Entity
 	bestDistance := 0
-	for _, other := range hostileCandidates(w) { // in UID order, so the first of equals wins
+	// In UID order, so the first of equals wins.
+	for _, other := range hostileCandidates(w) {
 		pos := positions.Get(other)
 		if pos.Map != from.Map || !seen[pos.At] || !Hostile(w, body, other) {
 			continue

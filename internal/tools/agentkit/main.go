@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 )
 
-// Exit statuses. A hook refuses a tool call by printing a decision on standard output and exiting
-// with status 0, not by exiting with status 2: the hooks run through "go run", which turns any
-// non-zero status from the program into status 1. Claude Code reports a status 1 to the user as a
-// hook error and lets the tool call go ahead.
+// Exit statuses. A hook refuses by printing a decision and exiting 0, not 2: "go run" turns any
+// non-zero status into 1, which Claude Code reports as a hook error before letting the call go ahead.
 const (
 	exitOK     = 0
 	exitFailed = 1
@@ -20,7 +19,7 @@ const (
 // errUsage reports a command line agentkit doesn't understand.
 var errUsage = errors.New(
 	"usage: agentkit guard | protect | after-edit | ready | check-pr [--branch B] [--base origin/master] | " +
-		"clean-worktrees [--dry-run] [--no-fetch]")
+		"clean-worktrees [--dry-run] [--no-fetch] | comments [path...]")
 
 // hookInput is the part of Claude Code's PreToolUse and PostToolUse hook input that the hooks read.
 type hookInput struct {
@@ -40,7 +39,8 @@ func main() {
 
 // run runs a subcommand and returns the exit status.
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	if len(args) == 0 || (len(args) > 1 && args[0] != "clean-worktrees" && args[0] != "check-pr") {
+	takesArgs := len(args) > 0 && slices.Contains([]string{"clean-worktrees", "check-pr", "comments"}, args[0])
+	if len(args) == 0 || len(args) > 1 && !takesArgs {
 		warn(stderr, errUsage)
 		return exitFailed
 	}
@@ -70,6 +70,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runCheckPR(args[1:], stdout, stderr)
 	case "clean-worktrees":
 		return runCleanWorktrees(args[1:], stdout, stderr)
+	case "comments":
+		return runComments(args[1:], stdout, stderr)
 	default:
 		warn(stderr, errUsage)
 		return exitFailed

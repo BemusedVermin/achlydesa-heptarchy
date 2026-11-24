@@ -29,7 +29,7 @@ type rig struct {
 	g       *game.Game
 	w       *sim.World
 	party   ecs.Entity
-	reaper  ecs.Entity // the first member
+	reaper  ecs.Entity
 	crawler ecs.Entity
 	events  []api.Event
 }
@@ -44,7 +44,6 @@ func newRigWith(t *testing.T, mutate func(*content.Bundle)) *rig {
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{Name: "text.item.test_arm", Part: &armPart}
 	bundle.Statuses["status.braced"] = content.Status{Name: "text.status.braced"}
-	// Pinned, so that tuning the sample doesn't change what these tests check.
 	for id, integrity := range map[string]int{
 		"part.human_head": 8, "part.human_arm": 6, "part.human_legs": 10, "part.human_torso": 12,
 	} {
@@ -274,7 +273,6 @@ func TestAddStatusExpiresByTick(t *testing.T) {
 	if len(events) != 1 || events[0].(api.StatusAdded).Until != r.w.Now+10 {
 		t.Fatalf("events = %+v", events)
 	}
-	// Adding it again keeps the later end.
 	r.apply(
 		t,
 		r.ctx(r.crawler),
@@ -311,9 +309,8 @@ func TestStatusesAndPartFactsReachFormulas(t *testing.T) {
 	core := r.partsOf(r.crawler, "torso")[0]
 	ctx := r.ctx(r.crawler)
 	ctx.TargetPart = core
-	ctx.Choices = map[string]string{"type": "type.soak"} // the clay core is weak to soak
+	ctx.Choices = map[string]string{"type": "type.soak"}
 	ecs.NewMap[comp.Pos](r.w.ECS).Get(r.reaper).At.Depth = 1
-	// 1 (braced) + 2 (weak) + 4 (height: 3 - 1 is 2, doubled) = 7, only if every field reads right.
 	formula := `("status.braced" in target.statuses ? 1 : 0) + (rule.weak ? 2 : 0) + (rule.immune ? 100 : 0) + ` +
 		`(target.locked ? 100 : 0) + (target.graft ? 100 : 0) + height * 2 + (target.integrity == target.max_integrity ? 0 : 100)`
 	r.apply(t, ctx, contenttest.Do("damage", "parts", "target_part", "amount", formula))
@@ -409,7 +406,6 @@ func TestConsume(t *testing.T) {
 	if got := inventory.Count(r.w, r.party, "item.coal", 0); got != 2 {
 		t.Errorf("coal = %d, want 2", got)
 	}
-	// Using up what is left leaves an inventory that cannot pay.
 	r.apply(t, r.ctx(r.crawler), consume...)
 	r.apply(t, r.ctx(r.crawler), consume...)
 	ok, reason := effects.Check(r.ctx(r.crawler), consume)
@@ -428,7 +424,7 @@ func TestSpawnFromPart(t *testing.T) {
 	ctx := r.ctx(r.crawler)
 	ctx.TargetPart = maw
 	spawn := contenttest.Do("spawn_from_part", "faction", "faction.wild", "controller", "idle")
-	r.apply(t, ctx, spawn) // nothing is severed yet
+	r.apply(t, ctx, spawn)
 	if ecs.NewMap[comp.Actor](r.w.ECS).Has(maw) {
 		t.Fatal("an attached part became a body")
 	}

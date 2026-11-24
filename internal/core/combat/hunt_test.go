@@ -248,7 +248,6 @@ func TestOptionsAreLegalAndAHandBuiltDoIsRefused(t *testing.T) {
 	creature := f.creature()
 	member := f.members()[0]
 	f.until(5, func() bool { return f.view().Timeline.Current == f.w.UIDOf(member) })
-	// Out of reach: the creature is across the hall.
 	head := f.partOf(creature, "head")
 	far := api.Do{
 		Source: f.w.UIDOf(member), Action: "action.strike", Target: f.w.UIDOf(creature), TargetPart: f.w.UIDOf(head),
@@ -261,7 +260,6 @@ func TestOptionsAreLegalAndAHandBuiltDoIsRefused(t *testing.T) {
 	if !rejectedWithReason(events) {
 		t.Errorf("a strike at something out of reach was not rejected with a reason: %+v", events)
 	}
-	// Close in, and the option's own command starts.
 	f.place(creature, east(f.at(member), 1))
 	var strike *api.Do
 	for _, o := range f.view().Options {
@@ -281,7 +279,6 @@ func TestOptionsAreLegalAndAHandBuiltDoIsRefused(t *testing.T) {
 	if !has(events, func(e api.ActionStarted) bool { return e.Source == strike.Source }) {
 		t.Fatalf("the option's own command did not start: %+v", events)
 	}
-	// The arm it used is busy: the same command is refused until it is free.
 	f.until(3, func() bool { return f.view().Timeline.Current == f.w.UIDOf(member) })
 	if f.view().Timeline.Current != f.w.UIDOf(member) {
 		t.Fatal("the member never decided again during the wind-up")
@@ -308,7 +305,6 @@ func optionIDs(v api.View) []string {
 }
 
 func TestAMaterialIsUnknownUntilASweepLands(t *testing.T) {
-	// A creature that stays put, so the sweep is not cut short by its bite.
 	f := huntField(t, func(b *content.Bundle) {
 		movingClay := b.Templates["template.creature.moving_clay"]
 		movingClay.Actor = &content.ActorDef{Controller: "idle"}

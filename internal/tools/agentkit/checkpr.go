@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -30,14 +31,16 @@ func runSameBehavior(root, base string, renames []string) (string, bool) {
 	return string(out), err == nil
 }
 
-// prCheck is what check-pr found: problems fail the check, warnings don't.
+// prCheck is what check-pr found: problems fail the check, warnings and comments don't.
 type prCheck struct {
 	problems []string
 	warnings []string
+	comments []fileFinding
 	notes    []string
 }
 
-// checkPR checks a branch's task bookkeeping against base:
+// checkPR checks a branch against base:
+//   - the comments on the lines it changed aren't filler;
 //   - tasks/INDEX.md agrees with every task file;
 //   - on a task branch, the task is done or blocked, with its unticked criteria reported;
 //   - on a cleanup task's branch, a tests task changed only tests and task files, and any other
@@ -50,6 +53,9 @@ func checkPR(root, branch, base string, sameBehavior behaviorChecker) (prCheck, 
 	}
 	index, err := os.ReadFile(filepath.Join(root, "tasks", "INDEX.md"))
 	if err != nil {
+		return result, err
+	}
+	if result.comments, err = commentsSince(root, base); err != nil {
 		return result, err
 	}
 	statuses := loadIndexStatuses(string(index))
@@ -97,6 +103,19 @@ func checkPR(root, branch, base string, sameBehavior behaviorChecker) (prCheck, 
 		result.problems = append(result.problems, id+" changed behavior:\n"+strings.TrimSpace(report))
 	}
 	return result, nil
+}
+
+// commentsSince reviews the comments on the Go lines changed since the branch left base.
+func commentsSince(root, base string) ([]fileFinding, error) {
+	from, err := gitOutput(root, "merge-base", base, "HEAD")
+	if err != nil {
+		return nil, err
+	}
+	changed, err := changedLines(root, from, "*.go")
+	if err != nil {
+		return nil, err
+	}
+	return commentsOnChangedLines(root, changed), nil
 }
 
 // checkOnlyTests adds a problem for each file a tests task changed that isn't a test, golden file
@@ -187,6 +206,14 @@ func (result prCheck) report(annotate bool) string {
 	}
 	for _, warning := range result.warnings {
 		line("warning", "Task check", warning)
+	}
+	for _, comment := range result.comments {
+		if annotate {
+			out.WriteString("::warning file=" + comment.file + ",line=" + strconv.Itoa(comment.first) +
+				",title=Comment (see .claude/rules/comments.md)::" + comment.why + "\n")
+			continue
+		}
+		out.WriteString("warning: " + comment.String() + "\n")
 	}
 	for _, note := range result.notes {
 		out.WriteString(note + "\n")

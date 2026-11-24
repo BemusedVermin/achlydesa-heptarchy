@@ -168,7 +168,6 @@ func TestThereIsNoSightThroughRock(t *testing.T) {
 	if has(f.events, always[api.AlertStarted]) {
 		t.Error("AlertStarted was published")
 	}
-	// The same distance with nothing between does raise it.
 	f.moveParty(api.Cell{Hex: api.Hex{Q: at.At.Hex.Q + 2, R: at.At.Hex.R}, Depth: 2})
 	f.option("wait/event")
 	if !f.view().Party.Alert {
@@ -192,7 +191,7 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 			}
 			near := *ecs.NewMap[comp.Pos](f.w.ECS).Get(f.creature())
 			f.moveParty(api.Cell{Hex: api.Hex{Q: near.At.Hex.Q - 3, R: near.At.Hex.R}})
-			f.option("wait/event") // the per-entry systems run at the next apply when every member is the player's
+			f.option("wait/event")
 			f.option("wait/event")
 			if !f.view().Party.Alert {
 				t.Fatal("no alert beside the creature")
@@ -202,7 +201,7 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 			f.events = nil
 			calm := f.w.Content.Combat().CalmTicks
 			partyEntity, _ := f.w.ByUID(f.view().Party.UID)
-			start := ecs.NewMap[comp.Calm](f.w.ECS).Get(partyEntity).Since // when a hostile was last in sight
+			start := ecs.NewMap[comp.Calm](f.w.ECS).Get(partyEntity).Since
 			for range 400 {
 				if has(f.events, always[api.AlertEnded]) {
 					break
@@ -280,7 +279,7 @@ func TestLosingEveryVitalPartKillsABodyAndLeavesACorpse(t *testing.T) {
 	f := newField(t, "map.test.hall", nil)
 	creature, hero := f.creature(), f.members()[0]
 	f.events = nil
-	f.damage(hero, creature, "head", "99") // not vital: the creature lives
+	f.damage(hero, creature, "head", "99")
 	if has(f.events, always[api.BodyDied]) {
 		t.Fatal("the creature died with its core intact")
 	}
@@ -308,14 +307,12 @@ func TestLosingEveryVitalPartKillsABodyAndLeavesACorpse(t *testing.T) {
 	if !ecs.NewMap[comp.Pos](f.w.ECS).Has(creature) {
 		t.Error("the corpse left the map")
 	}
-	// It never decides again, however long the clock runs.
 	for range 40 {
 		f.option("wait/event")
 	}
 	if ecs.NewMap[comp.Actor](f.w.ECS).Has(creature) || f.g.Current() == f.w.UIDOf(creature) {
 		t.Error("the corpse decided again")
 	}
-	// A dead body is not a danger: nothing is hostile to see.
 	if f.view().Party.Alert {
 		t.Error("a corpse keeps the alert up")
 	}

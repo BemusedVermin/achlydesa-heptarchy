@@ -42,6 +42,7 @@ jobs:
           BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
       # Task bookkeeping: INDEX.md matches the task files, and a task branch's task is done. For a
       # cleanup task (task/C...), also that it changed no behavior, or, for a tests task, only tests.
+      # Filler comments on the changed lines get warnings, which never fail the check.
       - name: task check
         if: github.event_name == 'pull_request'
         run: go tool task check-pr -- --branch "$HEAD_REF" --base "origin/$BASE_REF"

@@ -18,11 +18,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// The golden encounters. Each is a scripted fight: the setup places bodies with the test fixtures,
-// and from there every move is an option of the view, as a player's would be. The events the script
-// delivers, encoded with the codec, are compared to testdata/encounters/<name>.jsonl. Regenerate
-// them with -update, and read the diff.
-
 // compareGolden writes or checks the golden file of an encounter. Ready and phase events are left
 // out: they say nothing of the fight and fill the file.
 func compareGolden(t *testing.T, name string, w *sim.World, events []api.Event) {
@@ -172,7 +167,6 @@ func TestGoldenACrawlingPartOutlivesItsBody(t *testing.T) {
 		arm := f.partOf(remnant, "arm")
 		f.apply(reaper, remnant, arm, contenttest.Do("sever", "parts", "target_part"))
 		crawling := ecs.NewMap[comp.PartOf](f.w.ECS).GetRelation(arm)
-		// The source and the hall's own creature go down: only the crawling arm is left to see.
 		f.damage(reaper, remnant, "torso", "99")
 		f.damage(reaper, f.creature(), "torso", "99")
 		dead := ecs.NewMap[comp.Dead](f.w.ECS)

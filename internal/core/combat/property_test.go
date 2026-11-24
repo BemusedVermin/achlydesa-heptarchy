@@ -62,7 +62,6 @@ func propertyContent(t *testing.T) *content.Registry {
 	party := bundle.Templates["template.party.main"]
 	party.Inventory = append(slices.Clone(party.Inventory), content.StackDef{Item: "item.serilmen_arm", Count: 1})
 	bundle.Templates["template.party.main"] = party
-	// Start the party a few steps from the creature, so most fights are fights.
 	hall := bundle.Maps["map.test.hall"]
 	rows := slices.Clone(hall.Layers[0].Rows)
 	for i, row := range rows {
@@ -77,10 +76,9 @@ func propertyContent(t *testing.T) *content.Registry {
 
 // fight is one random fight: its game, and what its events have shown so far.
 type fight struct {
-	g      *game.Game
-	w      *sim.World
-	events []api.Event
-	// started, landed and canceled count the pending actions' events.
+	g                         *game.Game
+	w                         *sim.World
+	events                    []api.Event
 	started, landed, canceled int
 	problems                  []string
 }
@@ -145,7 +143,6 @@ func (f *fight) check() {
 	partOf := ecs.NewMap[comp.PartOf](w.ECS)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 
-	// Every bodied entity, and where each stands.
 	cells := map[comp.Pos]api.UID{}
 	query := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
 	for query.Next() {
@@ -159,7 +156,6 @@ func (f *fight) check() {
 		}
 		cells[pos] = w.UIDOf(body)
 	}
-	// No part belongs to two bodies: each is listed under exactly one.
 	owner := map[ecs.Entity]api.UID{}
 	all := ecs.NewFilter1[comp.Identity](w.ECS).Query()
 	var everyone []ecs.Entity
@@ -175,8 +171,6 @@ func (f *fight) check() {
 		}
 	}
 
-	// No channel is in two pending actions, and every channel of one belongs to its actor: a part
-	// severed from the body does not act for it.
 	used := map[api.UID]api.UID{}
 	pendings := 0
 	pending := ecs.NewFilter2[comp.Pending, comp.Landing](w.ECS).Query()
@@ -206,7 +200,6 @@ func (f *fight) check() {
 			f.fail("a dead body %d has an action in flight", p.Actor)
 		}
 	}
-	// Every action in flight began once, and lands, misses or is canceled once.
 	if f.started != f.landed+f.canceled+pendings {
 		f.fail("%d actions started, %d landed, %d canceled, %d in flight", f.started, f.landed, f.canceled, pendings)
 	}
@@ -235,7 +228,6 @@ func TestRandomFightsKeepTheInvariants(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		seed := rapid.Uint64().Draw(rt, "seed")
 		picks := rapid.SliceOfN(rapid.IntRange(0, 1<<20), propertySteps/4, propertySteps).Draw(rt, "picks")
-		// Drawn, not counted, so a failing fight shrinks with its replay.
 		replay := rapid.IntRange(0, replayEvery-1).Draw(rt, "replay") == 0
 		f, cfg := newFight(t, reg, seed)
 		var trail []string

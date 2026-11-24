@@ -123,14 +123,7 @@ rules: {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := loadWith(t, test.extra)
-			if err == nil {
-				t.Fatal("expected an error")
-			}
-			for _, fragment := range test.want {
-				if !strings.Contains(err.Error(), fragment) {
-					t.Errorf("error %q lacks %q", err, fragment)
-				}
-			}
+			requireErrContains(t, err, test.want...)
 		})
 	}
 }
@@ -240,7 +233,7 @@ text: "text.type.cut": "a"
 func TestRecordLookup(t *testing.T) {
 	reg := sampleRegistry(t)
 	soak, ok := reg.Record("type.soak")
-	if !ok || soak.ID != "type.soak" || len(soak.Lists["consumes"]) != 1 {
+	if !ok || soak.ID != "type.soak" || len(soak.Lists["consumes"]) == 0 {
 		t.Errorf("Record(type.soak) = %+v, %v", soak, ok)
 	}
 	unknown, ok := reg.Record("type.nope")

@@ -36,7 +36,7 @@ type ring struct {
 	bodies map[string]ecs.Entity
 }
 
-// body is the named body. It is the zero entity when the ring has none by that name.
+// body is the zero entity when the ring has none by that name.
 func (r *ring) body(name string) ecs.Entity { return r.bodies[name] }
 
 // person is the sample's Reaper without its party, so a test can place it alone. Relic is added to
@@ -107,7 +107,6 @@ func newRing(t *testing.T, at map[string]int) *ring {
 			return nil
 		},
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
-			// Spawn in a fixed order, so UIDs and the player's turn are the same every run.
 			for _, name := range []string{"fighter", "ally", "victim", "crawler", "relic", "clay", "stone"} {
 				q, ok := at[name]
 				if !ok {
@@ -326,7 +325,6 @@ func TestSoakSeverSeversClayAndSpendsLakeWater(t *testing.T) {
 	if !has(events, func(e api.PartSevered) bool { return e.Part == r.w.UIDOf(core) }) {
 		t.Errorf("a Soak Sever did not sever the clay core: %v", events)
 	}
-	// Recovery is 5 plus Soak's 2: the arm is busy for 2 + 7 ticks in all.
 	r.wait(6)
 	if got := r.busyChannels(fighter); got != 1 {
 		t.Errorf("channels busy after 8 ticks = %d, want the Soaked arm still recovering (9 in all)", got)
@@ -550,13 +548,13 @@ func TestSeverCutsOnAWeaknessAndOnlyWearsOtherwise(t *testing.T) {
 	r := newRing(t, map[string]int{"fighter": 0, "victim": 1})
 	victim := r.body("victim")
 	arm := r.part(victim, "arm")
-	r.do("sever", "type.press", r.uid(victim), r.uid(arm)) // flesh is not weak to Press
+	r.do("sever", "type.press", r.uid(victim), r.uid(arm))
 	r.wait(7)
 	if got := r.integrityOf(arm); got != 2 || r.attached(victim, "arm") != 2 {
 		t.Fatalf("a Sever off its weakness left the arm at %d, attached %d; want 2 and still on",
 			got, r.attached(victim, "arm"))
 	}
-	r.do("sever", "type.cut", r.uid(victim), r.uid(arm)) // flesh is weak to Cut
+	r.do("sever", "type.cut", r.uid(victim), r.uid(arm))
 	events := r.wait(7)
 	if !has(events, func(e api.PartSevered) bool { return e.Cause == api.SeveredCut }) {
 		t.Errorf("a Sever on a weakness did not cut: %v", events)
@@ -589,7 +587,6 @@ func TestPinLocksThePartAndGiveReadiesAnAlly(t *testing.T) {
 }
 
 func TestInASoopOnlyTheFrontMemberReaches(t *testing.T) {
-	// Single file: the player's fighter at the back, the ally in front, the victim beyond.
 	r := newRing(t, map[string]int{"fighter": -1, "ally": 0, "victim": 1})
 	victim := r.body("victim")
 	for _, id := range r.optionIDs() {

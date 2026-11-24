@@ -1,7 +1,7 @@
 ---
 id: C1-19
 title: "Content area: duplication, tests, comments"
-status: todo
+status: done
 milestone: C1
 kind: debt
 depends_on: [C1-18]
@@ -71,13 +71,13 @@ The policy is the comments lens: doc comments say what a thing is for and what a
 
 ## Acceptance criteria
 
-- [ ] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
-- [ ] The tests commit changed only `_test.go` files and `testdata/`
-- [ ] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
-- [ ] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
-- [ ] A test shows one dangling text reference reports exactly one error.
-- [ ] `go tool cue fmt --check ./content/...` reports nothing.
-- [ ] Only `_test.go` files and `testdata/` changed.
+- [x] `go tool task same-behavior` passes; the exceptions are the deliberate behavior changes named in the parts above, each listed in Notes with the changed output
+- [x] The tests commit changed only `_test.go` files and `testdata/`
+- [x] `go tool task check` passes (on the owner's machine too, which the Windows fix in the tools task needs)
+- [x] Each finding above is resolved, one per line in Notes, or marked dropped with a reason
+- [x] A test shows one dangling text reference reports exactly one error.
+- [x] `go tool cue fmt --check ./content/...` reports nothing.
+- [x] Only `_test.go` files and `testdata/` changed.
 
 ## Out of scope
 
@@ -88,3 +88,45 @@ The policy is the comments lens: doc comments say what a thing is for and what a
 
 
 - Triaged 2026-11-23: todo in C1, as the owner decided; it is part of the first cleanup milestone.
+
+### Findings, one per line
+
+Duplication and libraries (commit "one collections table, one reference check, one formula runner"):
+
+- Collections table: done. `collections()` in `records.go` drives `checkIDs`, `dataOf`, `collectionIDs`, `RecordName`, `buildRecords` and `checkTextNames`; `recordCollections` is gone. It is a function, not a package var (gochecknoglobals), and the registry builds it once (`Registry.collections`) because `RecordName` runs per option.
+- Reference checks: done. `problems.go` holds the collector (`addf`, `add`, `text`, generic `ref[V]`); every `unknown <kind> %q` and text reference check in the loader goes through it. `checkTextRefs` is deleted; its terrain-name check moved into `checkTerrains` (the renamed `compileFormulas`).
+- Duplicate-error bug: fixed. A missing material name text now reports once, from `checkTypes`. `TestADanglingTextReferenceReportsOnce` shows it.
+- Formula runner: done. `run[T]` in `compile.go` serves all 11 sites; `runAction` and `runMod` are deleted. The `returned %T` errors now read "returned X, not int64/bool/float64".
+- CUE repeats: done. `bound: false` and `grants: []` dropped and `immune_to` defaults to `[]`. **Deviation:** `bound` and `grants` get a CUE default (`items: [string]: content.#Item & {bound: *false | bool}`, `parts: [string]: content.#PartTemplate & {grants: *[] | [...]}`) instead of `omitempty` on `Item.Bound` and `PartTemplate.Grants`. `omitempty` changed the bundle's JSON, so the content hash and every final game hash, and `check-pr` refuses a cleanup whose same-behavior check fails, with no way to declare an exception. The defaults remove the same repeats and leave the decoded bundle byte for byte as it was. Switching to `omitempty` later is one tag each plus `go tool task schema`; `_#Person` (Reaper, Salken) and `_#Hunter` (three hunters) in `templates.cue`, `_#Attack` in `forms.cue`, `_#TestMap` plus the single `maps: [string]: content.#MapDef` in the new `maps/maps.cue`. The hidden definitions sit beside the records that use them rather than in `types.cue`.
+- Libraries: done. `TerrainIDs`, `MapIDs`, `ActionIDs` call `sortedIDs`; `sortedKeys` is `slices.Sorted(maps.Keys(m))` (kept as a one-line helper, since about 40 call sites use it); `recordOf` uses `maps.Clone`; `Calendar` and `Warnings` use `slices.Clone`; the watch timer no longer drains on stop.
+- `cue fmt`: nothing to do. `go tool cue fmt --check ./content/...` was already clean on master (C1-17 must have formatted it), and it still is.
+- Exported slices: `TargetKinds`, `TriggerRoles`, `ValueKinds` are now unexported functions (`targetKinds()` ...); nothing outside the package used them. `ruleVar` is a const, which makes `cue get go` emit `compile_go_gen.cue` with `_#ruleVar`; it is committed.
+- Taskfile `cue fmt --check` step and the gochecknoglobals/modernize lint: left for the lock-in (C1-27), as the Spec says; this branch may not edit `Taskfile.yml` or `.golangci.yml`.
+
+Tests (commit "content tests load once and assert less", `_test.go` files only):
+
+- `TestLoadRejectsBadActions` and `TestBodiesRejectBadReferences`: the sample bundle is loaded once per binary and each case decodes a fresh copy from its JSON (`export_test.go`). About 0.04s and 0.03s.
+- Watch tests: `Watch` calls an unexported `watch(dir, debounce, onChange)` (that part is in the code commit); the tests use a 40 ms debounce and one burst. About 0.15s and 0.12s. After review the debounce went from 30 to 40 ms against a slow Windows runner; if the one-callback test ever flakes, raise `testDebounce` first.
+- Pinned assertions: the exact bump text, the exact terrain count, the five parts and "consumes exactly 1" now assert presence and that text renders without `[missing text:`; the step-tick numbers and default speed are checked against `validData`.
+- `requireErrContains(t, err, fragments...)` replaces the 5 fragment loops; `writeData` takes `testing.TB` and `FuzzLoad` uses it.
+- `TestCUEConstraintsHoldAgainstTheRealSchema` writes an `override.cue` with a new material that is weak and immune to one type, so it no longer depends on any line of `materials.cue`. It still takes about 0.7s, which is the copy of the CUE tree and two loads.
+
+Comments (commit "content comments say what callers need"):
+
+- `newRegistry`'s doc is on `newRegistry`; `actions.cue` M1-10 line cut; `Registry` says "[Load] or [New]".
+- History and task IDs cut: `Bundle` "Later tasks add fields", `Template` "Later: Combatant, Needs", `ActionDef.Choices` "(M2)", `EffectEnv` and `ActionEnv` "deliberately", `types.cue` (M2-05, the sentence cut), `bodies.cue` (M2-11). "for M7's tuning" became "for tuning" in `types.cue`, `templates.cue`, `items.cue` and `forms.cue`. The `templates.cue:88` line number no longer matched anything with history after C1-17; the whole file was swept.
+- Tuning values cut from the `PartyConfig` docs and "Placeholders to tune." from `CombatConfig`; the generated schemas follow.
+- `Terrain.Name` is commented `// a text ID`. `Start.Map`: dropped, it holds a map ID, not text.
+- Net effect, measured with `git diff origin/master` over Go and CUE (generated schemas left out): comment lines +39 -59 (net -20), words +296 -597 (net -301). The new unexported helpers (the collections table, `problems`, `run`) carry no comments; several unexported doc comments that restated their names were cut, and the PartyConfig, forms and types.cue comments shortened.
+
+### Deliberate behavior changes
+
+- `go tool task same-behavior` passes outright: 601 harness rows (3 seeds, 200 steps each) and 27 golden files, with equal final hashes. (A first version with `omitempty` changed the hashes; see the CUE repeats line.)
+- Error order inside one joined load error: `checkTextNames` now reports in table order (materials, terrains, templates, actions, maps, claims, origins, types, items, factions, statuses), terrain-name text errors come from `checkTerrains` near the end, and material-name text errors only from `checkTypes`. `checkParty` now reports its non-negative numbers in name order; it ranged over a map before, so that order was random. `checkIDs` keeps today's order.
+
+### Other
+
+- The code commit also changed two strings in `schema_test.go`, so that commit's tests stay green after the `immune_to` default changed `materials.cue`; the tests commit then rewrote that test.
+- `go tool task check` passes on this Windows machine, and so does `check-ci`.
+- The last criterion, "Only `_test.go` files and `testdata/` changed", reads as a repeat of the tests-commit criterion: it holds for the tests commit, not for the branch, which by design changes code, CUE and schemas too.
+- Follow-ups: none. C1-19.F1 (commit the missing `internal/core/api/options_go_gen.cue`) was filed and then withdrawn, because C1-22 committed that file before this branch merged master.

@@ -109,7 +109,8 @@ Findings, one per line:
   - `clock/clock.go` "(M1-17)": cut.
   - `hexmap/chunk.go` "procgen in M5": cut.
   - `anatomy/install.go`: the tag comment now names `grantTag`.
-  - `hexmap/step.go:12`: went with `DefaultStepRules`, and `StepRules` now gives its unit.
+  - `hexmap/step.go:12`: went with `DefaultStepRules`.
+  - After the owner's correction, a trim commit shortened the new comments and cut the ones that restate code. Against master, the Go diff now adds 12 comment lines and removes 20 (137 words added, 231 removed).
   - Left alone: the task IDs in `timeline/controllers.go:49` and `timeline/timeline.go:24,30`, and in `effects/effects.go`. C1-20's spec names those lines, and it is running in parallel, so leaving them avoids a merge conflict. The `SetSpeed` comment did change, because its signature did.
 
 Behavior changes (the exceptions for `same-behavior`): a speed formula that fails at run time is now an error, not speed 0; `clock.Install` errors on a world with no content. Signatures changed: `clock.Install`, `timeline.SetSpeed`, `timeline.Speed`. A game whose formulas all work behaves the same: `go tool task same-behavior` passes with no exceptions (601 harness rows, 27 golden files).

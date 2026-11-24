@@ -15,7 +15,7 @@ types: [string]: content.#Type
 
 // The eleven types of the design table. Which body knows which type innately is on the templates
 // (templates.cue); the rest need their item in the inventory. The timings and landing effects here are
-// placeholders for M7's tuning.
+// placeholders, for tuning.
 types: {
 	"type.cut": {name: "text.type.cut"}
 	// Press staggers: landing on a body that is winding up cancels the swing it is winding up.
@@ -26,7 +26,6 @@ types: {
 	"type.relic": {name: "text.type.relic"}
 	// A name works only on its owner, but it is not refused elsewhere: the swing lands and does
 	// nothing (rule.unheld, in rules.cue), so the menu never tells whose name the party holds.
-	// Speaking it in the deep using it up is a trigger (M2-05).
 	"type.name": {name: "text.type.name"}
 	"type.burn": #Consumable & {_item: "item.coal", name: "text.type.burn"}
 	// Rot also eats a graft on whichever side it lands. A placeholder 2.

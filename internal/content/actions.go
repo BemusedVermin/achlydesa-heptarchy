@@ -30,22 +30,7 @@ func (r *Registry) Action(id api.ContentID) (ActionDef, bool) {
 }
 
 // ActionIDs lists every action ID in sorted order.
-func (r *Registry) ActionIDs() []api.ContentID {
-	ids := make([]api.ContentID, 0, len(r.bundle.Actions))
-	for key := range r.bundle.Actions {
-		ids = append(ids, api.ContentID(key))
-	}
-	slices.Sort(ids)
-	return ids
-}
-
-func (r *Registry) runAction(id api.ContentID, name string, program *vm.Program, env ActionEnv) (any, error) {
-	out, err := expr.Run(program, env)
-	if err != nil {
-		return nil, fmt.Errorf("content: action %q %s: %w", id, name, err)
-	}
-	return out, nil
-}
+func (r *Registry) ActionIDs() []api.ContentID { return sortedIDs(r.bundle.Actions) }
 
 func (r *Registry) actionTicks(
 	id api.ContentID, name string, pick func(compiledAction) *vm.Program, env ActionEnv,
@@ -54,15 +39,7 @@ func (r *Registry) actionTicks(
 	if !ok {
 		return 0, fmt.Errorf("content: unknown action %q", id)
 	}
-	out, err := r.runAction(id, name, pick(compiled), env)
-	if err != nil {
-		return 0, err
-	}
-	ticks, ok := out.(int64)
-	if !ok {
-		return 0, fmt.Errorf("content: action %q %s returned %T, not an integer", id, name, out)
-	}
-	return ticks, nil
+	return run[int64](pick(compiled), env, fmt.Sprintf("action %q %s", id, name))
 }
 
 // ActionWindup is the ticks the action takes to land. 0 lands at once.
@@ -86,15 +63,8 @@ func (r *Registry) actionBool(
 	if program == nil {
 		return false, false, nil
 	}
-	out, err := r.runAction(id, name, program, env)
-	if err != nil {
-		return false, true, err
-	}
-	value, ok = out.(bool)
-	if !ok {
-		return false, true, fmt.Errorf("content: action %q %s returned %T, not a boolean", id, name, out)
-	}
-	return value, true, nil
+	value, err = run[bool](program, env, fmt.Sprintf("action %q %s", id, name))
+	return value, true, err
 }
 
 // ActionRequires evaluates the action's requires formula. An action with none always passes.
@@ -114,37 +84,35 @@ func (r *Registry) ActionConnects(id api.ContentID, env ActionEnv) (connects, pr
 
 // checkActions validates every action and compiles its formulas.
 func (r *Registry) checkActions() []error {
-	var problems []error
+	p := r.problems()
 	keys := map[string]string{}
 	for _, id := range sortedKeys(r.bundle.Actions) {
 		def := r.bundle.Actions[id]
 		path := fmt.Sprintf("actions[%q]", id)
-		if _, ok := r.bundle.Text[string(def.Name)]; !ok {
-			problems = append(problems, fmt.Errorf("%s.name: text reference %q does not exist", path, def.Name))
-		}
+		p.text(path+".name", def.Name)
 		other, dup := keys[def.Key]
 		switch {
 		case !keyPattern.MatchString(def.Key):
-			problems = append(problems, fmt.Errorf("%s.key: %q must be lower-case words", path, def.Key))
+			p.addf("%s.key: %q must be lower-case words", path, def.Key)
 		case dup:
-			problems = append(problems, fmt.Errorf("%s.key: %q is already the key of %s", path, def.Key, other))
+			p.addf("%s.key: %q is already the key of %s", path, def.Key, other)
 		default:
 			keys[def.Key] = id
 		}
-		problems = append(problems, checkActionShape(path, def)...)
+		p.add(checkActionShape(path, def)...)
 		compiled, errs := r.compileAction(path, def)
-		problems = append(problems, errs...)
+		p.add(errs...)
 		if len(errs) == 0 {
 			r.actions[api.ContentID(id)] = compiled
 		}
 	}
-	return problems
+	return p.errs
 }
 
 func checkActionShape(path string, def ActionDef) []error {
 	var problems []error
-	if !slices.Contains(TargetKinds, def.Target) {
-		problems = append(problems, fmt.Errorf("%s.target: %q is not one of %v", path, def.Target, TargetKinds))
+	if !slices.Contains(targetKinds(), def.Target) {
+		problems = append(problems, fmt.Errorf("%s.target: %q is not one of %v", path, def.Target, targetKinds()))
 	}
 	if def.Range < 0 {
 		problems = append(problems, fmt.Errorf("%s.range: must not be negative, got %d", path, def.Range))
@@ -203,15 +171,13 @@ func (r *Registry) compileAction(path string, def ActionDef) (compiledAction, []
 
 // checkTemplateActions reports template action lists that name actions that do not exist.
 func (r *Registry) checkTemplateActions() []error {
-	var problems []error
+	p := r.problems()
 	for _, key := range sortedKeys(r.bundle.Templates) {
 		for i, id := range r.bundle.Templates[key].Actions {
-			if _, ok := r.bundle.Actions[string(id)]; !ok {
-				problems = append(problems, fmt.Errorf("templates[%q].actions[%d]: unknown action %q", key, i, id))
-			}
+			ref(p, r.bundle.Actions, fmt.Sprintf("templates[%q].actions[%d]", key, i), "action", id)
 		}
 	}
-	return problems
+	return p.errs
 }
 
 // EffectSites lists every place in content that holds effects, so game.New can check them against
