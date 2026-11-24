@@ -9,7 +9,7 @@ import (
 	"github.com/bemusedvermin/achlydesa-heptarchy/internal/core/comp"
 )
 
-// Bundle is the whole of content/data as decoded. Later tasks add fields.
+// Bundle is the whole of content/data as decoded.
 #Bundle: {
 	materials: {[string]: #Material} @go(Materials,map[string]Material)
 	terrains: {[string]: #Terrain} @go(Terrains,map[string]Terrain)
@@ -233,15 +233,14 @@ import (
 	slots:        int @go(Slots)
 	sight_radius: int @go(SightRadius)
 
-	// SightDepth is how many cells up and down the party sees; 6 to start.
+	// SightDepth is how many cells up and down the party sees.
 	sight_depth: int @go(SightDepth)
 
 	// PlanRange is how many steps of walking from the focus the plan view looks for reachable floor,
-	// by the party's step rules; 12 to start. Reachable floor is drawn over the walls and ledges
-	// that share its hex.
+	// by the party's step rules. Reachable floor is drawn over the walls and ledges that share its hex.
 	plan_range: int @go(PlanRange)
 
-	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules: 1, 1 and 8 to start.
+	// MaxStepUp, MaxStepDown and MaxDrop are the hexmap step rules.
 	max_step_up:   int @go(MaxStepUp)
 	max_step_down: int @go(MaxStepDown)
 	max_drop:      int @go(MaxDrop)
@@ -251,7 +250,7 @@ import (
 	climb_cost?: string @go(ClimbCost)
 
 	// IndividualOnAlert says whether an alert switches the party to individual control, and back
-	// when it ends. True to start.
+	// when it ends.
 	individual_on_alert: bool @go(IndividualOnAlert)
 
 	// WakeTicks is how long a wiped-out party is out before it wakes at its last rest place.
@@ -261,7 +260,7 @@ import (
 	follow_action: api.#ContentID @go(FollowAction)
 }
 
-// CombatConfig is the numbers of alert and death. Placeholders to tune.
+// CombatConfig is the numbers of alert and death.
 #CombatConfig: {
 	// CalmTicks is how long no hostile may be in sight before an alert ends.
 	calm_ticks: int64 @go(CalmTicks)

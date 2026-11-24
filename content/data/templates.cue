@@ -60,7 +60,7 @@ templates: {
 		body: "body.moving_clay"
 	}
 	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
-	// The 0.3 is a placeholder for M7's tuning.
+	// The 0.3 is a placeholder, for tuning.
 	"template.creature.remnant": _#Hunter & {
 		name: "text.template.creature.remnant"
 		appearance: {glyph: "r", color: "magenta"}

@@ -11,7 +11,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// Registry is the immutable, validated content. Build one with [Load]. It is safe for concurrent use.
+// Registry is the immutable, validated content. Build one with [Load] or [New]. It is safe for concurrent use.
 type Registry struct {
 	bundle    Bundle
 	hash      string

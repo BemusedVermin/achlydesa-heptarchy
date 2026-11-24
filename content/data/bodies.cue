@@ -83,7 +83,7 @@ parts: {
 	}
 	// The parts of the moving clay: clay through and through, tougher than the test crawler's,
 	// with two maws to bite with. Placeholder numbers, tuned so a party that does not know
-	// clay loses (M2-11).
+	// clay loses.
 	"part.moving_clay_maw": {
 		name:      "text.part.maw"
 		slot:      "head"

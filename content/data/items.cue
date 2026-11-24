@@ -19,7 +19,7 @@ items: {
 items: "item.name": {name: "text.item.name", tags: ["name"], bound: true}
 
 // A piece of Serilmen: an arm that sometimes swings on its own once grafted on. The 0.15 is a
-// placeholder for M7's tuning.
+// placeholder, for tuning.
 items: "item.serilmen_arm": {
 	name: "text.item.serilmen_arm"
 	tags: ["piece"]

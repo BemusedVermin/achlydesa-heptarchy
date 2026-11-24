@@ -10,7 +10,7 @@ _#Attack: {
 	...
 }
 
-// The seven forms. Numbers are placeholders for M7's tuning, but they are lethal from the start: a
+// The seven forms. Numbers are placeholders, for tuning, but they are lethal from the start: a
 // human part has 3 integrity (5 for the torso), so an ordinary Strike takes off an arm in one hit.
 actions: {
 	"action.strike": _#Attack & {
