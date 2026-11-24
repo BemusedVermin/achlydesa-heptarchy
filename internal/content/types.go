@@ -96,8 +96,8 @@ const (
 	ValueText     = "text"
 )
 
-// ValueKinds lists the non-empty value kinds a claim may name.
-var ValueKinds = []string{ValueMaterial, ValueText}
+// valueKinds lists the non-empty value kinds a claim may name.
+func valueKinds() []string { return []string{ValueMaterial, ValueText} }
 
 // Origin is where a fact came from, such as a sweep.
 type Origin struct {
@@ -125,8 +125,8 @@ type Type struct {
 type Item struct {
 	Data
 	Mods
-	Name  api.ContentID `json:"name"`  // a text ID
-	Bound bool          `json:"bound"` // tied to one person, e.g. a name or a keepsake
+	Name  api.ContentID `json:"name"`            // a text ID
+	Bound bool          `json:"bound,omitempty"` // tied to one person, e.g. a name or a keepsake
 	// Part is the part template ("part." ID) an item becomes when grafted on; only such an item has one.
 	Part *api.ContentID `json:"part,omitempty"`
 	// Triggers run for holders of the item.
@@ -201,8 +201,8 @@ const (
 	RoleAny    = "any"
 )
 
-// TriggerRoles lists the roles a trigger may name.
-var TriggerRoles = []string{RoleSource, RoleTarget, RolePart, RoleAny}
+// triggerRoles lists the roles a trigger may name.
+func triggerRoles() []string { return []string{RoleSource, RoleTarget, RolePart, RoleAny} }
 
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
@@ -210,7 +210,7 @@ type Trigger struct {
 	On   string      `json:"on"`   // an event kind, e.g. "combat.part_severed"
 	If   string      `json:"if"`   // Expr bool over EffectEnv; empty means always
 	Do   []EffectRef `json:"do"`   // effects to apply, with the event's subjects as source, target and part
-	Role string      `json:"role"` // which subject of the event this entity must be: one of TriggerRoles
+	Role string      `json:"role"` // which subject of the event this entity must be: one of the Role constants
 }
 
 // PartyDef makes a template a party: the member templates it brings with it.
@@ -334,9 +334,9 @@ const (
 	TargetCell      = "cell"
 )
 
-// TargetKinds lists the target kinds an action may name.
-var TargetKinds = []string{
-	TargetNone, TargetSelf, TargetDirection, TargetBody, TargetPart, TargetAlly, TargetCell,
+// targetKinds lists the target kinds an action may name.
+func targetKinds() []string {
+	return []string{TargetNone, TargetSelf, TargetDirection, TargetBody, TargetPart, TargetAlly, TargetCell}
 }
 
 // ActionDef is something a body does over time: a step, a swing, a graft taking both hands. It says
@@ -346,7 +346,7 @@ type ActionDef struct {
 	Name     api.ContentID `json:"name"`               // a text ID
 	Key      string        `json:"key"`                // short option-ID segment, e.g. "step", "strike"
 	Uses     []Requirement `json:"uses"`               // channels it occupies; every requirement must be met by free channels
-	Target   string        `json:"target"`             // one of TargetKinds
+	Target   string        `json:"target"`             // one of the Target constants
 	Range    int           `json:"range,omitempty"`    // hexes, for body/part/ally/cell targets
 	Sight    bool          `json:"sight,omitempty"`    // the target must be visible from the source
 	Choices  []string      `json:"choices,omitempty"`  // extra choices the player makes, by provider name, e.g. "type" (M2)
@@ -368,7 +368,7 @@ type PartTemplate struct {
 	Slot      string        `json:"slot"`     // "head", "arm", "legs", ...: free text, for display and grafting
 	Material  api.ContentID `json:"material"` // a material ID
 	Integrity int           `json:"integrity"`
-	Grants    []comp.Grant  `json:"grants"`
+	Grants    []comp.Grant  `json:"grants,omitempty"`
 	Vital     bool          `json:"vital,omitempty"`
 	// CrawlsAs is the template ("template." ID) a body made from this part by spawn_from_part takes
 	// as its identity: its name, appearance, the actions it knows and its lists. Without it the body

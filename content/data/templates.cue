@@ -21,51 +21,50 @@ _actions: [
 ]
 _innateTypes: ["type.cut", "type.name", "type.press"]
 
+// A member of the party.
+_#Person: {
+	actions:   _actions
+	body:      "body.human"
+	protected: true
+	faction:   "faction.party"
+	tags: ["graftable"]
+	lists: types: _innateTypes
+	triggers: [_fallInjury]
+	...
+}
+
+// A wild creature that hunts the party and bites with Cut.
+_#Hunter: {
+	actor: controller: "hunt"
+	actions: ["action.step", "action.strike"]
+	lists: types: ["type.cut"]
+	faction: "faction.wild"
+	...
+}
+
 templates: {
-	"template.person.reaper": {
+	"template.person.reaper": _#Person & {
 		name: "text.template.person.reaper"
 		appearance: {glyph: "@", color: "red"}
 		actor: controller: "player"
-		actions:   _actions
-		body:      "body.human"
-		protected: true
-		faction:   "faction.party"
-		tags: ["graftable"]
-		lists: types: _innateTypes
-		triggers: [_fallInjury]
 	}
-	"template.person.salken": {
+	"template.person.salken": _#Person & {
 		name: "text.template.person.salken"
 		appearance: {glyph: "@", color: "cyan"}
 		actor: controller: "follow"
-		actions:   _actions
-		body:      "body.human"
-		protected: true
-		faction:   "faction.party"
-		tags: ["graftable"]
-		lists: types: _innateTypes
-		triggers: [_fallInjury]
 	}
-	// A creature of the soop, all clay. It hunts the party and bites.
-	"template.creature.moving_clay": {
+	// A creature of the soop, all clay.
+	"template.creature.moving_clay": _#Hunter & {
 		name: "text.template.creature.moving_clay"
 		appearance: {glyph: "c", color: "yellow"}
-		actor: controller: "hunt"
-		actions: ["action.step", "action.strike"]
-		lists: types: ["type.cut"]
-		body:    "body.moving_clay"
-		faction: "faction.wild"
+		body: "body.moving_clay"
 	}
 	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
 	// The 0.3 is a placeholder for M7's tuning.
-	"template.creature.remnant": {
+	"template.creature.remnant": _#Hunter & {
 		name: "text.template.creature.remnant"
 		appearance: {glyph: "r", color: "magenta"}
-		actor: controller: "hunt"
-		body:    "body.remnant"
-		faction: "faction.wild"
-		actions: ["action.step", "action.strike"]
-		lists: types: ["type.cut"]
+		body: "body.remnant"
 		triggers: [{
 			on:   "combat.part_severed"
 			role: "target"
@@ -74,14 +73,10 @@ templates: {
 		}]
 	}
 	// A flesh creature with a skull and an eye: Press cracks the bone, Light blinds the eye.
-	"template.creature.beast": {
+	"template.creature.beast": _#Hunter & {
 		name: "text.template.creature.beast"
 		appearance: {glyph: "b", color: "red"}
-		actor: controller: "hunt"
-		actions: ["action.step", "action.strike"]
-		lists: types: ["type.cut"]
-		body:    "body.beast"
-		faction: "faction.wild"
+		body: "body.beast"
 	}
 	// What a remnant's arm fights as once it crawls off (its part's crawls_as): the arm is its whole
 	// body, so it has none of its own, and spawn_from_part gives its faction and controller. It knows

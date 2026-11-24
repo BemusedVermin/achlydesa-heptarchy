@@ -2,106 +2,182 @@ package content
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// recordCollections maps every collection whose records carry [Data] to its ID prefix. Collection
-// names are the Bundle's json keys.
-var recordCollections = map[string]string{
-	"materials": "material", "types": "type", "items": "item", "parts": "part",
-	"statuses": "status", "factions": "faction", "templates": "template",
+// collection is one ID-keyed collection of the bundle, seen through the accessors the loader needs.
+type collection struct {
+	name   string // the Bundle's json key
+	prefix string // every ID starts with prefix + "."
+	keys   func(*Bundle) []string
+	// data is nil when the records carry no [Data], so the collection holds no records formulas read.
+	data func(*Bundle) map[string]Data
+	// recordName is nil when the records have no name; its false means this record has none.
+	recordName func(b *Bundle, key string) (api.ContentID, bool)
+	// sharedNames lets several records share one name, so it need not be text.<ID>.
+	sharedNames bool
+}
+
+// collections lists every ID-keyed collection of the bundle, in the order their problems are reported.
+func collections() []collection {
+	return []collection{
+		described("materials", "material", func(b *Bundle) map[string]Material { return b.Materials },
+			func(m Material) Data { return m.Data }, func(m Material) (api.ContentID, bool) { return m.Name, true }),
+		described("terrains", "terrain", func(b *Bundle) map[string]Terrain { return b.Terrains },
+			nil, func(t Terrain) (api.ContentID, bool) { return t.Name, true }),
+		described[string]("text", "text", func(b *Bundle) map[string]string { return b.Text }, nil, nil),
+		described("templates", "template", func(b *Bundle) map[string]Template { return b.Templates },
+			func(t Template) Data { return t.Data }, func(t Template) (api.ContentID, bool) {
+				if t.Name == nil {
+					return "", false
+				}
+				return *t.Name, true
+			}),
+		described("actions", "action", func(b *Bundle) map[string]ActionDef { return b.Actions },
+			nil, func(a ActionDef) (api.ContentID, bool) { return a.Name, true }),
+		described("maps", "map", func(b *Bundle) map[string]MapDef { return b.Maps },
+			nil, func(m MapDef) (api.ContentID, bool) { return m.Name, true }),
+		shared(described(
+			"parts",
+			"part",
+			func(b *Bundle) map[string]PartTemplate { return b.Parts },
+			func(p PartTemplate) Data { return p.Data },
+			func(p PartTemplate) (api.ContentID, bool) { return p.Name, true },
+		)),
+		described("claims", "claim", func(b *Bundle) map[string]Claim { return b.Claims },
+			nil, func(c Claim) (api.ContentID, bool) { return c.Name, true }),
+		described("origins", "origin", func(b *Bundle) map[string]Origin { return b.Origins },
+			nil, func(o Origin) (api.ContentID, bool) { return o.Name, true }),
+		described[BodyPlan]("bodies", "body", func(b *Bundle) map[string]BodyPlan { return b.Bodies }, nil, nil),
+		described("types", "type", func(b *Bundle) map[string]Type { return b.Types },
+			func(t Type) Data { return t.Data }, func(t Type) (api.ContentID, bool) { return t.Name, true }),
+		described("items", "item", func(b *Bundle) map[string]Item { return b.Items },
+			func(i Item) Data { return i.Data }, func(i Item) (api.ContentID, bool) { return i.Name, true }),
+		described("factions", "faction", func(b *Bundle) map[string]Faction { return b.Factions },
+			func(f Faction) Data { return f.Data }, func(f Faction) (api.ContentID, bool) { return f.Name, true }),
+		described("statuses", "status", func(b *Bundle) map[string]Status { return b.Statuses },
+			func(s Status) Data { return s.Data }, func(s Status) (api.ContentID, bool) { return s.Name, true }),
+	}
+}
+
+// described builds a collection from its map. data and name may be nil when the records have none.
+func described[V any](
+	name, prefix string,
+	records func(*Bundle) map[string]V,
+	data func(V) Data,
+	recordName func(V) (api.ContentID, bool),
+) collection {
+	c := collection{name: name, prefix: prefix, keys: func(b *Bundle) []string { return sortedKeys(records(b)) }}
+	if data != nil {
+		c.data = func(b *Bundle) map[string]Data {
+			out := map[string]Data{}
+			for id, rec := range records(b) {
+				out[id] = data(rec)
+			}
+			return out
+		}
+	}
+	if recordName != nil {
+		c.recordName = func(b *Bundle, key string) (api.ContentID, bool) {
+			rec, ok := records(b)[key]
+			if !ok {
+				return "", false
+			}
+			return recordName(rec)
+		}
+	}
+	return c
+}
+
+func shared(c collection) collection {
+	c.sharedNames = true
+	return c
+}
+
+// recordCollection finds the collection of records (one whose records carry [Data]) by its name.
+func recordCollection(name string) (collection, bool) {
+	for _, c := range collections() {
+		if c.name == name && c.data != nil {
+			return c, true
+		}
+	}
+	return collection{}, false
 }
 
 // dataOf lists the Data of every record of a collection that has one, by ID.
-func (r *Registry) dataOf(collection string) map[string]Data {
-	out := map[string]Data{}
-	switch collection {
-	case "materials":
-		for id, rec := range r.bundle.Materials {
-			out[id] = rec.Data
-		}
-	case "types":
-		for id, rec := range r.bundle.Types {
-			out[id] = rec.Data
-		}
-	case "items":
-		for id, rec := range r.bundle.Items {
-			out[id] = rec.Data
-		}
-	case "parts":
-		for id, rec := range r.bundle.Parts {
-			out[id] = rec.Data
-		}
-	case "statuses":
-		for id, rec := range r.bundle.Statuses {
-			out[id] = rec.Data
-		}
-	case "factions":
-		for id, rec := range r.bundle.Factions {
-			out[id] = rec.Data
-		}
-	case "templates":
-		for id, rec := range r.bundle.Templates {
-			out[id] = rec.Data
-		}
+func (r *Registry) dataOf(name string) map[string]Data {
+	c, ok := recordCollection(name)
+	if !ok {
+		return map[string]Data{}
 	}
-	return out
+	return c.data(&r.bundle)
 }
 
 // collectionIDs lists the IDs of any collection of the bundle, or false when there is none by that name.
-func (r *Registry) collectionIDs(collection string) (map[string]bool, bool) {
-	var keys []string
-	switch collection {
-	case "materials":
-		keys = sortedKeys(r.bundle.Materials)
-	case "terrains":
-		keys = sortedKeys(r.bundle.Terrains)
-	case "text":
-		keys = sortedKeys(r.bundle.Text)
-	case "templates":
-		keys = sortedKeys(r.bundle.Templates)
-	case "actions":
-		keys = sortedKeys(r.bundle.Actions)
-	case "maps":
-		keys = sortedKeys(r.bundle.Maps)
-	case "claims":
-		keys = sortedKeys(r.bundle.Claims)
-	case "origins":
-		keys = sortedKeys(r.bundle.Origins)
-	case "parts":
-		keys = sortedKeys(r.bundle.Parts)
-	case "bodies":
-		keys = sortedKeys(r.bundle.Bodies)
-	case "types":
-		keys = sortedKeys(r.bundle.Types)
-	case "items":
-		keys = sortedKeys(r.bundle.Items)
-	case "factions":
-		keys = sortedKeys(r.bundle.Factions)
-	case "statuses":
-		keys = sortedKeys(r.bundle.Statuses)
-	default:
-		return nil, false
+func (r *Registry) collectionIDs(name string) (map[string]bool, bool) {
+	for _, c := range collections() {
+		if c.name != name {
+			continue
+		}
+		keys := c.keys(&r.bundle)
+		out := make(map[string]bool, len(keys))
+		for _, key := range keys {
+			out[key] = true
+		}
+		return out, true
 	}
-	out := make(map[string]bool, len(keys))
-	for _, key := range keys {
-		out[key] = true
+	return nil, false
+}
+
+// checkIDs checks that every key of every collection is an ID with the collection's prefix.
+func (r *Registry) checkIDs() []error {
+	var problems []error
+	for _, c := range collections() {
+		for _, key := range c.keys(&r.bundle) {
+			if err := checkID(c.name, key, c.prefix); err != nil {
+				problems = append(problems, err)
+			}
+		}
 	}
-	return out, true
+	return problems
+}
+
+// checkTextNames checks that a record's name is "text." plus the record's own ID, so a name is found
+// beside its record.
+func (r *Registry) checkTextNames() []error {
+	p := r.problems()
+	check := func(collection, key string, name api.ContentID) {
+		if want := api.ContentID("text." + key); name != want {
+			p.addf("%s[%q].name: text ID is %q, want %q", collection, key, name, want)
+		}
+	}
+	for _, c := range collections() {
+		if c.recordName == nil || c.sharedNames {
+			continue
+		}
+		for _, key := range c.keys(&r.bundle) {
+			if name, ok := c.recordName(&r.bundle, key); ok {
+				check(c.name, key, name)
+			}
+		}
+	}
+	for _, phase := range r.bundle.Calendar.Phases {
+		check("calendar.phases", string(phase.ID), phase.Name)
+	}
+	return p.errs
 }
 
 func recordOf(id string, data Data) Record {
-	record := Record{
-		ID: id, Tags: slices.Clone(data.Tags), Props: map[string]float64{}, Lists: map[string][]string{},
-	}
+	record := Record{ID: id, Tags: slices.Clone(data.Tags), Props: maps.Clone(data.Props), Lists: map[string][]string{}}
 	if record.Tags == nil {
 		record.Tags = []string{}
 	}
-	for key, value := range data.Props {
-		record.Props[key] = value
+	if record.Props == nil {
+		record.Props = map[string]float64{}
 	}
 	for key, value := range data.Lists {
 		record.Lists[key] = slices.Clone(value)
@@ -112,8 +188,11 @@ func recordOf(id string, data Data) Record {
 // buildRecords makes the formula view of every record, once per registry.
 func (r *Registry) buildRecords() {
 	r.records = map[api.ContentID]Record{}
-	for collection := range recordCollections {
-		for id, data := range r.dataOf(collection) {
+	for _, c := range collections() {
+		if c.data == nil {
+			continue
+		}
+		for id, data := range c.data(&r.bundle) {
 			r.records[api.ContentID(id)] = recordOf(id, data)
 		}
 	}
@@ -143,20 +222,19 @@ func (r *Registry) RecordIDs(collection string) []api.ContentID {
 
 // checkVocabulary checks tags, grant kinds and list values against what content declared closed.
 func (r *Registry) checkVocabulary() []error {
-	var problems []error
+	p := r.problems()
 	vocab := r.bundle.Vocabulary
 	for _, collection := range sortedKeys(vocab.Tags) {
-		if _, ok := recordCollections[collection]; !ok {
-			problems = append(problems, fmt.Errorf("vocabulary.tags[%q]: not a collection of records", collection))
+		if _, ok := recordCollection(collection); !ok {
+			p.addf("vocabulary.tags[%q]: not a collection of records", collection)
 			continue
 		}
 		data := r.dataOf(collection)
 		for _, id := range sortedKeys(data) {
 			for i, tag := range data[id].Tags {
 				if !slices.Contains(vocab.Tags[collection], tag) {
-					problems = append(problems, fmt.Errorf(
-						"%s[%q].tags[%d]: tag %q is not in vocabulary.tags (want one of %v)",
-						collection, id, i, tag, vocab.Tags[collection]))
+					p.addf("%s[%q].tags[%d]: tag %q is not in vocabulary.tags (want one of %v)",
+						collection, id, i, tag, vocab.Tags[collection])
 				}
 			}
 		}
@@ -165,68 +243,46 @@ func (r *Registry) checkVocabulary() []error {
 		for i, grant := range r.bundle.Parts[key].Grants {
 			path := fmt.Sprintf("parts[%q].grants[%d]", key, i)
 			if grant.Value == 0 {
-				problems = append(problems, fmt.Errorf("%s.value: a grant needs a value other than 0", path))
+				p.addf("%s.value: a grant needs a value other than 0", path)
 			}
 			if len(vocab.Grants) > 0 && !slices.Contains(vocab.Grants, grant.Kind) {
-				problems = append(problems, fmt.Errorf(
-					"%s.kind: unknown kind %q (want one of %v)", path, grant.Kind, vocab.Grants))
+				p.addf("%s.kind: unknown kind %q (want one of %v)", path, grant.Kind, vocab.Grants)
 			}
 		}
 	}
 	for _, key := range sortedKeys(vocab.Lists) {
 		collection, list, ok := strings.Cut(key, ".")
-		if _, record := recordCollections[collection]; !ok || !record {
-			problems = append(problems, fmt.Errorf("vocabulary.lists[%q]: want <collection of records>.<key>", key))
+		if _, record := recordCollection(collection); !ok || !record {
+			p.addf("vocabulary.lists[%q]: want <collection of records>.<key>", key)
 			continue
 		}
 		targets, ok := r.collectionIDs(vocab.Lists[key])
 		if !ok {
-			problems = append(
-				problems,
-				fmt.Errorf("vocabulary.lists[%q]: unknown collection %q", key, vocab.Lists[key]),
-			)
+			p.addf("vocabulary.lists[%q]: unknown collection %q", key, vocab.Lists[key])
 			continue
 		}
 		data := r.dataOf(collection)
 		for _, id := range sortedKeys(data) {
 			for i, value := range data[id].Lists[list] {
 				if !targets[value] {
-					problems = append(problems, fmt.Errorf(
-						"%s[%q].lists[%q][%d]: %q is not in %s", collection, id, list, i, value, vocab.Lists[key]))
+					p.addf("%s[%q].lists[%q][%d]: %q is not in %s", collection, id, list, i, value, vocab.Lists[key])
 				}
 			}
 		}
 	}
-	return problems
+	return p.errs
 }
 
 // RecordName returns the text ID of a record's name, or false when the ID is not a record or the
 // record has no name.
 func (r *Registry) RecordName(id api.ContentID) (api.ContentID, bool) {
-	key := string(id)
-	var name api.ContentID
-	switch {
-	case has(r.bundle.Materials, key):
-		name = r.bundle.Materials[key].Name
-	case has(r.bundle.Types, key):
-		name = r.bundle.Types[key].Name
-	case has(r.bundle.Items, key):
-		name = r.bundle.Items[key].Name
-	case has(r.bundle.Parts, key):
-		name = r.bundle.Parts[key].Name
-	case has(r.bundle.Statuses, key):
-		name = r.bundle.Statuses[key].Name
-	case has(r.bundle.Factions, key):
-		name = r.bundle.Factions[key].Name
-	case has(r.bundle.Templates, key):
-		if n := r.bundle.Templates[key].Name; n != nil {
-			name = *n
+	for _, c := range collections() {
+		if c.data == nil || c.recordName == nil {
+			continue
+		}
+		if name, ok := c.recordName(&r.bundle, string(id)); ok {
+			return name, name != ""
 		}
 	}
-	return name, name != ""
-}
-
-func has[V any](m map[string]V, key string) bool {
-	_, ok := m[key]
-	return ok
+	return "", false
 }

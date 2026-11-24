@@ -133,8 +133,8 @@ import (
 #Item: {
 	#Data
 	#Mods
-	name:  api.#ContentID @go(Name)
-	bound: bool           @go(Bound)
+	name:   api.#ContentID @go(Name)
+	bound?: bool           @go(Bound)
 
 	// Part is the part template ("part." ID) an item becomes when grafted on; only such an item has one.
 	part?: null | api.#ContentID @go(Part,*api.ContentID)
@@ -392,7 +392,7 @@ import (
 	slot:      string         @go(Slot)
 	material:  api.#ContentID @go(Material)
 	integrity: int            @go(Integrity)
-	grants: [...comp.#Grant] @go(Grants,[]comp.Grant)
+	grants?: [...comp.#Grant] @go(Grants,[]comp.Grant)
 	vital?: bool @go(Vital)
 
 	// CrawlsAs is the template ("template." ID) a body made from this part by spawn_from_part takes

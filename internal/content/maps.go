@@ -2,10 +2,7 @@ package content
 
 import (
 	"fmt"
-	"sort"
 	"unicode/utf8"
-
-	"github.com/expr-lang/expr"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
@@ -17,14 +14,7 @@ func (r *Registry) Map(id api.ContentID) (MapDef, bool) {
 }
 
 // MapIDs lists every map ID in sorted order.
-func (r *Registry) MapIDs() []api.ContentID {
-	ids := make([]api.ContentID, 0, len(r.bundle.Maps))
-	for key := range r.bundle.Maps {
-		ids = append(ids, api.ContentID(key))
-	}
-	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	return ids
-}
+func (r *Registry) MapIDs() []api.ContentID { return sortedIDs(r.bundle.Maps) }
 
 // Start returns the start scenario. Its Map is empty when the content has none.
 func (r *Registry) Start() Start { return r.bundle.Start }
@@ -34,15 +24,7 @@ func (r *Registry) ClimbCost(env SpeedEnv) (int64, error) {
 	if r.climbCost == nil {
 		return 0, nil
 	}
-	out, err := expr.Run(r.climbCost, env)
-	if err != nil {
-		return 0, fmt.Errorf("content: party.climb_cost: %w", err)
-	}
-	cost, ok := out.(int64)
-	if !ok {
-		return 0, fmt.Errorf("content: party.climb_cost returned %T, not an integer", out)
-	}
-	return cost, nil
+	return run[int64](r.climbCost, env, "party.climb_cost")
 }
 
 // MarkChars returns the character of each mark name of the map.
@@ -65,30 +47,26 @@ func (r *Registry) checkMaps() []error {
 }
 
 func (r *Registry) checkMap(key string, def MapDef) []error {
-	var problems []error
+	p := r.problems()
 	path := fmt.Sprintf("maps[%q]", key)
 	checkTerrain := func(field string, id api.ContentID) {
-		if _, ok := r.bundle.Terrains[string(id)]; !ok {
-			problems = append(problems, fmt.Errorf("%s.%s: unknown terrain %q", path, field, id))
-		}
+		ref(p, r.bundle.Terrains, path+"."+field, "terrain", id)
 	}
-	if _, ok := r.bundle.Text[string(def.Name)]; !ok {
-		problems = append(problems, fmt.Errorf("%s.name: text reference %q does not exist", path, def.Name))
-	}
+	p.text(path+".name", def.Name)
 	checkTerrain("fill", def.Fill)
 	checkTerrain("open", def.Open)
 	for _, char := range sortedKeys(def.Legend) {
 		checkTerrain(fmt.Sprintf("legend[%q]", char), def.Legend[char])
 		if utf8.RuneCountInString(char) != 1 {
-			problems = append(problems, fmt.Errorf("%s.legend[%q]: a key is exactly one character", path, char))
+			p.addf("%s.legend[%q]: a key is exactly one character", path, char)
 		}
 		if _, clash := def.Marks[char]; clash {
-			problems = append(problems, fmt.Errorf("%s: character %q is both a legend entry and a mark", path, char))
+			p.addf("%s: character %q is both a legend entry and a mark", path, char)
 		}
 	}
 	for _, char := range sortedKeys(def.Marks) {
 		if utf8.RuneCountInString(char) != 1 {
-			problems = append(problems, fmt.Errorf("%s.marks[%q]: a key is exactly one character", path, char))
+			p.addf("%s.marks[%q]: a key is exactly one character", path, char)
 		}
 	}
 	found := map[string]int{}
@@ -96,7 +74,7 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 	for i, layer := range def.Layers {
 		at := fmt.Sprintf("%s.layers[%d]", path, i)
 		if depths[layer.Depth] {
-			problems = append(problems, fmt.Errorf("%s.depth: depth %d is authored twice", at, layer.Depth))
+			p.addf("%s.depth: depth %d is authored twice", at, layer.Depth)
 		}
 		depths[layer.Depth] = true
 		for row, text := range layer.Rows {
@@ -108,8 +86,13 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 				case isMark:
 					found[string(char)]++
 				default:
-					problems = append(problems, fmt.Errorf(
-						"%s.rows[%d]: character %q at column %d is not in the legend or the marks", at, row, char, col))
+					p.addf(
+						"%s.rows[%d]: character %q at column %d is not in the legend or the marks",
+						at,
+						row,
+						char,
+						col,
+					)
 				}
 			}
 		}
@@ -117,13 +100,11 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 	for _, char := range sortedKeys(def.Spawns) {
 		template := def.Spawns[char]
 		if _, ok := def.Marks[char]; !ok {
-			problems = append(problems, fmt.Errorf("%s.spawns[%q]: not a mark of the map", path, char))
+			p.addf("%s.spawns[%q]: not a mark of the map", path, char)
 		}
-		if _, ok := r.bundle.Templates[string(template)]; !ok {
-			problems = append(problems, fmt.Errorf("%s.spawns[%q]: unknown template %q", path, char, template))
-		}
+		ref(p, r.bundle.Templates, fmt.Sprintf("%s.spawns[%q]", path, char), "template", template)
 		if found[char] < 1 {
-			problems = append(problems, fmt.Errorf("%s.spawns[%q]: the character is in no layer", path, char))
+			p.addf("%s.spawns[%q]: the character is in no layer", path, char)
 		}
 	}
 	for _, char := range sortedKeys(def.Marks) {
@@ -131,11 +112,10 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 			continue
 		}
 		if n := found[char]; n != 1 {
-			problems = append(problems, fmt.Errorf(
-				"%s.marks[%q]: mark %q must appear exactly once, found %d", path, char, def.Marks[char], n))
+			p.addf("%s.marks[%q]: mark %q must appear exactly once, found %d", path, char, def.Marks[char], n)
 		}
 	}
-	return problems
+	return p.errs
 }
 
 // checkStart validates the start scenario when the content has one.
@@ -144,21 +124,15 @@ func (r *Registry) checkStart() []error {
 	if start == (Start{}) {
 		return nil
 	}
-	var problems []error
-	def, ok := r.bundle.Maps[string(start.Map)]
-	if !ok {
-		problems = append(problems, fmt.Errorf("start.map: unknown map %q", start.Map))
-	}
+	p := r.problems()
+	def, ok := ref(p, r.bundle.Maps, "start.map", "map", start.Map)
 	if template, found := r.bundle.Templates[string(start.Party)]; !found || template.Party == nil {
-		problems = append(problems, fmt.Errorf("start.party: %q is not a party template", start.Party))
+		p.addf("start.party: %q is not a party template", start.Party)
 	}
 	if ok {
 		if _, marked := def.MarkChars()[start.PartyAtMark]; !marked {
-			problems = append(
-				problems,
-				fmt.Errorf("start.party_at_mark: map %q has no mark %q", start.Map, start.PartyAtMark),
-			)
+			p.addf("start.party_at_mark: map %q has no mark %q", start.Map, start.PartyAtMark)
 		}
 	}
-	return problems
+	return p.errs
 }

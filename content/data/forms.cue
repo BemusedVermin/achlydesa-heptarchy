@@ -1,32 +1,34 @@
 package data
 
+// An attack form reaches the next hex and needs sight of its target; connects is the default (still
+// in range and in sight). It is loaded with a type (choices.cue); what the type does to the form is in
+// types.cue and the rules that read it (weak, immune, hit, graze) are in rules.cue.
+_#Attack: {
+	range: 1
+	sight: true
+	tags: ["form", "attack"]
+	...
+}
+
 // The seven forms. Numbers are placeholders for M7's tuning, but they are lethal from the start: a
 // human part has 3 integrity (5 for the torso), so an ordinary Strike takes off an arm in one hit.
-// Every attack has sight: true, and connects is the default (still in range and in sight).
-// An attack form is loaded with a type (choices.cue); what the type does to the form is in types.cue
-// and the rules that read it (weak, immune, hit, graze) are in rules.cue.
 actions: {
-	"action.strike": {
+	"action.strike": _#Attack & {
 		name: "text.action.strike"
 		key:  "strike"
 		uses: [{tag: "grant:action", count: 1}]
 		target: "part"
-		range:  1
-		sight:  true
 		choices: ["type"]
 		windup:   "3"
 		recovery: "4"
 		on_land: [{do: "damage", params: {parts: "target_part", amount: "rule.hit"}}]
-		tags: ["form", "attack"]
 	}
 	// Sweep hits every part of the body, each by its own material, and teaches what each is made of.
-	"action.sweep": {
+	"action.sweep": _#Attack & {
 		name: "text.action.sweep"
 		key:  "sweep"
 		uses: [{tag: "grant:action", count: 2}]
 		target: "body"
-		range:  1
-		sight:  true
 		choices: ["type"]
 		windup:   "4"
 		recovery: "5"
@@ -36,16 +38,13 @@ actions: {
 				parts: "target:all", claim: "claim.material", value: "= target.material.id", origin: "origin.sweep"
 			}},
 		]
-		tags: ["form", "attack"]
 	}
 	// Sever wears a part by one and cuts it off outright where it is weak.
-	"action.sever": {
+	"action.sever": _#Attack & {
 		name: "text.action.sever"
 		key:  "sever"
 		uses: [{tag: "grant:action", count: 1}]
 		target: "part"
-		range:  1
-		sight:  true
 		choices: ["type"]
 		windup:   "2"
 		recovery: "5"
@@ -53,19 +52,15 @@ actions: {
 			{do: "damage", params: {parts: "target_part", amount: "rule.immune ? 0 : 1"}},
 			{do: "sever", params: {parts: "target_part", when: "rule.weak"}},
 		]
-		tags: ["form", "attack"]
 	}
-	"action.pin": {
+	"action.pin": _#Attack & {
 		name: "text.action.pin"
 		key:  "pin"
 		uses: [{tag: "grant:action", count: 1}]
 		target:   "part"
-		range:    1
-		sight:    true
 		windup:   "1"
 		recovery: "3"
 		on_land: [{do: "lock", params: {channels: "target_part", ticks: "8"}}]
-		tags: ["form", "attack"]
 	}
 	// Stand braces the body and freezes the others, then frees the stander's own channels at once.
 	// Recovery is 1, not 0, because an action that takes no time is refused; the ready effect frees

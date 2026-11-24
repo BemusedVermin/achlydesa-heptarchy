@@ -55,11 +55,11 @@ func TestCUEConstraintsHoldAgainstTheRealSchema(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const original = `weak_to: ["type.cut", "type.burn", "type.relic"], immune_to: []`
+	const original = `lists: weak_to: ["type.cut", "type.burn", "type.relic"]`
 	changed := strings.Replace(
 		string(data),
 		original,
-		`weak_to: ["type.cut", "type.burn", "type.relic"], immune_to: ["type.cut"]`,
+		`lists: {weak_to: ["type.cut", "type.burn", "type.relic"], immune_to: ["type.cut"]}`,
 		1,
 	)
 	if changed == string(data) {

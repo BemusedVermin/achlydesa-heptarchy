@@ -8,10 +8,12 @@ import (
 	"github.com/expr-lang/expr/ast"
 	"github.com/expr-lang/expr/parser"
 	"github.com/expr-lang/expr/vm"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
 // ruleVar is the name formulas write rules under: rule.<name>.
-var ruleVar = "rule"
+const ruleVar = "rule"
 
 // Compile is the one way a formula is compiled. env is a value of the struct the formula reads
 // (EffectEnv{}, ActionEnv{}, ...). Every rule.<name> in src is replaced by the rule's own source
@@ -28,6 +30,21 @@ func (r *Registry) Compile(src string, env any, options ...expr.Option) (*vm.Pro
 		return nil, err
 	}
 	return program, nil
+}
+
+// run runs a compiled formula against env and checks it returned a T. what names the formula in
+// errors, such as `terrain "terrain.air" move_cost`.
+func run[T any](program *vm.Program, env any, what string) (T, error) {
+	var zero T
+	out, err := expr.Run(program, env)
+	if err != nil {
+		return zero, fmt.Errorf("content: %s: %w", what, err)
+	}
+	value, ok := out.(T)
+	if !ok {
+		return zero, fmt.Errorf("content: %s returned %T, not %T", what, out, zero)
+	}
+	return value, nil
 }
 
 // ReadsVariable reports whether the formula, with its rules inlined, names the variable.
@@ -142,23 +159,21 @@ func (f *ruleFinder) Visit(node *ast.Node) {
 // checkRules checks rule names and syntax, that every rule they use exists, and that no rules use
 // each other in a cycle.
 func (r *Registry) checkRules() []error {
-	var problems []error
+	p := r.problems()
 	refs := map[string][]string{}
 	for _, name := range sortedKeys(r.bundle.Rules) {
 		path := fmt.Sprintf("rules[%q]", name)
 		if !keyPattern.MatchString(name) {
-			problems = append(problems, fmt.Errorf("%s: a rule name must be lower-case words", path))
+			p.addf("%s: a rule name must be lower-case words", path)
 		}
 		used, err := ruleRefs(r.bundle.Rules[name])
 		if err != nil {
-			problems = append(problems, fmt.Errorf("%s: %w", path, err))
+			p.addf("%s: %w", path, err)
 			continue
 		}
 		refs[name] = used
 		for _, other := range used {
-			if _, ok := r.bundle.Rules[other]; !ok {
-				problems = append(problems, fmt.Errorf("%s: unknown rule %q", path, other))
-			}
+			ref(p, r.bundle.Rules, path, "rule", api.ContentID(other))
 		}
 	}
 	state := map[string]int{} // 1 while on the walk, 2 when done
@@ -166,10 +181,7 @@ func (r *Registry) checkRules() []error {
 	walk = func(name string, trail []string) {
 		switch state[name] {
 		case 1:
-			problems = append(
-				problems,
-				fmt.Errorf("rules[%q]: rules use each other in a cycle: %v", name, append(trail, name)),
-			)
+			p.addf("rules[%q]: rules use each other in a cycle: %v", name, append(trail, name))
 			return
 		case 2:
 			return
@@ -185,7 +197,7 @@ func (r *Registry) checkRules() []error {
 	for _, name := range sortedKeys(r.bundle.Rules) {
 		walk(name, nil)
 	}
-	return problems
+	return p.errs
 }
 
 // warnUnusedRules records a warning for each rule no formula used.

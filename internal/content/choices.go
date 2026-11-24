@@ -24,40 +24,32 @@ func (r *Registry) Offered(choice string, env OfferEnv) (bool, error) {
 	if !ok {
 		return true, nil
 	}
-	out, err := expr.Run(program, env)
-	if err != nil {
-		return false, fmt.Errorf("content: choice %q offer: %w", choice, err)
-	}
-	offered, ok := out.(bool)
-	if !ok {
-		return false, fmt.Errorf("content: choice %q offer returned %T, not a bool", choice, out)
-	}
-	return offered, nil
+	return run[bool](program, env, fmt.Sprintf("choice %q offer", choice))
 }
 
 // checkChoices checks every content choice and compiles its offer.
 func (r *Registry) checkChoices() []error {
-	var problems []error
+	p := r.problems()
 	for _, name := range sortedKeys(r.bundle.Choices) {
 		def := r.bundle.Choices[name]
 		path := fmt.Sprintf("choices[%q]", name)
 		if !keyPattern.MatchString(name) {
-			problems = append(problems, fmt.Errorf("%s: a choice name must be lower-case words", path))
+			p.addf("%s: a choice name must be lower-case words", path)
 		}
-		if _, ok := recordCollections[def.From]; !ok {
-			problems = append(problems, fmt.Errorf("%s.from: %q is not a collection of records", path, def.From))
+		if _, ok := recordCollection(def.From); !ok {
+			p.addf("%s.from: %q is not a collection of records", path, def.From)
 		}
 		if def.Offer == "" {
 			continue
 		}
 		program, err := r.Compile(def.Offer, OfferEnv{}, expr.AsBool())
 		if err != nil {
-			problems = append(problems, fmt.Errorf("%s.offer: %w", path, err))
+			p.addf("%s.offer: %w", path, err)
 			continue
 		}
 		r.offers[name] = program
 	}
-	return problems
+	return p.errs
 }
 
 // ChoiceRecords lists the IDs of the records a choice draws from, in ID order.
