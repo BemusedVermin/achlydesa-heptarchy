@@ -12,7 +12,8 @@ import (
 
 // Screen is one full-screen mode. The root model owns a stack of them.
 type Screen interface {
-	Update(msg tea.Msg, app *App) (Screen, tea.Cmd) // return nil to pop
+	// Update returns the screen to keep in its place, or nil to pop it.
+	Update(msg tea.Msg, app *App) (Screen, tea.Cmd)
 	View(app *App) string
 }
 

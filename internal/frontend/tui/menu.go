@@ -21,10 +21,12 @@ var notMenu = map[string]bool{"step": true, "wait": true, "lead": true, "control
 // menuNode is one entry of the drill-down: a segment of option IDs, with the options below it.
 type menuNode struct {
 	segment string
-	prefix  string // the option ID segments up to and including this one
-	// path is the core's label of each segment of prefix.
-	path     []string
-	option   *api.Option // set when an option ends here
+	// prefix is the option ID segments up to and including this one, and path the core's label of
+	// each.
+	prefix string
+	path   []string
+	// option is set when an option ends here.
+	option   *api.Option
 	children []*menuNode
 }
 
@@ -110,7 +112,8 @@ func (menuDelegate) Render(w io.Writer, m list.Model, index int, item list.Item)
 
 // menuState is the open action menu: the levels entered so far and the list of the current one.
 type menuState struct {
-	levels []*menuNode // displayed levels, outermost first
+	// levels are those entered, outermost first.
+	levels []*menuNode
 	list   list.Model
 	title  string
 	width  int
@@ -214,8 +217,8 @@ func (m *menuState) Render() string {
 	return fmt.Sprintf("%s\n%s", strings.Join(path, " > "), m.list.View())
 }
 
-// update handles a key in the menu. It returns the option to send when a leaf is chosen, whether
-// the menu should close without one, and the key to hand the list.
+// update handles a key in the menu. It returns the option to send when a leaf is chosen, and whether
+// the menu should close without one.
 func (m *menuState) update(msg tea.KeyPressMsg) (choose string, closed bool) {
 	switch msg.String() {
 	case "enter":

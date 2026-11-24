@@ -9,9 +9,8 @@ import (
 // sets the new version after each step.
 type Migration func(doc map[string]json.RawMessage) error
 
-// migrations[n] upgrades a version n document to version n+1. Every version from 0 below
-// CurrentVersion that can still be loaded has an entry; there is none yet because version 1 is the
-// first.
+// migrations[n] upgrades a version n document to version n+1. Every version below CurrentVersion
+// that can still be loaded has an entry.
 var migrations = map[int]Migration{}
 
 // upgrade runs the migrations from version from up to version to, one at a time.

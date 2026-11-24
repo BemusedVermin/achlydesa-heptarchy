@@ -268,7 +268,7 @@ func TestLookModeMovesACursorAndLeaves(t *testing.T) {
 
 func TestSeveredArmShowsOnThePanel(t *testing.T) {
 	app := startApp(t)
-	var victim api.BodyView // the member who is not deciding
+	var victim api.BodyView
 	for _, b := range app.State.Bodies.Bodies {
 		if b.Member && b.UID != app.State.Bodies.Current {
 			victim = b

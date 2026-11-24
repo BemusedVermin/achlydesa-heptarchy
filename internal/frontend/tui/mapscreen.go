@@ -10,18 +10,20 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// sidePanelWidth is the right-hand column: the clock, the party and the log. M2-10's action panel
-// goes in the same column.
+// sidePanelWidth is the right-hand column: the clock, the party, the acting body, and the log or the
+// action menu.
 const sidePanelWidth = 60
 
 // mapScreen is the one screen of play: the timeline strip on top, the map on the left, the side
 // panel on the right, then the status and help lines.
 type mapScreen struct {
-	selected int // offset of the selected timeline tick
+	// selected is the offset of the selected timeline tick.
+	selected int
 	// lastVertical is the step option the last w or s sent, or empty after any other key.
 	lastVertical string
-	menu         *menuState // the open action menu, or nil
-	look         *lookState // look mode, or nil
+	// menu and look are nil while the action menu is closed and look mode is off.
+	menu *menuState
+	look *lookState
 }
 
 func newMapScreen() *mapScreen { return &mapScreen{} }
@@ -201,7 +203,7 @@ func (s *mapScreen) View(app *App) string {
 	)
 }
 
-// status is the status line: the reason a key did nothing, or the party's control mode.
+// status is the status line: the reason a key did nothing, or the party's status from the view.
 func (s *mapScreen) status(app *App) string {
 	if app.Status != "" {
 		return app.Status

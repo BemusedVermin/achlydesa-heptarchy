@@ -104,7 +104,7 @@ func TestSaveThenLoadAtTickZeroHasTheSameHash(t *testing.T) {
 
 func TestSaveThenLoadWithASpawnedActorHasTheSameHash(t *testing.T) {
 	bundle := newBundle(t)
-	contenttest.NoStart(&bundle) // the fixture spawns its own actor
+	contenttest.NoStart(&bundle)
 	cfg := game.Config{
 		Seed:    1,
 		Content: contenttest.Registry(t, bundle),

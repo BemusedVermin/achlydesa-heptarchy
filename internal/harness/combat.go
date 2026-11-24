@@ -11,11 +11,12 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 )
 
-// Outcomes of a fight.
+// Outcomes of a fight. OutcomeNone is a fight still going or never begun; OutcomeWon means a hostile
+// died and none is left in sight; OutcomeWiped means the whole party is out of the fight.
 const (
-	OutcomeNone  = ""      // still going, or never began
-	OutcomeWon   = "won"   // a hostile died and none is left in sight
-	OutcomeWiped = "wiped" // every member of the party was wiped out
+	OutcomeNone  = ""
+	OutcomeWon   = "won"
+	OutcomeWiped = "wiped"
 )
 
 // Binder is implemented by a policy that needs the game it plays, such as to look up what a part
@@ -255,7 +256,7 @@ func (p *FightPolicy) attack(attacks []api.Option) (api.Option, bool) {
 			if def.Key == "sweep" || len(def.Choices) == 0 {
 				continue
 			}
-			return option, true // the first offered
+			return option, true
 		}
 		score, ok := p.score(do, def)
 		if ok && (!found || score > bestScore) {

@@ -20,7 +20,9 @@ import (
 
 // Config says how to start a game.
 type Config struct {
-	Seed    uint64
+	// Seed seeds every random stream. Load ignores it and takes the save's.
+	Seed uint64
+	// Content is required.
 	Content *content.Registry
 	// Install, when set, runs after the standard packages are installed and before the scheduler
 	// freezes. Tests and the harness use it to register hooks. It runs in New and in Load, so it
@@ -36,9 +38,10 @@ type Game struct {
 	world   *sim.World
 	clock   *clock.Clock
 	history []api.Command
-	events  []api.Event // delivered since the last Apply returned
-	log     []api.LogLine
-	broken  error
+	// events are those delivered since the last Apply returned.
+	events []api.Event
+	log    []api.LogLine
+	broken error
 }
 
 // New builds a game from cfg, installs every package, and plays the timeline forward to the first
@@ -217,7 +220,7 @@ func (g *Game) Current() api.UID {
 	return 0
 }
 
-// View builds the view of the current state.
+// View builds a fresh snapshot for a frontend. It fails once an error has left the game unusable.
 func (g *Game) View() (api.View, error) {
 	if g.broken != nil {
 		return api.View{}, g.broken

@@ -30,7 +30,6 @@ func landsOf(t testing.TB, g *game.Game) []api.TimelineEntry {
 // fight, with swings winding up (each a pending entity with its kind-specific landing component),
 // loads, runs on, and wants the same actions in flight and the same hash as the game that never saved.
 func TestSavingMidFightWithActionsInFlightContinuesIdentically(t *testing.T) {
-	// The hall as shipped: the crawler hunts, and the party fights back.
 	reg := contenttest.Sample(t)
 	cfg := game.Config{Seed: 3, Content: reg}
 	g, err := game.New(cfg)

@@ -13,27 +13,31 @@ import (
 // the view offers its option.
 type binding struct {
 	keys   key.Binding
-	option string // the option ID; empty for the two special bindings below
+	option string
 }
 
-// KeyMap is every binding of the map screen.
+// KeyMap is every binding of the map screen. A plain key.Binding is one whose option depends on
+// the view, or that drives the screen itself.
 type KeyMap struct {
-	moves     []binding
-	up        key.Binding // w: NE or NW, alternating, so the party climbs a screen column
-	down      key.Binding // s: SE or SW, alternating
+	moves []binding
+	// up and down step NE or NW, and SE or SW, alternating, so the party climbs a screen column.
+	up        key.Binding
+	down      key.Binding
 	waitEvent binding
 	waitPhase binding
-	nextLead  key.Binding // tab: the next leader option, cycling
-	control   key.Binding // f: whichever control option is offered
+	// nextLead takes the next leader option, cycling.
+	nextLead key.Binding
+	// control takes whichever control option is offered.
+	control   key.Binding
 	prevTick  key.Binding
 	nextTick  key.Binding
-	selectTic key.Binding // t: list the selected tick
-	menu      key.Binding // enter: the action menu
-	look      key.Binding // l: look mode
+	selectTic key.Binding
+	menu      key.Binding
+	look      key.Binding
 	quit      key.Binding
 }
 
-// DefaultKeyMap is the keymap of the spec.
+// DefaultKeyMap binds q e a d z c to the six steps, w and s to the zigzag, and . and , to waiting.
 func DefaultKeyMap() KeyMap {
 	move := func(k, option string) binding {
 		return binding{key.NewBinding(key.WithKeys(k), key.WithHelp(k, "move")), option}

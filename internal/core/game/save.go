@@ -72,10 +72,10 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 	}, nil
 }
 
-// Load reads a save into a game that carries on as if it had never stopped. cfg.Seed is ignored: the
-// save's seed is used. It builds the game the way New does but skips the start scenario, so
-// cfg.Spawn is not run; cfg.Install is. A save made with different content
-// still loads; the warnings say so.
+// Load reads a save into a game that carries on as if it had never stopped. It builds the game the
+// way New does but skips the start scenario: cfg.Seed is ignored for the save's, and cfg.Spawn is
+// not run, though cfg.Install is. A save made with different content still loads; the warnings say
+// so.
 func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 	snapshot, err := save.Read(r)
 	if err != nil {

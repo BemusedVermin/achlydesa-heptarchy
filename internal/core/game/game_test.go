@@ -19,7 +19,7 @@ func (unknownCommand) CommandKind() string { return "test.unknown" }
 func config(t *testing.T, seed uint64) game.Config {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	contenttest.NoStart(&bundle) // this test spawns its own actor
+	contenttest.NoStart(&bundle)
 	reg := contenttest.Registry(t, bundle)
 	return game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		_, err := w.Spawn("template.person.reaper", nil)

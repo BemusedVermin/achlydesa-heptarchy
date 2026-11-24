@@ -120,7 +120,6 @@ func TestRenderMapSlopeShadesSmoothly(t *testing.T) {
 	}
 	out := tui.RenderMap(m, nil, 30, 1)
 	golden(t, "map_slope", out)
-	// Every step has its own color: thirteen cells, thirteen distinct shades.
 	seen := map[string]bool{}
 	for _, part := range strings.Split(out, "\x1b[") {
 		if i := strings.IndexByte(part, 'm'); i > 0 && strings.HasPrefix(part, "38;2;") {
@@ -166,7 +165,6 @@ func TestDisabledMoveShowsItsReasonAndSendsNothing(t *testing.T) {
 			blocked = o.ID
 		}
 	}
-	// Walk east until the wall disables a step.
 	for range 30 {
 		if blocked != "" {
 			break
