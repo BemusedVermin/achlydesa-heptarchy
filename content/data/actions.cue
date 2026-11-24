@@ -53,6 +53,7 @@ actions: {
 		uses: [{tag: "body", count: 1}]
 		target:   "body"
 		range:    1
+		corpse:   true
 		windup:   "2"
 		recovery: "5"
 	}

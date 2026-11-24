@@ -219,7 +219,7 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 		dir := *in.Dir
 		p.dir = &dir
 	case content.TargetBody, content.TargetAlly, content.TargetPart:
-		if in.Target == in.Actor || in.Dir != nil || !ev.isBody(in.Target) {
+		if in.Target == in.Actor || in.Dir != nil || !ev.isBody(in.Target, def.Corpse) {
 			return bad()
 		}
 		if def.Target == content.TargetPart {
@@ -244,10 +244,10 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 	return p, api.Text{}, nil
 }
 
-// isBody reports whether e is a body: an entity on the timeline, or a corpse. A corpse is never
-// listed as a target, but an intent that names one is valid.
-func (ev *evaluator) isBody(e ecs.Entity) bool {
-	return ev.w.Alive(e) && (ev.actors.Has(e) || ev.dead.Has(e))
+// isBody reports whether e is a body: an entity on the timeline, or a corpse when corpse is set. A
+// corpse is never listed as a target, but an intent that names one is valid.
+func (ev *evaluator) isBody(e ecs.Entity, corpse bool) bool {
+	return ev.w.Alive(e) && (ev.actors.Has(e) || (corpse && ev.dead.Has(e)))
 }
 
 // checkChoices checks that the intent made exactly the choices the action asks for, each one offered.
