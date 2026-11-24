@@ -416,9 +416,9 @@ func baseEnv(ctx *Context) content.EffectEnv {
 	w := ctx.World
 	env := content.EffectEnv{Now: w.Now, Chosen: ChosenRecords(w, ctx.Choices)}
 	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"]) // absent or malformed means no fall
-	env.Source = SideOf(w, ctx.Source, firstPart(ctx.Used))
-	env.Target = SideOf(w, ctx.Target, ctx.TargetPart)
-	env.Pack = inventory.Usable(w, ctx.Source, ctx.Target)
+	env.Source = BodyEnvOf(w, ctx.Source, firstPart(ctx.Used))
+	env.Target = BodyEnvOf(w, ctx.Target, ctx.TargetPart)
+	env.Inventory = inventory.Usable(w, ctx.Source, ctx.Target)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if alive(w, ctx.Source) && alive(w, ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)
@@ -427,31 +427,7 @@ func baseEnv(ctx *Context) content.EffectEnv {
 			env.Height = b.At.Depth - a.At.Depth
 		}
 	}
-	if alive(w, ctx.Target) {
-		env.WindingUp = len(timeline.PendingOf(w, w.UIDOf(ctx.Target))) > 0
-		if statuses := ecs.NewMap[comp.Statuses](w.ECS); statuses.Has(ctx.Target) {
-			for _, entry := range statuses.Get(ctx.Target).Active {
-				env.Statuses = append(env.Statuses, string(entry.Status))
-			}
-		}
-	}
-	if alive(w, ctx.TargetPart) {
-		partEnv(ctx, &env)
-	}
 	return env
-}
-
-// partEnv fills in what describes the target part.
-func partEnv(ctx *Context, env *content.EffectEnv) {
-	w := ctx.World
-	parts := ecs.NewMap[comp.Part](w.ECS)
-	if !parts.Has(ctx.TargetPart) {
-		return
-	}
-	part := parts.Get(ctx.TargetPart)
-	env.Integrity, env.MaxIntegrity = part.Integrity, part.MaxIntegrity
-	env.Graft = ecs.NewMap[comp.Graft](w.ECS).Has(ctx.TargetPart)
-	env.Locked = timeline.Locked(w, timeline.Channel{Entity: ctx.TargetPart, Body: ctx.Target})
 }
 
 func alive(w *sim.World, e ecs.Entity) bool { return !e.IsZero() && w.ECS.Alive(e) }

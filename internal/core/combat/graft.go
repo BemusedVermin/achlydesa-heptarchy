@@ -21,7 +21,7 @@ func applyActAlone(ctx *effects.Context, _ effects.Params) error {
 		!ecs.NewMap[comp.Graft](w.ECS).Has(part) || bodyOf(w, part) != body {
 		return nil
 	}
-	if fallen(w, body) {
+	if outOfFight(w, body) {
 		return nil
 	}
 	cfg := w.Content.Combat()

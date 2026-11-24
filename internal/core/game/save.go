@@ -32,7 +32,7 @@ func (g *Game) Save(w io.Writer) error {
 
 func (g *Game) snapshot() (save.Snapshot, error) {
 	// Resources hold hooks and caches that content and Install rebuild, so only entities are saved.
-	// The turn queue, the one resource with state of its own, is exported by timeline.
+	// The timeline, the one resource with state of its own, is exported by timeline.
 	world, err := arkserde.Serialize(g.world.ECS, arkserde.Opts.SkipAllResources())
 	if err != nil {
 		return save.Snapshot{}, fmt.Errorf("game: save: world: %w", err)

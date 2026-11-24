@@ -1,8 +1,8 @@
-{"kind":"actions.started","data":{"actor":26,"action":"action.sweep","target":20,"tick":0,"lands":4}}
-{"kind":"actions.started","data":{"actor":20,"action":"action.pin","target":26,"tick":0,"lands":1}}
-{"kind":"timeline.action_canceled","data":{"kind":"actions.land","actor":26,"target":20,"tick":1,"reason":{"id":"text.effects.interrupted"}}}
+{"kind":"actions.started","data":{"source":26,"action":"action.sweep","target":20,"tick":0,"lands":4}}
+{"kind":"actions.started","data":{"source":20,"action":"action.pin","target":26,"tick":0,"lands":1}}
+{"kind":"timeline.action_canceled","data":{"kind":"actions.land","source":26,"target":20,"tick":1,"reason":{"id":"text.effects.interrupted"}}}
 {"kind":"effects.channels_locked","data":{"channels":[28],"ticks":8,"tick":1}}
-{"kind":"timeline.action_landed","data":{"kind":"actions.land","actor":20,"target":26,"tick":1}}
+{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":20,"target":26,"tick":1}}
 {"kind":"combat.status_added","data":{"body":20,"status":"status.standing","until":13,"source":20,"tick":3}}
 {"kind":"effects.channels_delayed","data":{"channels":[32,33,34,35],"ticks":8,"tick":3}}
 {"kind":"effects.channels_readied","data":{"channels":[20,22],"tick":3}}

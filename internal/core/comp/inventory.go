@@ -9,7 +9,7 @@ type ItemStack struct {
 	BoundTo api.UID       `json:"bound_to,omitempty"`
 }
 
-// Inventory is a pack. Stacks are sorted by (Item, BoundTo) and none is empty. Use the inventory
+// Inventory is an inventory. Stacks are sorted by (Item, BoundTo) and none is empty. Use the inventory
 // package's Add, Take and Count rather than changing the slice.
 type Inventory struct {
 	Stacks []ItemStack `json:"stacks"`

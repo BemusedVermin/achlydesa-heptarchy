@@ -41,7 +41,7 @@ func triggerBundle(t *testing.T, mutate func(*content.Bundle)) content.Bundle {
 		t.Fatal(err)
 	}
 	bundle.Start = content.Start{}
-	body := api.ContentID("body.crawler")
+	body := api.ContentID("body.test.crawler")
 	bundle.Templates["template.test.crawler"] = content.Template{Body: &body}
 	bundle.Statuses["status.braced"] = content.Status{Name: "text.status.braced"}
 	bundle.Text["text.status.braced"] = "braced"

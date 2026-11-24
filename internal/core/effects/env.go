@@ -11,31 +11,40 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// SideOf is what a formula sees of a body and one of its parts: their records. An entity that is
+// BodyEnvOf is what a formula sees of a body and one of its parts: their records and facts. An entity that is
 // gone, zero or has no such component reads as an empty record.
-func SideOf(w *sim.World, body, part ecs.Entity) content.Side {
-	side := content.Side{
+func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
+	env := content.BodyEnv{
 		Template: content.EmptyRecord(), Part: content.EmptyRecord(), Material: content.EmptyRecord(),
 	}
 	if alive(w, body) {
 		if identities := ecs.NewMap[comp.Identity](w.ECS); identities.Has(body) {
-			side.Template, _ = w.Content.Record(identities.Get(body).Template)
+			env.Template, _ = w.Content.Record(identities.Get(body).Template)
+		}
+		env.WindingUp = len(timeline.PendingOf(w, w.UIDOf(body))) > 0
+		if statuses := ecs.NewMap[comp.Statuses](w.ECS); statuses.Has(body) {
+			for _, entry := range statuses.Get(body).Active {
+				env.Statuses = append(env.Statuses, string(entry.Status))
+			}
 		}
 		grafts := ecs.NewMap[comp.Graft](w.ECS)
 		for _, attached := range anatomy.Parts(w, body) {
 			if grafts.Has(attached) {
-				side.Grafts++
+				env.Grafts++
 			}
 		}
 	}
 	if alive(w, part) {
 		if parts := ecs.NewMap[comp.Part](w.ECS); parts.Has(part) {
 			data := parts.Get(part)
-			side.Part, _ = w.Content.Record(data.Template)
-			side.Material, _ = w.Content.Record(data.Material)
+			env.Part, _ = w.Content.Record(data.Template)
+			env.Material, _ = w.Content.Record(data.Material)
+			env.Integrity, env.MaxIntegrity = data.Integrity, data.MaxIntegrity
+			env.Graft = ecs.NewMap[comp.Graft](w.ECS).Has(part)
+			env.Locked = timeline.Locked(w, timeline.Channel{Entity: part, Body: body})
 		}
 	}
-	return side
+	return env
 }
 
 // ChosenRecords reads each choice's value as the record it names. A value that names no record,

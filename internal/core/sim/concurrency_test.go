@@ -31,7 +31,7 @@ func TestConcurrentUseIsSafe(t *testing.T) {
 				t.Error(err)
 			}
 			_ = w.Systems.Register(System{Name: fmt.Sprintf("p.s%d", worker), Run: noop})
-			_ = w.Systems.Order(PerTurn)
+			_ = w.Systems.Order(PerEntry)
 			_ = w.Commands.Kinds()
 			_, _ = w.Views.Build(w)
 		}()
@@ -60,7 +60,7 @@ func TestConcurrentUseIsSafe(t *testing.T) {
 		runs.Add(1)
 		go func() {
 			defer runs.Done()
-			if err := w.Systems.Run(w, PerTurn); err != nil {
+			if err := w.Systems.Run(w, PerEntry); err != nil {
 				t.Error(err)
 			}
 		}()

@@ -12,10 +12,10 @@ _fallInjury: {
 	do: [{do: "damage", params: {parts: "target:legs", amount: "cells - 1"}}]
 }
 
-// What a person knows: the seven forms, and the types innate to a body. The design gives everyone
-// Cut and Name, and the Reaper Press (the thrukk grip). Relic is innate to grafts: the type choice
-// offers it to a body that carries one.
-_forms: [
+// What a person knows: the seven forms (tagged form in forms.cue), a step, and the types innate to a
+// body. The design gives everyone Cut and Name, and the Reaper Press (the thrukk grip). Relic is
+// innate to grafts: the type choice offers it to a body that carries one.
+_actions: [
 	"action.step", "action.strike", "action.sweep", "action.sever", "action.pin", "action.stand",
 	"action.give", "action.graft",
 ]
@@ -26,7 +26,7 @@ templates: {
 		name: "text.template.person.reaper"
 		appearance: {glyph: "@", color: "red"}
 		actor: controller: "player"
-		actions:   _forms
+		actions:   _actions
 		body:      "body.human"
 		protected: true
 		faction:   "faction.party"
@@ -38,7 +38,7 @@ templates: {
 		name: "text.template.person.salken"
 		appearance: {glyph: "@", color: "cyan"}
 		actor: controller: "follow"
-		actions:   _forms
+		actions:   _actions
 		body:      "body.human"
 		protected: true
 		faction:   "faction.party"
@@ -47,14 +47,14 @@ templates: {
 		triggers: [_fallInjury]
 	}
 	// A creature of the soop, all clay. It hunts the party and bites.
-	"template.creature.crawler": {
-		name: "text.template.creature.crawler"
+	"template.creature.moving_clay": {
+		name: "text.template.creature.moving_clay"
 		appearance: {glyph: "c", color: "yellow"}
 		actor: controller: "hunt"
 		actions: ["action.step", "action.strike"]
 		lists: types: ["type.cut"]
-		body:    "body.clay_thing"
-		faction: "faction.deep"
+		body:    "body.moving_clay"
+		faction: "faction.wild"
 	}
 	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
 	// The 0.3 is a placeholder for M7's tuning.
@@ -63,7 +63,7 @@ templates: {
 		appearance: {glyph: "r", color: "magenta"}
 		actor: controller: "hunt"
 		body:    "body.remnant"
-		faction: "faction.deep"
+		faction: "faction.wild"
 		actions: ["action.step", "action.strike"]
 		lists: types: ["type.cut"]
 		triggers: [{
@@ -81,7 +81,7 @@ templates: {
 		actions: ["action.step", "action.strike"]
 		lists: types: ["type.cut"]
 		body:    "body.beast"
-		faction: "faction.deep"
+		faction: "faction.wild"
 	}
 	// What a remnant's arm fights as once it crawls off (its part's crawls_as): the arm is its whole
 	// body, so it has none of its own, and spawn_from_part gives its faction and controller. It knows
@@ -124,10 +124,13 @@ templates: {
 }
 
 text: {
-	"text.template.creature.remnant": "The remnant"
-	"text.template.creature.beast":   "The beast"
+	"text.template.creature.remnant":     "The remnant"
+	"text.template.creature.beast":       "The beast"
 	"text.template.crawling.remnant_arm": "A crawling arm"
-	"text.template.test.dummy":      "Dummy"
-	"text.template.creature.crawler": "The crawler"
-	"text.template.test.crawler":     "Crawler"
+	"text.template.test.dummy":           "Dummy"
+	"text.template.creature.moving_clay": "Moving clay"
+	"text.template.test.crawler":         "Crawler"
+	"text.template.person.reaper":        "The Reaper"
+	"text.template.person.salken":        "Salken"
+	"text.template.unknown":              "Someone"
 }

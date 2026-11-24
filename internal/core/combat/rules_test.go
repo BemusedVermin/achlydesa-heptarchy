@@ -56,9 +56,9 @@ func TestDamageIsEvaluatedPerPart(t *testing.T) {
 func TestChangingTheWeakRuleNeedsNoGoChange(t *testing.T) {
 	r := newRigWith(t, func(b *content.Bundle) {
 		b.Rules["weak"] = brittleWeak
-		maw := b.Parts["part.crawler_maw"]
+		maw := b.Parts["part.test.crawler_maw"]
 		maw.Tags = []string{"brittle"}
-		b.Parts["part.crawler_maw"] = maw
+		b.Parts["part.test.crawler_maw"] = maw
 	})
 	got := soakAll(t, r, "type.soak")
 	if got["torso"] != 2 || got["head"] != 2 || got["legs"] != 1 {
@@ -76,9 +76,9 @@ func TestSwappingContentRecomputesAFormulaAlreadyEvaluated(t *testing.T) {
 		t.Fatal(err)
 	}
 	bundle.Rules["weak"] = brittleWeak
-	maw := bundle.Parts["part.crawler_maw"]
+	maw := bundle.Parts["part.test.crawler_maw"]
 	maw.Tags = []string{"brittle"}
-	bundle.Parts["part.crawler_maw"] = maw
+	bundle.Parts["part.test.crawler_maw"] = maw
 	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
@@ -112,7 +112,7 @@ func TestRuleReadingRollIsRefusedWhereAPrimitiveChecks(t *testing.T) {
 	r := newRigWith(t, func(b *content.Bundle) { b.Rules["lucky"] = "roll < 0.5" })
 	// attach_part has a Check; its parameters are text, so a formula in one is what could draw.
 	err := effects.Validate(r.w, "test", []content.EffectRef{
-		do("attach_part", "from", "= rule.lucky ? \"pack\" : \"severed\"", "item", "item.test_arm"),
+		do("attach_part", "from", "= rule.lucky ? \"inventory\" : \"severed\"", "item", "item.test_arm"),
 	})
 	if err == nil || !strings.Contains(err.Error(), "cannot read roll") {
 		t.Errorf("Validate = %v, want a refusal to read roll", err)

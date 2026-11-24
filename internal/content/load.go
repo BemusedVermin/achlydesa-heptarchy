@@ -105,6 +105,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkVocabulary()...)
 	problems = append(problems, registry.compileText()...)
 	problems = append(problems, registry.checkTextRefs()...)
+	problems = append(problems, registry.checkTextNames()...)
 	problems = append(problems, registry.checkKnowledge()...)
 	problems = append(problems, registry.checkCalendar()...)
 	problems = append(problems, registry.checkTemplates()...)
@@ -197,8 +198,8 @@ func (r *Registry) checkIDs() []error {
 			problems = append(problems, err)
 		}
 	}
-	for _, key := range sortedKeys(r.bundle.Sources) {
-		if err := checkID("sources", key, "source"); err != nil {
+	for _, key := range sortedKeys(r.bundle.Origins) {
+		if err := checkID("origins", key, "origin"); err != nil {
 			problems = append(problems, err)
 		}
 	}
@@ -230,7 +231,7 @@ func (r *Registry) checkIDs() []error {
 	return problems
 }
 
-// checkKnowledge checks that claims and sources name existing text, and that every claim has the
+// checkKnowledge checks that claims and origins name existing text, and that every claim has the
 // text that reports it in the log.
 func (r *Registry) checkKnowledge() []error {
 	var problems []error
@@ -246,8 +247,8 @@ func (r *Registry) checkKnowledge() []error {
 			problems = append(problems, fmt.Errorf("claims[%q].value: unknown value kind %q", key, kind))
 		}
 	}
-	for _, key := range sortedKeys(r.bundle.Sources) {
-		check(fmt.Sprintf("sources[%q].name", key), r.bundle.Sources[key].Name)
+	for _, key := range sortedKeys(r.bundle.Origins) {
+		check(fmt.Sprintf("origins[%q].name", key), r.bundle.Origins[key].Name)
 	}
 	return problems
 }
@@ -362,6 +363,57 @@ func (r *Registry) checkTextRefs() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Terrains) {
 		check(fmt.Sprintf("terrains[%q].name", key), r.bundle.Terrains[key].Name)
+	}
+	return problems
+}
+
+// checkTextNames checks that a record's name is "text." plus the record's own ID, so a name is found
+// beside its record. Parts are exempt, because several parts share one name, such as "text.part.arm".
+func (r *Registry) checkTextNames() []error {
+	var problems []error
+	b := r.bundle
+	check := func(collection, key string, name api.ContentID) {
+		if want := api.ContentID("text." + key); name != want {
+			problems = append(problems, fmt.Errorf("%s[%q].name: text ID is %q, want %q", collection, key, name, want))
+		}
+	}
+	for _, key := range sortedKeys(b.Materials) {
+		check("materials", key, b.Materials[key].Name)
+	}
+	for _, key := range sortedKeys(b.Terrains) {
+		check("terrains", key, b.Terrains[key].Name)
+	}
+	for _, key := range sortedKeys(b.Types) {
+		check("types", key, b.Types[key].Name)
+	}
+	for _, key := range sortedKeys(b.Items) {
+		check("items", key, b.Items[key].Name)
+	}
+	for _, key := range sortedKeys(b.Statuses) {
+		check("statuses", key, b.Statuses[key].Name)
+	}
+	for _, key := range sortedKeys(b.Factions) {
+		check("factions", key, b.Factions[key].Name)
+	}
+	for _, key := range sortedKeys(b.Templates) {
+		if name := b.Templates[key].Name; name != nil {
+			check("templates", key, *name)
+		}
+	}
+	for _, key := range sortedKeys(b.Actions) {
+		check("actions", key, b.Actions[key].Name)
+	}
+	for _, key := range sortedKeys(b.Maps) {
+		check("maps", key, b.Maps[key].Name)
+	}
+	for _, key := range sortedKeys(b.Claims) {
+		check("claims", key, b.Claims[key].Name)
+	}
+	for _, key := range sortedKeys(b.Origins) {
+		check("origins", key, b.Origins[key].Name)
+	}
+	for _, phase := range b.Calendar.Phases {
+		check("calendar.phases", string(phase.ID), phase.Name)
 	}
 	return problems
 }

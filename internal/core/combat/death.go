@@ -10,7 +10,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// actorGoneReason is the text ID of why a fallen body's pending actions are canceled.
+// actorGoneReason is the text ID of why an out-of-fight body's pending actions are canceled.
 const actorGoneReason api.ContentID = "text.combat.actor_gone"
 
 // onPartDamaged and onPartSevered check the body the part belongs to (or belonged to).
@@ -35,9 +35,9 @@ func planHasVital(w *sim.World, body ecs.Entity) bool {
 	return false
 }
 
-// shouldFall applies the death rule: a body with vital parts falls when none is left, and one with
-// none falls when it has no parts left at all.
-func shouldFall(w *sim.World, body ecs.Entity) bool {
+// shouldBeOut applies the death rule: a body with vital parts is out when none is left, and one with
+// none is out when it has no parts left at all.
+func shouldBeOut(w *sim.World, body ecs.Entity) bool {
 	parts := ecs.NewMap[comp.Part](w.ECS)
 	attached := anatomy.Parts(w, body)
 	hadVital := planHasVital(w, body)
@@ -60,7 +60,7 @@ func shouldFall(w *sim.World, body ecs.Entity) bool {
 // checkBody kills or downs the body when the death rule says so.
 func checkBody(w *sim.World, uid api.UID) {
 	body, ok := w.ByUID(uid)
-	if !ok || !ecs.NewMap[comp.Body](w.ECS).Has(body) || fallen(w, body) || !shouldFall(w, body) {
+	if !ok || !ecs.NewMap[comp.Body](w.ECS).Has(body) || outOfFight(w, body) || !shouldBeOut(w, body) {
 		return
 	}
 	leaveTimeline(w, body)
@@ -73,11 +73,11 @@ func checkBody(w *sim.World, uid api.UID) {
 		w.Bus.Publish(api.BodyDied{Body: uid, Name: nameOf(w, body), Tick: w.Now})
 	}
 	handOverLead(w, body)
-	checkPartyLost(w, body)
+	checkPartyWiped(w, body)
 }
 
 // handOverLead gives the lead to the first member in party order still standing when the leader
-// has fallen, so that somebody is always deciding for the party in follow mode.
+// is out of the fight, so that somebody is always deciding for the party in follow mode.
 func handOverLead(w *sim.World, body ecs.Entity) {
 	memberOf := ecs.NewMap[comp.MemberOf](w.ECS)
 	if !memberOf.Has(body) {
@@ -90,7 +90,7 @@ func handOverLead(w *sim.World, body ecs.Entity) {
 	}
 	for _, uid := range state.Order {
 		next, ok := w.ByUID(uid)
-		if !ok || fallen(w, next) {
+		if !ok || outOfFight(w, next) {
 			continue
 		}
 		order := []api.UID{uid}
@@ -128,9 +128,9 @@ func makeCorpse(w *sim.World, body ecs.Entity) {
 	}
 }
 
-// checkPartyLost publishes PartyLost when the body belonged to the controlled party and every
+// checkPartyWiped publishes PartyWiped when the body belonged to the controlled party and every
 // member of it is now dead or downed.
-func checkPartyLost(w *sim.World, body ecs.Entity) {
+func checkPartyWiped(w *sim.World, body ecs.Entity) {
 	memberOf := ecs.NewMap[comp.MemberOf](w.ECS)
 	if !memberOf.Has(body) {
 		return
@@ -139,11 +139,11 @@ func checkPartyLost(w *sim.World, body ecs.Entity) {
 	if !ecs.NewMap[comp.Controlled](w.ECS).Has(party) || len(livingMembers(w, party)) > 0 {
 		return
 	}
-	w.Bus.Publish(api.PartyLost{Party: w.UIDOf(party), Tick: w.Now})
+	w.Bus.Publish(api.PartyWiped{Party: w.UIDOf(party), Tick: w.Now})
 }
 
-// PartyLost reports whether the controlled party has members and all of them are dead or downed.
-func PartyLost(w *sim.World) bool {
+// PartyWiped reports whether the controlled party has members and all of them are dead or downed.
+func PartyWiped(w *sim.World) bool {
 	party, ok := controlledParty(w)
 	return ok && len(anatomy.Members(w, party)) > 0 && len(livingMembers(w, party)) == 0
 }

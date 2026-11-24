@@ -59,7 +59,7 @@ func schedule(t *testing.T, fx *fixture, actor, target api.UID, lands int64) ecs
 	t.Helper()
 	e, err := timeline.Schedule(
 		fx.w,
-		comp.Pending{Kind: "test.swing", Actor: actor, Part: actor, Target: target, Lands: lands},
+		comp.Pending{Kind: "test.swing", Actor: actor, Channel: actor, Target: target, Lands: lands},
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -122,7 +122,7 @@ func TestCancelNeverResolves(t *testing.T) {
 	if len(log.events) != 1 {
 		t.Fatalf("events = %v, want one ActionCanceled", log.events)
 	}
-	if got := log.events[0].(api.ActionCanceled); got.Reason.ID != "text.test.reason" || got.Actor != uid {
+	if got := log.events[0].(api.ActionCanceled); got.Reason.ID != "text.test.reason" || got.Source != uid {
 		t.Errorf("canceled = %+v", got)
 	}
 	if err := timeline.Occupy(fx.w, fx.bodyChannel(player), 8); err != nil {

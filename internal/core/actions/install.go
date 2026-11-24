@@ -107,7 +107,7 @@ func handleDo(w *sim.World, cmd api.Do) (int64, error) {
 		w.Bus.Publish(api.Rejected{Command: cmd.CommandKind(), Reason: reason})
 		return 0, nil
 	}
-	actor, ok := timeline.CurrentPlayer(w, cmd.Actor)
+	actor, ok := timeline.CurrentPlayer(w, cmd.Source)
 	if !ok {
 		return reject(api.Text{ID: "text.timeline.not_current"})
 	}

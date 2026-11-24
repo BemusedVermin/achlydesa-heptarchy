@@ -13,9 +13,9 @@ import (
 
 // Outcomes of a fight.
 const (
-	OutcomeNone = ""     // still going, or never began
-	OutcomeWon  = "won"  // a hostile died and none is left in sight
-	OutcomeLost = "lost" // every member of the party fell
+	OutcomeNone  = ""      // still going, or never began
+	OutcomeWon   = "won"   // a hostile died and none is left in sight
+	OutcomeWiped = "wiped" // every member of the party was wiped out
 )
 
 // Binder is implemented by a policy that needs the game it plays, such as to look up what a part
@@ -86,9 +86,9 @@ func (t *tracker) observe(events []api.Event, view api.View) {
 				t.hostileDeath++
 				t.end = e.Tick
 			}
-		case api.PartyLost:
+		case api.PartyWiped:
 			if t.outcome == OutcomeNone {
-				t.outcome, t.end = OutcomeLost, e.Tick
+				t.outcome, t.end = OutcomeWiped, e.Tick
 			}
 		}
 	}
@@ -225,7 +225,7 @@ func (p *FightPolicy) closeIn(steps []api.Option, hostile map[api.UID]bool) (api
 	found := false
 	for _, option := range steps {
 		do := option.Command.(api.Do)
-		from, ok := p.g.PositionOf(do.Actor)
+		from, ok := p.g.PositionOf(do.Source)
 		if !ok {
 			continue
 		}

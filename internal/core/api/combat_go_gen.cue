@@ -12,13 +12,13 @@ package api
 #AlertEndedKind:   "combat.alert_ended"
 #BodyDiedKind:     "combat.body_died"
 #BodyDownedKind:   "combat.body_downed"
-#PartyLostKind:    "combat.party_lost"
+#PartyWipedKind:   "combat.party_wiped"
 
 #SeveredWorn: "worn"
 #SeveredCut:  "cut"
 
-#AttachedFromPack:    "pack"
-#AttachedFromSevered: "severed"
+#AttachedFromInventory: "inventory"
+#AttachedFromSevered:   "severed"
 
 // PartDamaged reports that a part lost integrity.
 #PartDamaged: {
@@ -28,7 +28,7 @@ package api
 	integrity: int  @go(Integrity)
 
 	// Chosen is every choice of the action that dealt the damage, such as "type": "type.cut"; the
-	// Choices method returns it, so trigger formulas see it as chosen.
+	// Params method returns it, so trigger formulas see it as chosen.
 	choices?: {[string]: string} @go(Chosen,map[string]string)
 
 	// Source is the body that acted, or zero when nothing did.
@@ -103,8 +103,8 @@ package api
 	tick: int64  @go(Tick)
 }
 
-// PartyLost reports that every member of the controlled party is dead or downed.
-#PartyLost: {
+// PartyWiped reports that every member of the controlled party is dead or downed.
+#PartyWiped: {
 	party: #UID  @go(Party)
 	tick:  int64 @go(Tick)
 }

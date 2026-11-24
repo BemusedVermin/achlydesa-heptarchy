@@ -62,9 +62,9 @@ func (r *Registry) RenderValue(claim api.ContentID, value string) string {
 	return value
 }
 
-// Source returns the fact source with the given ID.
-func (r *Registry) Source(id api.ContentID) (Source, bool) {
-	source, ok := r.bundle.Sources[string(id)]
+// Origin returns the fact source with the given ID.
+func (r *Registry) Origin(id api.ContentID) (Origin, bool) {
+	source, ok := r.bundle.Origins[string(id)]
 	return source, ok
 }
 

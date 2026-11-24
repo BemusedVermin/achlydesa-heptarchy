@@ -11,13 +11,13 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// Type returns the damage type with the given ID.
-func (r *Registry) Type(id api.ContentID) (DamageType, bool) {
+// Type returns the type with the given ID.
+func (r *Registry) Type(id api.ContentID) (Type, bool) {
 	def, ok := r.bundle.Types[string(id)]
 	return def, ok
 }
 
-// TypeIDs lists every damage type ID in sorted order.
+// TypeIDs lists every type ID in sorted order.
 func (r *Registry) TypeIDs() []api.ContentID { return sortedIDs(r.bundle.Types) }
 
 // Item returns the item with the given ID.
@@ -51,7 +51,7 @@ func sortedIDs[V any](m map[string]V) []api.ContentID {
 	return ids
 }
 
-// checkTypes checks materials, damage types, items, factions and template packs, compiles type
+// checkTypes checks materials, types, items, factions and template inventories, compiles type
 // conditions, and records one-sided hostility as warnings.
 func (r *Registry) checkTypes() []error {
 	var problems []error

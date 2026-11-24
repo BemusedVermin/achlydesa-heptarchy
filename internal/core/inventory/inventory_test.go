@@ -86,14 +86,14 @@ func TestTake(t *testing.T) {
 	}
 }
 
-func TestCountOfAnEntityWithNoPackIsZero(t *testing.T) {
+func TestCountOfAnEntityWithNoInventoryIsZero(t *testing.T) {
 	w := sim.NewWorld(1)
 	holder := newHolder(w)
 	if got := inventory.Count(w, holder, "item.coal", 0); got != 0 {
 		t.Errorf("Count = %d, want 0", got)
 	}
 	if inventory.Take(w, holder, "item.coal", 0, 1) {
-		t.Error("Take from no pack succeeded")
+		t.Error("Take from no inventory succeeded")
 	}
 }
 
@@ -106,13 +106,13 @@ func TestAllElevenTypesLoadAndNameIsNeverRefused(t *testing.T) {
 		t.Errorf("types = %d, want 11", got)
 	}
 	tests := []struct {
-		pack map[string]int
+		held map[string]int
 		want bool
 	}{{map[string]int{"item.name": 1}, true}, {map[string]int{}, true}}
 	for _, tc := range tests {
-		got, _, err := reg.ModsRequires("type.name", content.ActionEnv{Pack: tc.pack})
+		got, _, err := reg.ModsRequires("type.name", content.ActionEnv{Inventory: tc.held})
 		if err != nil || got != tc.want {
-			t.Errorf("name with pack %v = %v, %v; want %v", tc.pack, got, err, tc.want)
+			t.Errorf("name with inventory %v = %v, %v; want %v", tc.held, got, err, tc.want)
 		}
 	}
 	if got, _, err := reg.ModsRequires("type.cut", content.ActionEnv{}); err != nil || !got {
@@ -130,9 +130,9 @@ func TestOneSidedHostilityWarnsButLoads(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	deep := bundle.Factions["faction.deep"]
+	deep := bundle.Factions["faction.wild"]
 	deep.HostileTo = []api.ContentID{"faction.crawling"} // only the party's side of the feud is left one-sided
-	bundle.Factions["faction.deep"] = deep
+	bundle.Factions["faction.wild"] = deep
 	reg, err := content.New(bundle)
 	if err != nil {
 		t.Fatal(err)
@@ -174,7 +174,7 @@ func partyOf(t *testing.T, w *sim.World) ecs.Entity {
 	return query.Entity()
 }
 
-func TestPartyStartsWithConsumablesAndSaveKeepsThePack(t *testing.T) {
+func TestPartyStartsWithConsumablesAndSaveKeepsTheInventory(t *testing.T) {
 	reg, err := content.Load(contentDir)
 	if err != nil {
 		t.Fatal(err)
@@ -207,6 +207,6 @@ func TestPartyStartsWithConsumablesAndSaveKeepsThePack(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got := stacks(world, partyOf(t, world)); !slices.Equal(got, before) {
-		t.Errorf("loaded pack = %+v, want %+v", got, before)
+		t.Errorf("loaded inventory = %+v, want %+v", got, before)
 	}
 }

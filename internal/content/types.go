@@ -19,15 +19,15 @@ type Bundle struct {
 	Maps      map[string]MapDef    `json:"maps"`
 	Start     Start                `json:"start"`
 	Claims    map[string]Claim     `json:"claims"`
-	Sources   map[string]Source    `json:"sources"`
+	Origins   map[string]Origin    `json:"origins"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
-	// Types are the damage types ("type." IDs), Items the things types burn ("item." IDs) and
+	// Types are the types a form can carry ("type." IDs), Items the things types burn ("item." IDs) and
 	// Factions the sides things fight for ("faction." IDs).
-	Types    map[string]DamageType `json:"types"`
-	Items    map[string]Item       `json:"items"`
-	Factions map[string]Faction    `json:"factions"`
+	Types    map[string]Type    `json:"types"`
+	Items    map[string]Item    `json:"items"`
+	Factions map[string]Faction `json:"factions"`
 	// Statuses are the conditions a body can be under for a while ("status." IDs).
 	Statuses map[string]Status `json:"statuses"`
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
@@ -99,8 +99,8 @@ const (
 // ValueKinds lists the non-empty value kinds a claim may name.
 var ValueKinds = []string{ValueMaterial, ValueText}
 
-// Source is where a fact came from, such as a sweep.
-type Source struct {
+// Origin is where a fact came from, such as a sweep.
+type Origin struct {
 	Name api.ContentID `json:"name"` // a text ID
 }
 
@@ -112,15 +112,16 @@ type Material struct {
 	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
-// DamageType is a way of hurting things, such as Cut or Soak. Code knows nothing of any one type:
+// Type is what a form carries into the part it lands on, such as Cut or Soak. Not every type does
+// damage. Code knows nothing of any one type:
 // what it needs and what it does are its data and mods.
-type DamageType struct {
+type Type struct {
 	Data
 	Mods
 	Name api.ContentID `json:"name"` // a text ID
 }
 
-// Item is something the pack carries.
+// Item is something the inventory carries.
 type Item struct {
 	Data
 	Mods
@@ -183,7 +184,7 @@ type Template struct {
 	Body *api.ContentID `json:"body,omitempty"`
 	// Protected gives the entity plot armor: it is downed rather than killed.
 	Protected bool `json:"protected,omitempty"`
-	// Inventory is the pack the entity starts with.
+	// Inventory is the inventory the entity starts with.
 	Inventory []StackDef `json:"inventory,omitempty"`
 	// Triggers react to events for the entities spawned from this template.
 	Triggers []Trigger `json:"triggers,omitempty"`
@@ -247,8 +248,8 @@ type PartyConfig struct {
 type CombatConfig struct {
 	// CalmTicks is how long no hostile may be in sight before an alert ends.
 	CalmTicks int64 `json:"calm_ticks"`
-	// RestTicks is how long a creature with no mind of its own keeps still before it looks again.
-	RestTicks int64 `json:"rest_ticks"`
+	// StillTicks is how long a creature with no mind of its own keeps still before it looks again.
+	StillTicks int64 `json:"still_ticks"`
 	// SightRadius and SightDepth are how far a member looks for hostiles, in hexes and in depths.
 	SightRadius int `json:"sight_radius"`
 	SightDepth  int `json:"sight_depth"`

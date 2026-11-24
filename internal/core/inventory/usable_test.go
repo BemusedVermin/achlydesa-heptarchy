@@ -36,7 +36,7 @@ func TestUsableCountsUnboundStacksAndStacksBoundToTheTarget(t *testing.T) {
 		}
 	}
 	if got := inventory.Usable(w, newHolder(w), target); len(got) != 0 {
-		t.Errorf("a body with no pack has %v usable", got)
+		t.Errorf("a body with no inventory has %v usable", got)
 	}
 }
 
