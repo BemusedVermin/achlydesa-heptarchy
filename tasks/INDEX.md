@@ -96,7 +96,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| [M3-01](M3-agents/M3-01-foundation-hostility-choosers.md) | Hostility, choosers and controller lookup in the foundation | in-progress | seam | M | none |
+| [M3-01](M3-agents/M3-01-foundation-hostility-choosers.md) | Hostility, choosers and controller lookup in the foundation | done | seam | M | none |
 | [M3-02](M3-agents/M3-02-needs.md) | Needs: records, levels, a per-phase tick and the satisfy effect | todo | seam | M | none |
 | [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | todo | feature | M | none |
 | [M3-03](M3-agents/M3-03-behaviors-agents-controller.md) | Behaviors and the agents controller | todo | seam | M | M3-02 |
