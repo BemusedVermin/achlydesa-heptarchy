@@ -195,6 +195,22 @@ func TestFormulasReadNeedsAndPhase(t *testing.T) {
 	f.wantLevel("need.food", 0.05)
 }
 
+func TestSwappingToContentWithoutANeedLetsTheGamePlayOn(t *testing.T) {
+	f := newFixture(t, map[string]float64{"need.water": 0.2, "need.food": 0.5}, nil)
+	bundle := contenttest.SampleBundle(t)
+	delete(bundle.Needs, "need.water")
+	for key, template := range bundle.Templates {
+		delete(template.Needs, "need.water")
+		bundle.Templates[key] = template
+	}
+	if err := f.g.SwapContent(contenttest.Registry(t, bundle)); err != nil {
+		t.Fatal(err)
+	}
+	f.nextPhase()
+	f.nextPhase()
+	f.wantLevel("need.water", 0.2)
+}
+
 func TestNeedsSurviveASave(t *testing.T) {
 	f := newFixture(t, map[string]float64{"need.water": 0.2, "need.food": 0.7}, nil)
 	f.nextPhase()
