@@ -48,7 +48,6 @@ func TestSetAtRoundTrips(t *testing.T) {
 		m := NewMap(1, "test", FuncSource(func(api.Cell) Terrain { return air }), Prisms{})
 		coord := rapid.IntRange(-40, 40)
 		c := cell(coord.Draw(rt, "q"), coord.Draw(rt, "r"), coord.Draw(rt, "depth"))
-		// Land on chunk edges often, where off-by-one bugs live.
 		if rapid.Bool().Draw(rt, "edge") {
 			c.Hex.Q = rapid.SampledFrom([]int{-17, -16, -1, 0, 15, 16}).Draw(rt, "edgeQ")
 		}
@@ -59,7 +58,6 @@ func TestSetAtRoundTrips(t *testing.T) {
 		if err != nil || got != rock {
 			rt.Fatalf("At(%v) = %v, %v; want rock", c, got, err)
 		}
-		// A neighbor is untouched.
 		other := c
 		other.Hex.Q++
 		if got, _ := m.At(other); got != air {

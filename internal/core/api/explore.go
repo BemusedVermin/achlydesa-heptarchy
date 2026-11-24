@@ -16,8 +16,10 @@ const (
 
 // The modes of party control, and who may have set one.
 const (
-	ControlFollow     = "follow"     // the leader is played; the rest trail in single file
-	ControlIndividual = "individual" // every member's decisions come to the player
+	// The leader is played; the rest trail in single file
+	ControlFollow = "follow"
+	// Every member's decisions come to the player
+	ControlIndividual = "individual"
 	ControlByPlayer   = "player"
 	ControlByAlert    = "alert"
 )
@@ -26,7 +28,7 @@ const (
 // when it ends. It is allowed at any time.
 type Control struct {
 	Party UID    `json:"party"`
-	Mode  string `json:"mode"` // ControlFollow or ControlIndividual
+	Mode  string `json:"mode"`
 }
 
 // CommandKind implements [Command].
@@ -43,9 +45,11 @@ func (Lead) CommandKind() string { return LeadKind }
 
 // ControlChanged reports that the party's control mode changed.
 type ControlChanged struct {
-	Party UID    `json:"party"`
-	Mode  string `json:"mode"` // ControlFollow or ControlIndividual
-	By    string `json:"by"`   // ControlByPlayer or ControlByAlert
+	Party UID `json:"party"`
+	// ControlFollow or ControlIndividual
+	Mode string `json:"mode"`
+	// ControlByPlayer or ControlByAlert
+	By string `json:"by"`
 }
 
 // EventKind implements [Event].
@@ -96,11 +100,12 @@ const (
 
 // Moved reports that a body stepped from one cell to another.
 type Moved struct {
-	Source UID    `json:"source"`
-	Map    MapID  `json:"map"`
-	From   Cell   `json:"from"`
-	To     Cell   `json:"to"`
-	Kind   string `json:"kind"` // one of MoveLevel, MoveUp, MoveDown, MoveDrop
+	Source UID   `json:"source"`
+	Map    MapID `json:"map"`
+	From   Cell  `json:"from"`
+	To     Cell  `json:"to"`
+	// One of MoveLevel, MoveUp, MoveDown, MoveDrop
+	Kind string `json:"kind"`
 }
 
 // EventKind implements [Event].
@@ -129,18 +134,21 @@ func (f Fell) LogText() Text {
 // MapView is the plan view of the map the party is on: at most one drawn cell per hex, with no
 // layers in it. Frontends draw what is here and shade by Below; they never learn a depth.
 type MapView struct {
-	Map      MapID        `json:"map"`
-	Name     string       `json:"name"`
-	Cells    []CellView   `json:"cells"`    // sorted by R, then Q
-	Entities []EntityView `json:"entities"` // sorted by UID
+	Map  MapID  `json:"map"`
+	Name string `json:"name"`
+	// Sorted by R, then Q
+	Cells []CellView `json:"cells"`
+	// Sorted by UID
+	Entities []EntityView `json:"entities"`
 }
 
 // CellView is one drawn hex.
 type CellView struct {
-	Hex     Hex    `json:"hex"`
-	Glyph   string `json:"glyph"`
-	Color   string `json:"color,omitempty"`
-	Visible bool   `json:"visible"` // false for a remembered cell
+	Hex   Hex    `json:"hex"`
+	Glyph string `json:"glyph"`
+	Color string `json:"color,omitempty"`
+	// False for a remembered cell
+	Visible bool `json:"visible"`
 	// Below is the drawn cell's depth minus the party's: positive is lower, negative is higher.
 	Below int `json:"below"`
 }
@@ -151,7 +159,8 @@ type EntityView struct {
 	Hex   Hex    `json:"hex"`
 	Glyph string `json:"glyph"`
 	Color string `json:"color,omitempty"`
-	Below int    `json:"below"` // as for [CellView]
+	// As for [CellView]
+	Below int `json:"below"`
 }
 
 // PartyView is the party the player commands.
@@ -160,8 +169,9 @@ type PartyView struct {
 	Map MapID `json:"map"`
 	// Hex is where to center the map: the current actor if it is a member, else the leader. It is a
 	// hex, never a depth.
-	Hex     Hex          `json:"hex"`
-	Members []MemberView `json:"members"` // in party order
+	Hex Hex `json:"hex"`
+	// In party order
+	Members []MemberView `json:"members"`
 	// Control is ControlFollow or ControlIndividual.
 	Control string `json:"control"`
 	// Alert is whether a hostile is in sight.

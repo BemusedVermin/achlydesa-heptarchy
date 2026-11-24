@@ -49,7 +49,7 @@ func TestConcurrentUseIsSafe(t *testing.T) {
 	if len(seen) != workers*100 {
 		t.Fatalf("got %d UIDs, want %d", len(seen), workers*100)
 	}
-	if _, err := w.Bus.Drain(w); err != nil { // flush anything a skipped concurrent Drain left
+	if _, err := w.Bus.Drain(w); err != nil {
 		t.Fatal(err)
 	}
 	if err := w.Systems.Freeze(); err != nil {

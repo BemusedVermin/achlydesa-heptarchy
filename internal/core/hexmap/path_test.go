@@ -8,7 +8,6 @@ import (
 )
 
 func TestPathDownRamp(t *testing.T) {
-	// Floor descends one per hex going east.
 	m := NewMap(1, "ramp", FuncSource(func(c api.Cell) Terrain {
 		if c.Depth >= 1+max(0, c.Hex.Q) {
 			return rock
@@ -25,8 +24,6 @@ func TestPathDownRamp(t *testing.T) {
 }
 
 func TestPathLedgeAndDrop(t *testing.T) {
-	// A three-cell ledge at q>=1: standing at depth -3 above rock from depth -2 down... model it as a floor that
-	// is three cells higher east of q=0.
 	high := FuncSource(func(c api.Cell) Terrain {
 		floor := 1
 		if c.Hex.Q >= 1 {
@@ -53,7 +50,6 @@ func TestPathLedgeAndDrop(t *testing.T) {
 }
 
 func TestPathGivesUp(t *testing.T) {
-	// Open infinite floor, target buried in rock: no route, but the search must still end.
 	m := floorWorld()
 	raise(t, m, cell(50, 0, 0))
 	route, ok, err := m.Path(cell(0, 0, 0), cell(50, 0, 0), defaultStepRules(), nil, 200)
@@ -68,7 +64,6 @@ func TestPathGivesUp(t *testing.T) {
 }
 
 func TestReachableWalksTheStepRulesWithinTheLimit(t *testing.T) {
-	// Floor descends one per hex going east, so each cell east is one step down from the last.
 	m := NewMap(1, "ramp", FuncSource(func(c api.Cell) Terrain {
 		if c.Depth >= 1+max(0, c.Hex.Q) {
 			return rock

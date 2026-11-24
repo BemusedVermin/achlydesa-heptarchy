@@ -24,7 +24,8 @@ const (
 type Step struct {
 	To   Link
 	Kind StepKind
-	Fall int // cells fallen, for StepDrop
+	// Cells fallen, for StepDrop
+	Fall int
 }
 
 // ErrBadDir is returned by [Map.Step] for a direction that is not one of the six.
@@ -72,7 +73,8 @@ func (m *Map) stepUp(from, n api.Cell, rules StepRules) (Step, bool, error) {
 		}
 		blocked, err := m.solid(headLink)
 		if err != nil || blocked {
-			return Step{}, false, err // no headroom, and climbing higher needs even more
+			// No headroom, and climbing higher needs even more
+			return Step{}, false, err
 		}
 		standable, err := m.Standable(above)
 		if err != nil {

@@ -24,7 +24,7 @@ const dayTicks = 12
 func setup(t *testing.T) (*sim.World, *clock.Clock, *[]string) {
 	t.Helper()
 	world := sim.NewWorld(1)
-	world.Content = contenttest.Sample(t) // only renders phase names
+	world.Content = contenttest.Sample(t)
 	clk := clock.New(calendar)
 	if err := clock.Install(world, clk); err != nil {
 		t.Fatal(err)

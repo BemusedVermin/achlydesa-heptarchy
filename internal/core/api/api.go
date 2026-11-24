@@ -35,7 +35,7 @@ const RejectedKind = "core.rejected"
 
 // Rejected reports a command the core refused.
 type Rejected struct {
-	Command string `json:"command"` // the refused command's kind
+	Command string `json:"command"`
 	Reason  Text   `json:"reason"`
 }
 

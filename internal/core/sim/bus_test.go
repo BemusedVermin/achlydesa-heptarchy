@@ -74,7 +74,6 @@ func TestBusRunawayCascadeErrors(t *testing.T) {
 	if len(delivered) != MaxCascade {
 		t.Errorf("delivered %d events, want %d", len(delivered), MaxCascade)
 	}
-	// The queue is cleared, so the world is usable afterwards.
 	if _, err := w.Bus.Drain(w); err != nil {
 		t.Errorf("Drain() after a failed drain: %v", err)
 	}

@@ -13,10 +13,16 @@ package api
 #Do: {
 	source: #UID       @go(Source)
 	action: #ContentID @go(Action)
+
+	// The limbs to use; empty lets the core pick the lowest UIDs
 	channels?: [...#UID] @go(Channels,[]UID)
+
+	// The body aimed at, or 0
 	target?:      #UID        @go(Target)
 	target_part?: #UID        @go(TargetPart)
 	dir?:         null | #Dir @go(Dir,*Dir)
+
+	// Extra choices by provider name, e.g. "type"
 	choices?: {[string]: string} @go(Choices,map[string]string)
 }
 

@@ -59,10 +59,11 @@ func (m *Map) clearLine(from, to api.Cell) (bool, error) {
 	line := hex.Pt(from.Hex.Q, from.Hex.R).LineTo(hex.Pt(to.Hex.Q, to.Hex.R))
 	steps := len(line) - 1
 	dd := to.Depth - from.Depth
-	if steps == 0 { // straight up or down
+	if steps == 0 {
 		return m.clearColumn(from, to)
 	}
-	lowClear, highClear := true, true // cells at the floor / ceiling of the interpolated depth
+	// Cells at the floor / ceiling of the interpolated depth
+	lowClear, highClear := true, true
 	for i := 1; i < steps; i++ {
 		num := from.Depth*steps + dd*i
 		low := floorDiv(num, steps)

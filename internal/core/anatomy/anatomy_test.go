@@ -31,7 +31,7 @@ type rig struct {
 func newRig(t *testing.T, seed uint64, mutate func(*content.Bundle)) *rig {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	contenttest.NoStart(&bundle) // the rig spawns its own party
+	contenttest.NoStart(&bundle)
 	if mutate != nil {
 		mutate(&bundle)
 	}
@@ -256,13 +256,11 @@ func TestDetachingAPartDropsItFromPartsAndGrants(t *testing.T) {
 	if got := anatomy.GrantTotals(r.w, member); !maps.Equal(got, without) {
 		t.Errorf("grants = %v, want %v", got, without)
 	}
-	// Reattaching brings it back.
 	ecs.NewMap[comp.PartOf](r.w.ECS).Add(part, &comp.PartOf{}, member)
 	if got := anatomy.GrantTotals(r.w, member); !maps.Equal(got, all) {
 		t.Errorf("grants after reattaching = %v, want %v", got, all)
 	}
-	// A part with no integrity left does not function, so it grants nothing.
-	ecs.NewMap[comp.Part](r.w.ECS).Get(part).Integrity = 0 // moving archetypes invalidated partData
+	ecs.NewMap[comp.Part](r.w.ECS).Get(part).Integrity = 0
 	if got := anatomy.GrantTotals(r.w, member); !maps.Equal(got, without) {
 		t.Errorf("grants with a broken part = %v, want %v", got, without)
 	}

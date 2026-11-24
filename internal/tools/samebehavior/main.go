@@ -14,6 +14,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/tools/internal/gitcmd"
 )
 
 func main() {
@@ -99,7 +101,7 @@ func run(args []string, stdout io.Writer, games player) error {
 	if err != nil {
 		return err
 	}
-	root, err := git(".", "rev-parse", "--show-toplevel")
+	root, err := gitcmd.Output(".", "rev-parse", "--show-toplevel")
 	if err != nil {
 		return err
 	}
@@ -154,13 +156,13 @@ func checkOut(root, base string) (string, func(), error) {
 		return "", nil, err
 	}
 	tree := filepath.Join(dir, "base")
-	if _, err := git(root, "worktree", "add", "--detach", "--quiet", tree, base); err != nil {
+	if _, err := gitcmd.Output(root, "worktree", "add", "--detach", "--quiet", tree, base); err != nil {
 		_ = os.RemoveAll(dir)
 		return "", nil, err
 	}
 	cleanup := func() {
 		// Playing the harness writes nothing into the tree, so it is clean and removes normally.
-		if _, err := git(root, "worktree", "remove", tree); err != nil {
+		if _, err := gitcmd.Output(root, "worktree", "remove", tree); err != nil {
 			_, _ = fmt.Fprintln(os.Stderr, "samebehavior: couldn't remove the base worktree:", err)
 			return
 		}
@@ -218,36 +220,37 @@ func compareHashes(want, got map[string]string) string {
 // compareGoldens compares every golden file, under a testdata folder, in the working tree with the
 // base's, after the renames. It returns one problem per file that differs, and how many it compared.
 func compareGoldens(root, base string, renames []rename) ([]string, int, error) {
-	baseFiles, err := git(root, "ls-tree", "-r", "--name-only", base)
+	baseFiles, err := gitcmd.Output(root, "ls-tree", "-r", "--name-only", base)
 	if err != nil {
 		return nil, 0, err
 	}
-	headFiles, err := git(root, "ls-files", "--cached", "--others", "--exclude-standard")
+	headFiles, err := gitcmd.Output(root, "ls-files", "--cached", "--others", "--exclude-standard")
 	if err != nil {
 		return nil, 0, err
 	}
-	expected := map[string]string{} // renamed path → base path
+	baseByRenamed := map[string]string{}
 	for _, path := range goldenPaths(baseFiles) {
-		expected[applyRenames(path, renames)] = path
+		baseByRenamed[applyRenames(path, renames)] = path
 	}
 	var problems []string
 	compared := 0
 	for _, path := range goldenPaths(headFiles) {
 		got, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(path)))
+		// Deleted but still in the index: the loop after this one reports it if the base had it.
 		if errors.Is(err, os.ErrNotExist) {
-			continue // deleted but still in the index; reported below if the base had it
+			continue
 		}
 		if err != nil {
 			return nil, 0, err
 		}
-		basePath, ok := expected[path]
+		basePath, ok := baseByRenamed[path]
 		if !ok {
 			problems = append(problems, path+": new golden file")
 			continue
 		}
-		delete(expected, path)
+		delete(baseByRenamed, path)
 		compared++
-		want, err := git(root, "show", base+":"+basePath)
+		want, err := gitcmd.Output(root, "show", base+":"+basePath)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -257,8 +260,8 @@ func compareGoldens(root, base string, renames []rename) ([]string, int, error) 
 			problems = append(problems, path+": "+diff)
 		}
 	}
-	for _, path := range slices.Sorted(maps.Keys(expected)) {
-		problems = append(problems, expected[path]+": golden file removed")
+	for _, path := range slices.Sorted(maps.Keys(baseByRenamed)) {
+		problems = append(problems, baseByRenamed[path]+": golden file removed")
 	}
 	return problems, compared, nil
 }
@@ -273,16 +276,4 @@ func goldenPaths(list string) []string {
 	}
 	slices.Sort(found)
 	return found
-}
-
-// git runs git in dir and returns its standard output without the trailing new line.
-func git(dir string, args ...string) (string, error) {
-	cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	out, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("git %s: %w: %s", strings.Join(args, " "), err, strings.TrimSpace(stderr.String()))
-	}
-	return strings.TrimRight(string(out), "\r\n"), nil
 }

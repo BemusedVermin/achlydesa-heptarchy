@@ -38,9 +38,10 @@ func (d DayStarted) LogText() Text {
 // ClockView is the time of day. Day counts from 1.
 type ClockView struct {
 	Day         int    `json:"day"`
-	Phase       string `json:"phase"` // display-ready phase name
+	Phase       string `json:"phase"`
 	TickInPhase int64  `json:"tick_in_phase"`
-	PhaseTicks  int64  `json:"phase_ticks"` // length of the current phase
+	// Length of the current phase
+	PhaseTicks int64 `json:"phase_ticks"`
 	// Label is the day and phase, rendered as one line.
 	Label string `json:"label"`
 }

@@ -12,6 +12,7 @@ package api
 // ChannelsLocked reports that channels were kept busy for longer, and what they were winding up
 // was canceled.
 #ChannelsLocked: {
+	// The channels' entity UIDs, in UID order
 	channels: [...#UID] @go(Channels,[]UID)
 	ticks: int64 @go(Ticks)
 	tick:  int64 @go(Tick)
@@ -19,6 +20,7 @@ package api
 
 // ActionsInterrupted reports that pending actions were canceled without locking anything.
 #ActionsInterrupted: {
+	// The bodies whose actions were canceled, in UID order
 	actors: [...#UID] @go(Actors,[]UID)
 	tick: int64 @go(Tick)
 }

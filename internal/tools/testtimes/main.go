@@ -141,9 +141,10 @@ func loadTimes(path string) (times, error) {
 
 // row is one package's time, with its baseline and what's wrong with it, if anything.
 type row struct {
-	pkg        string
-	took       time.Duration
-	baseline   time.Duration // zero when there is no baseline for the package
+	pkg  string
+	took time.Duration
+	// baseline is zero when there is no baseline for the package.
+	baseline   time.Duration
 	overBudget bool
 	slower     bool
 }

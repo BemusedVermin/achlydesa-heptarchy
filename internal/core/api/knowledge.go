@@ -10,12 +10,15 @@ const (
 
 // Fact is one thing a knower holds to be true about a subject.
 type Fact struct {
-	Subject    UID       `json:"subject"`    // who or what the fact is about
-	Claim      ContentID `json:"claim"`      // a claim ID
-	Value      string    `json:"value"`      // e.g. "material.clay"
-	Origin     ContentID `json:"origin"`     // an origin ID
-	Confidence float64   `json:"confidence"` // 0..1
-	Tick       int64     `json:"tick"`
+	// Who or what the fact is about
+	Subject UID       `json:"subject"`
+	Claim   ContentID `json:"claim"`
+	// E.g. "material.clay"
+	Value  string    `json:"value"`
+	Origin ContentID `json:"origin"`
+	// 0..1
+	Confidence float64 `json:"confidence"`
+	Tick       int64   `json:"tick"`
 }
 
 // FactLearned reports that a knower learned a fact, or learned it again from the same source.

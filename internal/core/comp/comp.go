@@ -20,15 +20,18 @@ type Identity struct {
 
 // Appearance is how an entity is drawn.
 type Appearance struct {
-	Glyph  string `json:"glyph"`            // one grapheme, for the terminal
-	Color  string `json:"color,omitempty"`  // a color name or #rrggbb
-	Sprite string `json:"sprite,omitempty"` // for the graphics frontend later
+	// One grapheme, for the terminal
+	Glyph  string `json:"glyph"`
+	Color  string `json:"color,omitempty"`
+	Sprite string `json:"sprite,omitempty"`
 }
 
 // Party is what a whole party shares. It sits on the party entity, which has no position.
 type Party struct {
-	Slots  int     `json:"slots"`  // fighters at a time, copied from content at spawn
-	Leader api.UID `json:"leader"` // the member who leads; always first in Order
+	// Fighters at a time, copied from content at spawn
+	Slots int `json:"slots"`
+	// The member who leads; always first in Order
+	Leader api.UID `json:"leader"`
 	// Order is the party order: the leader first, then the rest. Each follower follows the member
 	// just before it. Spawning fills it from the party template.
 	Order []api.UID `json:"order"`
@@ -67,29 +70,37 @@ type Busy struct {
 
 // Actor puts a body on the timeline.
 type Actor struct {
-	Controller string `json:"controller"` // "player", "follow", "idle", ...
-	WaitUntil  int64  `json:"wait_until"` // no decision before this tick
+	// "player", "follow", "idle", ...
+	Controller string `json:"controller"`
+	// No decision before this tick
+	WaitUntil int64 `json:"wait_until"`
 }
 
 // Pending is an action in flight, on an entity of its own: one per action. Whatever the action
 // needs beyond this lives in a kind-specific component on the same entity.
 type Pending struct {
-	Kind    string  `json:"kind"`    // the resolver's name, e.g. "actions.land"
-	Actor   api.UID `json:"actor"`   // the body acting
-	Channel api.UID `json:"channel"` // the channel it uses (an arm), or the body
-	Target  api.UID `json:"target"`  // the body it is aimed at, or 0
-	Started int64   `json:"started"` // the tick it was started
-	Lands   int64   `json:"lands"`   // the tick it lands
-	Seq     uint64  `json:"seq"`     // scheduling order, for ties
+	// The resolver's name, e.g. "actions.land"
+	Kind  string  `json:"kind"`
+	Actor api.UID `json:"actor"`
+	// The channel it uses (an arm), or the body
+	Channel api.UID `json:"channel"`
+	// The body it is aimed at, or 0
+	Target  api.UID `json:"target"`
+	Started int64   `json:"started"`
+	Lands   int64   `json:"lands"`
+	// Scheduling order, for ties
+	Seq uint64 `json:"seq"`
 }
 
 // Landing is what an action from content needs to land, on the same entity as its Pending. It
 // names every channel the action occupies, so a lock on any of them cancels it.
 type Landing struct {
-	Action     api.ContentID     `json:"action"`
-	Channels   []api.UID         `json:"channels"`    // the channels it occupies, in UID order
-	TargetPart api.UID           `json:"target_part"` // the part aimed at, or 0
-	HasDir     bool              `json:"has_dir"`     // whether Dir is set
+	Action api.ContentID `json:"action"`
+	// The channels it occupies, in UID order
+	Channels []api.UID `json:"channels"`
+	// The part aimed at, or 0
+	TargetPart api.UID           `json:"target_part"`
+	HasDir     bool              `json:"has_dir"`
 	Dir        api.Dir           `json:"dir"`
 	Choices    map[string]string `json:"choices,omitempty"`
 }
@@ -119,13 +130,15 @@ type Knowledge struct {
 
 // Grant is something a part gives its body: the ability to act, to aim, or speed.
 type Grant struct {
-	Kind  string `json:"kind"`            // "action" | "targeting" | "speed"
-	Value int    `json:"value,omitempty"` // speed amount; ignored for the others
+	// "action" | "targeting" | "speed"
+	Kind string `json:"kind"`
+	// Speed amount; ignored for the others
+	Value int `json:"value,omitempty"`
 }
 
 // Body marks an entity as a body made of parts.
 type Body struct {
-	Plan api.ContentID `json:"plan"` // the body plan it was built from
+	Plan api.ContentID `json:"plan"`
 }
 
 // Part is one part of a body, an entity of its own. It belongs to a body while it has PartOf.
@@ -135,8 +148,9 @@ type Part struct {
 	Material     api.ContentID `json:"material"`
 	Integrity    int           `json:"integrity"`
 	MaxIntegrity int           `json:"max_integrity"`
-	Grants       []Grant       `json:"grants"` // copied from content at spawn
-	Vital        bool          `json:"vital"`
+	// Copied from content at spawn
+	Grants []Grant `json:"grants"`
+	Vital  bool    `json:"vital"`
 }
 
 // PartOf is the Ark relation from a part to the body it is attached to. Removing it severs the part.
@@ -157,8 +171,9 @@ type Downed struct{}
 
 // StatusEntry is one status a body is under, and the tick it ends.
 type StatusEntry struct {
-	Status api.ContentID `json:"status"` // a status ID
-	Until  int64         `json:"until"`  // the tick it expires; it is gone from then on
+	Status api.ContentID `json:"status"`
+	// The tick it expires; it is gone from then on
+	Until int64 `json:"until"`
 }
 
 // Statuses is the statuses a body is under, sorted by status ID with none twice. Use the combat
@@ -169,7 +184,7 @@ type Statuses struct {
 
 // Graft marks a fitted piece of Serilmen. A body's own severed part put back is a Reattached, not a graft.
 type Graft struct {
-	Piece api.ContentID `json:"piece"` // the item it came from
+	Piece api.ContentID `json:"piece"`
 }
 
 // Reattached marks a body's own severed part that was put back. Unlike a Graft, Relic and Rot ignore it.
@@ -177,7 +192,7 @@ type Reattached struct{}
 
 // Allegiance is the side a body fights for.
 type Allegiance struct {
-	Faction api.ContentID `json:"faction"` // a faction ID
+	Faction api.ContentID `json:"faction"`
 }
 
 // Triggers lists the content triggers an entity carries from its template, by trigger ID (see
