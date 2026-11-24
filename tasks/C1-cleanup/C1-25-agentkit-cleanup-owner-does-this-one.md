@@ -1,7 +1,7 @@
 ---
 id: C1-25
 title: "agentkit cleanup (owner does this one)"
-status: proposed
+status: obsolete
 milestone: C1
 kind: debt
 depends_on: [C1-24, C1-14]
@@ -59,3 +59,4 @@ Findings:
 
 
 - Triaged 2026-11-23: left proposed, the owner chose not now.
+- Triaged 2026-11-23: obsolete, the owner decided not to do it: developer tools (`internal/tools/`) are excluded from cleanups, and nothing waits on it any more. C1-14 (`go.yaml.in/yaml/v3` as a direct dependency for front matter) was to be applied here; it is not applied.
