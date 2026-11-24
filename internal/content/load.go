@@ -357,8 +357,11 @@ func (r *Registry) checkParty() []error {
 		p.addf("party.sight_radius: must be at least 1, got %d", cfg.SightRadius)
 	}
 	counts := map[string]int{
-		"sight_depth": cfg.SightDepth, "plan_range": cfg.PlanRange, "max_step_up": cfg.MaxStepUp, "max_step_down": cfg.MaxStepDown,
-		"max_drop": cfg.MaxDrop,
+		"sight_depth":   cfg.SightDepth,
+		"plan_range":    cfg.PlanRange,
+		"max_step_up":   cfg.MaxStepUp,
+		"max_step_down": cfg.MaxStepDown,
+		"max_drop":      cfg.MaxDrop,
 	}
 	for _, name := range sortedKeys(counts) {
 		if counts[name] < 0 {
