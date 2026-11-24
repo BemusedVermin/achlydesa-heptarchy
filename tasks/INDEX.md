@@ -96,7 +96,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| [M3-01](M3-agents/M3-01-foundation-hostility-choosers.md) | Hostility, choosers and controller lookup in the foundation | todo | seam | M | none |
+| [M3-01](M3-agents/M3-01-foundation-hostility-choosers.md) | Hostility, choosers and controller lookup in the foundation | in-progress | seam | M | none |
 | [M3-02](M3-agents/M3-02-needs.md) | Needs: records, levels, a per-phase tick and the satisfy effect | todo | seam | M | none |
 | [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | todo | feature | M | none |
 | [M3-03](M3-agents/M3-03-behaviors-agents-controller.md) | Behaviors and the agents controller | todo | seam | M | M3-02 |
@@ -142,6 +142,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M3-01.F1](followups/M3-01.F1-install-hook-before-start.md) | Run game.Config.Install before the start map spawns its bodies | proposed | seam | unplanned | M3-01 |
 | [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | done | test | C1 | C1-23 |
 | [C1-23.F1](followups/C1-23.F1-reload-messages-in-content.md) | Move the hot reload's log messages into content text | obsolete | debt | C1 | C1-23 |
 | [C1-26.F1.F1](followups/C1-26.F1.F1-rename-moves-form-type-heading.md) | Rename the "Moves = form × type" heading | done | debt | C1 | C1-26.F1 |

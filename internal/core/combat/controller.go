@@ -1,7 +1,6 @@
 package combat
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -20,26 +19,17 @@ import (
 
 const (
 	huntController = "hunt"
-	// scoreChooser is the name the content-scored chooser is registered under, and the one the
-	// hunt controller asks for.
-	scoreChooser = "score"
 	// huntPathNodes bounds the search for a way to the prey.
 	huntPathNodes = 200
 	// rngStream is the stream a creature draws from when it picks at random.
 	rngStream = "combat"
 )
 
-// Chooser picks one of the intents a body could start. Choosers are registered by name.
-type Chooser interface {
-	// Choose returns the intent to start, or false when it wants none.
-	Choose(w *sim.World, actor ecs.Entity, intents []actions.Intent) (actions.Intent, bool)
-}
-
 // ScoreChooser scores each intent with content's ai_score and takes the best, breaking ties with
-// the combat stream.
+// the combat stream. Install registers it as [actions.DefaultChooser].
 type ScoreChooser struct{}
 
-// Choose implements [Chooser].
+// Choose implements [actions.Chooser].
 func (ScoreChooser) Choose(w *sim.World, actor ecs.Entity, intents []actions.Intent) (actions.Intent, bool) {
 	var best []actions.Intent
 	var top float64
@@ -86,16 +76,6 @@ func scoreOf(w *sim.World, actor ecs.Entity, in actions.Intent) (float64, error)
 	return w.Content.AIScore(env)
 }
 
-// RegisterChooser makes a chooser available by name. Names are unique.
-func RegisterChooser(w *sim.World, name string, c Chooser) error {
-	st := stateOf(w)
-	if _, dup := st.choosers[name]; dup {
-		return fmt.Errorf("combat: chooser %q already registered", name)
-	}
-	st.choosers[name] = c
-	return nil
-}
-
 // hunter is the controller of a creature that goes after the nearest hostile.
 type hunter struct{}
 
@@ -135,7 +115,7 @@ func pick(w *sim.World, body ecs.Entity, attacks []actions.Intent, aims bool) (a
 	if !aims {
 		return attacks[w.RNG.Get(rngStream).IntN(len(attacks))], true
 	}
-	chooser, ok := scoredChooser(w)
+	chooser, ok := actions.ChooserFor(w, body)
 	if !ok {
 		return actions.Intent{}, false
 	}
@@ -145,11 +125,6 @@ func pick(w *sim.World, body ecs.Entity, attacks []actions.Intent, aims bool) (a
 func isAttack(w *sim.World, in actions.Intent) bool {
 	def, ok := w.Content.Action(in.Action)
 	return ok && slices.Contains(def.Tags, w.Content.Combat().AttackTag)
-}
-
-func scoredChooser(w *sim.World) (Chooser, bool) {
-	chooser, ok := stateOf(w).choosers[scoreChooser]
-	return chooser, ok
 }
 
 // nearestHostile finds the visible hostile closest by hex distance plus depth difference, then UID.
@@ -168,7 +143,7 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 	// In UID order, so the first of equals wins.
 	for _, other := range hostileCandidates(w) {
 		pos := positions.Get(other)
-		if pos.Map != from.Map || !seen[pos.At] || !Hostile(w, body, other) {
+		if pos.Map != from.Map || !seen[pos.At] || !anatomy.Hostile(w, body, other) {
 			continue
 		}
 		distance := hexmap.CellDistance(from.At, pos.At)

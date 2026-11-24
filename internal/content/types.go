@@ -355,6 +355,8 @@ type TimelineConfig struct {
 type ActorDef struct {
 	// Controller is "player", "follow", "idle", ...
 	Controller string `json:"controller"`
+	// Chooser names the registered chooser the body's attacks are picked with; empty means "score".
+	Chooser string `json:"chooser,omitempty"`
 }
 
 // EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for

@@ -11,7 +11,7 @@ import (
 )
 
 // applyActAlone makes the source part, which must be a graft, start an attack of its own for its
-// host. It picks through the scored chooser among the attacks that use only its channel and may
+// host. It picks through its body's chooser among the attacks that use only its channel and may
 // aim at anyone, either side. It does nothing when the part is not a free graft or has no attack.
 func applyActAlone(ctx *effects.Context, _ effects.Params) error {
 	w := ctx.World
@@ -32,7 +32,7 @@ func applyActAlone(ctx *effects.Context, _ effects.Params) error {
 	if len(own) == 0 {
 		return nil
 	}
-	chooser, ok := scoredChooser(w)
+	chooser, ok := actions.ChooserFor(w, body)
 	if !ok {
 		return nil
 	}

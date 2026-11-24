@@ -1,7 +1,7 @@
 ---
 id: M3-01
 title: Hostility, choosers and controller lookup in the foundation
-status: todo
+status: in-progress
 milestone: M3
 kind: seam
 depends_on: []
