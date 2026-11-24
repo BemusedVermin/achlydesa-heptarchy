@@ -21,6 +21,6 @@ needs: {
 }
 
 text: {
-	"text.need.water": "thirst"
-	"text.need.food":  "hunger"
+	"text.need.water": "water"
+	"text.need.food":  "food"
 }

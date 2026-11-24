@@ -67,6 +67,7 @@ func tickNeed(w *sim.World, body ecs.Entity, id api.ContentID, phase string) err
 		return nil
 	}
 	def, ok := w.Content.Need(id)
+	// TODO(M3-02.F1): a need dropped by hot-reloaded content should not stop the game.
 	if !ok {
 		return fmt.Errorf("unknown need %q", id)
 	}

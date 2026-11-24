@@ -98,7 +98,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
 | [M3-01](M3-agents/M3-01-foundation-hostility-choosers.md) | Hostility, choosers and controller lookup in the foundation | done | seam | M | none |
-| [M3-02](M3-agents/M3-02-needs.md) | Needs: records, levels, a per-phase tick and the satisfy effect | in-progress | seam | M | none |
+| [M3-02](M3-agents/M3-02-needs.md) | Needs: records, levels, a per-phase tick and the satisfy effect | done | seam | M | none |
 | [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | todo | feature | M | none |
 | [M3-03](M3-agents/M3-03-behaviors-agents-controller.md) | Behaviors and the agents controller | todo | seam | M | M3-02 |
 | [M3-07](M3-agents/M3-07-playground.md) | A playground: the test maps joined by gates | todo | content | M | M3-06 |
@@ -143,6 +143,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M3-02.F1](followups/M3-02.F1-hot-reload-dropped-need.md) | Decide what happens to a body's need when hot-reloaded content drops it | proposed | debt | unplanned | M3-02 |
 | [C1-31.F1](followups/C1-31.F1-collection-names-enum.md) | Collection names as an enforced set | proposed | debt | unplanned | C1-31 |
 | [M3-01.F1](followups/M3-01.F1-install-hook-before-start.md) | Run game.Config.Install before the start map spawns its bodies | done | seam | M3 | M3-01 |
 | [C1-23.F2](followups/C1-23.F2-save-property-test-speed.md) | Bring the save property test under 2 seconds | done | test | C1 | C1-23 |
