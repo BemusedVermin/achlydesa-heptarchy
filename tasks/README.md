@@ -87,7 +87,7 @@ Between milestones, the owner runs a cleanup: `/audit` has read-only agents look
 
 Developer tools (`internal/tools/` and what they run) are excluded from cleanups: `/audit` does not sweep them, and a cleanup task does not touch them.
 
-Every cleanup task must show it changed no behavior: `go tool task same-behavior` plays the same harness games on `origin/master` and on the working tree, and compares the CSV, the final hashes and the golden files. A rename task lists its renames in its front matter (`renames: [old=new, ...]`), so the comparison allows exactly those. A tests task (`kind: test`) instead changes only tests. `go tool task check-pr` picks the right check from the branch's task, and CI runs it on every pull request, along with the task bookkeeping checks.
+Every cleanup task must show it changed no behavior: `go tool task same-behavior` plays the same harness games on `origin/master` and on the working tree, and compares the CSV, the final hashes and the golden files. A rename task lists its renames in its front matter (`renames: [old=new, ...]`), so the comparison allows exactly those. A task whose Spec changes behavior on purpose, such as deleting a golden file, lists each line of the same-behavior report it expects in `allowed_differences` (for example `allowed_differences: ["internal/core/combat/testdata/hunt.golden: golden file removed"]`); check-pr passes when every difference is listed, fails on any other, and warns about a listed one that didn't happen. A tests task (`kind: test`) instead changes only tests. `go tool task check-pr` picks the right check from the branch's task, and CI runs it on every pull request, along with the task bookkeeping checks.
 
 ## Writing a task spec
 

@@ -57,6 +57,11 @@ func task(id, status, kind, extra, criteria string) string {
 // renameLine declares the rename C1-02 makes.
 const renameLine = "renames: [map.clay_plain=map.clay_flat]\n"
 
+// allowRemovedGolden lets a cleanup task remove testdata/hunt.golden.
+const allowRemovedGolden = "allowed_differences: [\"testdata/hunt.golden: golden file removed\"]\n"
+
+const removedGoldenReport = "Behavior differs from base:\n- testdata/hunt.golden: golden file removed\n"
+
 const indexHeader = "| ID | Title | Status |\n| --- | --- | --- |\n"
 
 // markDone sets the status of the index row that starts with row to done.
@@ -102,6 +107,7 @@ func TestCheckPR(t *testing.T) {
 		branch       string
 		changes      map[string]string
 		sameBehavior bool
+		report       string
 		problems     []string
 		warnings     []string
 		comments     []string
@@ -156,6 +162,42 @@ func TestCheckPR(t *testing.T) {
 			wantRenames: []string{"map.clay_plain=map.clay_flat"},
 		},
 		{
+			name:        "a cleanup whose differences are all allowed",
+			branch:      "task/C1-02-rename",
+			changes:     done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
+			report:      removedGoldenReport,
+			wantRenames: []string{},
+		},
+		{
+			name:    "a cleanup with a difference it doesn't allow",
+			branch:  "task/C1-02-rename",
+			changes: done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
+			report:  removedGoldenReport + "- testdata/fight.golden: line 3 is \"b\", was \"a\"\n",
+			problems: []string{
+				"C1-02 changed behavior beyond its allowed_differences:\n- testdata/fight.golden: line 3",
+			},
+			wantRenames: []string{},
+		},
+		{
+			name:         "an allowed difference that doesn't happen",
+			branch:       "task/C1-02-rename",
+			changes:      done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
+			sameBehavior: true,
+			warnings: []string{
+				`C1-02 allows the difference "testdata/hunt.golden: golden file removed", but it didn't happen`,
+			},
+			wantRenames: []string{},
+		},
+		{
+			name:        "a same-behavior run that fails without listing differences",
+			branch:      "task/C1-02-rename",
+			changes:     done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
+			report:      "samebehavior: exit status 1\n",
+			problems:    []string{"C1-02 changed behavior:\nsamebehavior: exit status 1"},
+			warnings:    []string{"didn't happen"},
+			wantRenames: []string{},
+		},
+		{
 			name:   "a tests task that changes only tests",
 			branch: "task/C1-03-tests",
 			changes: with(
@@ -197,6 +239,9 @@ func TestCheckPR(t *testing.T) {
 			ran := false
 			checker := func(_, _ string, renames []string) (string, bool) {
 				ran, gotRenames = true, renames
+				if test.report != "" {
+					return test.report, test.sameBehavior
+				}
 				return "same-behavior report", test.sameBehavior
 			}
 			result, err := checkPR(root, test.branch, "base", checker)

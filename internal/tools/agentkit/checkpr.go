@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -44,7 +45,7 @@ type prCheck struct {
 //   - tasks/INDEX.md agrees with every task file;
 //   - on a task branch, the task is done or blocked, with its unticked criteria reported;
 //   - on a cleanup task's branch, a tests task changed only tests and task files, and any other
-//     cleanup task plays exactly as base does, after its declared renames.
+//     cleanup task plays exactly as base does, after its declared renames and allowed differences.
 func checkPR(root, branch, base string, sameBehavior behaviorChecker) (prCheck, error) {
 	var result prCheck
 	tasks, err := loadTasks(root)
@@ -97,12 +98,45 @@ func checkPR(root, branch, base string, sameBehavior behaviorChecker) (prCheck, 
 		return result, checkOnlyTests(root, base, id, &result)
 	}
 	report, same := sameBehavior(root, base, task.renames)
-	if same {
-		result.notes = append(result.notes, strings.TrimSpace(report))
-	} else {
-		result.problems = append(result.problems, id+" changed behavior:\n"+strings.TrimSpace(report))
-	}
+	judgeBehavior(id, strings.TrimSpace(report), same, task.allowedDifferences, &result)
 	return result, nil
+}
+
+// judgeBehavior passes a same-behavior report whose every difference is in allowed, and warns
+// about each allowed difference that didn't happen. A failed report that lists no differences,
+// such as a build error, always fails.
+func judgeBehavior(id, report string, same bool, allowed []string, result *prCheck) {
+	var found, unexpected []string
+	if !same {
+		for line := range strings.SplitSeq(strings.ReplaceAll(report, "\r\n", "\n"), "\n") {
+			difference, isDifference := strings.CutPrefix(line, "- ")
+			if !isDifference {
+				continue
+			}
+			found = append(found, difference)
+			if !slices.Contains(allowed, difference) {
+				unexpected = append(unexpected, difference)
+			}
+		}
+	}
+	for _, difference := range allowed {
+		if !slices.Contains(found, difference) {
+			result.warnings = append(result.warnings, fmt.Sprintf(
+				"%s allows the difference %q, but it didn't happen", id, difference))
+		}
+	}
+	switch {
+	case same:
+		result.notes = append(result.notes, report)
+	case len(found) > 0 && len(unexpected) == 0:
+		result.notes = append(result.notes, id+" changed behavior only as its allowed_differences say:\n"+report)
+	case len(unexpected) > 0 && len(allowed) > 0:
+		result.problems = append(result.problems, fmt.Sprintf(
+			"%s changed behavior beyond its allowed_differences:\n- %s\n%s",
+			id, strings.Join(unexpected, "\n- "), report))
+	default:
+		result.problems = append(result.problems, id+" changed behavior:\n"+report)
+	}
 }
 
 // commentsSince reviews the comments on the Go lines changed since the branch left base.
