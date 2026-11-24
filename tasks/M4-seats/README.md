@@ -23,6 +23,6 @@
 
 ## Questions to settle before breaking it down
 
-- How regions are defined before procgen exists.
+- How regions are defined before procgen exists. Settled while planning M3: one hand-made map per region, joined by gates (`docs/go-technical-design.md`, "Level of detail").
 - What exactly the companion beat needs from the seat system.
 - Act I: is the first god the already-enshrined archon, or a second seat completing? (Open in the game design.)

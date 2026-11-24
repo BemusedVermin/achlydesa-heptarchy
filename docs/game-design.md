@@ -84,7 +84,10 @@ The towns are fixed islands inside the deep, at different depths, with generated
 | Attend town events | The Osten, the test at ten, funerals at the thrukk, each on its town's calendar | Being in the right place at the right time; candidates surface at these |
 | Prepare | Buy, barter and gather the local material | Consumable types |
 | Heal and graft | Recover injuries over days; graft in the salken village | The body-as-actions economy |
+| Eat and drink | Buy or draw food and water for the descent | How long the party can stay below |
 | Requests | Find someone who went below, bring a body back for the thrukk | Quests, and the cast's relationships |
+
+**Healing.** Resting in town restores a damaged part's integrity over days, at a rate set in content. A severed part never grows back: a graft, or reattaching a part the party kept, is the only way to replace one.
 
 Access matters: a salken can only enter ibben towns through the lunn, the way the dead come in, while the Reaper's standing opens doors. Who is in the party decides who will talk.
 
@@ -338,6 +341,7 @@ Investigation turns time into knowledge of a holder's parts and weaknesses. Ther
 - **Seats advance daily,** and their regions deepen whether or not the player visits.
 - **Depth costs time:** deeper descents take longer, and the party has to get back.
 - **Healing and grafting take days.** Pushing on while maimed saves time but costs actions in every fight.
+- **Food and water run out below.** What the party carries sets how long a descent can last.
 - **Supplies are fetched from places:** coal from dead crawlspaces, salk dust and Violet blood from the surface, lake water from underground lakes, daylight jars from the salk, lees from the thrukk, keepsakes from people.
 - **The flock is weather.** It moves across the salk on its own schedule and decides which surface routes are open. Anyone it catches is annihilated, if the doctrine is right.
 - **Export days** land irregularly, on a schedule set by a vote and an algorithm in another world. They reshape the deep overnight.
@@ -468,6 +472,10 @@ The roster is fixed rather than freely recruited, and it has two kinds of compan
 
 One companion is bound to a candidate they love (see the companion beat under Candidates and seats). Because a companion's parts are the party's actions, losing them to a seat costs the party in combat too.
 
+### Food and water
+
+Party members need food and water, on the same needs engine as everyone else. Hunger and thirst rise with time and are met by eating rations and drinking lake water from the party's inventory, so drinking spends the same lake water that Soak uses. A member who goes without is slowed first, then loses integrity from vital parts; the thresholds are content. Starvation can kill, but slowly.
+
 ### Recruits
 
 The protagonists can hire generic people to fight beside the fixed roster. Recruits are where the deep's brutality lands without costing the story its characters.
@@ -481,6 +489,8 @@ The protagonists can hire generic people to fight beside the fixed roster. Recru
 Recruits take one of the four fight slots; a fifth slot is something to playtest. Recruits can be grafted, which makes them the cheapest way to learn what a piece does, and the graft's pull works on them too. A grafted recruit who deserts takes the piece with them.
 
 **Price:** there is no fixed wage or currency. Each NPC names their own price, in what they want, scaled by what they bring. Merchants work the same way.
+
+**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list; every day it goes unpaid raises their discontent, which turns into grumbling and then desertion.
 
 ### Exotic recruits
 

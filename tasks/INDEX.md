@@ -90,13 +90,39 @@ Brief: [C1-cleanup/README.md](C1-cleanup/README.md)
 | [C1-29](C1-cleanup/C1-29-content-comments-to-the-tightened-rule.md) | Content comments to the tightened rule | done | debt | M | none |
 | [C1-30](C1-cleanup/C1-30-actions-comments-to-the-tightened-rule.md) | Actions comments to the tightened rule | done | debt | M | none |
 
+## M3 · Agents
+
+Brief: [M3-agents/README.md](M3-agents/README.md)
+
+| ID | Title | Status | Kind | Size | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| [M3-01](M3-agents/M3-01-foundation-hostility-choosers.md) | Hostility, choosers and controller lookup in the foundation | todo | seam | M | none |
+| [M3-02](M3-agents/M3-02-needs.md) | Needs: records, levels, a per-phase tick and the satisfy effect | todo | seam | M | none |
+| [M3-06](M3-agents/M3-06-gates.md) | Gates between maps | todo | feature | M | none |
+| [M3-03](M3-agents/M3-03-behaviors-agents-controller.md) | Behaviors and the agents controller | todo | seam | M | M3-02 |
+| [M3-07](M3-agents/M3-07-playground.md) | A playground: the test maps joined by gates | todo | content | M | M3-06 |
+| [M3-08](M3-agents/M3-08-regions-towns.md) | Regions and towns as entities | todo | seam | M | M3-06 |
+| [M3-13](M3-agents/M3-13-party-food-water.md) | The party eats and drinks | todo | feature | M | M3-02 |
+| [M3-14](M3-agents/M3-14-rest-heal.md) | Rest in town: heal integrity and set the rest place | todo | feature | M | M3-06 |
+| [M3-04](M3-agents/M3-04-more-behavior-primitives.md) | Behavior primitives: consume, carry, flee, guard and engage | todo | feature | M | M3-01, M3-03 |
+| [M3-09](M3-agents/M3-09-level-of-detail.md) | Level of detail: promotion and demotion | todo | feature | M | M3-03, M3-08 |
+| [M3-05](M3-agents/M3-05-agents-chooser-dodging.md) | The agents chooser for combat, and dodging | todo | feature | M | M3-04 |
+| [M3-10](M3-agents/M3-10-off-screen-tick.md) | The off-screen tick: drift, stocks and migration | todo | feature | M | M3-09 |
+| [M3-11](M3-agents/M3-11-residents.md) | Residents: needs, roles and schedules in town | todo | feature | M | M3-04, M3-08 |
+| [M3-12](M3-agents/M3-12-generic-npcs.md) | Generic NPCs and replacement timers | todo | feature | S | M3-11 |
+| [M3-18](M3-agents/M3-18-monster-families.md) | Monster families as content | todo | content | M | M3-05, M3-10 |
+| [M3-15](M3-agents/M3-15-hiring-recruits.md) | Hiring recruits | todo | feature | M | M3-12 |
+| [M3-16](M3-agents/M3-16-upkeep-desertion.md) | Upkeep, grumbling, desertion and flight | todo | feature | M | M3-04, M3-15 |
+| [M3-19](M3-agents/M3-19-sample-world.md) | The sample world: two towns and the deep between them | todo | content | M | M3-10, M3-11, M3-14, M3-18 |
+| [M3-17](M3-agents/M3-17-exotic-recruits.md) | Graftable and exotic recruits | todo | content | S | M3-16, M3-18 |
+| [M3-20](M3-agents/M3-20-harness-emergence.md) | Harness columns and the camping check | todo | test | M | M3-16, M3-19 |
+
 ## Later milestones (outlines)
 
 Each becomes task files when the milestone before it is done: run `/plan-milestone`.
 
 | Milestone | Brief |
 | --- | --- |
-| M3 · Agents | [M3-agents/README.md](M3-agents/README.md) |
 | M4 · Seats | [M4-seats/README.md](M4-seats/README.md) |
 | M5 · Procgen | [M5-procgen/README.md](M5-procgen/README.md) |
 | M6 · Emergence | [M6-emergence/README.md](M6-emergence/README.md) |
@@ -135,7 +161,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M2-09.F1](followups/M2-09.F1-crawling-parts-know-no-actions.md) | Give a crawling part the actions to fight with | done | seam | M2 | M2-09 |
 | [M2-08.F2](followups/M2-08.F2-alert-started-twice.md) | AlertStarted is published twice for one alert | done | bug | M2 | M2-08 |
 | [M2-08.F1](followups/M2-08.F1-sample-crawler-hunts.md) | Make the sample crawler hunt | done | content | M2 | M2-08 |
-| [M2-07.F1.F1.F1](followups/M2-07.F1.F1.F1-rest-sets-rest-place.md) | Resting in a town sets the party's rest place | todo | feature | M3 | M2-07.F1.F1, M3 |
+| [M2-07.F1.F1.F1](followups/M2-07.F1.F1.F1-rest-sets-rest-place.md) | Resting in a town sets the party's rest place | obsolete | feature | M3 | M2-07.F1.F1, M3 |
 | [M2-07.F1.F1](followups/M2-07.F1.F1-wake-after-wipe.md) | Wake at the last rest town after a party wipe | done | feature | M3 | M2-07.F1 |
 | [M2-06.F1.F1](followups/M2-06.F1.F1-forms-doc-strike-sever.md) | Update the forms table in the game design for Strike and Sever | done | debt | unplanned | M2-06.F1 |
 | [M2-06.F1](followups/M2-06.F1-strike-sever-weakness.md) | Should Strike and Sever differ on a weakness the way these placeholders do? | done | question | unplanned | M2-06 |
