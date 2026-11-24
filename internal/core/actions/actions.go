@@ -315,10 +315,8 @@ func (ev *evaluator) modify(p *plan) error {
 	return nil
 }
 
-// evaluate works an intent out. A nil plan means it is structurally invalid, with the reason. A plan
-// with a reason is well-formed but not allowed right now (a check failed); its timing is still
-// filled in, so the player can see a disabled option's cost. An error is a content bug.
-// requireFree says whether the channels must be free; the usable hook asks without it.
+// evaluate works an intent out: a nil plan is invalid, with the reason; a plan with a reason is not
+// allowed now but keeps its timing for a disabled option. An error is a content bug.
 func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, error) {
 	w := ev.w
 	if !w.Alive(in.Actor) {
@@ -395,8 +393,7 @@ func Validate(w *sim.World, in Intent) (ok bool, reason api.Text) {
 	return p != nil, reason
 }
 
-// validate works out the intent for starting now. A nil plan comes with the reason it may not
-// start, a content bug included.
+// validate is Validate's check; a nil plan comes with the reason, a content bug included.
 func (ev *evaluator) validate(in Intent) (*plan, api.Text) {
 	p, reason, err := ev.evaluate(in, true)
 	switch {
@@ -408,8 +405,7 @@ func (ev *evaluator) validate(in Intent) (*plan, api.Text) {
 	return p, api.Text{}
 }
 
-// Start validates the intent, applies the action's start effects, occupies its channels for the
-// wind-up plus recovery, and lands it at once or schedules the landing.
+// Start validates the intent, applies its start effects, occupies its channels and lands it or schedules it.
 func Start(w *sim.World, in Intent) error { return startIntent(w, in, false) }
 
 // StartAutonomous is Start for an action a graft takes on its own: the same checks and wind-up,
@@ -511,7 +507,6 @@ func (ev *evaluator) land(p *plan) error {
 	return nil
 }
 
-// missed publishes ActionMissed for an action that did not land.
 func (ev *evaluator) missed(actor ecs.Entity, source, target api.UID, action api.ContentID, reason api.Text) {
 	ev.w.Bus.Publish(api.ActionMissed{
 		Source: source, Action: action, Target: target, Tick: ev.w.Now, Reason: reason,

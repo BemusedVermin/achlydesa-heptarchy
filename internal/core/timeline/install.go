@@ -64,8 +64,7 @@ func spawnActor(w *sim.World, e ecs.Entity, t content.Template) error {
 	return nil
 }
 
-// CurrentPlayer returns the body deciding now when it is the player-controlled body with the UID.
-// Commands from the player use it to reject anyone else.
+// CurrentPlayer returns the deciding body when it is player-controlled and has the UID.
 func CurrentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) {
 	e, ok := Current(w)
 	if !ok || uid == 0 || w.UIDOf(e) != uid {

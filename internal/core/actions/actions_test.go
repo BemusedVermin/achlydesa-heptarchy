@@ -258,7 +258,6 @@ func find[E api.Event](events []api.Event) (E, bool) {
 	return zero, false
 }
 
-// optionLabel is the label the core renders for an option with the given name, detail and timing.
 func optionLabel(fx *fixture, name api.ContentID, detail string, lands, busy int) string {
 	return fx.w.Content.Render(api.Text{ID: "text.actions.option_with", Args: map[string]string{
 		"name": fx.w.Content.Render(api.Text{ID: name}), "detail": detail,

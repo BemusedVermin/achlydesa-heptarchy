@@ -112,4 +112,5 @@ Deviations and things to check:
 - The last acceptance criterion ("Only `_test.go` files and `testdata/` changed.") contradicts the Deliverables, since the duplication and comments parts change code: it is a copy of the tests-commit criterion before it, made when the C1 tasks were generated. I ticked it as that criterion, which holds for `2af736f`; it cannot hold for the whole branch.
 - `go tool task check` was run as `check-ci BASE=origin/master` (passes, on this Windows machine); the full `check` on Windows still needs the C1-24 tools fix.
 - Package test times vary several-fold with machine load; run alone, `timeline` takes about 0.5s and `actions` and `effects` about 1.5s.
+- At the owner's request, a later commit trims the comment edits so the branch shortens comments overall: in `.go` files it adds 38 comment lines (531 words) and removes 52 (720 words) against master, net -14 lines and -189 words.
 - No follow-ups filed.

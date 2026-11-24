@@ -22,8 +22,7 @@ const MaxAITurns = 10_000
 // bodyTag is the tag of a body's own channel.
 const bodyTag = "body"
 
-// Channel is something that can be busy: the body itself, or one of its parts. Actions say which
-// channels they occupy by tag.
+// Channel is something that can be busy: a body itself, or one of its parts.
 type Channel struct {
 	Entity ecs.Entity // the body, or one of its parts
 	// Body is the body the channel belongs to. The zero entity means Entity is the body.
@@ -382,10 +381,8 @@ func (st *state) nextOtherEntry(w *sim.World, body ecs.Entity) int64 {
 	return max(best, w.Now+1)
 }
 
-// Run plays the timeline forward, landing actions and running controllers, until a player body
-// decides, and returns that body. A player body with another free usable channel decides again at
-// once. It returns the zero entity when the halt check (SetHalt) holds, and errors after MaxAITurns
-// non-player decisions.
+// Run plays the timeline forward until a player body decides, and returns it: the zero entity when
+// SetHalt's check holds. It errors after MaxAITurns non-player decisions.
 func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 	st := stateOf(w)
 	aiTurns := 0

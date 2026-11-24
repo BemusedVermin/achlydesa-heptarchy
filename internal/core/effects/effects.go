@@ -63,8 +63,7 @@ type Primitive struct {
 	// literals such as item, status or faction IDs. It runs after Verify passes.
 	VerifyContent func(reg *content.Registry, raw map[string]string) error
 	Apply         func(ctx *Context, p Params) error
-	// Check, when set, says whether the effect could apply right now, and why not. Actions call it
-	// before starting and again when landing, so it must not change the world.
+	// Check, when set, says whether the effect could apply now, and why not. It must not change the world.
 	Check func(ctx *Context, p Params) (ok bool, reason api.Text)
 }
 

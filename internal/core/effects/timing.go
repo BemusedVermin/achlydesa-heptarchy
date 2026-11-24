@@ -36,9 +36,7 @@ func registerTiming(w *sim.World) error {
 	return nil
 }
 
-// WindingUp lists the pending actions that use the channel: those that name it as their part, and
-// actions from content, which may occupy several channels at once. Primitives that take a channel
-// away, such as a severed arm, cancel them.
+// WindingUp lists the pending actions that use the channel, so taking the channel away can cancel them.
 func WindingUp(w *sim.World, c timeline.Channel) []ecs.Entity {
 	pendings := ecs.NewMap[comp.Pending](w.ECS)
 	landings := ecs.NewMap[comp.Landing](w.ECS)

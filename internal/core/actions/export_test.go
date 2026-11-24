@@ -15,8 +15,7 @@ var IntentOf = intentOf
 // UsableChannels exposes the batch usable hook to the tests.
 var UsableChannels = usableChannels
 
-// UsableOneByOne answers the usable hook's question for one channel, the slow way: some candidate
-// that uses it passes evaluation. Tests check the batch hook against it.
+// UsableOneByOne is the slow per-channel usable test the batch hook must agree with.
 func UsableOneByOne(w *sim.World, body ecs.Entity, c timeline.Channel) bool {
 	ev := newEvaluator(w)
 	cands, err := ev.candidates(body, false)
