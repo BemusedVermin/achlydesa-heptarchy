@@ -31,6 +31,8 @@ type Registry struct {
 	offers      map[string]*vm.Program
 	mods        map[api.ContentID]compiledMods
 	needs       map[api.ContentID]compiledNeed
+	// behaviors holds each behavior's considerations, in order.
+	behaviors   map[api.ContentID][]*vm.Program
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

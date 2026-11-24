@@ -216,3 +216,17 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Needs: {
 	levels: [...#NeedLevel] @go(Levels,[]NeedLevel)
 }
+
+// Doing is the behavior an agent is carrying out and what it goes for. The agents controller keeps it.
+#Doing: {
+	behavior: api.#ContentID @go(Behavior)
+
+	// Target is the body the behavior goes for, or 0.
+	target: api.#UID @go(Target)
+
+	// Cell is where the target is, when the behavior has one.
+	cell: api.#Cell @go(Cell)
+
+	// Since is the tick the behavior was chosen.
+	since: int64 @go(Since)
+}

@@ -1,7 +1,7 @@
 ---
 id: M3-03
 title: Behaviors and the agents controller
-status: todo
+status: in-progress
 milestone: M3
 kind: seam
 depends_on: [M3-02]

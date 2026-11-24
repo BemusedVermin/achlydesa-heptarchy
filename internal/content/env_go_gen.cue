@@ -81,6 +81,25 @@ package content
 	Source: #BodyEnv
 }
 
+// ConsiderEnv is what a behavior's considerations see.
+#ConsiderEnv: {
+	// Source is the agent weighing the behavior.
+	Source: #BodyEnv
+
+	// Target is the body the behavior goes for; empty when its target is not a body.
+	Target: #BodyEnv
+
+	// Distance is hexes plus depths from the agent to the target, or 0.
+	Distance: int
+
+	// Phase is the ID of the current day phase, such as "phase.day".
+	Phase: string
+	Now:   int64
+
+	// Doing is the ID of the behavior the agent is doing, or "".
+	Doing: string
+}
+
 // EffectEnv is everything an effect formula can see.
 #EffectEnv: {
 	Now: int64

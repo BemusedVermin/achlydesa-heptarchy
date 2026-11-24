@@ -64,6 +64,21 @@ type NeedEnv struct {
 	Source BodyEnv `expr:"source"`
 }
 
+// ConsiderEnv is what a behavior's considerations see.
+type ConsiderEnv struct {
+	// Source is the agent weighing the behavior.
+	Source BodyEnv `expr:"source"`
+	// Target is the body the behavior goes for; empty when its target is not a body.
+	Target BodyEnv `expr:"target"`
+	// Distance is hexes plus depths from the agent to the target, or 0.
+	Distance int `expr:"distance"`
+	// Phase is the ID of the current day phase, such as "phase.day".
+	Phase string `expr:"phase"`
+	Now   int64  `expr:"now"`
+	// Doing is the ID of the behavior the agent is doing, or "".
+	Doing string `expr:"doing"`
+}
+
 // EffectEnv is everything an effect formula can see.
 type EffectEnv struct {
 	Now int64 `expr:"now"`
