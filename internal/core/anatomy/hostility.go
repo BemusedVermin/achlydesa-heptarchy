@@ -1,4 +1,4 @@
-package combat
+package anatomy
 
 import (
 	"slices"
@@ -18,15 +18,10 @@ func Hostile(w *sim.World, a, b ecs.Entity) bool {
 		return false
 	}
 	factionA, factionB := allegiances.Get(a).Faction, allegiances.Get(b).Faction
-	return lists(w, factionA, factionB) || lists(w, factionB, factionA)
+	return listsAsHostile(w, factionA, factionB) || listsAsHostile(w, factionB, factionA)
 }
 
-func lists(w *sim.World, faction, other api.ContentID) bool {
+func listsAsHostile(w *sim.World, faction, other api.ContentID) bool {
 	def, ok := w.Content.Faction(faction)
 	return ok && slices.Contains(def.HostileTo, other)
-}
-
-// nameOf is the text of a body's name, "text.template.<template without its prefix>".
-func nameOf(w *sim.World, e ecs.Entity) string {
-	return w.Content.Render(w.Content.TemplateName(w.TemplateOf(e)))
 }

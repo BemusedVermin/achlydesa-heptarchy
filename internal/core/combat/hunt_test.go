@@ -11,6 +11,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
 var update = flag.Bool("update", false, "rewrite the golden files")
@@ -18,7 +19,13 @@ var update = flag.Bool("update", false, "rewrite the golden files")
 // huntField is the hall with a hunting moving clay, and a party that can fight.
 func huntField(t *testing.T, mutate func(*content.Bundle)) *field {
 	t.Helper()
-	return newField(t, "map.test.hall", func(b *content.Bundle) {
+	return huntFieldInstalling(t, mutate, nil)
+}
+
+// huntFieldInstalling is huntField with extra registrations made while the game installs.
+func huntFieldInstalling(t *testing.T, mutate func(*content.Bundle), install func(*sim.World) error) *field {
+	t.Helper()
+	return newFieldInstalling(t, "map.test.hall", func(b *content.Bundle) {
 		movingClay := b.Templates["template.creature.moving_clay"]
 		movingClay.Actor = &content.ActorDef{Controller: "hunt"}
 		movingClay.Actions = []api.ContentID{"action.step", "action.strike"}
@@ -32,7 +39,7 @@ func huntField(t *testing.T, mutate func(*content.Bundle)) *field {
 		if mutate != nil {
 			mutate(b)
 		}
-	})
+	}, install)
 }
 
 // place puts a body in a cell.

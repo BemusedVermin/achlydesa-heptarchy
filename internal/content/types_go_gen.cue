@@ -416,6 +416,9 @@ import (
 #ActorDef: {
 	// Controller is "player", "follow", "idle", ...
 	controller: string @go(Controller)
+
+	// Chooser names the registered chooser the body's attacks are picked with; empty means "score".
+	chooser?: string @go(Chooser)
 }
 
 // EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for

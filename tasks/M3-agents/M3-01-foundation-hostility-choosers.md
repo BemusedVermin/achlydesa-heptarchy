@@ -1,7 +1,7 @@
 ---
 id: M3-01
 title: Hostility, choosers and controller lookup in the foundation
-status: todo
+status: done
 milestone: M3
 kind: seam
 depends_on: []
@@ -58,11 +58,11 @@ func ControllerNamed(w *sim.World, name string) (Controller, bool)
 
 ## Acceptance criteria
 
-- [ ] `Hostile`, the chooser registry and the controller lookup are reachable from a foundation package: `grep -rn "core/combat" internal/core/anatomy internal/core/actions internal/core/timeline` finds nothing, and `combat` no longer defines `Hostile` or `RegisterChooser`.
-- [ ] A test registers a second chooser, names it in a test template's `actor.chooser`, and the hunt controller picks through it.
-- [ ] A test registers a controller that delegates to `ControllerNamed(w, "hunt")` and the body attacks as a hunter does.
-- [ ] `go tool task same-behavior` reports no behavior change.
-- [ ] `go tool task check` passes.
+- [x] `Hostile`, the chooser registry and the controller lookup are reachable from a foundation package: `grep -rn "core/combat" internal/core/anatomy internal/core/actions internal/core/timeline` finds nothing, and `combat` no longer defines `Hostile` or `RegisterChooser`.
+- [x] A test registers a second chooser, names it in a test template's `actor.chooser`, and the hunt controller picks through it.
+- [x] A test registers a controller that delegates to `ControllerNamed(w, "hunt")` and the body attacks as a hunter does.
+- [x] `go tool task same-behavior` reports no behavior change.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -70,5 +70,15 @@ func ControllerNamed(w *sim.World, name string) (Controller, bool)
 - Any new hostility rule, such as sparing believers (M3-18 does it with factions).
 
 ## Notes
+
+- `combat.Hostile`, `combat.Chooser` and `combat.RegisterChooser` are gone, with no forwards left. `combat`'s `state` resource only held the choosers, so `state.go` is deleted; `nameOf` moved from `hostility.go` to `view.go`.
+- Added `actions.DefaultChooser` (`"score"`), the name `ChooserFor` falls back to and `combat` registers `ScoreChooser` under.
+- Not in the spec: `actions` registers a `chooser` spawner that refuses to spawn a body whose `actor.chooser` names an unregistered chooser, as the `actor` spawner does for controllers. Without it a typo would silently leave the hunter stepping and never attacking. `RegisterChooser` also refuses an empty name or a nil chooser, as `RegisterController` does.
+- Graft autonomy asks `ChooserFor` with the host body, so a graft picks with its host's chooser.
+- The hostility test moved from `combat/sides_test.go` to `anatomy/hostility_test.go` unchanged except for the rig. `newField` and `huntField` gained `...Installing` variants so tests can register a chooser or controller; the existing tests are otherwise untouched.
+- The chooser and delegation tests spawn a stand-in after the game starts, because `game.Config.Install` runs after the start map spawns its bodies: filed as M3-01.F1.
+- Docs: `docs/go-technical-design.md` package table (anatomy, actions, combat rows) and the creature recipe in `docs/content-guide.md` now mention `actor.chooser`.
+- Files outside the Deliverables: `internal/core/actions/install.go`, `internal/core/combat/{alert,view,install,graft,sides_test,hunt_test,delegation_test}.go`, `internal/core/timeline/controllers_test.go`, the two docs above.
+- Follow-ups: M3-01.F1.
 
 

@@ -142,7 +142,7 @@ Params that pick bodies or parts are selectors:
 3. Add its name to the `text:` block at the bottom of `templates.cue`.
 4. To meet it, put it on a map: a mark character in `marks` and the same character in `spawns` (see the map recipe).
 
-Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does.
+Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does. `actor.chooser` names the chooser its attacks are picked with; left out, it is `score`, which rates each attack with `ai_score`.
 
 ### A type, in `types.cue` with `#Consumable`
 

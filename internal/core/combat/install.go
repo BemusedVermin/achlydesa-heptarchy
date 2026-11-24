@@ -4,6 +4,8 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
@@ -103,13 +105,13 @@ func installSides(w *sim.World) error {
 	if err := timeline.RegisterController(w, huntController, hunter{}); err != nil {
 		return err
 	}
-	if err := RegisterChooser(w, scoreChooser, ScoreChooser{}); err != nil {
+	if err := actions.RegisterChooser(w, actions.DefaultChooser, ScoreChooser{}); err != nil {
 		return err
 	}
 	if err := w.Views.Register(sim.ViewBuilder{Name: bodiesView, Build: buildBodies}); err != nil {
 		return err
 	}
-	effects.SetHostile(w, Hostile)
+	effects.SetHostile(w, anatomy.Hostile)
 	timeline.SetHalt(w, PartyWiped)
 	sim.Subscribe(w.Bus, "combat.death", onPartDamaged)
 	sim.Subscribe(w.Bus, "combat.death_severed", onPartSevered)

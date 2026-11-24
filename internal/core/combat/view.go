@@ -98,7 +98,7 @@ func bodyView(w *sim.World, party ecs.Entity, members []ecs.Entity, body ecs.Ent
 	view := api.BodyView{UID: w.UIDOf(body), Name: nameOf(w, body), Channels: []api.ChannelView{}}
 	view.Member = slices.Contains(members, body)
 	for _, member := range livingMembers(w, party) {
-		if Hostile(w, member, body) {
+		if anatomy.Hostile(w, member, body) {
 			view.Hostile = true
 			break
 		}
@@ -203,6 +203,11 @@ func materialName(w *sim.World, id api.ContentID) string {
 		return w.Content.Render(api.Text{ID: material.Name})
 	}
 	return string(id)
+}
+
+// nameOf is the text of a body's name, "text.template.<template without its prefix>".
+func nameOf(w *sim.World, e ecs.Entity) string {
+	return w.Content.Render(w.Content.TemplateName(w.TemplateOf(e)))
 }
 
 // threatsAt lists the actions in flight that are aimed at the body.

@@ -152,7 +152,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `api` | Plain-data commands, events and view types: the boundary that frontends, the harness and replay logs share | The standard library only |
 | `sim` | The Ark world, the event bus, the system scheduler (cadence plus run-after ordering), and the command, event and view registries | Ark |
 | `comp` | Plain component structs and relations: `Pos{Map, At}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
-| `anatomy` | Queries over bodies and parts: attached parts, functioning parts, grants, party members | `comp` |
+| `anatomy` | Queries over bodies and parts: attached parts, functioning parts, grants, party members, and whether two bodies are hostile by their factions | `comp` |
 | `clock` | Ticks, day phases and the calendar read from content; per-phase and per-day systems as the timeline crosses boundaries; timers for generic NPC replacement and export scheduling | The `sim` scheduler |
 | `timeline` | The shared timeline: channels (a body and each of its parts) and when they're free, decisions, actions that land later, controllers (player, follow, behaviors), and playing time forward until the player is needed | Ark resources, `clock` |
 | `rng` | One named PCG stream per subsystem, seeded from the world seed (plus the export count for procgen) | `math/rand/v2` |
@@ -160,10 +160,10 @@ Each package owns one part of the rules and leans on a library for everything el
 | `knowledge` | Facts per knower: subject, claim, source, confidence. The journal is a view over the party's facts | Components only |
 | `inventory` | Inventories of item stacks: add, take, count | Components only |
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
-| `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options | `timeline`, `effects` |
+| `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options, and the registry of choosers that pick among intents | `timeline`, `effects` |
 | `explore` | Maps from content, stepping, lead and follow, remembered cells and the plan-view projection; gates between maps later | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
-| `combat` | Hostility between factions, the party's alert, combat primitives, the creature controller, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
+| `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
 | `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; full agents on screen, region aggregates off screen | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |

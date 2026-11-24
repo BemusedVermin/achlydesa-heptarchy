@@ -16,6 +16,7 @@ type state struct {
 	providers  map[string]ChoiceProvider
 	validators []Validator
 	modifiers  []ModifierFunc
+	choosers   map[string]Chooser
 }
 
 func stateOf(w *sim.World) *state {
@@ -23,7 +24,10 @@ func stateOf(w *sim.World) *state {
 	if res.Has() {
 		return res.Get()
 	}
-	st := &state{providers: map[string]ChoiceProvider{directionChoice: directionValues}}
+	st := &state{
+		providers: map[string]ChoiceProvider{directionChoice: directionValues},
+		choosers:  map[string]Chooser{},
+	}
 	res.Add(st)
 	return st
 }
@@ -60,6 +64,9 @@ func Install(w *sim.World) error {
 	}
 	err := timeline.RegisterResolver(w, landKind, timeline.Resolver{Resolve: resolveLanding, Label: labelLanding})
 	if err != nil {
+		return err
+	}
+	if err := w.RegisterSpawner(sim.Spawner{Name: "chooser", Apply: checkChooser}); err != nil {
 		return err
 	}
 	timeline.SetUsableChannels(w, usableChannels)
