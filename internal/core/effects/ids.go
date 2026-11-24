@@ -9,8 +9,8 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
-// KnownIDs checks that each parameter of raw named in known is an ID its lookup finds; the error
-// calls the parameter's name the kind of record.
+// KnownIDs checks that each parameter of raw named in known is an ID its lookup finds. The error
+// names the parameter as the kind of record, so name ID parameters after what they refer to.
 func KnownIDs(raw map[string]string, known map[string]func(api.ContentID) bool) error {
 	var problems []error
 	for _, name := range slices.Sorted(maps.Keys(known)) {

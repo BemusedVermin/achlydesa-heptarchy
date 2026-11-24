@@ -7,7 +7,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// stillController is the name of the controller of a body that does nothing for a while.
 const stillController = "still"
 
 // stiller occupies every free channel of a body for the still ticks, then decides again. Unlike the

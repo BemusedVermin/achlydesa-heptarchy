@@ -16,7 +16,8 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// Install registers exploring with the world. It must run after effects and timeline.
+// Install registers stepping, the maps, party control and their views. It must run after effects
+// and timeline.
 func Install(w *sim.World) error {
 	if w.Content == nil {
 		return errors.New("explore: install: world has no content")

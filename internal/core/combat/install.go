@@ -11,7 +11,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// expireSystem is the name of the per-entry system that removes expired statuses.
 const expireSystem = "combat.expire_statuses"
 
 // Install registers the combat events, the primitives and the system that expires statuses. It

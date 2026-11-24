@@ -29,7 +29,7 @@ const (
 	propertyChecks = 20
 	propertyTicks  = 300
 	// propertySteps bounds a fight in case the clock stops advancing.
-	propertySteps = 24
+	propertySteps = 100
 	// replayEvery: one fight in this many is replayed, since a replay costs as much as the fight.
 	replayEvery = 5
 )

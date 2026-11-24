@@ -6,7 +6,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// state is what combat keeps on the world, as an Ark resource.
+// state is kept on the world as an Ark resource.
 type state struct {
 	choosers map[string]Chooser
 }
