@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
@@ -16,7 +17,10 @@ import (
 // recordLog plays a short game and writes its log to a file, returning the path and the hash.
 func recordLog(t *testing.T) (string, string) {
 	t.Helper()
-	reg := contenttest.Sample(t)
+	reg, err := content.Load(contenttest.Dir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	g, err := game.New(game.Config{Seed: 3, Content: reg})
 	if err != nil {
 		t.Fatal(err)
