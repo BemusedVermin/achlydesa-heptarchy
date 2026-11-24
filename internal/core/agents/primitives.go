@@ -22,6 +22,8 @@ import (
 const (
 	// pathNodes bounds the search for a way to a behavior's target.
 	pathNodes = 200
+	// bodyDetour is the extra cost of routing through a cell a standing body holds.
+	bodyDetour = 4
 	// huntController is the controller engage hands a decision to unless the behavior names one.
 	huntController = "hunt"
 )
@@ -70,7 +72,7 @@ func approach(w *sim.World, body ecs.Entity, goal api.Cell, adjacent bool) (bool
 		return false, nil
 	}
 	rules := actions.StepRules(w)
-	route, found, err := m.Path(from.At, goal, rules, nil, pathNodes)
+	route, found, err := m.Path(from.At, goal, rules, detourAroundBodies(w, body, from.Map, goal), pathNodes)
 	if err != nil || !found || len(route) < 2 {
 		return false, err
 	}
@@ -84,6 +86,24 @@ func approach(w *sim.World, body ecs.Entity, goal api.Cell, adjacent bool) (bool
 		}
 	}
 	return false, nil
+}
+
+// detourAroundBodies prices a step into a cell held by a standing body at 1 + bodyDetour, except the goal.
+// A high price rather than a ban keeps a way through a corridor once the blocker moves.
+func detourAroundBodies(w *sim.World, self ecs.Entity, mapID api.MapID, goal api.Cell) func(hexmap.Step) float64 {
+	held := map[api.Cell]bool{}
+	query := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
+	for query.Next() {
+		if pos, _ := query.Get(); pos.Map == mapID && query.Entity() != self {
+			held[pos.At] = true
+		}
+	}
+	return func(step hexmap.Step) float64 {
+		if held[step.To.Cell] && step.To.Cell != goal {
+			return 1 + bodyDetour
+		}
+		return 1
+	}
 }
 
 // stepConsume starts params.action on the target once it can, walking up to it until then. It is
