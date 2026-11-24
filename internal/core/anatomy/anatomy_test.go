@@ -49,7 +49,6 @@ func newRig(t *testing.T, seed uint64, mutate func(*content.Bundle)) *rig {
 	return r
 }
 
-// member is the party's first member.
 func (r *rig) member(t *testing.T) ecs.Entity {
 	t.Helper()
 	members := anatomy.Members(r.w, r.party)
@@ -68,7 +67,7 @@ func (r *rig) slots(body ecs.Entity) []string {
 	return slots
 }
 
-// plan is the part templates of the body's plan, in plan order, so expectations follow the content.
+// plan is the body's part templates in order, so expectations follow the content.
 func (r *rig) plan(t *testing.T, body ecs.Entity) []content.PartTemplate {
 	t.Helper()
 	id := ecs.NewMap[comp.Body](r.w.ECS).Get(body).Plan
@@ -87,7 +86,6 @@ func (r *rig) plan(t *testing.T, body ecs.Entity) []content.PartTemplate {
 	return defs
 }
 
-// totals adds up the grants of the given part templates, by kind, as anatomy.GrantTotals does for parts.
 func totals(grants ...[]comp.Grant) map[string]int {
 	out := map[string]int{}
 	for _, list := range grants {
@@ -162,7 +160,6 @@ func TestChannelsAreTheBodyThenEachPartTagged(t *testing.T) {
 			t.Errorf("%s tags = %v, want %v", plan[i].Slot, c.Tags, want)
 		}
 	}
-	// Severing a part removes its channel.
 	ecs.NewMap[comp.PartOf](r.w.ECS).Remove(anatomy.Parts(r.w, member)[1])
 	if got := len(timeline.Channels(r.w, member)); got != len(plan) {
 		t.Errorf("channels after severing a part = %d, want %d", got, len(plan))
