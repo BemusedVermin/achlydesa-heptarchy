@@ -9,7 +9,6 @@ import (
 
 // pkg is what the selection needs to know about one Go package.
 type pkg struct {
-	// ImportPath is the package's import path.
 	ImportPath string
 	// Dir is the package's directory, relative to the repository root, with forward slashes.
 	Dir string

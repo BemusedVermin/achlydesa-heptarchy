@@ -228,26 +228,27 @@ func compareGoldens(root, base string, renames []rename) ([]string, int, error) 
 	if err != nil {
 		return nil, 0, err
 	}
-	expected := map[string]string{} // renamed path → base path
+	baseByRenamed := map[string]string{}
 	for _, path := range goldenPaths(baseFiles) {
-		expected[applyRenames(path, renames)] = path
+		baseByRenamed[applyRenames(path, renames)] = path
 	}
 	var problems []string
 	compared := 0
 	for _, path := range goldenPaths(headFiles) {
 		got, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(path)))
+		// Deleted but still in the index: the loop after this one reports it if the base had it.
 		if errors.Is(err, os.ErrNotExist) {
-			continue // deleted but still in the index; reported below if the base had it
+			continue
 		}
 		if err != nil {
 			return nil, 0, err
 		}
-		basePath, ok := expected[path]
+		basePath, ok := baseByRenamed[path]
 		if !ok {
 			problems = append(problems, path+": new golden file")
 			continue
 		}
-		delete(expected, path)
+		delete(baseByRenamed, path)
 		compared++
 		want, err := gitcmd.Output(root, "show", base+":"+basePath)
 		if err != nil {
@@ -259,8 +260,8 @@ func compareGoldens(root, base string, renames []rename) ([]string, int, error) 
 			problems = append(problems, path+": "+diff)
 		}
 	}
-	for _, path := range slices.Sorted(maps.Keys(expected)) {
-		problems = append(problems, expected[path]+": golden file removed")
+	for _, path := range slices.Sorted(maps.Keys(baseByRenamed)) {
+		problems = append(problems, baseByRenamed[path]+": golden file removed")
 	}
 	return problems, compared, nil
 }
