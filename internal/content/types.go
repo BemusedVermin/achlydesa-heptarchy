@@ -244,6 +244,19 @@ type Template struct {
 	// Behaviors lists the behaviors ("behavior." IDs) the agents controller weighs for a body of this
 	// template.
 	Behaviors []api.ContentID `json:"behaviors,omitempty"`
+	// Recruit makes a body of this template hirable by the party.
+	Recruit *RecruitDef `json:"recruit,omitempty"`
+}
+
+// RecruitDef is what a hirable person asks for.
+type RecruitDef struct {
+	// Wants are the items hiring costs, at base counts; each count is multiplied by Worth.
+	Wants []StackDef `json:"wants"`
+	// Worth is an Expr float over BodyEnv: what the recruit brings. The price is each want's count
+	// times Worth, rounded up.
+	Worth string `json:"worth"`
+	// Upkeep is what the recruit wants each day after hiring.
+	Upkeep []StackDef `json:"upkeep,omitempty"`
 }
 
 // BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a

@@ -1,5 +1,7 @@
 package api
 
+import "strconv"
+
 // Event kinds of the level of detail.
 const (
 	PromotedKind = "agents.promoted"
@@ -8,7 +10,44 @@ const (
 	MigratedKind       = "agents.migrated"
 	TownEmptiedKind    = "agents.town_emptied"
 	PopulationDiedKind = "agents.population_died"
+
+	HireKind  = "agents.hire"
+	HiredKind = "agents.hired"
 )
+
+// OptionHirePrefix is followed by the UID of the recruit to hire.
+const OptionHirePrefix = "hire/"
+
+// HireOption is the ID of the option that hires the recruit with the UID.
+func HireOption(recruit UID) string {
+	return OptionHirePrefix + strconv.FormatUint(uint64(recruit), 10)
+}
+
+// ItemCount is some of one kind of item.
+type ItemCount struct {
+	Item  ContentID `json:"item"`
+	Count int       `json:"count"`
+}
+
+// Hire pays a hirable person's price from the party's inventory and adds them to the party. It
+// is allowed while a member of the party is deciding and the recruit stands next to its leader.
+type Hire struct {
+	Party   UID `json:"party"`
+	Recruit UID `json:"recruit"`
+}
+
+// CommandKind implements [Command].
+func (Hire) CommandKind() string { return HireKind }
+
+// Hired reports that a recruit joined the party, and what it was paid.
+type Hired struct {
+	Party   UID         `json:"party"`
+	Recruit UID         `json:"recruit"`
+	Paid    []ItemCount `json:"paid"`
+}
+
+// EventKind implements [Event].
+func (Hired) EventKind() string { return HiredKind }
 
 // FamilyCount is how many members of a family changed form.
 type FamilyCount struct {
@@ -68,3 +107,6 @@ type PopulationDied struct {
 
 // EventKind implements [Event].
 func (PopulationDied) EventKind() string { return PopulationDiedKind }
+
+// LogText implements [Loggable].
+func (Hired) LogText() Text { return Text{ID: "text.agents.hired"} }

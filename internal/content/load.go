@@ -100,6 +100,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		families:    map[api.ContentID]compiledFamily{},
 		behaviors:   map[api.ContentID][]*vm.Program{},
 		ranks:       map[api.ContentID]*vm.Program{},
+		worths:      map[api.ContentID]*vm.Program{},
 		rulesUsed:   map[string]bool{},
 		collections: collections(),
 	}
@@ -118,6 +119,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTypes()...)
 	problems = append(problems, registry.checkNeeds()...)
 	problems = append(problems, registry.checkBehaviors()...)
+	problems = append(problems, registry.checkRecruits()...)
 	problems = append(problems, registry.checkFamilies()...)
 	problems = append(problems, registry.checkChoices()...)
 	problems = append(problems, registry.checkTemplateActions()...)
