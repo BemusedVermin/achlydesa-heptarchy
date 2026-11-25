@@ -101,6 +101,10 @@ The deep is generated around the fixed towns and populated by monsters and peopl
 
 **Outcomes emerge; nothing forces them.** Every creature and person is an individual with a body, needs, an inventory and memory, all the time, on screen or off. A migration, a crawlspace emptying, a recruit walking off: each is agents choosing what meets their needs, never a system or a timer that makes it happen or an event that announces it. Resources are things in places: the water in a cistern is water somebody carried there.
 
+**Needs change.** What an agent needs isn't fixed. Needs appear, fade and change weight with age, losses, grafts, faith, place and whatever has happened to it: a death adds grief, a grudge adds revenge, a child growing up takes on an adult's needs. Behavior drifts over a run because needs do.
+
+**What happened is found, not announced.** The player learns that a crawlspace was abandoned, or that someone left long ago, the way anyone in the world would: from what the place looks like, and from what people remember and say, including roughly when.
+
 ### Procgen and exports
 
 - **Fixed:** the towns, the salk, the shallow soops, and set pieces such as the oldest layer where the reveal happens.
