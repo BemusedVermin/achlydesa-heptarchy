@@ -163,6 +163,7 @@ func (r *Registry) checkTown(p *problems, path string, def MapDef) {
 			p.addf("%s.stock[%d].count: %d is not at least 1", at, i, stack.Count)
 		}
 	}
+	r.checkTownStock(p, at, town)
 	chars := def.MarkChars()
 	for i, mark := range town.StockMarks {
 		char, marked := chars[mark]
@@ -191,4 +192,28 @@ func (r *Registry) checkStart() []error {
 		}
 	}
 	return p.errs
+}
+
+// checkTownStock validates what a town's residents use, what refills the stock and how many leave.
+func (r *Registry) checkTownStock(p *problems, at string, town *TownDef) {
+	if town.Residents != "" {
+		ref(p, r.bundle.Families, at+".residents", "family", town.Residents)
+	}
+	for _, list := range []struct {
+		field  string
+		stacks []StackDef
+	}{{"use", town.Use}, {"refill", town.Refill}} {
+		for i, stack := range list.stacks {
+			ref(p, r.bundle.Items, fmt.Sprintf("%s.%s[%d].item", at, list.field, i), "item", stack.Item)
+			if stack.Count < 1 {
+				p.addf("%s.%s[%d].count: %d is not at least 1", at, list.field, i, stack.Count)
+			}
+		}
+	}
+	if len(town.Use) > 0 && town.Residents == "" {
+		p.addf("%s.use: a town that uses stock needs residents", at)
+	}
+	if !levelInRange(town.Exodus) {
+		p.addf("%s.exodus: must be from 0 to 1, got %v", at, town.Exodus)
+	}
 }

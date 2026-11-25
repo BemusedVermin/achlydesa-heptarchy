@@ -311,6 +311,12 @@ type FamilyDef struct {
 	Templates []Weighted `json:"templates"`
 	// Marks are the names of map marks members appear at; empty means any open cell.
 	Marks []string `json:"marks,omitempty"`
+	// Drift is an Expr float over DriftEnv: the fraction of the family's count in a region that moves
+	// to one neighbour each phase while the party is elsewhere. Empty means none.
+	Drift string `json:"drift,omitempty"`
+	// Attrition is an Expr float over AttritionEnv: how many of the family in a region die each phase
+	// while the party is elsewhere. Empty means none.
+	Attrition string `json:"attrition,omitempty"`
 }
 
 // Weighted is a template and the weight it is chosen with.
@@ -466,6 +472,16 @@ type TownDef struct {
 	// StockMarks are marks of the map where carried goods go into the stock. Each is a plain mark,
 	// not a spawn or a gate.
 	StockMarks []string `json:"stock_marks,omitempty"`
+	// Residents is the family ("family." ID) whose count in the region is the town's residents. It is
+	// required when the town uses stock.
+	Residents api.ContentID `json:"residents,omitempty"`
+	// Use is what each resident spends from the stock every phase while the party is away.
+	Use []StackDef `json:"use,omitempty"`
+	// Refill is what the stock gains every phase while the party is away.
+	Refill []StackDef `json:"refill,omitempty"`
+	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
+	// to 1.
+	Exodus float64 `json:"exodus,omitempty"`
 }
 
 // GateDef is where a gate leads.
