@@ -123,6 +123,12 @@ templates: {
 		actions: ["action.step", "action.strike"]
 		needs: {"need.soul": 0.5}
 		behaviors: ["behavior.feeder.hunt"]
+		triggers: [{
+			on:   "combat.part_damaged"
+			role: "source"
+			if:   "true"
+			do: [{do: "satisfy", params: {need: "need.soul", amount: "0.15", bodies: "self"}}]
+		}]
 	}
 	// A creature of the archon: it guards the believers and attacks the party near them.
 	"template.creature.archon_warden": _#Monster & {

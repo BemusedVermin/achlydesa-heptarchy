@@ -351,3 +351,61 @@ func TestAWardenLeavesAPartyAloneWhenNoBelieverIsNear(t *testing.T) {
 		t.Errorf("the warden struck %d times with nobody to guard", len(got))
 	}
 }
+
+func soulLevel(tb testing.TB, f *monsterField, body ecs.Entity) float64 {
+	tb.Helper()
+	held := ecs.NewMap[comp.Needs](f.w.ECS).Get(body)
+	for _, level := range held.Levels {
+		if level.Need == "need.soul" {
+			return level.Level
+		}
+	}
+	tb.Fatal("the body carries no soul need")
+	return 0
+}
+
+func TestASoulFeederWoundingTheLivingEasesItsSoulNeed(t *testing.T) {
+	f := newMonsterField(t, feedersMap, peaceful)
+	feeder := f.bodiesOn(mapNamed(t, f.w, feedersMap), "template.creature.soul_feeder")[0]
+	victim := f.members()[0]
+	before := soulLevel(t, f, feeder)
+	ctx := &effects.Context{World: f.w, Source: feeder, Target: victim}
+	refs := []content.EffectRef{{Do: "damage", Params: map[string]string{"parts": "target:torso", "amount": "1"}}}
+	if err := effects.Apply(ctx, refs); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.w.Bus.Drain(f.w); err != nil {
+		t.Fatal(err)
+	}
+	if after := soulLevel(t, f, feeder); after >= before {
+		t.Errorf("soul need after wounding = %v, want below %v", after, before)
+	}
+}
+
+func TestARemnantLeavesByTheGateToTheLeastDecayedGround(t *testing.T) {
+	f := newMonsterField(t, "map.play.den", func(bundle *content.Bundle) {
+		peaceful(bundle)
+		contenttest.Edit(bundle.Maps, feedersMap, func(feeders *content.MapDef) {
+			feeders.Region = &content.RegionDef{Props: map[string]float64{"decay": 0}}
+		})
+		contenttest.Edit(bundle.Maps, "map.play.den", func(den *content.MapDef) {
+			den.Marks["h"] = "gate_to_feeders"
+			den.Gates["h"] = content.GateDef{To: feedersMap, Mark: "from_hub"}
+			den.Layers[0].Rows[5] = "#.......h#"
+		})
+	})
+	den := mapNamed(t, f.w, "map.play.den")
+	feeders := mapNamed(t, f.w, feedersMap)
+	for range 8 {
+		f.wait(api.WaitPhase)
+	}
+	var to []api.MapID
+	for _, e := range f.events {
+		if m, ok := e.(api.Migrated); ok && m.Family == remnantFam && m.From == den {
+			to = append(to, m.To)
+		}
+	}
+	if len(to) != 1 || to[0] != feeders {
+		t.Errorf("remnant left for maps %v, want only the least decayed, %d", to, feeders)
+	}
+}

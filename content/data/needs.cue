@@ -50,7 +50,8 @@ needs: {
 		rise: "region.props.decay - 0.3"
 		urge: "level"
 	}
-	// A soul-feeder's hunger; nothing feeds it yet.
+	// A soul-feeder's hunger. It eases when the feeder wounds the living, and while it is low the
+	// feeder's hunt scores low, so the feeder turns to other needs.
 	"need.soul": {
 		name: "text.need.soul"
 		rise: "0.0625"

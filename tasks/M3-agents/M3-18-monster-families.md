@@ -59,7 +59,7 @@ The design's monster sketches live on their needs: moving clay gathers at bodies
 - Creatures wait unless a hostile is within 8 hexes (`behavior.monster.engage`), so clay holds a corpse while the party is farther off and fights when it is near. Clay and soul-feeders do not wander: wandering agents flood every golden with moves.
 - Goldens updated (combat encounters, tui menus): UIDs and map IDs shifted by the two new rooms, and the den remnant now leaves for the hub after a phase, which adds a move or two to encounters that run past one. No creature's fight changed. Lethality targets still hold.
 - Tests that needed edits: `residents_test.go` (clear the den spawn so a leaving remnant does not kill the party; ignore remnant migration), `regions_test.go` and `offscreen_test.go` (hub has two more neighbours), `explore/playground_test.go` (peaceful factions, remnant need frozen, two new rooms).
-- Soul-feeders' `need.soul` rises but is never met, and `leave` takes the nearest gate, not the less-decayed one: follow-ups M3-18.F2 and M3-18.F1.
+- Soul-feeders' `need.soul` is now met by wounding the living, and `leave` ranks gates by content: follow-ups M3-18.F2 and M3-18.F1, done in this pull request.
 - The believer has no behaviors (it stands); an archon's warden guards the nearest believer within 3 hexes.
 
 

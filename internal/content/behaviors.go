@@ -40,6 +40,16 @@ func (r *Registry) BehaviorScore(id api.ContentID, env ConsiderEnv) (float64, er
 	return score, nil
 }
 
+// BehaviorRank is how highly the behavior ranks an option, by its rank formula; options rank
+// equally when it has none.
+func (r *Registry) BehaviorRank(id api.ContentID, env RankEnv) (float64, error) {
+	program, ok := r.ranks[id]
+	if !ok {
+		return 0, nil
+	}
+	return run[float64](program, env, fmt.Sprintf("behavior %q rank", id))
+}
+
 // checkBehaviors compiles every behavior's considerations, checks its target, and checks the
 // behaviors templates list. That the primitive exists and takes the params is checked when a game
 // starts.
@@ -82,6 +92,13 @@ func (r *Registry) checkBehaviors() []error {
 			programs = append(programs, program)
 		}
 		r.behaviors[api.ContentID(key)] = programs
+		if def.Rank != "" {
+			if program, err := r.Compile(def.Rank, RankEnv{}, expr.AsFloat64()); err != nil {
+				p.addf("%s.rank: %w", path, err)
+			} else {
+				r.ranks[api.ContentID(key)] = program
+			}
+		}
 		if def.Target != nil {
 			r.checkBehaviorTarget(p, path+".target", *def.Target)
 		}

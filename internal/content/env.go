@@ -92,6 +92,16 @@ type ConsiderEnv struct {
 	Region Record `expr:"region"`
 }
 
+// RankEnv is what a behavior's rank formula sees of one option, such as a gate to cross.
+type RankEnv struct {
+	// Source is the agent choosing.
+	Source BodyEnv `expr:"source"`
+	// Region is the record of the region the option leads to.
+	Region Record `expr:"region"`
+	// Distance is hexes from the agent to the option.
+	Distance int `expr:"distance"`
+}
+
 // EffectEnv is everything an effect formula can see.
 type EffectEnv struct {
 	Now int64 `expr:"now"`

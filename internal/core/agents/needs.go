@@ -108,13 +108,14 @@ func clamp(level float64) float64 { return min(max(level, 0), 1) }
 
 func satisfyPrimitive() effects.Primitive {
 	return effects.Primitive{
-		Name: "satisfy", Params: []string{"need", "amount"},
-		Kinds:         map[string]effects.Kind{"need": effects.KindText},
+		Name: "satisfy", Params: []string{"need", "amount"}, Optional: []string{"bodies"},
+		Kinds:         map[string]effects.Kind{"need": effects.KindText, "bodies": effects.KindBodies},
 		VerifyContent: verifyNeed, Apply: applySatisfy,
 	}
 }
 
-// applySatisfy lowers the target's level of the need by amount; a negative amount raises it.
+// applySatisfy lowers the level of the need by amount in each of the bodies, or in the target when
+// none are named; a negative amount raises it.
 func applySatisfy(ctx *effects.Context, p effects.Params) error {
 	need, err := p.String("need")
 	if err != nil {
@@ -124,14 +125,22 @@ func applySatisfy(ctx *effects.Context, p effects.Params) error {
 	if err != nil {
 		return err
 	}
+	bodies := []ecs.Entity{ctx.Target}
+	if p.Has("bodies") {
+		if bodies, err = p.Bodies("bodies"); err != nil {
+			return err
+		}
+	}
 	w := ctx.World
 	needs := ecs.NewMap[comp.Needs](w.ECS)
-	if !w.Alive(ctx.Target) || !needs.Has(ctx.Target) {
-		return nil
-	}
-	held := needs.Get(ctx.Target)
-	if at, ok := find(held, api.ContentID(need)); ok {
-		held.Levels[at].Level = clamp(held.Levels[at].Level - amount)
+	for _, body := range bodies {
+		if !w.Alive(body) || !needs.Has(body) {
+			continue
+		}
+		held := needs.Get(body)
+		if at, ok := find(held, api.ContentID(need)); ok {
+			held.Levels[at].Level = clamp(held.Levels[at].Level - amount)
+		}
 	}
 	return nil
 }

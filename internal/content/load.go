@@ -99,6 +99,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		needs:       map[api.ContentID]compiledNeed{},
 		families:    map[api.ContentID]compiledFamily{},
 		behaviors:   map[api.ContentID][]*vm.Program{},
+		ranks:       map[api.ContentID]*vm.Program{},
 		rulesUsed:   map[string]bool{},
 		collections: collections(),
 	}

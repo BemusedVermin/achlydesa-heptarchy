@@ -257,6 +257,9 @@ type BehaviorDef struct {
 	Params map[string]string `json:"params,omitempty"`
 	// Consider are Expr floats over ConsiderEnv. The score is their product, 1 when there are none.
 	Consider []string `json:"consider,omitempty"`
+	// Rank is an Expr float over RankEnv. A primitive that picks among options, such as the gates
+	// of a map, takes the option that ranks highest.
+	Rank string `json:"rank,omitempty"`
 	// Target is what the behavior goes for: the nearest match on the agent's map. Nil means nothing.
 	Target *TargetDef `json:"target,omitempty"`
 }

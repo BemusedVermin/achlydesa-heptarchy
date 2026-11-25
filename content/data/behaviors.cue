@@ -100,6 +100,9 @@ behaviors: {
 		name: "text.behavior.remnant.leave"
 		do:   "leave"
 		consider: ["region.props.decay > 0.3 ? source.needs.undecayed : 0"]
+		// The gate to the ground that eases the want most. The want is what makes it leave; the
+		// ranking asks where that want would fall furthest.
+		rank: "source.needs.undecayed * (0.3 - region.props.decay)"
 	}
 	"behavior.feeder.hunt": {
 		name: "text.behavior.feeder.hunt"

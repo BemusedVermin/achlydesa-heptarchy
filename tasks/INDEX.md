@@ -143,8 +143,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M3-18.F2](followups/M3-18.F2-satisfy-from-source.md) | Let a trigger satisfy a need of the acting body | proposed | seam | M3 | M3-18 |
-| [M3-18.F1](followups/M3-18.F1-leave-by-decay.md) | Let leave pick the gate to the less-decayed neighbour | proposed | seam | M3 | M3-18 |
+| [M3-18.F2](followups/M3-18.F2-satisfy-from-source.md) | Let a trigger satisfy a need of the acting body | done | seam | M3 | M3-18 |
+| [M3-18.F1](followups/M3-18.F1-leave-by-decay.md) | Let leave pick the gate to the less-decayed neighbour | done | seam | M3 | M3-18 |
 | [M3-11.F1.F1](followups/M3-11.F1.F1-on-screen-town-emptied.md) | Decide whether a town the party is in emits TownEmptied when its last resident leaves | proposed | question | M3 | M3-11.F1 |
 | [M3-11.F1](followups/M3-11.F1-leave-emit-migrated.md) | Emit Migrated when a resident leaves to an off-screen map | done | seam | M3 | M3-11 |
 | [M3-08.F1](followups/M3-08.F1-draw-region-panel.md) | Draw the region section in the terminal frontend | done | feature | M3 | M3-08 |
