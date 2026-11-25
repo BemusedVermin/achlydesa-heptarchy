@@ -5,6 +5,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
@@ -22,11 +23,15 @@ func (controller) Decide(w *sim.World, body ecs.Entity) error {
 		return nil
 	}
 	template, ok := w.Content.Template(w.TemplateOf(body))
-	if !ok || len(template.Behaviors) == 0 {
+	behaviors := template.Behaviors
+	if ecs.NewMap[comp.Fleeing](w.ECS).Has(body) {
+		behaviors = []api.ContentID{w.Content.Recruits().FleeBehavior}
+	}
+	if !ok || len(behaviors) == 0 {
 		return nil
 	}
 	chooser := newChooser(w, body)
-	best, ok, err := chooser.choose(template.Behaviors)
+	best, ok, err := chooser.choose(behaviors)
 	if err != nil {
 		return fmt.Errorf("agents: body %d: %w", w.UIDOf(body), err)
 	}

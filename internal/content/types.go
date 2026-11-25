@@ -40,6 +40,7 @@ type Bundle struct {
 	// Families are the kinds of creature a region counts off screen ("family." IDs).
 	Families map[string]FamilyDef `json:"families"`
 	Agents   AgentsConfig         `json:"agents"`
+	Recruits RecruitsConfig       `json:"recruits"`
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	Rules map[string]string `json:"rules,omitempty"`
 	// Choices are the choices actions may ask for, served from a collection of records.
@@ -259,6 +260,22 @@ type RecruitDef struct {
 	Worth string `json:"worth"`
 	// Upkeep is what the recruit wants each day after hiring.
 	Upkeep []StackDef `json:"upkeep,omitempty"`
+}
+
+// RecruitsConfig holds the numbers that keep recruits in the party.
+type RecruitsConfig struct {
+	// GrumbleAt is the discontent at which a recruit grumbles, once a day.
+	GrumbleAt int `json:"grumble_at"`
+	// DesertAt is the discontent at which a recruit deserts.
+	DesertAt int `json:"desert_at"`
+	// FleeAt is the terror level, 0 to 1, at or above which a recruit flees.
+	FleeAt float64 `json:"flee_at"`
+	// TerrorNeed is the need ("need." ID) whose level is a recruit's terror.
+	TerrorNeed api.ContentID `json:"terror_need"`
+	// FleeBehavior is the behavior ("behavior." ID) a fleeing recruit does, whatever its template lists.
+	FleeBehavior api.ContentID `json:"flee_behavior"`
+	// DesertersFaction is the faction ("faction." ID) a deserter joins.
+	DesertersFaction api.ContentID `json:"deserters_faction"`
 }
 
 // BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a

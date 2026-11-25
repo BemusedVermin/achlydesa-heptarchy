@@ -31,6 +31,12 @@ func RecruitPrice(wants []StackDef, worth float64) []StackDef {
 // checkRecruits checks the items a hirable template wants and compiles its worth formula.
 func (r *Registry) checkRecruits() []error {
 	p := r.problems()
+	for _, template := range r.bundle.Templates {
+		if template.Recruit != nil {
+			r.checkRecruitsConfig(p)
+			break
+		}
+	}
 	for _, key := range sortedKeys(r.bundle.Templates) {
 		def := r.bundle.Templates[key].Recruit
 		if def == nil {
@@ -60,4 +66,22 @@ func (r *Registry) checkRecruits() []error {
 		r.worths[api.ContentID(key)] = program
 	}
 	return p.errs
+}
+
+// checkRecruitsConfig checks the numbers and references of the recruits config. A bundle with no
+// hirable template needs none.
+func (r *Registry) checkRecruitsConfig(p *problems) {
+	cfg := r.bundle.Recruits
+	if cfg.GrumbleAt < 1 {
+		p.addf("recruits.grumble_at: must be at least 1, got %d", cfg.GrumbleAt)
+	}
+	if cfg.DesertAt <= cfg.GrumbleAt {
+		p.addf("recruits.desert_at: must exceed grumble_at, got %d", cfg.DesertAt)
+	}
+	if cfg.FleeAt <= 0 || cfg.FleeAt > 1 {
+		p.addf("recruits.flee_at: must be above 0 and at most 1, got %v", cfg.FleeAt)
+	}
+	ref(p, r.bundle.Needs, "recruits.terror_need", "need", cfg.TerrorNeed)
+	ref(p, r.bundle.Behaviors, "recruits.flee_behavior", "behavior", cfg.FleeBehavior)
+	ref(p, r.bundle.Factions, "recruits.deserters_faction", "faction", cfg.DesertersFaction)
 }

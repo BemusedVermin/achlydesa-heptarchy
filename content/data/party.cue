@@ -23,3 +23,16 @@ party: {
 	// A follower steps with this action.
 	follow_action: "action.step"
 }
+
+recruits: content.#RecruitsConfig
+
+// Placeholder numbers, for tuning. A recruit grumbles after two unpaid days and deserts after four;
+// from half terror up it runs.
+recruits: {
+	grumble_at:        2
+	desert_at:         4
+	flee_at:           0.5
+	terror_need:       "need.terror"
+	flee_behavior:     "behavior.recruit.flee"
+	deserters_faction: "faction.deserters"
+}

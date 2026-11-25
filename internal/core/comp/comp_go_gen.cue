@@ -271,6 +271,17 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // Individual marks a body that is never demoted into a population count.
 #Individual: {}
 
+// Discontent counts the days a recruit has gone unpaid, less the days it was paid since.
+#Discontent: {
+	days: int @go(Days)
+}
+
+// Fleeing marks a recruit whose terror has taken it out of the party's hands. Controller is the
+// controller it runs under while it flees; the party's control mode does not apply to it.
+#Fleeing: {
+	controller: string @go(Controller)
+}
+
 // Family records the family a body was promoted from.
 #Family: {
 	id: api.#ContentID @go(ID)

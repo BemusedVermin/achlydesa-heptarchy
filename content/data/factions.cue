@@ -12,6 +12,8 @@ factions: {
 	// The archon's creatures: hostile to outsiders (the party) and to no believer.
 	"faction.archon": {name: "text.faction.archon", hostile_to: ["faction.party"]}
 	"faction.believers": {name: "text.faction.believers"}
+	// Recruits who left the party. Hostile to no one until grudges say otherwise.
+	"faction.deserters": {name: "text.faction.deserters"}
 	// A severed part that crawls off: hostile to everyone, itself included.
 	"faction.crawling": {
 		name: "text.faction.crawling"
@@ -23,6 +25,7 @@ text: {
 	"text.faction.archon":    "the archon's creatures"
 	"text.faction.believers": "the believers"
 	"text.faction.crawling":  "the crawling"
+	"text.faction.deserters": "the deserters"
 	"text.faction.party":     "the party"
 	"text.faction.people":    "the people"
 	"text.faction.wild":      "the wild"

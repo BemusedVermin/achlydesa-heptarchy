@@ -13,7 +13,46 @@ const (
 
 	HireKind  = "agents.hire"
 	HiredKind = "agents.hired"
+
+	GrumbledKind = "agents.grumbled"
+	DesertedKind = "agents.deserted"
+	FledKind     = "agents.fled"
 )
+
+// Grumbled reports that an unpaid recruit complained.
+type Grumbled struct {
+	Party   UID `json:"party"`
+	Recruit UID `json:"recruit"`
+}
+
+// EventKind implements [Event].
+func (Grumbled) EventKind() string { return GrumbledKind }
+
+// LogText implements [Loggable].
+func (Grumbled) LogText() Text { return Text{ID: "text.agents.grumbled"} }
+
+// Deserted reports that a recruit left the party and lives on as an individual.
+type Deserted struct {
+	Party   UID `json:"party"`
+	Recruit UID `json:"recruit"`
+}
+
+// EventKind implements [Event].
+func (Deserted) EventKind() string { return DesertedKind }
+
+// LogText implements [Loggable].
+func (Deserted) LogText() Text { return Text{ID: "text.agents.deserted"} }
+
+// Fled reports that a recruit's terror took it out of the party's hands.
+type Fled struct {
+	Recruit UID `json:"recruit"`
+}
+
+// EventKind implements [Event].
+func (Fled) EventKind() string { return FledKind }
+
+// LogText implements [Loggable].
+func (Fled) LogText() Text { return Text{ID: "text.agents.fled"} }
 
 // OptionHirePrefix is followed by the UID of the recruit to hire.
 const OptionHirePrefix = "hire/"

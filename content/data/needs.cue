@@ -57,6 +57,13 @@ needs: {
 		rise: "0.0625"
 		urge: "level"
 	}
+	// A recruit's fear. Triggers on the party's templates raise it; it eases by itself, and a recruit
+	// at or above recruits.flee_at runs.
+	"need.terror": {
+		name: "text.need.terror"
+		rise: "-0.125"
+		urge: "level"
+	}
 	"need.safety": _#Slow & {name: "text.need.safety"}
 	"need.belonging": _#Slow & {name: "text.need.belonging"}
 	"need.faith": _#Slow & {name: "text.need.faith"}
@@ -71,6 +78,7 @@ text: {
 	"text.need.hold_dead": "to hold the dead"
 	"text.need.undecayed": "undecayed ground"
 	"text.need.soul":      "soul"
+	"text.need.terror":    "terror"
 	"text.need.safety":    "safety"
 	"text.need.belonging": "belonging"
 	"text.need.faith":     "faith"

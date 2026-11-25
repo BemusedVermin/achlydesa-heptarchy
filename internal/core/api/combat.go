@@ -143,6 +143,12 @@ type BodyDied struct {
 // EventKind implements [Event].
 func (BodyDied) EventKind() string { return BodyDiedKind }
 
+// Subjects implements [Subjected]. The body is both source and target, so that an effect's
+// selectors see the room from where it fell.
+func (b BodyDied) Subjects() map[string]UID {
+	return map[string]UID{SubjectSource: b.Body, SubjectTarget: b.Body}
+}
+
 // LogText implements [Loggable].
 func (b BodyDied) LogText() Text {
 	return Text{ID: "text.combat.body_died", Args: map[string]string{"name": b.Name}}

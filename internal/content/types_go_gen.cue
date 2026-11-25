@@ -50,7 +50,8 @@ import (
 
 	// Families are the kinds of creature a region counts off screen ("family." IDs).
 	families: {[string]: #FamilyDef} @go(Families,map[string]FamilyDef)
-	agents: #AgentsConfig @go(Agents)
+	agents:   #AgentsConfig   @go(Agents)
+	recruits: #RecruitsConfig @go(Recruits)
 
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	rules?: {[string]: string} @go(Rules,map[string]string)
@@ -306,6 +307,27 @@ import (
 
 	// Upkeep is what the recruit wants each day after hiring.
 	upkeep?: [...#StackDef] @go(Upkeep,[]StackDef)
+}
+
+// RecruitsConfig holds the numbers that keep recruits in the party.
+#RecruitsConfig: {
+	// GrumbleAt is the discontent at which a recruit grumbles, once a day.
+	grumble_at: int @go(GrumbleAt)
+
+	// DesertAt is the discontent at which a recruit deserts.
+	desert_at: int @go(DesertAt)
+
+	// FleeAt is the terror level, 0 to 1, at or above which a recruit flees.
+	flee_at: float64 @go(FleeAt)
+
+	// TerrorNeed is the need ("need." ID) whose level is a recruit's terror.
+	terror_need: api.#ContentID @go(TerrorNeed)
+
+	// FleeBehavior is the behavior ("behavior." ID) a fleeing recruit does, whatever its template lists.
+	flee_behavior: api.#ContentID @go(FleeBehavior)
+
+	// DesertersFaction is the faction ("faction." ID) a deserter joins.
+	deserters_faction: api.#ContentID @go(DesertersFaction)
 }
 
 // BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a

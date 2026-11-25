@@ -11,6 +11,26 @@ package api
 #PopulationDiedKind: "agents.population_died"
 #HireKind:           "agents.hire"
 #HiredKind:          "agents.hired"
+#GrumbledKind:       "agents.grumbled"
+#DesertedKind:       "agents.deserted"
+#FledKind:           "agents.fled"
+
+// Grumbled reports that an unpaid recruit complained.
+#Grumbled: {
+	party:   #UID @go(Party)
+	recruit: #UID @go(Recruit)
+}
+
+// Deserted reports that a recruit left the party and lives on as an individual.
+#Deserted: {
+	party:   #UID @go(Party)
+	recruit: #UID @go(Recruit)
+}
+
+// Fled reports that a recruit's terror took it out of the party's hands.
+#Fled: {
+	recruit: #UID @go(Recruit)
+}
 
 #OptionHirePrefix: "hire/"
 
