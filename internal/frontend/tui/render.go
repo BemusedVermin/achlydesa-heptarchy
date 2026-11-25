@@ -345,6 +345,21 @@ func RenderParty(p *api.PartyView) string {
 	return strings.Join(lines, "\n")
 }
 
+// RenderRegion draws the region's name and, in a town, the stock under the labels' heading.
+func RenderRegion(r *api.RegionView, labels api.LabelsView) string {
+	if r == nil {
+		return ""
+	}
+	lines := []string{r.Name}
+	if r.Town && len(r.Stock) > 0 {
+		lines = append(lines, labels.Stock)
+		for _, line := range r.Stock {
+			lines = append(lines, "  "+line.Name+" x"+strconv.Itoa(line.Count))
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
 // RenderLog draws the last lines of the message log that fit in height lines of width columns.
 func RenderLog(lines []api.LogLine, width, height int) string {
 	if height < 1 {
