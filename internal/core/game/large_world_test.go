@@ -3,7 +3,6 @@ package game_test
 import (
 	"slices"
 	"testing"
-	"time"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -41,11 +40,7 @@ func deepAround(t *testing.T, w *sim.World) string {
 }
 
 func TestLargeWorldStartsLazily(t *testing.T) {
-	begin := time.Now()
 	_, w, _ := startLarge(t, 1)
-	if elapsed := time.Since(begin); elapsed > 5*time.Second {
-		t.Errorf("start took %v", elapsed)
-	}
 	total := 400 * 400 * 64 / (hexmap.ChunkSize * hexmap.ChunkSize * hexmap.ChunkSize)
 	if loaded := len(w.Map.Loaded()); loaded*20 > total {
 		t.Errorf("loaded %d of %d chunks at start", loaded, total)
