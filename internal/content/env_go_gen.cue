@@ -105,6 +105,9 @@ package content
 	// Threatened is the ticks until the soonest landing of a hostile's action aimed at the agent, or
 	// -1 when there is none.
 	Threatened: int64
+
+	// Stock counts, per item ID, what the stock of the agent's town holds; empty off a town's map.
+	Stock: {[string]: int} @go(,map[string]int)
 }
 
 // EffectEnv is everything an effect formula can see.
@@ -197,4 +200,39 @@ package content
 
 	// Height is the target's depth minus the actor's: positive when the actor is above.
 	Height: int
+}
+
+// RegionEnv is what a formula sees of one region while the party is away.
+#RegionEnv: {
+	// Data is the region's own tags, props and lists.
+	Data: #Record
+
+	// Counts is how many of each family, by family ID, the region holds.
+	Counts: {[string]: int} @go(,map[string]int)
+
+	// Stock is how many of each item, by item ID, the region's stock holds.
+	Stock: {[string]: int} @go(,map[string]int)
+
+	// Dead is how many dead bodies lie on the region's map.
+	Dead: int
+}
+
+// DriftEnv is what a family's drift formula sees: the region the family is in and one neighbour.
+#DriftEnv: {
+	Region:    #RegionEnv
+	Neighbour: #RegionEnv
+
+	// Family is the family's ID.
+	Family: string
+}
+
+// AttritionEnv is what a family's attrition formula sees.
+#AttritionEnv: {
+	Region: #RegionEnv
+
+	// Family is the family's ID.
+	Family: string
+
+	// Count is how many of the family the region holds.
+	Count: int
 }

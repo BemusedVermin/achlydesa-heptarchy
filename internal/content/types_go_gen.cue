@@ -374,6 +374,14 @@ import (
 
 	// Marks are the names of map marks members appear at; empty means any open cell.
 	marks?: [...string] @go(Marks,[]string)
+
+	// Drift is an Expr float over DriftEnv: the fraction of the family's count in a region that moves
+	// to one neighbour each phase while the party is elsewhere. Empty means none.
+	drift?: string @go(Drift)
+
+	// Attrition is an Expr float over AttritionEnv: how many of the family in a region die each phase
+	// while the party is elsewhere. Empty means none.
+	attrition?: string @go(Attrition)
 }
 
 // Weighted is a template and the weight it is chosen with.
@@ -559,6 +567,20 @@ import (
 	// StockMarks are marks of the map where carried goods go into the stock. Each is a plain mark,
 	// not a spawn or a gate.
 	stock_marks?: [...string] @go(StockMarks,[]string)
+
+	// Residents is the family ("family." ID) whose count in the region is the town's residents. It is
+	// required when the town uses stock.
+	residents?: api.#ContentID @go(Residents)
+
+	// Use is what each resident spends from the stock every phase while the party is away.
+	use?: [...#StackDef] @go(Use,[]StackDef)
+
+	// Refill is what the stock gains every phase while the party is away.
+	refill?: [...#StackDef] @go(Refill,[]StackDef)
+
+	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
+	// to 1.
+	exodus?: float64 @go(Exodus)
 }
 
 // GateDef is where a gate leads.

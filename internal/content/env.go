@@ -156,3 +156,32 @@ type ScoreEnv struct {
 	// Height is the target's depth minus the actor's: positive when the actor is above.
 	Height int `expr:"height"`
 }
+
+// RegionEnv is what a formula sees of one region while the party is away.
+type RegionEnv struct {
+	// Data is the region's own tags, props and lists.
+	Data Record `expr:"data"`
+	// Counts is how many of each family, by family ID, the region holds.
+	Counts map[string]int `expr:"counts"`
+	// Stock is how many of each item, by item ID, the region's stock holds.
+	Stock map[string]int `expr:"stock"`
+	// Dead is how many dead bodies lie on the region's map.
+	Dead int `expr:"dead"`
+}
+
+// DriftEnv is what a family's drift formula sees: the region the family is in and one neighbour.
+type DriftEnv struct {
+	Region    RegionEnv `expr:"region"`
+	Neighbour RegionEnv `expr:"neighbour"`
+	// Family is the family's ID.
+	Family string `expr:"family"`
+}
+
+// AttritionEnv is what a family's attrition formula sees.
+type AttritionEnv struct {
+	Region RegionEnv `expr:"region"`
+	// Family is the family's ID.
+	Family string `expr:"family"`
+	// Count is how many of the family the region holds.
+	Count int `expr:"count"`
+}

@@ -20,7 +20,6 @@ import (
 
 const (
 	townMap       = "map.test.town"
-	waterItem     = "item.lake_water"
 	hauler        = "template.resident.hauler"
 	plainResident = "template.resident.plain"
 	wellTemplate  = "template.town.well"
