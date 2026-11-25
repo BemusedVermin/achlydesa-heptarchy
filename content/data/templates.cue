@@ -41,6 +41,24 @@ _#Hunter: {
 	...
 }
 
+_residentBehaviors: [
+	"behavior.resident.drink", "behavior.resident.eat", "behavior.resident.sleep",
+	"behavior.resident.leave", "behavior.resident.wander",
+]
+
+// Townspeople. Safety, belonging, faith, duty and grief have placeholder curves and nothing meets them yet.
+_#Resident: {
+	actor: controller: "agents"
+	body:    "body.human"
+	faction: "faction.people"
+	actions: ["action.step", "action.drink_stock", "action.eat_stock", "action.sleep"]
+	needs: {
+		"need.water": 0, "need.food": 0, "need.rest":  0, "need.safety": 0, "need.belonging": 0
+		"need.faith": 0, "need.duty": 0, "need.grief": 0
+	}
+	...
+}
+
 templates: {
 	"template.person.reaper": _#Person & {
 		name: "text.template.person.reaper"
@@ -193,6 +211,24 @@ templates: {
 		actions: ["action.step"]
 		behaviors: ["behavior.test.dodge"]
 	}
+	"template.resident.plain": _#Resident & {
+		name: "text.template.resident.plain"
+		appearance: {glyph: "p", color: "white"}
+		behaviors: _residentBehaviors
+	}
+	// Carries water from the well to the cistern by day, as well as living as a resident does.
+	"template.resident.hauler": _#Resident & {
+		name: "text.template.resident.hauler"
+		appearance: {glyph: "h", color: "cyan"}
+		behaviors: [for b in _residentBehaviors {b}, "behavior.resident.haul_water"]
+	}
+	// A well the haulers draw from: a thing with water in it, not a body to fight.
+	"template.town.well": {
+		name: "text.template.town.well"
+		appearance: {glyph: "o", color: "blue"}
+		tags: ["well"]
+		inventory: [{item: "item.lake_water", count: 40}]
+	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
 		// A few of each consumable to start with.
@@ -227,5 +263,8 @@ text: {
 	"text.template.test.dodger":          "Dodger"
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"
+	"text.template.resident.plain":       "A resident"
+	"text.template.resident.hauler":      "A water hauler"
+	"text.template.town.well":            "The well"
 	"text.template.unknown":              "Someone"
 }

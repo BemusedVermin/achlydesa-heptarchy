@@ -12,6 +12,17 @@ families: {
 		name: "text.family.test.clay"
 		templates: [{template: "template.creature.moving_clay", weight: 1}]
 	}
+	// A town's residents, counted when they leave through a gate or the party is away.
+	"family.people": {
+		name: "text.family.people"
+		templates: [{template: "template.resident.plain", weight: 1}]
+		marks: ["house"]
+	}
+	"family.people.haulers": {
+		name: "text.family.people.haulers"
+		templates: [{template: "template.resident.hauler", weight: 1}]
+		marks: ["house"]
+	}
 	"family.test.mixed": {
 		name: "text.family.test.mixed"
 		templates: [
@@ -23,6 +34,8 @@ families: {
 }
 
 text: {
-	"text.family.test.clay":  "Clay creatures"
-	"text.family.test.mixed": "Mixed creatures"
+	"text.family.people":         "People"
+	"text.family.people.haulers": "Water haulers"
+	"text.family.test.clay":      "Clay creatures"
+	"text.family.test.mixed":     "Mixed creatures"
 }

@@ -88,6 +88,7 @@ func TestThePlaygroundGatesReachEveryCreature(t *testing.T) {
 		{"map.play.hall", []api.ContentID{"template.creature.moving_clay"}},
 		{"map.play.den", []api.ContentID{"template.creature.remnant", "template.creature.beast"}},
 		{"map.play.descent", []api.ContentID{"template.creature.moving_clay"}},
+		{"map.test.town", []api.ContentID{"template.town.well"}},
 	}
 	for _, route := range routes {
 		t.Run(route.to, func(t *testing.T) {

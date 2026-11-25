@@ -32,6 +32,7 @@ type offscreen struct {
 	den  api.MapID
 	hall api.MapID
 	desc api.MapID
+	town api.MapID
 }
 
 // newOffscreen starts the party in the hall, so the hub, den and descent are off screen. The hub
@@ -60,7 +61,7 @@ func newOffscreen(t *testing.T, seed uint64, mutate func(*content.Bundle)) *offs
 	})
 	return &offscreen{
 		t: t, g: g, w: w, hub: mapNamed(t, w, hubMap), den: mapNamed(t, w, denMap),
-		hall: mapNamed(t, w, playHall), desc: mapNamed(t, w, descentMap),
+		hall: mapNamed(t, w, playHall), desc: mapNamed(t, w, descentMap), town: mapNamed(t, w, townMap),
 	}
 }
 
@@ -90,7 +91,7 @@ func (o *offscreen) set(on api.MapID, count int) {
 }
 
 func (o *offscreen) total() int {
-	return o.count(o.hub) + o.count(o.den) + o.count(o.desc) + o.count(o.hall)
+	return o.count(o.hub) + o.count(o.den) + o.count(o.desc) + o.count(o.hall) + o.count(o.town)
 }
 
 func (o *offscreen) phase() []api.Event {

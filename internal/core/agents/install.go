@@ -25,6 +25,9 @@ func Install(w *sim.World) error {
 	if err := effects.Register(w, satisfyPrimitive()); err != nil {
 		return err
 	}
+	if err := effects.Register(w, takeStockPrimitive()); err != nil {
+		return err
+	}
 	for _, system := range []sim.System{
 		{Name: needsSystem, Cadence: sim.PerPhase, Run: tickNeeds},
 		{Name: offscreenSystem, Cadence: sim.PerPhase, Run: tickOffscreen},

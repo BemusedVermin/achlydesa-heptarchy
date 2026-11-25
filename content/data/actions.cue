@@ -46,6 +46,42 @@ actions: {
 		on_land: [{do: "satisfy", params: {need: "need.water", amount: "0.5"}}]
 		tags: ["supply"]
 	}
+	// Residents' versions: one item from the town stock, from beside a stock mark. Placeholder numbers.
+	"action.drink_stock": {
+		name: "text.action.drink_stock"
+		key:  "drink_stock"
+		uses: [{tag: "body", count: 1}]
+		target:   "self"
+		allowed:  "!source.alert"
+		refusal:  "text.actions.on_alert"
+		windup:   "0"
+		recovery: "20"
+		on_start: [{do: "take_stock", params: {item: "item.lake_water"}}]
+		on_land: [{do: "satisfy", params: {need: "need.water", amount: "0.5"}}]
+		tags: ["supply"]
+	}
+	"action.eat_stock": {
+		name: "text.action.eat_stock"
+		key:  "eat_stock"
+		uses: [{tag: "body", count: 1}]
+		target:   "self"
+		allowed:  "!source.alert"
+		refusal:  "text.actions.on_alert"
+		windup:   "0"
+		recovery: "20"
+		on_start: [{do: "take_stock", params: {item: "item.ration"}}]
+		on_land: [{do: "satisfy", params: {need: "need.food", amount: "0.5"}}]
+		tags: ["supply"]
+	}
+	"action.sleep": {
+		name: "text.action.sleep"
+		key:  "sleep"
+		uses: [{tag: "body", count: 1}]
+		target:   "self"
+		windup:   "0"
+		recovery: "40"
+		on_land: [{do: "satisfy", params: {need: "need.rest", amount: "0.3"}}]
+	}
 	// For tests: a bite at a body next to the source, which may be a corpse.
 	"action.gnaw": {
 		name: "text.action.gnaw"
@@ -64,4 +100,8 @@ text: {
 	"text.action.step":  "Step"
 	"text.action.eat":   "Eat"
 	"text.action.drink": "Drink"
+
+	"text.action.drink_stock": "Drink from the stock"
+	"text.action.eat_stock":   "Eat from the stock"
+	"text.action.sleep":       "Sleep"
 }

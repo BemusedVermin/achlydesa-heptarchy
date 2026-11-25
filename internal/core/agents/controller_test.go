@@ -227,7 +227,10 @@ func TestAMoveTowardABodyStopsNextToIt(t *testing.T) {
 	if d := nearest(); d > 1 {
 		t.Fatalf("at tick %d the drinker is %d from the nearest person, want next to one", f.w.Now, d)
 	}
-	for range 3 {
+	for range 20 {
+		if !ecs.NewMap[comp.Doing](f.w.ECS).Has(body) {
+			break
+		}
 		f.wait()
 	}
 	if d := nearest(); d > 1 {
