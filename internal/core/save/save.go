@@ -15,7 +15,7 @@ import (
 const Format = "heptarchy-save"
 
 // CurrentVersion is the version Write produces. Raise it together with a migration from the old one.
-const CurrentVersion = 5
+const CurrentVersion = 6
 
 // Header says what the file is and what it was made from.
 type Header struct {
@@ -39,6 +39,13 @@ type Exports struct {
 	NextDay int `json:"next_day"`
 }
 
+// Chunk is the key of one chunk of the world.
+type Chunk struct {
+	Q     int `json:"q"`
+	R     int `json:"r"`
+	Depth int `json:"depth"`
+}
+
 // Snapshot is a whole game, as plain data.
 type Snapshot struct {
 	Header Header `json:"header"`
@@ -54,6 +61,8 @@ type Snapshot struct {
 	// Edits lists the world's edits, sorted by depth, R, Q. The world itself is rebuilt from content
 	// on load.
 	Edits []Edit `json:"edits"`
+	// Populated lists the chunks whose starting bodies have been spawned, sorted by depth, R, Q.
+	Populated []Chunk `json:"populated"`
 	// History is every command applied so far, in the codec's envelope form.
 	History []json.RawMessage `json:"history"`
 	// Log is the message log the view shows.

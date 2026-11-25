@@ -146,7 +146,7 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 | [M5-06](M5-procgen/M5-06-the-large-world.md) | The large world: procgen in the game | done | feature | M | M5-05 |
 | [M5-07](M5-procgen/M5-07-verify-guarantees.md) | Verify stage and the guarantees | done | feature | M | M5-05 |
 | [M5-10](M5-procgen/M5-10-regenerate-on-export.md) | Regenerate the deep on an export | todo | feature | M | M5-06, M5-07, M5-08, M5-09 |
-| [M5-11](M5-procgen/M5-11-populate.md) | Populate generated ground | todo | feature | M | M5-06, M5-08 |
+| [M5-11](M5-procgen/M5-11-populate.md) | Populate generated ground | done | feature | M | M5-06, M5-08 |
 | [M5-12](M5-procgen/M5-12-decay-spreads.md) | Decay spreads downward over exports | todo | feature | S | M5-10 |
 
 ## Later milestones (outlines)

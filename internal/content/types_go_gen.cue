@@ -407,7 +407,7 @@ import (
 	min_depth: int @go(MinDepth)
 	max_depth: int @go(MaxDepth)
 
-	// Fill is the terrain of every cell no place covers: solid clay until procgen generates the deep.
+	// Fill is the terrain of every cell no place covers: solid clay until worldgen generates the deep.
 	fill: api.#ContentID @go(Fill)
 
 	// Edge is the terrain beyond the bounds. It must be solid and opaque.
@@ -430,9 +430,30 @@ import (
 // GeographyDef lists the stages that build chunks of one kind of ground, in order.
 #GeographyDef: {
 	stages: [...#StageDef] @go(Stages,[]StageDef)
+
+	// Spawns is what lives on the generated ground: each entry can start a body of its template on any
+	// open cell with solid ground below, within its depth band.
+	spawns?: [...#GeographySpawn] @go(Spawns,[]GeographySpawn)
 }
 
-// StageDef names a registered procgen stage and its numbers. Whether the stage takes those params is the
+// GeographySpawn is one kind of creature a geography starts with.
+#GeographySpawn: {
+	// Template is the "template." ID of the body to spawn.
+	template: api.#ContentID @go(Template)
+
+	// Weight is the template's share among the entries that apply to a cell.
+	weight: float64 @go(Weight)
+
+	// MinDepth and MaxDepth bound the depths the entry applies at, both inclusive.
+	min_depth: int @go(MinDepth)
+	max_depth: int @go(MaxDepth)
+
+	// Density is in [0, 1]: how likely a cell the entry applies to is to start a body, before the entry's
+	// weight shares that chance with the other entries that apply there.
+	density: float64 @go(Density)
+}
+
+// StageDef names a registered worldgen stage and its numbers. Whether the stage takes those params is the
 // stage's to check, against the stage registry.
 #StageDef: {
 	// Stage is the registered stage's name, such as "caves".
@@ -461,7 +482,7 @@ import (
 	// Each character must also be one of Marks, so the layers may use it.
 	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
 
-	// Openings lists mark characters that stand where the place opens onto the generated deep: procgen
+	// Openings lists mark characters that stand where the place opens onto the generated deep: worldgen
 	// carves a tunnel from each such cell. The character may appear any number of times (at least once)
 	// and must be one of Marks and not one of Spawns.
 	openings?: [...string] @go(Openings,[]string)
