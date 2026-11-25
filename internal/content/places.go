@@ -24,7 +24,9 @@ func (d PlaceDef) layout() MapDef {
 
 type worldCell struct{ col, row, depth int }
 
-func (c worldCell) String() string { return fmt.Sprintf("column %d, row %d, depth %d", c.col, c.row, c.depth) }
+func (c worldCell) String() string {
+	return fmt.Sprintf("column %d, row %d, depth %d", c.col, c.row, c.depth)
+}
 
 func (w WorldDef) contains(c worldCell) bool {
 	return c.col >= 0 && c.col < w.Cols && c.row >= 0 && c.row < w.Rows &&

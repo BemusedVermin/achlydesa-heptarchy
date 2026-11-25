@@ -19,10 +19,10 @@ type Bundle struct {
 	Maps      map[string]MapDef    `json:"maps"`
 	World     WorldDef             `json:"world"`
 	// Places are the hand-made pieces of the world ("place." IDs).
-	Places map[string]PlaceDef `json:"places"`
-	Start    Start                `json:"start"`
-	Claims    map[string]Claim     `json:"claims"`
-	Origins   map[string]Origin    `json:"origins"`
+	Places  map[string]PlaceDef `json:"places"`
+	Start   Start               `json:"start"`
+	Claims  map[string]Claim    `json:"claims"`
+	Origins map[string]Origin   `json:"origins"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
