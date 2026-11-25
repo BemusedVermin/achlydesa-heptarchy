@@ -59,6 +59,7 @@ func Install(w *sim.World) error {
 		}
 	}
 	sim.Subscribe(w.Bus, "agents.lod", onPartyCrossed)
+	sim.Subscribe(w.Bus, "agents.emptied", onBodyDied)
 	if err := w.Views.Register(sim.ViewBuilder{Name: regionView, Build: buildRegion}); err != nil {
 		return err
 	}
