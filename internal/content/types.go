@@ -360,7 +360,7 @@ type PlaceAt struct {
 // Start is the scenario a new game begins with: a party placed at a mark of a place.
 type Start struct {
 	Place api.ContentID `json:"place"`
-	// Mark is a mark name of the place, where the party's leader stands.
+	// The party's leader stands on this mark of the place; the others nearest it.
 	Mark string `json:"mark"`
 	// Party names the party template to spawn.
 	Party api.ContentID `json:"party"`

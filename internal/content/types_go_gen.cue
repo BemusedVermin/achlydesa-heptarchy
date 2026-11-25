@@ -434,7 +434,7 @@ import (
 #Start: {
 	place: api.#ContentID @go(Place)
 
-	// Mark is a mark name of the place, where the party's leader stands.
+	// The party's leader stands on this mark of the place; the others nearest it.
 	mark: string @go(Mark)
 
 	// Party names the party template to spawn.
