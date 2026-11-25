@@ -14,6 +14,7 @@ require (
 	github.com/gravitton/hexagon v1.9.0
 	github.com/mlange-42/ark v0.8.3
 	github.com/mlange-42/ark-serde v0.3.2
+	github.com/ojrac/opensimplex-go v1.0.2
 	github.com/spf13/cobra v1.10.2
 	pgregory.net/rapid v1.3.0
 )
