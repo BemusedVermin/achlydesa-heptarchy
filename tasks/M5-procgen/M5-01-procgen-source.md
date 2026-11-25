@@ -91,3 +91,4 @@ type Stage interface {
 - **Files outside the Deliverables:** `internal/core/rng/rng.go` gains `Generator`, the type `Derived` returns, with only `Uint64`, `IntN` and `Float64`, so procgen draws randomness without importing `math/rand` or reaching the standard generator. `internal/content/records.go` and `load.go` register the collection and its check.
 - The test builds the source over `explore.WorldSource` from the sample content (tests may import across features) and checks order independence, fixed and out-of-bounds cells, export count and seed, and stage rejection.
 - No follow-ups filed.
+- **Follow-up filed:** M5-01.F1, so that only `rng` imports `math/rand`; `Streams.Get` and `internal/harness` still use it.
