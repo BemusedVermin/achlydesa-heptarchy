@@ -146,6 +146,8 @@ A body whose template has `actor: controller: "agents"` acts on the behaviors it
 
 A template with `recruit: {wants, worth, upkeep}` can be hired when it is a town's generic. `wants` are item stacks and `worth` is a formula over the body (`template`, `needs`, `integrity` and so on): the price is each want's count times `worth`, rounded up. `upkeep` is what the recruit wants each day after hiring.
 
+An exotic recruit is a generic with a strange want and an ability, and no `graftable` tag, so Graft is never offered onto it (`action.graft` requires the tag). The leashed soul-feeder in `templates.cue` wants rations and lees, and its trigger `_feederGrows` adds `status.feeding` when it hurts a body for which `dying` holds; `rule.hit` in `rules.cue` reads the status to hit harder. Keep it hirable by listing its template in a town's `generics`, with a family of its own.
+
 `do` names the behavior primitive that carries it out, one step per decision: `idle` waits, `wander` steps to a random open neighbour, and `move_toward` walks to the target with `combat.step_action`, until it stands on the cell (or next to the body). `params` give the primitive's parameters; one that a primitive doesn't take fails when a game starts.
 
 `target` says what a behavior goes for: the nearest match on the agent's map, or the behavior is not scored. `kind: "body"` takes another body, filtered by its template `tags`, `dead` and `hostile` (to the agent); `kind: "mark"` takes the `mark` of that name on the map; `kind: "cell"` takes the nearest cell of `terrain` within `agents.cell_radius`. While a behavior goes on, it keeps the body or cell it chose as long as that still matches.

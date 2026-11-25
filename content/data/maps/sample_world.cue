@@ -127,8 +127,16 @@ maps: "map.sample.lake": _#TestMap & {
 			stock_marks: ["cistern"]
 			residents: "family.people"
 			refill: [{item: "item.lake_water", count: 4}]
+			generics: [
+				{template: "template.generic.tamed_clay", count: 1, ticks: 80},
+				{template: "template.generic.leashed_feeder", count: 1, ticks: 80},
+			]
 		}
-		populations: {"family.people": 3}
+		populations: {
+			"family.people":                 3
+			"family.people.tamed_clay":      1
+			"family.people.leashed_feeders": 1
+		}
 	}
 	layers: [
 		{

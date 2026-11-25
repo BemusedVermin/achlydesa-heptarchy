@@ -10,9 +10,12 @@ statuses: {
 	"status.standing": {name: "text.status.standing"}
 	// Put on by hunger and thirst. rule.slowed (rules.cue) makes steps and wind-ups longer.
 	"status.slowed": {name: "text.status.slowed"}
+	// A soul-feeder that has hurt the slowly dying. rule.hit (rules.cue) makes its blows land harder.
+	"status.feeding": {name: "text.status.feeding"}
 }
 
 text: {
 	"text.status.standing": "standing"
 	"text.status.slowed":   "slowed"
+	"text.status.feeding":  "feeding"
 }
