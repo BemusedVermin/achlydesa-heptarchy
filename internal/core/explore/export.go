@@ -77,6 +77,12 @@ func regenerateDeep(w *sim.World) error {
 	if err != nil {
 		return err
 	}
+	st := stateOf(w)
+	st.generated, _ = cells.(*worldgen.Source)
+	clear(st.populated)
+	for _, key := range pocket {
+		st.populated[key] = true
+	}
 	w.Map.Replace(cells, fixed.Covers)
 	forgetSeen(w, slices.Concat(pocket, base.ChunkKeys()))
 	return relocate(w, fixed)

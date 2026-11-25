@@ -1,7 +1,7 @@
 ---
 id: M5-11
 title: Populate generated ground
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-06, M5-08]
@@ -37,8 +37,8 @@ Generated ground gets its starting creatures as bodies, chosen from content by d
 
 ## Acceptance criteria
 
-- [ ] The test above passes.
-- [ ] `go tool task check` passes.
+- [x] The test above passes.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -47,4 +47,11 @@ Generated ground gets its starting creatures as bodies, chosen from content by d
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- `populate` is `worldgen.Source.Populate(key)`, a method rather than a registered `Stage`: a stage rewrites a chunk's cells, this returns spawns as data. It draws from its own stream, so terrain is unchanged.
+- A cell draws once; an entry takes the share weight x density / sum of applying weights. Cells must be open with solid ground below (ground below the bounds counts as solid) and outside every place, which keep their own spawns.
+- Chunks are populated by `explore.populateLoaded`, run at the end of `Start` and after each party step, before far chunks unload. A chunk that loads some other way waits for the next step. A cell already holding a body gets none.
+- The populated set lives in explore's state, is cleared when the world is built, and is saved as `Snapshot.Populated`. Save version is 6 with no migration; the one migration-chain test gained an entry.
+- Load builds the source with export count 0 and restores the populated set as is, so a loaded game after an export keeps its set until M5-10 rebuilds the source on export, which clears it.
+- Content: `GeographyDef.Spawns`, checked in `checkGeographies`; sample entries (moving clay, remnant, beast by depth) are first values for tuning. Docs: `docs/content-guide.md` geography row.
+- Test geography keeps only the `caves` stage: with `sinks` the road's floor opens under the party.
+- No follow-ups filed.

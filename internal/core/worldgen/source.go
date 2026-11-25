@@ -104,6 +104,7 @@ type Source struct {
 	openings    []Opening
 	siblings    map[string]map[string]float64
 	stages      []boundStage
+	spawns      []content.GeographySpawn
 }
 
 // NewSource checks the geography's stages against cfg.Stages and returns a source for them.
@@ -124,6 +125,7 @@ func NewSource(cfg Config) (*Source, error) {
 		fixed:       cfg.Fixed,
 		openings:    openings,
 		siblings:    map[string]map[string]float64{},
+		spawns:      slices.Clone(cfg.Geography.Spawns),
 	}
 	if len(cfg.Geography.Stages) > 0 && cfg.Stages == nil {
 		return nil, errors.New("worldgen: source: no stage registry")

@@ -16,12 +16,17 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
 // state is what explore keeps on the world, as an Ark resource.
 type state struct {
 	rules hexmap.StepRules
 	world *WorldSource
+	// generated is the world's generated ground, nil when the world has none.
+	generated *worldgen.Source
+	// populated holds the chunks whose starting bodies have been spawned for generated's export count.
+	populated map[hexmap.ChunkKey]bool
 }
 
 func stateOf(w *sim.World) *state {
@@ -29,7 +34,7 @@ func stateOf(w *sim.World) *state {
 	if res.Has() {
 		return res.Get()
 	}
-	st := &state{}
+	st := &state{populated: map[hexmap.ChunkKey]bool{}}
 	if w.Content != nil {
 		st.rules = actions.StepRules(w)
 	}
@@ -184,7 +189,10 @@ func buildWorld(w *sim.World) (*WorldSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
-	stateOf(w).world = src
+	st := stateOf(w)
+	st.world = src
+	st.generated, _ = cells.(*worldgen.Source)
+	clear(st.populated)
 	w.Map = hexmap.NewMap(cells, hexmap.Prisms{})
 	w.Map.SetBounds(src.Bounds(), src.Edge())
 	return src, nil
@@ -212,7 +220,7 @@ func Start(w *sim.World) error {
 			return fmt.Errorf("explore: start: spawn %q at %v: %w", spawn.Template, spawn.Cell, err)
 		}
 	}
-	return nil
+	return populateLoaded(w)
 }
 
 // spawnParty spawns the template's party. The leader stands on the mark; each other member stands

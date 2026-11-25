@@ -192,6 +192,9 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 		return err
 	}
 	if member {
+		if err := populateLoaded(w); err != nil {
+			return err
+		}
 		unloadFar(w)
 	}
 	if cost < 1 {
