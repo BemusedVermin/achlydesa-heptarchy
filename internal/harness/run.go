@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"math/rand/v2"
 	"strconv"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 )
 
 // policyStream is the second PCG word of the policy generator, so it differs from any core stream.
@@ -25,11 +25,11 @@ type Policy interface {
 }
 
 // RandomPolicy picks uniformly among the enabled options.
-type RandomPolicy struct{ rng *rand.Rand }
+type RandomPolicy struct{ rng *rng.Generator }
 
 // NewRandomPolicy returns a RandomPolicy whose choices depend only on seed.
 func NewRandomPolicy(seed uint64) *RandomPolicy {
-	return &RandomPolicy{rng: rand.New(rand.NewPCG(seed, policyStream))}
+	return &RandomPolicy{rng: rng.NewGenerator(seed, policyStream)}
 }
 
 // Choose implements [Policy].
