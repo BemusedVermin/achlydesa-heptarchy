@@ -9,6 +9,30 @@ package api
 #MigratedKind:       "agents.migrated"
 #TownEmptiedKind:    "agents.town_emptied"
 #PopulationDiedKind: "agents.population_died"
+#HireKind:           "agents.hire"
+#HiredKind:          "agents.hired"
+
+#OptionHirePrefix: "hire/"
+
+// ItemCount is some of one kind of item.
+#ItemCount: {
+	item:  #ContentID @go(Item)
+	count: int        @go(Count)
+}
+
+// Hire pays a hirable person's price from the party's inventory and adds them to the party. It
+// is allowed while a member of the party is deciding and the recruit stands next to its leader.
+#Hire: {
+	party:   #UID @go(Party)
+	recruit: #UID @go(Recruit)
+}
+
+// Hired reports that a recruit joined the party, and what it was paid.
+#Hired: {
+	party:   #UID @go(Party)
+	recruit: #UID @go(Recruit)
+	paid: [...#ItemCount] @go(Paid,[]ItemCount)
+}
 
 // FamilyCount is how many members of a family changed form.
 #FamilyCount: {

@@ -287,6 +287,22 @@ import (
 	// Behaviors lists the behaviors ("behavior." IDs) the agents controller weighs for a body of this
 	// template.
 	behaviors?: [...api.#ContentID] @go(Behaviors,[]api.ContentID)
+
+	// Recruit makes a body of this template hirable by the party.
+	recruit?: null | #RecruitDef @go(Recruit,*RecruitDef)
+}
+
+// RecruitDef is what a hirable person asks for.
+#RecruitDef: {
+	// Wants are the items hiring costs, at base counts; each count is multiplied by Worth.
+	wants: [...#StackDef] @go(Wants,[]StackDef)
+
+	// Worth is an Expr float over BodyEnv: what the recruit brings. The price is each want's count
+	// times Worth, rounded up.
+	worth: string @go(Worth)
+
+	// Upkeep is what the recruit wants each day after hiring.
+	upkeep?: [...#StackDef] @go(Upkeep,[]StackDef)
 }
 
 // BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a

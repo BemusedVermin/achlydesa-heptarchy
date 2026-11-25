@@ -60,5 +60,8 @@ func Install(w *sim.World) error {
 	if err := w.Views.Register(sim.ViewBuilder{Name: regionView, Build: buildRegion}); err != nil {
 		return err
 	}
+	if err := installRecruits(w); err != nil {
+		return err
+	}
 	return timeline.RegisterController(w, controllerName, controller{})
 }

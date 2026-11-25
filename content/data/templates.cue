@@ -72,7 +72,8 @@ _#Generic: {
 	actor: controller: "agents"
 	body:    "body.human"
 	faction: "faction.people"
-	actions: ["action.step", "action.eat_stock"]
+	actions: ["action.step", "action.eat_stock", "action.strike"]
+	lists: types: ["type.cut"]
 	needs: {"need.food": 0, "need.safety": 0}
 	behaviors: ["behavior.resident.eat", "behavior.resident.wander"]
 	...
@@ -286,10 +287,20 @@ templates: {
 	"template.generic.guard": _#Generic & {
 		name: "text.template.generic.guard"
 		appearance: {glyph: "G", color: "white"}
+		recruit: {
+			wants: [{item: "item.ration", count: 2}, {item: "item.coal", count: 1}]
+			worth: "1.0"
+			upkeep: [{item: "item.ration", count: 1}]
+		}
 	}
 	"template.generic.field_hand": _#Generic & {
 		name: "text.template.generic.field_hand"
 		appearance: {glyph: "f", color: "green"}
+		recruit: {
+			wants: [{item: "item.ration", count: 1}, {item: "item.lake_water", count: 1}]
+			worth: "1.0"
+			upkeep: [{item: "item.ration", count: 1}]
+		}
 	}
 	// A well the haulers draw from: a thing with water in it, not a body to fight.
 	"template.town.well": {
