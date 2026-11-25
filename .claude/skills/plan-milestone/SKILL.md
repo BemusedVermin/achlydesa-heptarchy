@@ -36,6 +36,7 @@ Collect the questions the specs can't be written without:
 - the brief's "Questions to settle" list;
 - any `kind: question` follow-up aimed at this milestone that has no decision yet;
 - any gap you found while reading, where the docs don't say how the game should behave (AGENTS.md rule 9).
+- any stand-in a task would need because a later milestone hasn't built something yet. Ask whether to reorder the milestones instead. A stand-in that contradicts the design, such as separate maps joined by gates in a world the design calls seamless, is never yours to choose.
 
 @.claude/skills/shared/asking-the-owner.md
 

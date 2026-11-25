@@ -1,6 +1,6 @@
 # PM-STORY · Story (post-MVP)
 
-**Status:** outline, post-MVP. Break it into task files only once the MVP (M1 to M7) is done. Task IDs: `PM-STORY-01` and on.
+**Status:** outline, post-MVP. Break it into task files only once the MVP (M1 to M8) is done. Task IDs: `PM-STORY-01` and on.
 
 **Goal:** the main story, the characters' arcs and emergent stories all run on one scene system. Authored scenes have fixed casts; emergent scenes are cast from whoever in the simulation fits. Casting, strain and threads keep characters consistent, and a director paces heavy and soft scenes. Everything a writer touches is content.
 

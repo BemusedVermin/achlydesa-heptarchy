@@ -1,6 +1,6 @@
-# M6 · Emergence
+# M7 · Emergence
 
-**Status:** outline. Break it into task files once M5 is done.
+**Status:** outline. Break it into task files once M6 is done.
 
 **Goal:** the systems that make runs tell stories: rumors that drift, grudges and memory, dreams, generated candidates, and the flock.
 

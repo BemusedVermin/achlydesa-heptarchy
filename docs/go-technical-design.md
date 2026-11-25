@@ -24,7 +24,7 @@ The game will change once it's played, so every place the game design already ex
 
 | Seam | From day one | Leaves room for |
 | --- | --- | --- |
-| Maps | Positions are `Pos{Map, At}`, where `At` is a cell: a hex plus a depth as fine as Minecraft's blocks. Maps are stored in chunks so they can be infinite, and neighbors come from a topology | Soops crossing over and under each other, slopes and ledges, sinks, an infinite plain, impossible folds, towns and set pieces as their own maps |
+| The world | One world, not maps: a position is a cell, a hex plus a depth step, each 1.5 m. The world is stored in chunks so it can be infinite, and neighbors come from a topology. Towns and set pieces are places in it, never maps of their own | Soops crossing over and under each other, slopes and ledges, sinks, an infinite deep and plain, impossible folds |
 | Plan view | The core projects the 3D world into one 2D hex view: for each hex, the visible cell nearest the party's depth, shaded only by how far above or below it lies. The view never holds a depth or a layer | A seamless deep in the terminal now, and the same view or a richer one for Ebitengine later |
 | Entity templates | Content defines templates as bags of optional components, not one Go type per kind; one spawn function builds any of them | A person who becomes a monster, a creature that trades, a recruit who becomes a candidate, with no new content types |
 | Parts as entities | Each part is its own entity, tied to its body by an Ark relation, `PartOf` | Severed parts that crawl off and fight, a hand that latches onto an ally, moving clay taking a part, grafting and reattaching |
@@ -43,7 +43,7 @@ The game will change once it's played, so every place the game design already ex
 | Identity | Every individual gets a stable `UID`; content IDs are namespaced strings (`material.violet`); components hold IDs, never pointers into content | Persistent nemeses and deserters, rumors about the dead, hot reload, saves that survive content edits |
 | Saves | A save header carries a save version and a content hash; migration functions run in order | Changing components without breaking old saves |
 | Text and looks | Player-facing text lives in content by ID; an `Appearance` component holds the glyph, color and a sprite ID | Rewriting tone, translation, and the Ebitengine frontend reading the same content |
-| Procgen stages | Generation is a pipeline of named stages (noise, carve, stitch gates, place set pieces, populate, verify) declared per geography in content | Crawlspaces with different geographies, new export effects |
+| Procgen stages | Generation is a pipeline of named stages (noise, carve, join the fixed places, place set pieces, populate, verify) declared per geography in content | Crawlspaces with different geographies, new export effects |
 | The party | The party is an entity with members; commands name the acting party; the slot count is content | A fifth slot, splitting the party, a second group to control |
 
 ### What stays concrete
@@ -161,7 +161,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `inventory` | Inventories of item stacks: add, take, count | Components only |
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
 | `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options, and the registry of choosers that pick among intents | `timeline`, `effects` |
-| `explore` | Maps from content, stepping, lead and follow, remembered cells and the plan-view projection; gates between maps later | `hexmap` |
+| `explore` | The world built from placed content, stepping, lead and follow, remembered cells and the plan-view projection | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
 | `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; full agents on screen, region aggregates off screen | Expr for need curves, Ark relations for grudges and relationships |
@@ -186,7 +186,7 @@ Content goes from Go structs to CUE schemas to validated data, and almost none o
 What stays as code versus data:
 
 - **Code:** effect primitives and the machinery that runs them (selectors, timing, actions), the needs scorer, seat rules, procgen algorithms. Code names no content record, tag or rule, only its own message text; where it needs a record, a config key says which.
-- **Data:** materials, actions as compositions of primitives, the rules that tie them together (what makes a part weak, which types a body may load, what a loaded type does to a form), part and creature templates, needs and their curves, towns and gates, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
+- **Data:** materials, actions as compositions of primitives, the rules that tie them together (what makes a part weak, which types a body may load, what a loaded type does to a form), part and creature templates, needs and their curves, towns and set pieces, authored candidates and cast, curdle modes, tuning constants (seat speed, kill setback, export rate).
 
 ## Simulation loop and determinism
 
@@ -207,8 +207,8 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 - **On screen:** creatures and people near the party are full Ark entities with bodies, needs and memory.
 - **Off screen:** each region holds aggregate populations per creature family; each town runs its residents on coarse schedules.
-- **Promotion and demotion:** entering a region turns aggregates into full agents; leaving folds them back, keeping named agents and anyone with a grudge as individuals.
-- **A region is a map (until procgen).** Each town and each region of the deep is its own hand-made map, joined to the others by gates. Everyone on the party's map is a full agent; every other map runs as aggregates. M5 generates the deep's maps and stitches them to the same gates.
+- **Promotion and demotion:** as the party nears a region, its aggregates turn into full agents before they can come into sight; as the party leaves, they fold back, keeping named agents and anyone with a grudge as individuals.
+- **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. The detail radius, how near counts as near, is open.
 
 ### Determinism rules
 
@@ -277,7 +277,7 @@ The custom code is the game's rules, plus thin glue to the libraries above. Noth
 - **The needs scorer:** a small utility-scoring loop; the curves themselves are Expr formulas in content.
 - **Seat rules:** the state machine, passing, wound scoring, the piece's readings.
 - **The wish generator:** a pipeline over content tables.
-- **Procgen for the deep:** hex cave generation from noise and cellular rules, stitching to town gates, and the party's pocket on reseed.
+- **Procgen for the deep:** hex cave generation from noise and cellular rules, joined seamlessly to the fixed places, and the party's pocket on reseed.
 - **Rumor spread and drift.**
 - **The engine spine:** the system scheduler, the command, event and view registries, the trigger runner, the fact store, the action timeline and the action machinery.
 - **Glue:** content decode and registry, the RNG stream registry, the Ark component set, the `core/game` API.
@@ -290,10 +290,11 @@ Each step ends with something playable or measurable.
 1. **Skeleton:** module, depguard rule, content pipeline with one material, Ark world, `core/game` API, and the Bubble Tea frontend walking a hand-made hex map.
 2. **Combat:** bodies of parts, a few materials and forms, the effect primitives, fighting on the map with the action menu.
 3. **Agents:** needs scoring for creatures and people, on-screen and off-screen ticks, generic NPC timers, recruits.
-4. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
-5. **Procgen:** the generated deep around fixed towns, exports reseeding it, the pocket, the guarantees as property tests.
-6. **Emergence:** rumors, grudges and memory, dreams.
-7. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
+4. **One world:** the towns and the deep as one continuous world at human scale, with regions as areas of it; M3's separate maps and gates deleted.
+5. **Procgen:** the generated deep between the fixed places, exports reseeding it, the pocket, the guarantees as property tests.
+6. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
+7. **Emergence:** rumors, grudges and memory, dreams.
+8. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
 
 After the MVP: post-MVP milestones live under `tasks/post-mvp/`, each with its own design doc. The first is the story system (`docs/story.md`). Nothing in the MVP depends on them.
 
@@ -303,7 +304,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 
 - [ ] CUE or YAML plus JSON Schema? CUE removes the most custom validation code, but it has a learning curve for content authoring.
 - [x] Hex library: decided, gravitton/hexagon (double-width layout, field of view and line drawing).
-- [ ] The deep is infinite, so: what's the chunk memory budget? The level-of-detail radius is decided: it is the party's map (see Level of detail), so the budget follows from how big a generated region map is.
+- [ ] The deep is infinite, so: what's the chunk memory budget, and how far is the detail radius (see Level of detail)?
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
 - [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.
