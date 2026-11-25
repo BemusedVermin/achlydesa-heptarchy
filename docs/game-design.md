@@ -71,7 +71,7 @@ The towns are fixed islands inside the deep, at different depths, with generated
 - Towns are open to the deep. Nothing scripted keeps monsters out (see The living deep).
 - **Crawlspaces are authored and emergent.** The story's crawlspaces are hand-built places. People can also dig and settle new ones, and abandon old ones, when that meets their needs.
 - **The world is bounded.** Its size is content. People arrive from beyond it and leave for beyond it at immigration and emigration points.
-- **Small at first.** The first world is small and built by hand: the towns, and a short stretch of deep between them. Procgen generates the rest of the deep, and its regions, later.
+- **Small in tests, large in the game.** Tests use small fixture worlds. The real game's world is large and generated: first values about 400 by 400 hexes and 64 depth steps, tuned later. Its size is content.
 
 ### The enshrined archon
 
@@ -111,6 +111,7 @@ The deep is generated around the fixed towns and populated by monsters and peopl
 - **Fixed:** the towns, the salk, the shallow soops, and set pieces such as the oldest layer where the reveal happens.
 - **Generated:** everything else, grown right up to the edges of the fixed places, so nothing shows where a town ends and the generated deep begins.
 - **Reseeding:** each export regenerates the generated deep from a seed derived from the world seed and the export count, so any run can be replayed.
+- **Exports come on an irregular schedule** set in content. The world counts them, and each one regenerates the generated deep. Generated chunks are never saved: they are rebuilt from the seed and the export count, and chunks far from the party are unloaded to stay within a memory budget.
 - **Seats** keep their stage and progress; their regions land somewhere new.
 - **The map goes stale.** What the player charted no longer exists.
 - **The deep changes character over the game.** Each export fills the clay filter, so the upper deep grows more decayed and old matter retreats downward.
@@ -140,6 +141,7 @@ Exploring and fighting both happen on the hex grid, on the same clock; actions a
 
 - The party's current chamber is kept as a pocket; everything beyond it regenerates around them.
 - A route to at least one town is guaranteed, but not necessarily the one they came from.
+- Anyone standing in regenerated deep is moved to the nearest open ground outside the pocket. Nobody is lost.
 - What the party carried is all they have until they reach a town.
 
 ### Monsters with needs

@@ -208,6 +208,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 - **Everyone is an individual.** Every creature and person is a full Ark entity with a body, needs, an inventory and memory, all the time. Nothing is ever folded into a count.
 - **Detail is fidelity, not existence.** Near the party, agents act through the timeline and move cell by cell. Far from it, they decide less often and travel a coarse graph of the world (chunks and the openings between them), so pathfinding stays affordable. All three numbers are content, first set and then tuned with the harness: an agent is near within a radius of chunks of any party member (first value 2 chunks, 32 hexes), far agents decide every `agents.far_ticks` (first value a tenth of a phase), and the graph is chunks and the openings between them.
+- **Chunks in memory.** Generated chunks are rebuilt from the world seed and export count and are never saved; only edits are. Chunks far from every party member are unloaded, farthest first, under a chunk budget set in content.
 - **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. A region describes ground; it holds no population. For now regions are drawn by hand in content; procgen generates them later.
 
 ### Determinism rules
