@@ -174,6 +174,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M5-09.F1](followups/M5-09.F1-flaky-watch-burst-test.md) | Stop TestWatchOneCallbackPerBurst flaking on a loaded CI runner | proposed | test | unplanned | M5-09 |
 | [M5-01.F1](followups/M5-01.F1-rng-only-math-rand.md) | Only the rng package imports math/rand | done | debt | M5 | M5-01 |
 | [M4-03.F1](followups/M4-03.F1-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | todo | feature | M6 | M6 |
 | [M3-11.F1.F1.F1](followups/M3-11.F1.F1.F1-off-screen-bodies-emptied.md) | Report TownEmptied for a town off screen whose resident bodies leave or die | obsolete | seam | unplanned | M3-11.F1.F1 |

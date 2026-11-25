@@ -52,4 +52,4 @@ Exports happen on an irregular schedule from content. The world counts them, and
 - Save version is now 5; the migration test chain in `save_test.go` gained a step.
 - `docs/go-technical-design.md` save paragraph now lists the export fields.
 - The resume test restores the RNG state and world fields by hand; the game save path itself is the two-line copy in `game/save.go`.
-- No follow-ups filed.
+- Follow-up filed: M5-09.F1 (a flaky watcher test that failed the first CI run).
