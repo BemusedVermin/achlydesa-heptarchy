@@ -15,7 +15,7 @@ import (
 const Format = "heptarchy-save"
 
 // CurrentVersion is the version Write produces. Raise it together with a migration from the old one.
-const CurrentVersion = 4
+const CurrentVersion = 5
 
 // Header says what the file is and what it was made from.
 type Header struct {
@@ -33,6 +33,12 @@ type Edit struct {
 	Terrain api.ContentID `json:"terrain"`
 }
 
+// Exports is how many exports have begun and the day of the next one.
+type Exports struct {
+	Count   int `json:"count"`
+	NextDay int `json:"next_day"`
+}
+
 // Snapshot is a whole game, as plain data.
 type Snapshot struct {
 	Header Header `json:"header"`
@@ -43,6 +49,8 @@ type Snapshot struct {
 	NextUID api.UID           `json:"next_uid"`
 	// Timeline is the queued entries and the deciding body, which live outside the ECS components.
 	Timeline timeline.Saved `json:"timeline"`
+	// Exports is the export schedule's state.
+	Exports Exports `json:"exports"`
 	// Edits lists the world's edits, sorted by depth, R, Q. The world itself is rebuilt from content
 	// on load.
 	Edits []Edit `json:"edits"`

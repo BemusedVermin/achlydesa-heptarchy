@@ -67,6 +67,7 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 		RNG:      streams,
 		NextUID:  g.world.NextUID(),
 		Timeline: timeline.Export(g.world),
+		Exports:  save.Exports{Count: g.world.ExportCount, NextDay: g.world.NextExportDay},
 		Edits:    edits,
 		History:  history,
 		Log:      append([]api.LogLine{}, g.log...),
@@ -106,6 +107,7 @@ func (g *Game) restore(snapshot save.Snapshot) error {
 	if err := w.RNG.Restore(snapshot.RNG); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}
+	w.ExportCount, w.NextExportDay = snapshot.Exports.Count, snapshot.Exports.NextDay
 	if err := applyEdits(w, snapshot.Edits); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}

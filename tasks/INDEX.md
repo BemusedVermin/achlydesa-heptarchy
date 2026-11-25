@@ -137,7 +137,7 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
 | [M5-01](M5-procgen/M5-01-procgen-source.md) | Geography content and the procgen chunk source | done | seam | M | M4-07 |
-| [M5-09](M5-procgen/M5-09-export-schedule.md) | The export schedule and count | todo | feature | S | M4-07 |
+| [M5-09](M5-procgen/M5-09-export-schedule.md) | The export schedule and count | done | feature | S | M4-07 |
 | [M5-02](M5-procgen/M5-02-cave-noise.md) | Cave noise stage | done | feature | M | M5-01 |
 | [M5-03](M5-procgen/M5-03-sinks.md) | Sinks stage | done | feature | M | M5-01 |
 | [M5-04](M5-procgen/M5-04-regions.md) | Regions as areas and the region graph | obsolete | seam | M | M5-01 |
@@ -174,6 +174,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M5-09.F1](followups/M5-09.F1-flaky-watch-burst-test.md) | Stop TestWatchOneCallbackPerBurst flaking on a loaded CI runner | proposed | test | unplanned | M5-09 |
 | [M5-01.F1](followups/M5-01.F1-rng-only-math-rand.md) | Only the rng package imports math/rand | done | debt | M5 | M5-01 |
 | [M4-03.F1](followups/M4-03.F1-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | todo | feature | M6 | M6 |
 | [M3-11.F1.F1.F1](followups/M3-11.F1.F1.F1-off-screen-bodies-emptied.md) | Report TownEmptied for a town off screen whose resident bodies leave or die | obsolete | seam | unplanned | M3-11.F1.F1 |

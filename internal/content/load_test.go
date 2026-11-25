@@ -44,6 +44,7 @@ combat: {ai_score: "1.0", aims: "true", attack_tag: "attack", step_action: "acti
 timeline: {step_ticks: "speed >= 2 ? 10 : 20", speed: "grant.speed", default_speed: 2, window_ticks: 30}
 calendar: {
 	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]
+	exports: {first_day: 3, min_gap: 2, max_gap: 4}
 }
 `
 

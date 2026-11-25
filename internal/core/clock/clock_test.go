@@ -17,7 +17,7 @@ var calendar = content.Calendar{Phases: []content.Phase{
 	{ID: "phase.test.dawn", Name: "text.test.dawn", Ticks: 3},
 	{ID: "phase.test.day", Name: "text.test.day", Ticks: 5},
 	{ID: "phase.test.night", Name: "text.test.night", Ticks: 4},
-}}
+}, Exports: content.ExportSchedule{FirstDay: 3, MinGap: 2, MaxGap: 5}}
 
 const dayTicks = 12
 

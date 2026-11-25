@@ -86,10 +86,33 @@ func (c *Clock) Advance(w *sim.World, ticks int64) error {
 		if _, err := w.Bus.Drain(w); err != nil {
 			return fmt.Errorf("clock: day %d: %w", c.Day(boundary), err)
 		}
+		if err := c.exportIfDue(w, c.Day(boundary)); err != nil {
+			return err
+		}
 		if err := w.Systems.Run(w, sim.PerDay); err != nil {
 			return fmt.Errorf("clock: per-day systems: %w", err)
 		}
 	}
 	w.Now = end
+	return nil
+}
+
+// exportIfDue begins an export when day has reached the scheduled export day, and draws the day of
+// the next one from the "clock.exports" stream.
+func (c *Clock) exportIfDue(w *sim.World, day int) error {
+	schedule := c.calendar.Exports
+	if w.NextExportDay == 0 {
+		w.NextExportDay = schedule.FirstDay
+	}
+	if day < w.NextExportDay {
+		return nil
+	}
+	w.ExportCount++
+	gap := schedule.MinGap + w.RNG.Get("clock.exports").IntN(schedule.MaxGap-schedule.MinGap+1)
+	w.NextExportDay = day + gap
+	w.Bus.Publish(api.ExportBegan{Day: day, Count: w.ExportCount})
+	if _, err := w.Bus.Drain(w); err != nil {
+		return fmt.Errorf("clock: export %d: %w", w.ExportCount, err)
+	}
 	return nil
 }

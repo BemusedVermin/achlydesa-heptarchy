@@ -194,6 +194,17 @@ type Terrain struct {
 type Calendar struct {
 	// Phases are in order; at least one.
 	Phases []Phase `json:"phases"`
+	// Exports says when the deep is exported and regenerated.
+	Exports ExportSchedule `json:"exports"`
+}
+
+// ExportSchedule sets the irregular days on which the world exports.
+type ExportSchedule struct {
+	// FirstDay is the day of the first export, counting from 1.
+	FirstDay int `json:"first_day"`
+	// MinGap and MaxGap bound the days between one export and the next, both at least 1.
+	MinGap int `json:"min_gap"`
+	MaxGap int `json:"max_gap"`
 }
 
 // Phase is one part of the day, such as dawn.
