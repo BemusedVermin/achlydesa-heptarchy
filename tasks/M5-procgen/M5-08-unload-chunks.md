@@ -1,7 +1,7 @@
 ---
 id: M5-08
 title: Unload far chunks and keep Seen as bitsets
-status: todo
+status: done
 milestone: M5
 kind: seam
 depends_on: [M5-01]
@@ -37,8 +37,8 @@ The world holds at most a content-set number of chunks in memory by dropping tho
 
 ## Acceptance criteria
 
-- [ ] A test with a budget of a few chunks walks far in a large fixture world and the loaded-chunk count never exceeds the budget, with identical terrain on return.
-- [ ] `go tool task check` passes.
+- [x] A test with a budget of a few chunks walks far in a large fixture world and the loaded-chunk count never exceeds the budget, with identical terrain on return.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -46,4 +46,11 @@ The world holds at most a content-set number of chunks in memory by dropping tho
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- **Near radius is content too.** The spec keeps chunks within "the near radius" but nothing in content held it, so the world gained `near_chunks` beside `chunk_budget` (first values 2, from "Level of detail", and 256, untuned). M6's far agents may want to read the same number.
+- **Chunk distance** is `hexmap.ChunkDistance`: the hex distance between two chunk keys' (Q, R), or their depth difference when larger. A chunk's distance to the party is its distance to the nearest member's chunk, over the members of every party.
+- **When it runs:** after a party member's step (once its cost is read) and after a wake. A `chunk_budget` of 0 keeps every chunk. Near chunks are kept even when they alone exceed the budget.
+- `Map.Unload` clears the whole sight cache whenever it drops a chunk, rather than tracking which results touched which chunks.
+- `comp.Seen` is now `Chunks []SeenChunk`, each a key and 64 words of bits in `hexmap.SlotOf` order, sorted by key. `markSeen` and `seenIn` keep their signatures. Save version 3 to 4, with no migration.
+- New hexmap helpers: `Map.Loaded`, `CompareKeys`, `ChunkKey.Cell`, `SlotOf`, `ChunkCells`.
+- Files outside the list: `internal/core/explore/wake.go`, `internal/core/explore/install.go`, the regenerated `*_go_gen.cue`, `internal/core/save/save_test.go` (migration-chain test needed a 3→4 entry).
+- Follow-ups: none.
