@@ -52,6 +52,9 @@ func (r *Registry) checkBehaviors() []error {
 	if cfg.CellRadius < 0 {
 		p.addf("agents.cell_radius: must not be negative, got %d", cfg.CellRadius)
 	}
+	if cfg.PromoteRadius < 1 {
+		p.addf("agents.promote_radius: must be at least 1, got %d", cfg.PromoteRadius)
+	}
 	if cfg.DyingBelow < 0 || cfg.DyingBelow > 1 {
 		p.addf("agents.dying_below: must be between 0 and 1, got %v", cfg.DyingBelow)
 	}

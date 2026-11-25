@@ -106,7 +106,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-13](M3-agents/M3-13-party-food-water.md) | The party eats and drinks | done | feature | M | M3-02 |
 | [M3-14](M3-agents/M3-14-rest-heal.md) | Rest in town: heal integrity and set the rest place | todo | feature | M | M3-06 |
 | [M3-04](M3-agents/M3-04-more-behavior-primitives.md) | Behavior primitives: consume, carry, flee, guard and engage | done | feature | M | M3-01, M3-03 |
-| [M3-09](M3-agents/M3-09-level-of-detail.md) | Level of detail: promotion and demotion | todo | feature | M | M3-03, M3-08 |
+| [M3-09](M3-agents/M3-09-level-of-detail.md) | Level of detail: promotion and demotion | done | feature | M | M3-03, M3-08 |
 | [M3-05](M3-agents/M3-05-agents-chooser-dodging.md) | The agents chooser for combat, and dodging | done | feature | M | M3-04 |
 | [M3-10](M3-agents/M3-10-off-screen-tick.md) | The off-screen tick: drift, stocks and migration | todo | feature | M | M3-09 |
 | [M3-11](M3-agents/M3-11-residents.md) | Residents: needs, roles and schedules in town | todo | feature | M | M3-04, M3-08 |

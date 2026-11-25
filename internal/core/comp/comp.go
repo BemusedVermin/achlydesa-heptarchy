@@ -248,6 +248,17 @@ type Populations struct {
 // Individual marks a body that is never demoted into a population count.
 type Individual struct{}
 
+// Family records the family a body was promoted from.
+type Family struct {
+	ID api.ContentID `json:"id"`
+}
+
+// Dormant marks a body taken off the timeline, and keeps what putting it back needs.
+type Dormant struct {
+	Controller string `json:"controller"`
+	WaitUntil  int64  `json:"wait_until"`
+}
+
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -285,4 +296,6 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Town](world)
 	ecs.ComponentID[Populations](world)
 	ecs.ComponentID[Individual](world)
+	ecs.ComponentID[Family](world)
+	ecs.ComponentID[Dormant](world)
 }

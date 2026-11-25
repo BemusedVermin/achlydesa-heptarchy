@@ -116,6 +116,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTypes()...)
 	problems = append(problems, registry.checkNeeds()...)
 	problems = append(problems, registry.checkBehaviors()...)
+	problems = append(problems, registry.checkFamilies()...)
 	problems = append(problems, registry.checkChoices()...)
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkTriggers()...)

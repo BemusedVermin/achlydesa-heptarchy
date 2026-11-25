@@ -44,6 +44,9 @@ import (
 	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
 	// bodies weigh.
 	behaviors: {[string]: #BehaviorDef} @go(Behaviors,map[string]BehaviorDef)
+
+	// Families are the kinds of creature a region counts off screen ("family." IDs).
+	families: {[string]: #FamilyDef} @go(Families,map[string]FamilyDef)
 	agents: #AgentsConfig @go(Agents)
 
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
@@ -354,6 +357,29 @@ import (
 	// DyingBelow is the fraction of its integrity at or below which a vital part marks its body as
 	// dying, as target.dying reads in a formula.
 	dying_below: float64 @go(DyingBelow)
+
+	// PromoteRadius is how far from a mark, or from the party, a promoted body may be placed, in
+	// hexes.
+	promote_radius: int @go(PromoteRadius)
+}
+
+// FamilyDef is a kind of creature that a region holds as a count while the party is away, and as
+// bodies while it is there.
+#FamilyDef: {
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Templates are the templates a promoted member may be, chosen by weight.
+	templates: [...#Weighted] @go(Templates,[]Weighted)
+
+	// Marks are the names of map marks members appear at; empty means any open cell.
+	marks?: [...string] @go(Marks,[]string)
+}
+
+// Weighted is a template and the weight it is chosen with.
+#Weighted: {
+	template: api.#ContentID @go(Template)
+	weight:   int            @go(Weight)
 }
 
 // NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
@@ -520,6 +546,9 @@ import (
 #RegionDef: {
 	#Data
 	town?: null | #TownDef @go(Town,*TownDef)
+
+	// Populations maps each family ("family." ID) to how many of it the region starts with.
+	populations?: {[string]: int} @go(Populations,map[string]int)
 }
 
 // TownDef makes a region a town, whose stock the region entity holds as its inventory.
@@ -610,7 +639,8 @@ import (
 	#CollectionFactions |
 	#CollectionStatuses |
 	#CollectionNeeds |
-	#CollectionBehaviors
+	#CollectionBehaviors |
+	#CollectionFamilies
 
 #CollectionMaterials: #Collection & "materials"
 #CollectionTerrains:  #Collection & "terrains"
@@ -628,6 +658,7 @@ import (
 #CollectionStatuses:  #Collection & "statuses"
 #CollectionNeeds:     #Collection & "needs"
 #CollectionBehaviors: #Collection & "behaviors"
+#CollectionFamilies:  #Collection & "families"
 
 // TargetKind is what an action targets.
 #TargetKind: #enumTargetKind

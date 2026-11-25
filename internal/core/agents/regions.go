@@ -2,6 +2,7 @@ package agents
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -27,7 +28,17 @@ func SpawnRegions(w *sim.World) error {
 		if !ok {
 			return fmt.Errorf("agents: region of map %d: unknown map %q", id, name)
 		}
-		region := regions.NewEntity(&comp.Region{Map: id, Def: name}, &comp.Populations{})
+		populations := &comp.Populations{}
+		if def.Region != nil {
+			for _, family := range slices.Sorted(maps.Keys(def.Region.Populations)) {
+				count := def.Region.Populations[family]
+				if count == 0 {
+					continue
+				}
+				populations.Of = append(populations.Of, comp.Population{Family: api.ContentID(family), Count: count})
+			}
+		}
+		region := regions.NewEntity(&comp.Region{Map: id, Def: name}, populations)
 		if def.Region == nil || def.Region.Town == nil {
 			continue
 		}
