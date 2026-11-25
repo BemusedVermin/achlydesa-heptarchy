@@ -178,7 +178,8 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 	if step.Kind == hexmap.StepDrop {
 		w.Bus.Publish(api.Fell{Body: actor, Cells: step.Fall})
 	}
-	if party, member := anatomy.PartyOf(w, ctx.Source); member {
+	party, member := anatomy.PartyOf(w, ctx.Source)
+	if member {
 		cells, err := sightOf(w, *pos)
 		if err != nil {
 			return err
@@ -188,6 +189,9 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 	cost, err := stepCost(w, ctx.Source, m, pos.At, step.Kind)
 	if err != nil {
 		return err
+	}
+	if member {
+		unloadFar(w)
 	}
 	if cost < 1 {
 		return nil

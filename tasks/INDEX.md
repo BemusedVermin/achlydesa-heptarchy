@@ -141,7 +141,7 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 | [M5-02](M5-procgen/M5-02-cave-noise.md) | Cave noise stage | todo | feature | M | M5-01 |
 | [M5-03](M5-procgen/M5-03-sinks.md) | Sinks stage | todo | feature | M | M5-01 |
 | [M5-04](M5-procgen/M5-04-regions.md) | Regions as areas and the region graph | todo | seam | M | M5-01 |
-| [M5-08](M5-procgen/M5-08-unload-chunks.md) | Unload far chunks and keep Seen as bitsets | todo | seam | M | M5-01 |
+| [M5-08](M5-procgen/M5-08-unload-chunks.md) | Unload far chunks and keep Seen as bitsets | done | seam | M | M5-01 |
 | [M5-05](M5-procgen/M5-05-join-places.md) | Join the generated deep to the fixed places | todo | feature | M | M5-02 |
 | [M5-06](M5-procgen/M5-06-the-large-world.md) | The large world: procgen in the game | todo | feature | M | M5-05 |
 | [M5-07](M5-procgen/M5-07-verify-guarantees.md) | Verify stage and the guarantees | todo | feature | M | M5-04, M5-05 |

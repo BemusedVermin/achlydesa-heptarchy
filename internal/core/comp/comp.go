@@ -113,11 +113,20 @@ type RestPlace struct {
 // Controlled marks the party the player commands.
 type Controlled struct{}
 
-// Seen is what a party remembers of the world: cells any member has seen, sorted by depth, then R,
-// then Q, with no repeats. Use the explore package's helpers rather than reading the slice, because
-// the representation will change.
+// Seen is what a party remembers of the world: one bitset per chunk any member has seen into. Use the
+// explore package's helpers rather than reading it.
 type Seen struct {
-	Cells []api.Cell `json:"cells"`
+	// Chunks is sorted by Depth, then R, then Q, with no repeats.
+	Chunks []SeenChunk `json:"chunks"`
+}
+
+// SeenChunk is the cells of one chunk a party has seen. Q, R and Depth are the chunk's key.
+type SeenChunk struct {
+	Q     int `json:"q"`
+	R     int `json:"r"`
+	Depth int `json:"depth"`
+	// Bits has one bit per cell, bit i%64 of word i/64 for the cell at slot i of the chunk.
+	Bits []uint64 `json:"bits"`
 }
 
 // Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge

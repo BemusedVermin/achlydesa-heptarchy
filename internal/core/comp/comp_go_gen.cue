@@ -124,11 +124,21 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // Controlled marks the party the player commands.
 #Controlled: {}
 
-// Seen is what a party remembers of the world: cells any member has seen, sorted by depth, then R,
-// then Q, with no repeats. Use the explore package's helpers rather than reading the slice, because
-// the representation will change.
+// Seen is what a party remembers of the world: one bitset per chunk any member has seen into. Use the
+// explore package's helpers rather than reading it.
 #Seen: {
-	cells: [...api.#Cell] @go(Cells,[]api.Cell)
+	// Chunks is sorted by Depth, then R, then Q, with no repeats.
+	chunks: [...#SeenChunk] @go(Chunks,[]SeenChunk)
+}
+
+// SeenChunk is the cells of one chunk a party has seen. Q, R and Depth are the chunk's key.
+#SeenChunk: {
+	q:     int @go(Q)
+	r:     int @go(R)
+	depth: int @go(Depth)
+
+	// Bits has one bit per cell, bit i%64 of word i/64 for the cell at slot i of the chunk.
+	bits: [...uint64] @go(Bits,[]uint64)
 }
 
 // Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge

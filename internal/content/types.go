@@ -334,6 +334,11 @@ type WorldDef struct {
 	Open api.ContentID `json:"open"`
 	// Geography builds the cells no place covers ("geography." ID). Empty leaves them all Fill.
 	Geography api.ContentID `json:"geography,omitempty"`
+	// ChunkBudget is the most chunks kept in memory; chunks far from every party member are dropped past
+	// it. 0 keeps every chunk.
+	ChunkBudget int `json:"chunk_budget,omitempty"`
+	// NearChunks is the radius in chunks around each party member whose chunks are never dropped.
+	NearChunks int `json:"near_chunks,omitempty"`
 }
 
 // GeographyDef lists the stages that build chunks of one kind of ground, in order.

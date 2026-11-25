@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
@@ -160,6 +162,28 @@ func TestSaveThenLoadWithThePartyAndAFactHasTheSameHash(t *testing.T) {
 	}
 	if hash(t, loaded.g) != hash(t, g) {
 		t.Error("hash changed across save and load")
+	}
+}
+
+func TestSeenSurvivesSaveAndLoad(t *testing.T) {
+	r := newRig(t, newBundle(t))
+	for i := range 10 {
+		pick(t, r.g, i)
+	}
+	seenOf := func(w *sim.World) comp.Seen {
+		party, ok := anatomy.ControlledParty(w)
+		if !ok || !ecs.NewMap[comp.Seen](w.ECS).Has(party) {
+			t.Fatal("the controlled party has no Seen")
+		}
+		return *ecs.NewMap[comp.Seen](w.ECS).Get(party)
+	}
+	before := seenOf(r.w)
+	if len(before.Chunks) == 0 {
+		t.Fatal("the party has seen nothing")
+	}
+	loaded, _ := reload(t, r.cfg, r.g)
+	if after := seenOf(loaded.w); !reflect.DeepEqual(after, before) {
+		t.Errorf("Seen after load = %+v, want %+v", after, before)
 	}
 }
 
@@ -390,7 +414,7 @@ func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
 	got, err := save.ReadWith(
 		bytes.NewReader(old),
 		save.CurrentVersion,
-		map[int]save.Migration{0: renameSeed, 1: noMigration, 2: noMigration},
+		map[int]save.Migration{0: renameSeed, 1: noMigration, 2: noMigration, 3: noMigration},
 	)
 	if err != nil {
 		t.Fatal(err)
