@@ -1,7 +1,7 @@
 ---
 id: M3-19
 title: "The sample world: two towns and the deep between them"
-status: todo
+status: done
 milestone: M3
 kind: content
 depends_on: [M3-10, M3-11, M3-14, M3-18]
@@ -36,14 +36,19 @@ A small world that exercises every M3 system together: two towns with residents,
 
 ## Acceptance criteria
 
-- [ ] Exit criterion: running the sample world for 10 days shows populations drifting between regions, and entering a deep region promotes its families into full agents (a test checks the `Promoted` counts).
-- [ ] The harness runs the sample world for 10 days on seed 1 without errors.
-- [ ] `go tool task check` passes.
+- [x] Exit criterion: running the sample world for 10 days shows populations drifting between regions, and entering a deep region promotes its families into full agents (a test checks the `Promoted` counts).
+- [x] The harness runs the sample world for 10 days on seed 1 without errors.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Harness columns and the camping check (M3-20).
 
 ## Notes
+
+- `content.Start` stays as is; a new `starts` map (`start.sample`) holds named scenarios, and `Registry.WithStart` and the harness's `run --start` pick one. Suggestion followed in spirit, with no list.
+- Files outside the list: `internal/content` (types, maps, regenerated schema), `cmd/harness/main.go`.
+- The chain shallow, deep_a, deep_b, lake means the towns are not neighbours, so town migration is not exercised; the exit criterion's drift is of monster families (remnants flow toward lower decay). Owner may want a direct gate between towns.
+- The smoke test lives in `internal/core/agents/sample_world_test.go` (waits 40 phases, fails on any rejection).
 
 

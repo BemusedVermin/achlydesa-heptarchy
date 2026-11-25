@@ -3,6 +3,7 @@ package content
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -178,21 +179,40 @@ func (r *Registry) checkTown(p *problems, path string, def MapDef) {
 
 // checkStart validates the start scenario when the content has one.
 func (r *Registry) checkStart() []error {
-	start := r.bundle.Start
-	if start == (Start{}) {
-		return nil
-	}
 	p := r.problems()
-	def, ok := ref(p, r.bundle.Maps, "start.map", "map", start.Map)
+	if r.bundle.Start != (Start{}) {
+		r.checkStartAt(p, "start", r.bundle.Start)
+	}
+	for _, id := range sortedKeys(r.bundle.Starts) {
+		if !strings.HasPrefix(id, "start.") {
+			p.addf("starts[%q]: id must start with \"start.\"", id)
+		}
+		r.checkStartAt(p, fmt.Sprintf("starts[%q]", id), r.bundle.Starts[id])
+	}
+	return p.errs
+}
+
+func (r *Registry) checkStartAt(p *problems, at string, start Start) {
+	def, ok := ref(p, r.bundle.Maps, at+".map", "map", start.Map)
 	if template, found := r.bundle.Templates[string(start.Party)]; !found || template.Party == nil {
-		p.addf("start.party: %q is not a party template", start.Party)
+		p.addf("%s.party: %q is not a party template", at, start.Party)
 	}
 	if ok {
 		if _, marked := def.MarkChars()[start.PartyAtMark]; !marked {
-			p.addf("start.party_at_mark: map %q has no mark %q", start.Map, start.PartyAtMark)
+			p.addf("%s.party_at_mark: map %q has no mark %q", at, start.Map, start.PartyAtMark)
 		}
 	}
-	return p.errs
+}
+
+// WithStart returns a registry of the same content that begins on the named scenario of Starts.
+func (r *Registry) WithStart(id string) (*Registry, error) {
+	start, ok := r.bundle.Starts[id]
+	if !ok {
+		return nil, fmt.Errorf("content: no start %q", id)
+	}
+	bundle := r.bundle
+	bundle.Start = start
+	return New(bundle)
 }
 
 // checkTownStock validates what a town's residents use, what refills the stock and how many leave.

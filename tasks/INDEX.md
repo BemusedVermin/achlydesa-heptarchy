@@ -114,7 +114,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-18](M3-agents/M3-18-monster-families.md) | Monster families as content | done | content | M | M3-05, M3-10 |
 | [M3-15](M3-agents/M3-15-hiring-recruits.md) | Hiring recruits | todo | feature | M | M3-12 |
 | [M3-16](M3-agents/M3-16-upkeep-desertion.md) | Upkeep, grumbling, desertion and flight | todo | feature | M | M3-04, M3-15 |
-| [M3-19](M3-agents/M3-19-sample-world.md) | The sample world: two towns and the deep between them | todo | content | M | M3-10, M3-11, M3-14, M3-18 |
+| [M3-19](M3-agents/M3-19-sample-world.md) | The sample world: two towns and the deep between them | done | content | M | M3-10, M3-11, M3-14, M3-18 |
 | [M3-17](M3-agents/M3-17-exotic-recruits.md) | Graftable and exotic recruits | todo | content | S | M3-16, M3-18 |
 | [M3-20](M3-agents/M3-20-harness-emergence.md) | Harness columns and the camping check | todo | test | M | M3-16, M3-19 |
 

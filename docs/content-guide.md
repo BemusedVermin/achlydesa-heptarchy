@@ -225,6 +225,19 @@ The hub is a town, with lake water and rations in its stock and a stock mark (`s
 
 Tests keep their own start maps: the sample content in `contenttest` starts on `map.test.hall`, whatever `start.cue` says.
 
+## The sample world
+
+`starts` in `start.cue` holds named scenarios beside the default `start`. `start.sample` begins in `maps/sample_world.cue`: four maps in a chain, joined by gates, with placeholder numbers for M7 to tune. Play it with `go run ./cmd/harness run --start start.sample --steps 40`; a test picks it with `bundle.Start = bundle.Starts["start.sample"]`.
+
+| Map | Decay | What is there |
+| --- | --- | --- |
+| `map.sample.shallow` | 0.1 | A town with a well, a small stock, residents and generics. The party starts here. |
+| `map.sample.deep_a` | 0.5 | Moving clay and remnants. Gates to the shallow town and `deep_b`. |
+| `map.sample.deep_b` | 0.8 | Remnants, moving clay, soul-feeders and an archon warden. Gates to `deep_a` and the lake town. |
+| `map.sample.lake` | 0.1 | A town with water to spare, refilled each phase while the party is away. |
+
+The two towns are generic test towns, not the design's crawlspaces. They are not neighbours, so no town migration happens between them; drift is of the monster families.
+
 ## Checking your work
 
 1. `go tool task content` checks every file against the schemas (`cue vet`). It catches a wrong field or a value of the wrong kind.
