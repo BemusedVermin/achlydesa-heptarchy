@@ -113,7 +113,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-12](M3-agents/M3-12-generic-npcs.md) | Generic NPCs and replacement timers | done | feature | S | M3-11 |
 | [M3-18](M3-agents/M3-18-monster-families.md) | Monster families as content | done | content | M | M3-05, M3-10 |
 | [M3-15](M3-agents/M3-15-hiring-recruits.md) | Hiring recruits | done | feature | M | M3-12 |
-| [M3-16](M3-agents/M3-16-upkeep-desertion.md) | Upkeep, grumbling, desertion and flight | todo | feature | M | M3-04, M3-15 |
+| [M3-16](M3-agents/M3-16-upkeep-desertion.md) | Upkeep, grumbling, desertion and flight | done | feature | M | M3-04, M3-15 |
 | [M3-19](M3-agents/M3-19-sample-world.md) | The sample world: two towns and the deep between them | done | content | M | M3-10, M3-11, M3-14, M3-18 |
 | [M3-17](M3-agents/M3-17-exotic-recruits.md) | Graftable and exotic recruits | todo | content | S | M3-16, M3-18 |
 | [M3-20](M3-agents/M3-20-harness-emergence.md) | Harness columns and the camping check | todo | test | M | M3-16, M3-19 |
@@ -143,6 +143,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M3-16.F2](followups/M3-16.F2-deserters-hostility.md) | Decide how deserters stand toward the party | done | question | M6 | M3-16 |
+| [M3-16.F1](followups/M3-16.F1-terror-witness-selector.md) | Raise terror in the bodies that witness an event, not those in the striker's sight | done | seam | M3 | M3-16 |
 | [M3-18.F2](followups/M3-18.F2-satisfy-from-source.md) | Let a trigger satisfy a need of the acting body | done | seam | M3 | M3-18 |
 | [M3-18.F1](followups/M3-18.F1-leave-by-decay.md) | Let leave pick the gate to the less-decayed neighbour | done | seam | M3 | M3-18 |
 | [M3-11.F1.F1](followups/M3-11.F1.F1-on-screen-town-emptied.md) | Decide whether a town the party is in emits TownEmptied when its last resident leaves | proposed | question | M3 | M3-11.F1 |

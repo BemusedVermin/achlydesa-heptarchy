@@ -37,8 +37,15 @@ func installRecruits(w *sim.World) error {
 	if err := sim.Handle(w, handleHire); err != nil {
 		return err
 	}
-	if err := api.RegisterEvent[api.Hired](w.Codec); err != nil {
-		return err
+	for _, register := range []func(*api.Codec) error{
+		api.RegisterEvent[api.Hired],
+		api.RegisterEvent[api.Grumbled],
+		api.RegisterEvent[api.Deserted],
+		api.RegisterEvent[api.Fled],
+	} {
+		if err := register(w.Codec); err != nil {
+			return err
+		}
 	}
 	return w.Views.Register(sim.ViewBuilder{
 		Name: hireView, After: []string{"timeline", "actions"}, Build: buildHireOptions,

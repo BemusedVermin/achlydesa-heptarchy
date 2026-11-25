@@ -32,6 +32,8 @@ func Install(w *sim.World) error {
 		{Name: needsSystem, Cadence: sim.PerPhase, Run: tickNeeds},
 		{Name: offscreenSystem, Cadence: sim.PerPhase, Run: tickOffscreen},
 		{Name: genericsSystem, Cadence: sim.PerEntry, Run: tickGenerics},
+		{Name: upkeepSystem, Cadence: sim.PerDay, Run: tickUpkeep},
+		{Name: flightSystem, Cadence: sim.PerEntry, Run: tickFlight},
 	} {
 		if err := w.Systems.Register(system); err != nil {
 			return err

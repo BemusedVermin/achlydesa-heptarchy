@@ -262,6 +262,17 @@ type Populations struct {
 // Individual marks a body that is never demoted into a population count.
 type Individual struct{}
 
+// Discontent counts the days a recruit has gone unpaid, less the days it was paid since.
+type Discontent struct {
+	Days int `json:"days"`
+}
+
+// Fleeing marks a recruit whose terror has taken it out of the party's hands. Controller is the
+// controller it runs under while it flees; the party's control mode does not apply to it.
+type Fleeing struct {
+	Controller string `json:"controller"`
+}
+
 // Family records the family a body was promoted from.
 type Family struct {
 	ID api.ContentID `json:"id"`
@@ -313,4 +324,6 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Individual](world)
 	ecs.ComponentID[Family](world)
 	ecs.ComponentID[Dormant](world)
+	ecs.ComponentID[Discontent](world)
+	ecs.ComponentID[Fleeing](world)
 }

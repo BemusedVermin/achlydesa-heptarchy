@@ -50,6 +50,12 @@ behaviors: {
 		consider: ["0.5"]
 		target: {kind: "body", tags: ["well"]}
 	}
+	// What a recruit does while terror drives it: run from whatever is hostile in sight.
+	"behavior.recruit.flee": {
+		name: "text.behavior.recruit.flee"
+		do:   "flee"
+		consider: ["1.0"]
+	}
 	"behavior.test.run": {
 		name: "text.behavior.test.run"
 		do:   "flee"
@@ -185,6 +191,7 @@ text: {
 	"text.behavior.test.gnaw_corpse":    "gnawing a corpse"
 	"text.behavior.test.haul_water":     "hauling water"
 	"text.behavior.test.run":            "running"
+	"text.behavior.recruit.flee":        "fleeing"
 	"text.behavior.test.guard_post":     "guarding a post"
 	"text.behavior.test.fight":          "fighting"
 	"text.behavior.test.dodge":          "dodging"

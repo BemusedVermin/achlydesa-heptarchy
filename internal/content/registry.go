@@ -143,6 +143,9 @@ func (r *Registry) Body(id api.ContentID) (BodyPlan, bool) {
 // Party returns the numbers every party shares.
 func (r *Registry) Party() PartyConfig { return r.bundle.Party }
 
+// Recruits returns the numbers that keep recruits in the party.
+func (r *Registry) Recruits() RecruitsConfig { return r.bundle.Recruits }
+
 // Combat returns the numbers of alert and death.
 func (r *Registry) Combat() CombatConfig { return r.bundle.Combat }
 

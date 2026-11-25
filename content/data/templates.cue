@@ -12,6 +12,22 @@ _fallInjury: {
 	do: [{do: "damage", params: {parts: "target:legs", amount: "cells - 1"}}]
 }
 
+// A severed arm or a death on a body that carries these shakes the recruits who see it, whoever
+// did it.
+// Placeholder numbers, for tuning.
+_severedTerror: {
+	on:   "combat.part_severed"
+	role: "target"
+	if:   "true"
+	do: [{do: "satisfy", params: {need: "need.terror", amount: "-0.75", bodies: "witnesses"}}]
+}
+_deathTerror: {
+	on:   "combat.body_died"
+	role: "target"
+	if:   "true"
+	do: [{do: "satisfy", params: {need: "need.terror", amount: "-0.25", bodies: "witnesses"}}]
+}
+
 // What a person knows: the seven forms (tagged form in forms.cue), a step, and the types innate to a
 // body. The design gives everyone Cut and Name, and the Reaper Press (the thrukk grip). Relic is
 // innate to grafts: the type choice offers it to a body that carries one.
@@ -29,7 +45,7 @@ _#Person: {
 	needs: {"need.food": 0, "need.water": 0}
 	tags: ["graftable"]
 	lists: types: _innateTypes
-	triggers: [_fallInjury]
+	triggers: [_fallInjury, _severedTerror, _deathTerror]
 	...
 }
 
@@ -74,8 +90,9 @@ _#Generic: {
 	faction: "faction.people"
 	actions: ["action.step", "action.eat_stock", "action.strike"]
 	lists: types: ["type.cut"]
-	needs: {"need.food": 0, "need.safety": 0}
+	needs: {"need.food": 0, "need.safety": 0, "need.terror": 0}
 	behaviors: ["behavior.resident.eat", "behavior.resident.wander"]
+	triggers: [_severedTerror, _deathTerror]
 	...
 }
 
