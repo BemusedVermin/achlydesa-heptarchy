@@ -1,7 +1,7 @@
 ---
 id: M3-10
 title: "The off-screen tick: drift, stocks and migration"
-status: todo
+status: done
 milestone: M3
 kind: feature
 depends_on: [M3-09]
@@ -42,11 +42,11 @@ Off-screen regions live. Each day phase, populations drift between neighbouring 
 
 ## Acceptance criteria
 
-- [ ] Property (rapid): drift alone never changes the total count of a family across all regions.
-- [ ] A test town with its water refill set to 0 loses residents to its neighbour over a few days, emits `Migrated`, then `TownEmptied` once.
-- [ ] A test family whose drift favours regions with dead bodies gathers in a region where bodies were left.
-- [ ] The same seed gives the same counts after 10 days.
-- [ ] `go tool task check` passes.
+- [x] Property (rapid): drift alone never changes the total count of a family across all regions.
+- [x] A test town with its water refill set to 0 loses residents to its neighbour over a few days, emits `Migrated`, then `TownEmptied` once.
+- [x] A test family whose drift favours regions with dead bodies gathers in a region where bodies were left.
+- [x] The same seed gives the same counts after 10 days.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -54,5 +54,14 @@ Off-screen regions live. Each day phase, populations drift between neighbouring 
 - Harness columns (M3-20).
 
 ## Notes
+
+- Additions to the spec, all content: `TownDef` also gains `Residents` (the resident family; code names no family) and `Exodus` (fraction of residents leaving per short phase; 0 means nobody leaves). `Use` and `Refill` are item stacks; `Use` is per resident per phase.
+- Drift and attrition read `DriftEnv` / `AttritionEnv`, built on a new `RegionEnv` (`data`, `counts`, `stock`, `dead`). `dead` is the total of dead bodies on the map, not per family.
+- Shortage: a used item is short when stock plus this phase's refill can't cover the residents' use. The first short item in ID order picks the destination: the open neighbouring town with the most of it (lowest map ID on a tie); none with any means nobody leaves.
+- Deaths, drift and exodus of a family share its count, so they never take more than the region holds. Drift fractions summing past 1 are scaled down. Rounding uses the `lod` stream.
+- The party's own region neither sends nor receives: its counts are promoted bodies. Migrants wait in the neighbouring region.
+- `Migrated` is published for town exodus only; plain drift is silent. `TownEmptied` fires on the phase the residents reach 0 from above 0.
+- No parallelism: no benchmark showed the tick slow. No new component, so no save version bump.
+- No sample content uses the new fields yet (M3-18 and M3-19 do).
 
 

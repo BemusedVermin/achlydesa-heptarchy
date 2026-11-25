@@ -4,6 +4,10 @@ package api
 const (
 	PromotedKind = "agents.promoted"
 	DemotedKind  = "agents.demoted"
+
+	MigratedKind       = "agents.migrated"
+	TownEmptiedKind    = "agents.town_emptied"
+	PopulationDiedKind = "agents.population_died"
 )
 
 // FamilyCount is how many members of a family changed form.
@@ -31,3 +35,36 @@ type Demoted struct {
 
 // EventKind implements [Event].
 func (Demoted) EventKind() string { return DemotedKind }
+
+// Migrated reports that a town's residents left it for a neighbouring town because a stock ran
+// short.
+type Migrated struct {
+	From   MapID     `json:"from"`
+	To     MapID     `json:"to"`
+	Family ContentID `json:"family"`
+	Count  int       `json:"count"`
+	// Short is the item that ran short.
+	Short ContentID `json:"short"`
+}
+
+// EventKind implements [Event].
+func (Migrated) EventKind() string { return MigratedKind }
+
+// TownEmptied reports that a town's last residents are gone.
+type TownEmptied struct {
+	Map    MapID     `json:"map"`
+	Family ContentID `json:"family"`
+}
+
+// EventKind implements [Event].
+func (TownEmptied) EventKind() string { return TownEmptiedKind }
+
+// PopulationDied reports that members of a family died off screen.
+type PopulationDied struct {
+	Map    MapID     `json:"map"`
+	Family ContentID `json:"family"`
+	Count  int       `json:"count"`
+}
+
+// EventKind implements [Event].
+func (PopulationDied) EventKind() string { return PopulationDiedKind }

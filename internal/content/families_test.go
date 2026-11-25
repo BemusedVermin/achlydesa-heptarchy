@@ -31,6 +31,26 @@ func TestFamiliesAndPopulationsAreChecked(t *testing.T) {
 			def.Region = &RegionDef{Populations: map[string]int{"family.test.clay": -1}}
 			b.Maps["map.test.gate_a"] = def
 		}, `must not be negative`},
+		{"a drift formula that does not compile", func(b *Bundle) {
+			def := b.Families["family.test.clay"]
+			def.Drift = "nope +"
+			b.Families["family.test.clay"] = def
+		}, `families["family.test.clay"].drift`},
+		{"an attrition formula over an unknown variable", func(b *Bundle) {
+			def := b.Families["family.test.clay"]
+			def.Attrition = "nothing"
+			b.Families["family.test.clay"] = def
+		}, `families["family.test.clay"].attrition`},
+		{"a town that uses stock without residents", func(b *Bundle) {
+			def := b.Maps["map.play.hub"]
+			def.Region.Town.Use = []StackDef{{Item: "item.lake_water", Count: 1}}
+			b.Maps["map.play.hub"] = def
+		}, `needs residents`},
+		{"an exodus above one", func(b *Bundle) {
+			def := b.Maps["map.play.hub"]
+			def.Region.Town.Exodus = 2
+			b.Maps["map.play.hub"] = def
+		}, `exodus: must be from 0 to 1`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

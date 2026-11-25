@@ -3,6 +3,9 @@ package content
 import (
 	"fmt"
 
+	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
+
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
@@ -16,6 +19,31 @@ func (r *Registry) Family(id api.ContentID) (FamilyDef, bool) {
 // FamilyIDs lists every family ID in sorted order.
 func (r *Registry) FamilyIDs() []api.ContentID { return sortedIDs(r.bundle.Families) }
 
+// compiledFamily holds a family's formulas; one it leaves empty is nil.
+type compiledFamily struct {
+	drift, attrition *vm.Program
+}
+
+// FamilyDrift is the fraction of the family that moves to the neighbour this phase, by its drift
+// formula; a family with none gives 0.
+func (r *Registry) FamilyDrift(id api.ContentID, env DriftEnv) (float64, error) {
+	program := r.families[id].drift
+	if program == nil {
+		return 0, nil
+	}
+	return run[float64](program, env, fmt.Sprintf("family %q drift", id))
+}
+
+// FamilyAttrition is how many of the family die this phase, by its attrition formula; a family with
+// none gives 0.
+func (r *Registry) FamilyAttrition(id api.ContentID, env AttritionEnv) (float64, error) {
+	program := r.families[id].attrition
+	if program == nil {
+		return 0, nil
+	}
+	return run[float64](program, env, fmt.Sprintf("family %q attrition", id))
+}
+
 // checkFamilies checks each family's name, templates and weights, and the populations maps start
 // with.
 func (r *Registry) checkFamilies() []error {
@@ -24,6 +52,22 @@ func (r *Registry) checkFamilies() []error {
 		def := r.bundle.Families[key]
 		path := fmt.Sprintf("families[%q]", key)
 		p.text(path+".name", def.Name)
+		var compiled compiledFamily
+		if def.Drift != "" {
+			program, err := r.Compile(def.Drift, DriftEnv{}, expr.AsFloat64())
+			if err != nil {
+				p.addf("%s.drift: %w", path, err)
+			}
+			compiled.drift = program
+		}
+		if def.Attrition != "" {
+			program, err := r.Compile(def.Attrition, AttritionEnv{}, expr.AsFloat64())
+			if err != nil {
+				p.addf("%s.attrition: %w", path, err)
+			}
+			compiled.attrition = program
+		}
+		r.families[api.ContentID(key)] = compiled
 		if len(def.Templates) == 0 {
 			p.addf("%s.templates: at least one is required", path)
 		}
