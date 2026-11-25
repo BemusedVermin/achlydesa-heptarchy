@@ -71,7 +71,7 @@ Every subsystem below reuses a library; the last column is all that's left to wr
 | Formulas in content | [Expr](https://github.com/expr-lang/expr) | Type-checked, sandboxed expressions that always terminate, compiled to bytecode | The variables each formula can see |
 | Hex math | [gravitton/hexagon](https://pkg.go.dev/github.com/gravitton/hexagon) | Axial and offset coordinates, including double-width, which is exactly the ASCII layout | Chunked 3D storage and sight lines with depth |
 | Pathfinding | [fzipp/astar](https://github.com/fzipp/astar) | Generic A\*: supply neighbours and costs | Hex neighbour and cost functions |
-| Connectivity graph | gonum graph | Connectivity and shortest paths for procgen guarantees | Building the graph from chunks and fixed places |
+| Region graph | gonum graph | Connectivity and shortest paths for procgen guarantees | Building the graph from regions |
 | Procgen noise | opensimplex-go | Seeded 3D noise for caves, and for depth and material fields | The generation rules |
 | Randomness | `math/rand/v2` (PCG) | Seedable, deterministic, in the standard library | A registry of named streams |
 | Saves | ark-serde | Serializes the whole ECS world | RNG states and content IDs |
@@ -144,7 +144,7 @@ achlydesa-heptarchy/
 
 ## Core packages
 
-Each package owns one part of the rules and leans on a library for everything else. The world itself is one Ark ECS world: towns, creatures, people, parts and seats are all entities.
+Each package owns one part of the rules and leans on a library for everything else. The world itself is one Ark ECS world: towns, regions, creatures, people, parts and seats are all entities.
 
 | Package | Owns | Reuses |
 | --- | --- | --- |
@@ -164,8 +164,8 @@ Each package owns one part of the rules and leans on a library for everything el
 | `explore` | The world built from placed content, stepping, lead and follow, remembered cells and the plan-view projection | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
-| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; full agents near the party, counts per chunk beyond | Expr for need curves, Ark relations for grudges and relationships |
-| `seats` | The seven seat state machines, stage events, seat passing, the piece's readings (the direction and strength of each seat's pull) | Ark events, `rng` |
+| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; full agents on screen, region aggregates off screen | Expr for need curves, Ark relations for grudges and relationships |
+| `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
 | `rumor` | Facts carried between people and towns, drifting with each retelling | `knowledge`, `text/template` for the words |
 | `investigation` | Turning clues (people, places, bodies, dreams) into facts about parts and weaknesses | `knowledge` |
@@ -199,16 +199,16 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 1. The earliest entry on the timeline happens next, and the clock jumps to its tick: an attack landing, or a body deciding. At the same tick, landings go first, then decisions by UID.
 2. A deciding body's controller picks actions: the player for party members (only the leader while no hostile is in sight), a follow controller for the rest of the party, and behaviors for everyone else. Each action occupies the channels it needs (a step the body, a swing one or more arms) for its wind-up and recovery; legs, terrain and climbing set how long a step takes.
 3. After every entry, per-entry systems run: statuses expire and the party's alert updates.
-4. At each day-phase boundary the clock crosses, the off-screen tick runs: off-screen counts drift between chunks, town residents follow their routines. Generic NPCs are replaced on timers kept on the town (`comp.Town`) and checked after every timeline entry.
+4. At each day-phase boundary the clock crosses, the off-screen tick runs: region populations drift, town residents follow their routines. Generic NPCs are replaced on timers kept on the town (`comp.Town`) and checked after every timeline entry.
 5. Once a day: seats advance, the export schedule is checked, rumors move between towns.
 6. Ark events fire after each step (a death, a severed part, a passed seat), and subscribers update wounds, grudges and readings.
 
 ### Level of detail
 
-- **Near the party:** every creature and person in a chunk within the detail radius is a full Ark entity with a body, needs and memory.
-- **Beyond it:** each chunk holds counts per creature family, which drift from chunk to chunk toward what they need; each town runs its residents on coarse schedules.
-- **Promotion and demotion:** as a chunk comes within the radius its counts become full agents, before they can come into sight; as it leaves, they fold back, keeping named agents and anyone with a grudge as individuals.
-- **No maps, no regions.** There is one world. Nothing is keyed by a map or a region: what the ground is like (its decay, say) comes from content formulas over position and depth, and a town is a place with a footprint.
+- **On screen:** creatures and people near the party are full Ark entities with bodies, needs and memory.
+- **Off screen:** each region holds aggregate populations per creature family; each town runs its residents on coarse schedules.
+- **Promotion and demotion:** as the party nears a region, its aggregates turn into full agents before they can come into sight; as the party leaves, they fold back, keeping named agents and anyone with a grudge as individuals.
+- **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. The detail radius, how near counts as near, is open.
 
 ### Determinism rules
 
@@ -290,7 +290,7 @@ Each step ends with something playable or measurable.
 1. **Skeleton:** module, depguard rule, content pipeline with one material, Ark world, `core/game` API, and the Bubble Tea frontend walking a hand-made hex map.
 2. **Combat:** bodies of parts, a few materials and forms, the effect primitives, fighting on the map with the action menu.
 3. **Agents:** needs scoring for creatures and people, on-screen and off-screen ticks, generic NPC timers, recruits.
-4. **One world:** the towns and the deep as one continuous world at human scale, detail by distance from the party; no maps, gates or regions.
+4. **One world:** the towns and the deep as one continuous world at human scale, with regions as areas of it; M3's separate maps and gates deleted.
 5. **Procgen:** the generated deep between the fixed places, exports reseeding it, the pocket, the guarantees as property tests.
 6. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
 7. **Emergence:** rumors, grudges and memory, dreams.
@@ -304,7 +304,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 
 - [ ] CUE or YAML plus JSON Schema? CUE removes the most custom validation code, but it has a learning curve for content authoring.
 - [x] Hex library: decided, gravitton/hexagon (double-width layout, field of view and line drawing).
-- [ ] The deep is infinite, so: what's the chunk memory budget, and how many chunks is the detail radius (see Level of detail)?
+- [ ] The deep is infinite, so: what's the chunk memory budget, and how far is the detail radius (see Level of detail)?
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
 - [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.

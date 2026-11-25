@@ -54,7 +54,7 @@ The game takes place on the clay plain and in the deep beneath its crawlspaces, 
 
 The towns are fixed islands inside the deep, at different depths, with generated dungeon all around them. Depth is the geography: the deeper the town, the older and less decayed its ground, and the stranger it is. The surface is uniform decayed clay, so variety comes from what lies underground.
 
-**One world, no seams.** The salk, the towns and the deep are one continuous world. The party walks from anywhere to anywhere: nothing loads behind a gate, a door or a transition, and the world isn't divided into maps or regions. Where this doc says region, it means an area of that one world, such as the ground a seat warps, found from position.
+**One world, no seams.** The salk, the towns and the deep are one continuous world. The party walks from anywhere to anywhere: nothing loads behind a gate, a door or a transition. Towns and regions of the deep are areas of that one world, never maps of their own.
 
 | Depth | Environment | Town | Local material or service |
 | --- | --- | --- | --- |
@@ -198,7 +198,7 @@ Survivors remember, and their grudges come from the memory and needs systems alr
 
 ### Keeping it affordable
 
-- **Off-screen:** away from the party, creatures are counts per stretch of the deep and residents run on their town's schedule; their needs tick and they move through the deep.
+- **Off-screen:** creatures and residents are simulated coarsely at the region or town level; their needs tick and they move between regions.
 - **On-screen:** near the party, they become full agents with real movement and fights.
 - **Harness logging:** the headless harness logs emergent events (deaths, migrations, towns emptied), so degenerate outcomes such as every monster camping one town show up in tuning rather than in play.
 
@@ -563,7 +563,7 @@ Forms and archon prices have behavior, so the engine defines a small vocabulary 
 
 **Data (the content):**
 
-- Materials, forms (compositions of primitives with parameters), part templates, enemy templates, and the towns and set pieces placed in the world.
+- Materials, forms (compositions of primitives with parameters), part templates, enemy templates and regions.
 - Authored candidates: wound, wish, curdle mode, price as composed effects, and form.
 - Cast members, the curdle-mode library and clue definitions.
 - Tuning constants: seat speed, kill setback, export rate.
