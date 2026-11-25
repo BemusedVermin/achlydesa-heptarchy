@@ -79,8 +79,6 @@ type firing struct {
 	site    content.TriggerSite
 	// The site's place in the index, for a stable order among one carrier's triggers.
 	order int
-	// witness says the carrier saw the event and is its effects' source.
-	witness bool
 	// viaPart says the carrier is a part of the subject's body, not the subject itself.
 	viaPart bool
 }
@@ -125,12 +123,6 @@ func runTriggers(w *sim.World, e api.Event) {
 			}
 		}
 	}
-	witnesses, err := witnessFirings(w, subjects, sites)
-	if err != nil {
-		w.Bus.Fail(fmt.Errorf("effects: witnesses: %w", err))
-		return
-	}
-	firings = append(firings, witnesses...)
 	slices.SortFunc(firings, func(a, b firing) int {
 		return cmp.Or(cmp.Compare(a.uid, b.uid), cmp.Compare(a.order, b.order))
 	})
@@ -143,9 +135,6 @@ func runTriggers(w *sim.World, e api.Event) {
 		ctx.Source = entityOf(w, subjects[api.SubjectSource])
 		ctx.Target = entityOf(w, subjects[api.SubjectTarget])
 		ctx.TargetPart = entityOf(w, subjects[api.SubjectPart])
-		if f.witness {
-			ctx.Source = f.carrier
-		}
 		if f.viaPart && f.site.Trigger.Role == content.RoleSource {
 			ctx.SourcePart = f.carrier
 		}
@@ -154,33 +143,6 @@ func runTriggers(w *sim.World, e api.Event) {
 			return
 		}
 	}
-}
-
-// witnessFirings matches the witness-role sites against the living bodies in sight of the event's
-// target, other than the target itself.
-func witnessFirings(w *sim.World, subjects map[string]api.UID, sites []content.TriggerSite) ([]firing, error) {
-	if !slices.ContainsFunc(sites, func(s content.TriggerSite) bool { return s.Trigger.Role == content.RoleWitness }) {
-		return nil, nil
-	}
-	target := entityOf(w, subjects[api.SubjectTarget])
-	seen, err := bodiesInSight(&Context{World: w}, target)
-	if err != nil {
-		return nil, err
-	}
-	var firings []firing
-	for order, site := range sites {
-		if site.Trigger.Role != content.RoleWitness {
-			continue
-		}
-		for _, body := range seen {
-			if body != target && !anatomy.OutOfFight(w, body) && carries(w, body, site) {
-				firings = append(firings, firing{
-					carrier: body, uid: w.UIDOf(body), site: site, order: order, witness: true,
-				})
-			}
-		}
-	}
-	return firings, nil
 }
 
 // fire checks one trigger's condition and applies its effects.

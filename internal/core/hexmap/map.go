@@ -22,7 +22,6 @@ type Map struct {
 	topo   Topology
 	chunks map[ChunkKey]*Chunk
 	edits  map[api.Cell]Terrain
-	gates  map[api.Cell]Gate
 	// sights remembers Visible results until the next edit. It is derived, never saved or hashed.
 	sights map[sightKey][]api.Cell
 }
@@ -41,20 +40,6 @@ func (m *Map) ID() api.MapID { return m.id }
 
 // Name is the map's display name.
 func (m *Map) Name() string { return m.name }
-
-// Marked is a [Source] that names some of its cells, such as where a party starts.
-type Marked interface {
-	Mark(name string) (api.Cell, bool)
-}
-
-// Mark returns the cell of the named mark, when the map's source is [Marked] and has it.
-func (m *Map) Mark(name string) (api.Cell, bool) {
-	marked, ok := m.src.(Marked)
-	if !ok {
-		return api.Cell{}, false
-	}
-	return marked.Mark(name)
-}
 
 // At returns the terrain of c, loading its chunk on first use and caching it.
 func (m *Map) At(c api.Cell) (Terrain, error) {

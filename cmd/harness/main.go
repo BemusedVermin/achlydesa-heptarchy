@@ -29,7 +29,7 @@ func root() *cobra.Command {
 func runCommand() *cobra.Command {
 	var seeds, steps int
 	var seedStart uint64
-	var dir, out, start string
+	var dir, out string
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Play seeded games with a random policy and write CSV",
@@ -38,11 +38,6 @@ func runCommand() *cobra.Command {
 			reg, err := content.Load(dir)
 			if err != nil {
 				return err
-			}
-			if start != "" {
-				if reg, err = reg.WithStart(start); err != nil {
-					return err
-				}
 			}
 			w := cmd.OutOrStdout()
 			if out != "" {
@@ -63,7 +58,6 @@ func runCommand() *cobra.Command {
 	cmd.Flags().Uint64Var(&seedStart, "seed-start", 1, "first seed")
 	cmd.Flags().IntVar(&steps, "steps", 100, "steps per seed")
 	cmd.Flags().StringVar(&dir, "content", defaultContent, "content directory")
-	cmd.Flags().StringVar(&start, "start", "", "named start to play, such as start.sample (default: the playground)")
 	cmd.Flags().StringVar(&out, "out", "", "CSV file to write (default stdout)")
 	return cmd
 }

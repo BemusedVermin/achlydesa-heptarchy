@@ -45,7 +45,6 @@ type fixture struct {
 	phases    []int64
 	perEntry  int
 	after     func(w *sim.World, body ecs.Entity)
-	onPhase   func(w *sim.World)
 }
 
 func newFixture(t tester, seed uint64) *fixture {
@@ -72,9 +71,6 @@ func newFixture(t tester, seed uint64) *fixture {
 	}
 	err := fx.w.Systems.Register(sim.System{Name: "test.phase", Cadence: sim.PerPhase, Run: func(w *sim.World) error {
 		fx.phases = append(fx.phases, w.Now)
-		if fx.onPhase != nil {
-			fx.onPhase(w)
-		}
 		return nil
 	}})
 	if err != nil {
@@ -625,30 +621,5 @@ func TestUsableChannelsHookDecidesWhichChannelsCount(t *testing.T) {
 			}
 			t.Fatal("the body is not on the timeline")
 		})
-	}
-}
-
-func TestRunCarriesOnWhenABodyLeavesAtThePhaseBoundaryItsDecisionCrosses(t *testing.T) {
-	fx := newFixture(t, 1)
-	victim := fx.spawn(t, "record", 0)
-	survivor := fx.spawn(t, "record", 0)
-	victimUID := fx.w.UIDOf(victim)
-	fx.stopAfter = 500
-	fx.onPhase = func(w *sim.World) {
-		if w.ECS.Alive(victim) && w.Now > 0 {
-			w.ECS.RemoveEntity(victim)
-		}
-	}
-	fx.run(t)
-	if len(fx.phases) == 0 {
-		t.Fatal("no phase boundary crossed")
-	}
-	for _, d := range fx.taken {
-		if d.UID == victimUID && d.Tick > fx.phases[0] {
-			t.Errorf("removed body decided at tick %d", d.Tick)
-		}
-	}
-	if !slices.ContainsFunc(fx.taken, func(d decision) bool { return d.UID == fx.w.UIDOf(survivor) && d.Tick > 0 }) {
-		t.Error("the other body never decided after the removal")
 	}
 }

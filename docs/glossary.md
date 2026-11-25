@@ -6,14 +6,7 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 
 - **action**: any timed doing. It occupies channels, winds up, and lands.
 - **crawling part**: a severed part that fights on as its own body.
-- **rest**: sleeping in town. It moves time on, heals integrity (never a severed part) and sets where the party wakes after a wipe.
-- **need**: something an agent runs low on (water, food, safety...), a level that rises with time and is met by behaviors (`need.water`, `comp.Needs`).
-- **behavior**: a content composition of one behavior primitive and its considerations, which an agent picks by utility (`behavior.fetch_water`).
-- **family**: a kind of creature or person counted as one population off screen (`family.moving_clay`).
-- **region**: one map and what lives on it, for level of detail. A town is a region with residents and stocks.
-- **gate**: a cell that leads to a mark on another map.
-- **recruit**: a generic person hired into the party for a price in items, kept by daily upkeep.
-- **discontent**: how far a recruit's unpaid upkeep has gone; it turns into grumbling, then desertion.
+- **rest**: sleeping in town. It moves time on and sets where the party wakes after a wipe.
 
 ## Code
 
@@ -40,7 +33,4 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **systems due**: the timeline's flag that per-entry systems have not yet run (`SystemsDue`).
 - **wild**: the hostile creatures as a side (`faction.wild`). The deep is the place.
 - **text ID**: a record's name is `text.<record id>` and sits beside the record. An engine message is `text.<package>.<event>` in that package's file under `text/`.
-- **aggregate**: a region's off-screen count of one family, with no bodies.
-- **promote / demote**: turning a region's aggregates into full agents when the party enters its map, and folding them back when it leaves.
-- **individual**: an agent that is never demoted into a count (`comp.Individual`): named, holding a grudge, or a deserter.
 - **chrome**: only key help. Every other word the player sees comes from the core's view.

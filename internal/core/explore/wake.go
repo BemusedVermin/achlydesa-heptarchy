@@ -10,7 +10,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
@@ -120,17 +119,5 @@ func markSeenByParty(w *sim.World, party ecs.Entity) error {
 	for id, set := range sight {
 		markSeen(w, party, id, slices.Collect(maps.Keys(set)))
 	}
-	return nil
-}
-
-func applySetRestPlace(ctx *effects.Context, _ effects.Params) error {
-	w := ctx.World
-	party, ok := anatomy.PartyOf(w, ctx.Source)
-	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if !ok || !positions.Has(ctx.Source) {
-		return nil
-	}
-	pos := positions.Get(ctx.Source)
-	SetRestPlace(w, party, pos.Map, pos.At)
 	return nil
 }

@@ -189,31 +189,7 @@ func buildMaps(w *sim.World) (map[api.ContentID]api.MapID, map[api.ContentID]*So
 		}
 		ids[id], sources[id], st.names[mapID] = mapID, src, id
 	}
-	if err := resolveGates(w, ids, sources); err != nil {
-		return nil, nil, err
-	}
 	return ids, sources, nil
-}
-
-// resolveGates fills each map's gate table, once every map has its ID.
-func resolveGates(w *sim.World, ids map[api.ContentID]api.MapID, sources map[api.ContentID]*Source) error {
-	for _, name := range w.Content.MapIDs() {
-		src := sources[name]
-		var gates []hexmap.Gate
-		for _, site := range src.Gates() {
-			dest, ok := sources[site.To]
-			if !ok {
-				return fmt.Errorf("explore: map %q: gate to unknown map %q", name, site.To)
-			}
-			cell, ok := dest.Mark(site.Mark)
-			if !ok {
-				return fmt.Errorf("explore: map %q: gate to map %q has no mark %q", name, site.To, site.Mark)
-			}
-			gates = append(gates, hexmap.Gate{At: site.Cell, To: ids[site.To], ToCell: cell})
-		}
-		w.Maps.Get(ids[name]).SetGates(gates)
-	}
-	return nil
 }
 
 // Start builds every map of the content and, when the content has a start scenario, spawns the

@@ -338,24 +338,6 @@ func RenderParty(p *api.PartyView) string {
 			line = lipgloss.NewStyle().Bold(true).Reverse(true).Render(line)
 		}
 		lines = append(lines, line)
-		if len(member.Needs) > 0 {
-			lines = append(lines, "    "+strings.Join(member.Needs, "  "))
-		}
-	}
-	return strings.Join(lines, "\n")
-}
-
-// RenderRegion draws the region's name and, in a town, the stock under the labels' heading.
-func RenderRegion(r *api.RegionView, labels api.LabelsView) string {
-	if r == nil {
-		return ""
-	}
-	lines := []string{r.Name}
-	if r.Town && len(r.Stock) > 0 {
-		lines = append(lines, labels.Stock)
-		for _, line := range r.Stock {
-			lines = append(lines, "  "+line.Name+" x"+strconv.Itoa(line.Count))
-		}
 	}
 	return strings.Join(lines, "\n")
 }

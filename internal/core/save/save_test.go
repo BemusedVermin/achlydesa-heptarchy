@@ -386,11 +386,11 @@ func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
 		})
 		return nil
 	}
-	chain := map[int]save.Migration{0: renameSeed}
-	for version := 1; version < save.CurrentVersion; version++ {
-		chain[version] = func(map[string]json.RawMessage) error { return nil }
-	}
-	got, err := save.ReadWith(bytes.NewReader(old), save.CurrentVersion, chain)
+	got, err := save.ReadWith(
+		bytes.NewReader(old),
+		save.CurrentVersion,
+		map[int]save.Migration{0: renameSeed, 1: func(map[string]json.RawMessage) error { return nil }},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

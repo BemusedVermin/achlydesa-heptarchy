@@ -21,25 +21,15 @@ type Registry struct {
 	// climbCost is nil when party.climb_cost is empty.
 	climbCost *vm.Program
 	// templates is parsed text, keyed by text ID.
-	templates   map[api.ContentID]*template.Template
-	actions     map[api.ContentID]compiledAction
-	speed       *vm.Program
-	aiScore     *vm.Program
-	agentsScore *vm.Program
-	aims        *vm.Program
-	records     map[api.ContentID]Record
+	templates map[api.ContentID]*template.Template
+	actions   map[api.ContentID]compiledAction
+	speed     *vm.Program
+	aiScore   *vm.Program
+	aims      *vm.Program
+	records   map[api.ContentID]Record
 	// offers has no entry for a choice without an offer formula.
-	offers map[string]*vm.Program
-	mods   map[api.ContentID]compiledMods
-	needs  map[api.ContentID]compiledNeed
-	// families has a nil program for a formula the family leaves empty.
-	families map[api.ContentID]compiledFamily
-	// behaviors holds each behavior's considerations, in order.
-	behaviors map[api.ContentID][]*vm.Program
-	// ranks holds the rank formula of each behavior that has one.
-	ranks map[api.ContentID]*vm.Program
-	// worths holds the worth formula of each hirable template.
-	worths      map[api.ContentID]*vm.Program
+	offers      map[string]*vm.Program
+	mods        map[api.ContentID]compiledMods
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.
@@ -143,9 +133,6 @@ func (r *Registry) Body(id api.ContentID) (BodyPlan, bool) {
 // Party returns the numbers every party shares.
 func (r *Registry) Party() PartyConfig { return r.bundle.Party }
 
-// Recruits returns the numbers that keep recruits in the party.
-func (r *Registry) Recruits() RecruitsConfig { return r.bundle.Recruits }
-
 // Combat returns the numbers of alert and death.
 func (r *Registry) Combat() CombatConfig { return r.bundle.Combat }
 
@@ -172,12 +159,6 @@ type EffectSite struct {
 // AIScore rates an intent for a hunting creature, by combat.ai_score.
 func (r *Registry) AIScore(env ScoreEnv) (float64, error) {
 	return run[float64](r.aiScore, env, "combat.ai_score")
-}
-
-// AgentsScore rates an intent for a creature that picks attacks with the agents chooser, by the
-// rule agents.score_rule names.
-func (r *Registry) AgentsScore(env ScoreEnv) (float64, error) {
-	return run[float64](r.agentsScore, env, "agents.score_rule")
 }
 
 // Aims says whether a body with the grant totals can pick its target, by combat.aims.

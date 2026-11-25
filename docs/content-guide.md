@@ -20,8 +20,6 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `items.cue` | `items`: what the inventory carries |
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
-| `needs.cue` | `needs`: what bodies run low on, how fast, and the thresholds that hurt them |
-| `behaviors.cue` | `behaviors`: what agents choose between, and `agents`, the numbers every agent shares |
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
 | `maps/` | `maps`: `maps.cue` holds the schema and `_#TestMap`, one file per map (`test_hall.cue`, `test_den.cue`, `test_descent.cue`) |
 | `start.cue` | `start`: the map, party template and mark a new game begins with |
@@ -56,8 +54,6 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `items` | `item.` | `item.lake_water` |
 | `factions` | `faction.` | `faction.wild` |
 | `statuses` | `status.` | `status.standing` |
-| `needs` | `need.` | `need.water` |
-| `behaviors` | `behavior.` | `behavior.test.wander` |
 
 The day's phases in `calendar.cue` have IDs too (`phase.dawn`), and are named `text.<phase id>` like any record.
 
@@ -94,11 +90,7 @@ rules: {
 }
 ```
 
-Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that names an unknown variable or rule is not caught by `cue vet`: an action's `windup`, `recovery`, `requires` and `allowed`, a mod, an offer and a trigger's `if` fail when content loads, and an effect's params fail when a game starts.
-
-An action's `requires` leaves it out of the menu when false, as `action.eat` does with no ration in the inventory. Its `allowed` keeps it in the menu but disabled, with its `refusal` text as the reason (`text.actions.requires` when it names none): `action.eat` and `action.drink` are `allowed: "!source.alert"`, so they are refused while the body's party has a hostile in sight. `source.alert` is false for a body outside a party.
-
-An action aimed at a body, an ally or a part refuses a dead body unless it carries the tag named by `combat.corpse_tag` (`corpse`), as the test action `action.gnaw` does so that `consume` can eat a corpse. Corpses are never offered in the menu either way.
+Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that names an unknown variable or rule is not caught by `cue vet`: an action's `windup`, `recovery` and `requires`, a mod, an offer and a trigger's `if` fail when content loads, and an effect's params fail when a game starts.
 
 ### Choices and mods
 
@@ -128,52 +120,19 @@ triggers: [{
 ```
 
 - `on` is an event kind, `<package>.<event>`, such as `combat.part_damaged`, `explore.fell` or `timeline.ready`. The kinds are the event `...Kind` constants in `internal/core/api`; an unknown one fails when a game starts.
-- `role` says which subject of the event the carrier must be: `source` (the acting body), `target` (the body acted on), `part` (the part acted on), `any`, or `witness` (a body in sight of the target, not the target: it is the source of the trigger's effects, and the formula variable `hostile` says whether it is hostile to the target). The remnant's trigger above runs when the remnant is the target of a severing; clay's trigger in `materials.cue` uses `part`, because it is the part that is clay.
+- `role` says which subject of the event the carrier must be: `source` (the acting body), `target` (the body acted on), `part` (the part acted on) or `any`. The remnant's trigger above runs when the remnant is the target of a severing; clay's trigger in `materials.cue` uses `part`, because it is the part that is clay.
 - `if` is a formula; empty means always. It sees the event's subjects as `source` and `target`, its params as `chosen.<name>.id` (`chosen.type.id` on `combat.part_damaged`, as clay's trigger reads), and a fall's drop as `cells`.
 - `do` is a list of effects, the same as an action's `on_land`.
 
 Several triggers that match one event fire in UID order of their carriers, then in the order content lists them.
 
-## Needs
-
-A need's level runs from 0 (met) to 1 (desperate). A template lists the needs its bodies carry, with starting levels: `needs: {"need.water": 0.2}`. At every day-phase boundary each living body's needs rise, in ID order, by their `rise` formula, and the level is kept within 0 to 1. Then each of the need's `thresholds` (in ascending `at`) whose `at` the level has reached applies its `do` effects, with the body as source and target. `rise` and `urge` see `level`, `phase` (the phase starting, such as `"phase.day"`), `source` and `region` (the record of the region the body stands in, such as `region.props.decay`); any formula reads a body's levels as `source.needs.water`. The `satisfy` effect lowers the level by `amount` (a negative amount raises it) in the target, or in the `bodies` it names (`bodies: "self"` feeds the source, such as a trigger on a hit that eases the attacker's hunger), and does nothing to a body without that need.
-
-A hirable template's `recruit.upkeep` is taken from the party's inventory each day. The `recruits` block in `party.cue` holds the numbers that keep recruits: an unpaid day adds one to a recruit's discontent and a paid day takes one off; at `grumble_at` the recruit grumbles each day, and at `desert_at` it leaves the party, keeping its body, grafts and inventory, as an individual of `deserters_faction`. A recruit whose `terror_need` is at or above `flee_at` runs under the agents controller, doing `flee_behavior`, until the level falls below. Terror is raised by triggers that `satisfy` it with a negative amount (see `_severedTerror` in `templates.cue`).
-
-## Behaviors
-
-A body whose template has `actor: controller: "agents"` acts on the behaviors its template lists: `behaviors: ["behavior.test.wander", "behavior.test.to_water"]`. At each of its decisions every listed behavior is scored: the product of its `consider` formulas (1 when it has none). They see `source` (the agent, with its needs), `target` (the target body, when there is one), `distance` (hexes plus depths to the target), `phase` (the current phase ID), `now`, `doing` (the ID of the behavior it is doing, or `""`), `region` (as for needs) and `threatened` (ticks until the soonest landing of a hostile's action aimed at the agent, or -1; the `dodge` primitive takes `within` ticks and steps out of range). A behavior may also have a `rank` formula, which a primitive that picks among options uses to score each one: `leave` crosses the gate whose `rank` is highest, nearest first on a tie. It sees `source` (with its needs), `region` (the record of the region the option leads to) and `distance` (hexes to the option). The behavior it is already doing gets `agents.keep_bonus` added, so it doesn't switch back and forth between behaviors that score about the same. The best wins, and ties are drawn at random. A behavior that scores 0 or less is never chosen; with none left, the body waits.
-
-A template with `recruit: {wants, worth, upkeep}` can be hired when it is a town's generic. `wants` are item stacks and `worth` is a formula over the body (`template`, `needs`, `integrity` and so on): the price is each want's count times `worth`, rounded up. `upkeep` is what the recruit wants each day after hiring.
-
-An exotic recruit is a generic with a strange want and an ability, and no `graftable` tag, so Graft is never offered onto it (`action.graft` requires the tag). The leashed soul-feeder in `templates.cue` wants rations and lees, and its trigger `_feederGrows` adds `status.feeding` when it hurts a body for which `dying` holds; `rule.hit` in `rules.cue` reads the status to hit harder. The tamed clay's trigger, a `witness` of `combat.part_severed` with `if: "hostile"`, does `attach_part` with `from: "severed"` and `to: "source"`, so it takes the severed part and gains its action. Keep it hirable by listing its template in a town's `generics`, with a family of its own.
-
-`do` names the behavior primitive that carries it out, one step per decision: `idle` waits, `wander` steps to a random open neighbour, and `move_toward` walks to the target with `combat.step_action`, until it stands on the cell (or next to the body). `params` give the primitive's parameters; one that a primitive doesn't take fails when a game starts.
-
-`target` says what a behavior goes for: the nearest match on the agent's map, or the behavior is not scored. `kind: "body"` takes another body, filtered by its template `tags`, `dead` and `hostile` (to the agent); `kind: "mark"` takes the `mark` of that name on the map; `kind: "cell"` takes the nearest cell of `terrain` within `agents.cell_radius`. While a behavior goes on, it keeps the body or cell it chose as long as that still matches.
-
-## Regions and towns
-
-Every map is a region, named by the map's `name`, and its neighbours are the maps its gates lead to. A map's `region` holds the data formulas read about it (`tags`, `props` such as a decay, and `lists`), as the map's record. A region with `town` is a town: its `stock` is what the town starts with, and goods a `carry` behavior takes to one of its `stock_marks` (plain marks of the map) go into the stock, even when a body stands on the mark.
-
-```cue
-region: town: {
-	stock: [{item: "item.lake_water", count: 10}]
-	stock_marks: ["stock"]
-}
-```
-
-## Families
-
-A family (`families.cue`, `family.*`) is a kind of creature a region counts while the party is away. When the party enters a map, each count in that region becomes bodies: each is one of the family's `templates`, picked by `weight`, standing beside one of its `marks` (map marks, in turn) or, with no marks on the map, at random around the party. Bodies stand out of the party's sight when a cell is free, within `agents.promote_radius` hexes. A region starts with `region: populations: {"family.test.clay": 3}`. On leaving, living bodies of a family without `Individual` are counted back; the dead stay on the map.
-
 ## Effects
 
-An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `heal`, `set_rest_place`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts. `attach_part` fits a piece (`from: "inventory"`, with `item`) or a severed part (`from: "severed"`) onto the target, or with `to: "source"` onto the acting body, which then takes the part the event is about.
+An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part` and `step`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
 
 Params that pick bodies or parts are selectors:
 
-- bodies: `self`, `target`, `allies`, `enemies`, `others`, `everyone` or `witnesses` (in sight of the target, as of someone maimed), optionally narrowed to a template tag, as in `others[crawls]`;
+- bodies: `self`, `target`, `allies`, `enemies`, `others` or `everyone`, optionally narrowed to a template tag, as in `others[crawls]`;
 - channels and parts: `used`, `target_part`, or `<bodies>:<tag>`, as in `target:all`, `target:legs` or `self:all`.
 
 ## Recipes
@@ -185,7 +144,7 @@ Params that pick bodies or parts are selectors:
 3. Add its name to the `text:` block at the bottom of `templates.cue`.
 4. To meet it, put it on a map: a mark character in `marks` and the same character in `spawns` (see the map recipe).
 
-Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does. `actor.chooser` names the chooser its attacks are picked with; left out, it is `score`, which rates each attack with `ai_score`. `agents` rates with the rule `agents.score_rule` names, which can read `source.needs` and `target.dying` (a vital part at or below `agents.dying_below` of its integrity), and lets the hunter pick among hostiles as near as its prey.
+Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does.
 
 ### A type, in `types.cue` with `#Consumable`
 
@@ -216,33 +175,6 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
 5. Add the name to the file's `text:` block.
 
 To play it, point `start.map` in `start.cue` at it for the session, and put it back before you commit unless the change is meant.
-
-## The playground
-
-`go tool task run -- play --seed 1` opens in `map.play.hub` (`maps/play_hub.cue`), a small room with a gate to each of three maps that copy the test maps. Each has a gate back. A feature task adds a line here for what it puts in the playground.
-
-| Gate | Map | What is there |
-| --- | --- | --- |
-| 1 | `map.play.hall` | The moving clay creature in the hall. |
-| 2 | `map.play.den` | The remnant and the flesh beast. |
-| 3 | `map.play.descent` | The soops down to the deep, and a moving clay creature at depth 2. |
-
-The hub is a town, with lake water and rations in its stock and a stock mark (`s`) in its top row.
-
-Tests keep their own start maps: the sample content in `contenttest` starts on `map.test.hall`, whatever `start.cue` says.
-
-## The sample world
-
-`starts` in `start.cue` holds named scenarios beside the default `start`. `start.sample` begins in `maps/sample_world.cue`: four maps in a chain, joined by gates, with placeholder numbers for M9 to tune. Play it with `go run ./cmd/harness run --start start.sample --steps 40`; a test picks it with `bundle.Start = bundle.Starts["start.sample"]`.
-
-| Map | Decay | What is there |
-| --- | --- | --- |
-| `map.sample.shallow` | 0.1 | A town with a well, a small stock, residents and generics. The party starts here. |
-| `map.sample.deep_a` | 0.5 | Moving clay and remnants. Gates to the shallow town and `deep_b`. |
-| `map.sample.deep_b` | 0.8 | Remnants, moving clay, soul-feeders and an archon warden. Gates to `deep_a` and the lake town. |
-| `map.sample.lake` | 0.1 | A town with water to spare, refilled each phase while the party is away. |
-
-The two towns are generic test towns, not the design's crawlspaces. They are not neighbours, so no town migration happens between them; drift is of the monster families.
 
 ## Checking your work
 

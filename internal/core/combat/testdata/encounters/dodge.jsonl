@@ -1,13 +1,12 @@
-{"kind":"combat.alert_started","data":{"party":1,"hostile":63,"name":"Moving clay","tick":0}}
+{"kind":"combat.alert_started","data":{"party":1,"hostile":28,"name":"Moving clay","tick":0}}
 {"kind":"explore.control_changed","data":{"party":1,"mode":"individual","by":"alert"}}
-{"kind":"explore.moved","data":{"source":63,"map":15,"from":{"hex":{"q":13,"r":10},"depth":0},"to":{"hex":{"q":12,"r":10},"depth":0},"kind":"level"}}
-{"kind":"explore.moved","data":{"source":63,"map":15,"from":{"hex":{"q":12,"r":10},"depth":0},"to":{"hex":{"q":11,"r":10},"depth":0},"kind":"level"}}
-{"kind":"explore.moved","data":{"source":14,"map":1,"from":{"hex":{"q":1,"r":2},"depth":0},"to":{"hex":{"q":0,"r":3},"depth":0},"kind":"level"}}
-{"kind":"explore.moved","data":{"source":63,"map":15,"from":{"hex":{"q":11,"r":10},"depth":0},"to":{"hex":{"q":10,"r":10},"depth":0},"kind":"level"}}
-{"kind":"actions.started","data":{"source":63,"action":"action.strike","target":2,"tick":32,"lands":35}}
-{"kind":"actions.started","data":{"source":63,"action":"action.strike","target":2,"tick":32,"lands":35}}
-{"kind":"explore.moved","data":{"source":2,"map":15,"from":{"hex":{"q":9,"r":10},"depth":0},"to":{"hex":{"q":8,"r":10},"depth":0},"kind":"level"}}
-{"kind":"actions.missed","data":{"source":63,"action":"action.strike","target":2,"tick":35,"line":{"id":"text.actions.missed","args":{"action":"Strike","actor":"Moving clay"}},"reason":{"id":"text.actions.out_of_range"}}}
-{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":63,"target":2,"tick":35}}
-{"kind":"actions.missed","data":{"source":63,"action":"action.strike","target":2,"tick":35,"line":{"id":"text.actions.missed","args":{"action":"Strike","actor":"Moving clay"}},"reason":{"id":"text.actions.out_of_range"}}}
-{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":63,"target":2,"tick":35}}
+{"kind":"explore.moved","data":{"source":28,"map":3,"from":{"hex":{"q":13,"r":10},"depth":0},"to":{"hex":{"q":12,"r":10},"depth":0},"kind":"level"}}
+{"kind":"explore.moved","data":{"source":28,"map":3,"from":{"hex":{"q":12,"r":10},"depth":0},"to":{"hex":{"q":11,"r":10},"depth":0},"kind":"level"}}
+{"kind":"explore.moved","data":{"source":28,"map":3,"from":{"hex":{"q":11,"r":10},"depth":0},"to":{"hex":{"q":10,"r":10},"depth":0},"kind":"level"}}
+{"kind":"actions.started","data":{"source":28,"action":"action.strike","target":2,"tick":32,"lands":35}}
+{"kind":"actions.started","data":{"source":28,"action":"action.strike","target":2,"tick":32,"lands":35}}
+{"kind":"explore.moved","data":{"source":2,"map":3,"from":{"hex":{"q":9,"r":10},"depth":0},"to":{"hex":{"q":8,"r":10},"depth":0},"kind":"level"}}
+{"kind":"actions.missed","data":{"source":28,"action":"action.strike","target":2,"tick":35,"line":{"id":"text.actions.missed","args":{"action":"Strike","actor":"Moving clay"}},"reason":{"id":"text.actions.out_of_range"}}}
+{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":28,"target":2,"tick":35}}
+{"kind":"actions.missed","data":{"source":28,"action":"action.strike","target":2,"tick":35,"line":{"id":"text.actions.missed","args":{"action":"Strike","actor":"Moving clay"}},"reason":{"id":"text.actions.out_of_range"}}}
+{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":28,"target":2,"tick":35}}

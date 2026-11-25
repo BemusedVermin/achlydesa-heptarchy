@@ -201,89 +201,6 @@ type Triggers struct {
 	IDs []string `json:"ids"`
 }
 
-// NeedLevel is how far one need has gone unmet, from 0 (met) to 1 (desperate).
-type NeedLevel struct {
-	Need  api.ContentID `json:"need"`
-	Level float64       `json:"level"`
-}
-
-// Needs is the needs a body carries, sorted by need ID with none twice.
-type Needs struct {
-	Levels []NeedLevel `json:"levels"`
-}
-
-// Doing is the behavior an agent is carrying out and what it goes for. The agents controller keeps it.
-type Doing struct {
-	Behavior api.ContentID `json:"behavior"`
-	// Target is the body the behavior goes for, or 0.
-	Target api.UID `json:"target"`
-	// Cell is where the target is, when the behavior has one.
-	Cell api.Cell `json:"cell"`
-	// Since is the tick the behavior was chosen.
-	Since int64 `json:"since"`
-}
-
-// Region makes an entity the region one map is. A region entity has no position and no Identity:
-// it is found by its map.
-type Region struct {
-	Map api.MapID `json:"map"`
-	// Def is the map's content ID, which holds the region's data.
-	Def api.ContentID `json:"def"`
-}
-
-// Town marks a region that is a town. Its stock is the region entity's Inventory.
-type Town struct {
-	// Replacements are the generics due to arrive, in the order they were queued.
-	Replacements []Replacement `json:"replacements,omitempty"`
-}
-
-// Replacement is a generic of a town due to arrive at a tick.
-type Replacement struct {
-	Template api.ContentID `json:"template"`
-	At       int64         `json:"at"`
-}
-
-// Generic marks a body as one of the generic people of the town on the map with the ID.
-type Generic struct {
-	Town api.MapID `json:"town"`
-}
-
-// Population is how many of one family a region holds off screen.
-type Population struct {
-	Family api.ContentID `json:"family"`
-	Count  int           `json:"count"`
-}
-
-// Populations is a region's off-screen populations, sorted by Family with none twice.
-type Populations struct {
-	Of []Population `json:"of"`
-}
-
-// Individual marks a body that is never demoted into a population count.
-type Individual struct{}
-
-// Discontent counts the days a recruit has gone unpaid, less the days it was paid since.
-type Discontent struct {
-	Days int `json:"days"`
-}
-
-// Fleeing marks a recruit whose terror has taken it out of the party's hands. Controller is the
-// controller it runs under while it flees; the party's control mode does not apply to it.
-type Fleeing struct {
-	Controller string `json:"controller"`
-}
-
-// Family records the family a body was promoted from.
-type Family struct {
-	ID api.ContentID `json:"id"`
-}
-
-// Dormant marks a body taken off the timeline, and keeps what putting it back needs.
-type Dormant struct {
-	Controller string `json:"controller"`
-	WaitUntil  int64  `json:"wait_until"`
-}
-
 // Register registers every component type of this package with the world, in a fixed order. A world
 // restored from a save needs each type registered before it can read the components, and a fixed
 // order keeps component IDs the same in every world.
@@ -315,15 +232,4 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Allegiance](world)
 	ecs.ComponentID[Triggers](world)
 	ecs.ComponentID[Calm](world)
-	ecs.ComponentID[Needs](world)
-	ecs.ComponentID[Doing](world)
-	ecs.ComponentID[Region](world)
-	ecs.ComponentID[Town](world)
-	ecs.ComponentID[Generic](world)
-	ecs.ComponentID[Populations](world)
-	ecs.ComponentID[Individual](world)
-	ecs.ComponentID[Family](world)
-	ecs.ComponentID[Dormant](world)
-	ecs.ComponentID[Discontent](world)
-	ecs.ComponentID[Fleeing](world)
 }

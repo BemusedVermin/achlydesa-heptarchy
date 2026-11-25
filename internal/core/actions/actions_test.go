@@ -55,7 +55,7 @@ func use(tag string, count int) []content.Requirement {
 func testBundle(t *testing.T, o opts) content.Bundle {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	bundle.Maps, bundle.Start, bundle.Starts = nil, content.Start{}, nil
+	bundle.Maps, bundle.Start = nil, content.Start{}
 	if !o.contentChoices {
 		delete(bundle.Choices, "type")
 	}
@@ -415,36 +415,6 @@ func TestFailingCheckDisablesTheOptionWithItsReason(t *testing.T) {
 	}
 }
 
-func TestFailingAllowedDisablesTheOptionWithTheActionsRefusal(t *testing.T) {
-	for _, tc := range []struct {
-		name    string
-		refusal api.ContentID
-		want    api.ContentID
-	}{
-		{name: "named refusal", refusal: "text.actions.on_alert", want: "text.actions.on_alert"},
-		{name: "default refusal", want: "text.actions.requires"},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			fx := newFixture(t, 1, opts{
-				actions: []api.ContentID{"action.test.grab"}, arms: 2,
-				mutate: func(b *content.Bundle) {
-					grab := b.Actions["action.test.grab"]
-					grab.Allowed, grab.Refusal = "source.integrity < 0", tc.refusal
-					b.Actions["action.test.grab"] = grab
-				},
-			})
-			option := fx.option("grab")
-			if want := fx.w.Content.Render(api.Text{ID: tc.want}); option.Enabled || option.Reason != want {
-				t.Errorf("option = enabled %v, reason %q; want disabled with %q", option.Enabled, option.Reason, want)
-			}
-			events := fx.apply(option.Command)
-			if rejected, ok := find[api.Rejected](events); !ok || rejected.Reason.ID != tc.want {
-				t.Errorf("Do of a disallowed option gave %v, want Rejected with %s", events, tc.want)
-			}
-		})
-	}
-}
-
 func TestUsableHookLetsABodyWithAUselessArmWaitForItsBody(t *testing.T) {
 	far := newFixture(t, 1, opts{
 		actions: []api.ContentID{"action.step", "action.test.swing"}, dummyQ: 9,
@@ -665,28 +635,5 @@ func TestBatchUsableHookAgreesWithTheChannelByChannelTest(t *testing.T) {
 			}
 			fx.apply(next.Command)
 		}
-	}
-}
-
-func TestOnlyACorpseActionMayTargetADeadBody(t *testing.T) {
-	fx := newFixture(t, 1, opts{actions: []api.ContentID{"action.test.swing", "action.gnaw"}})
-	ecs.NewMap[comp.Actor](fx.w.ECS).Remove(fx.dummy)
-	ecs.NewMap[comp.Dead](fx.w.ECS).Add(fx.dummy, &comp.Dead{Tick: fx.w.Now})
-	for _, tc := range []struct {
-		action api.ContentID
-		ok     bool
-	}{
-		{"action.test.swing", false},
-		{"action.gnaw", true},
-	} {
-		t.Run(string(tc.action), func(t *testing.T) {
-			ok, reason := actions.Validate(fx.w, actions.Intent{Actor: fx.fighter, Action: tc.action, Target: fx.dummy})
-			if ok != tc.ok {
-				t.Errorf("Validate at a corpse = %v, %v; want %v", ok, reason, tc.ok)
-			}
-			if !tc.ok && reason.ID != "text.actions.bad_target" {
-				t.Errorf("refusal = %v, want text.actions.bad_target", reason)
-			}
-		})
 	}
 }
