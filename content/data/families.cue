@@ -33,6 +33,16 @@ families: {
 		templates: [{template: "template.generic.field_hand", weight: 1}]
 		marks: ["house"]
 	}
+	"family.people.tamed_clay": {
+		name: "text.family.people.tamed_clay"
+		templates: [{template: "template.generic.tamed_clay", weight: 1}]
+		marks: ["house"]
+	}
+	"family.people.leashed_feeders": {
+		name: "text.family.people.leashed_feeders"
+		templates: [{template: "template.generic.leashed_feeder", weight: 1}]
+		marks: ["house"]
+	}
 	// The monster families. Drift and attrition are placeholder numbers, for tuning.
 	"family.moving_clay": {
 		name: "text.family.moving_clay"
@@ -71,15 +81,17 @@ families: {
 }
 
 text: {
-	"text.family.moving_clay":        "Moving clay"
-	"text.family.remnant":            "Remnants"
-	"text.family.soul_feeder":        "Soul-feeders"
-	"text.family.archon_wardens":     "The archon's wardens"
-	"text.family.believers":          "Believers"
-	"text.family.people":             "People"
-	"text.family.people.haulers":     "Water haulers"
-	"text.family.people.guards":      "Guards"
-	"text.family.people.field_hands": "Field hands"
-	"text.family.test.clay":          "Clay creatures"
-	"text.family.test.mixed":         "Mixed creatures"
+	"text.family.moving_clay":            "Moving clay"
+	"text.family.remnant":                "Remnants"
+	"text.family.soul_feeder":            "Soul-feeders"
+	"text.family.archon_wardens":         "The archon's wardens"
+	"text.family.believers":              "Believers"
+	"text.family.people":                 "People"
+	"text.family.people.haulers":         "Water haulers"
+	"text.family.people.guards":          "Guards"
+	"text.family.people.field_hands":     "Field hands"
+	"text.family.people.tamed_clay":      "Tamed moving clay"
+	"text.family.people.leashed_feeders": "Leashed soul-feeders"
+	"text.family.test.clay":              "Clay creatures"
+	"text.family.test.mixed":             "Mixed creatures"
 }

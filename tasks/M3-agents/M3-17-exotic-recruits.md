@@ -1,7 +1,7 @@
 ---
 id: M3-17
 title: Graftable and exotic recruits
-status: todo
+status: done
 milestone: M3
 kind: content
 depends_on: [M3-16, M3-18]
@@ -33,9 +33,9 @@ Recruits come in the design's kinds: graftable humans, the cheapest way to learn
 
 ## Acceptance criteria
 
-- [ ] A hired tamed moving clay that sees an enemy part severed takes it and gains its action.
-- [ ] A graftable recruit can receive a graft with `action.graft`, and an exotic recruit cannot.
-- [ ] `go tool task check` passes.
+- [x] A hired tamed moving clay that sees an enemy part severed takes it and gains its action.
+- [x] A graftable recruit can receive a graft with `action.graft`, and an exotic recruit cannot.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -43,4 +43,10 @@ Recruits come in the design's kinds: graftable humans, the cheapest way to learn
 
 ## Notes
 
-
+- **Clay ability needed two engine changes**, made here: a trigger role `witness` (a body in sight of the event's target, other than the target; it becomes the source of the trigger's effects) and an `attach_part` param `to: "source"` that takes the event's severed part onto the source. The taken part is marked as a graft with no piece. A formula variable `hostile` (source hostile to target) lets the clay take only a hostile body's part. Tested in `internal/core/combat/exotic_test.go`.
+- **Soul-feeder.** `_feederGrows` adds `status.feeding` to a feeder that damages a body for which `dying` holds; `rule.hit` adds 2 for it. It covers the dying on either side as long as the feeder is the one striking.
+- **Graftable.** The `graftable` tag moved onto the generic guard and field hand (it was on no generic); exotic recruits lack it, which is what keeps them from grafts.
+- **Content added:** `item.bone` (the clay's want and upkeep; the party starts with 3), two families, and the lake town keeps one of each exotic recruit.
+- Tests: `internal/core/combat/exotic_test.go`, `TestAGraftableRecruitTakesAGraftAndAnExoticOneDoesNot` in `forms_test.go` (its ring gained `recruit` and `exotic` bodies), `internal/core/agents/exotic_test.go`.
+- `go tool task fmt` fails here (the installed golangci-lint is older than the module's Go version); I ran gofmt directly.
+- No follow-ups filed.

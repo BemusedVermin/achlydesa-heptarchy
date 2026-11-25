@@ -154,6 +154,9 @@ package content
 	// Inventory counts, per item ID, the stacks the source's inventory can use on the target.
 	Inventory: {[string]: int} @go(,map[string]int)
 
+	// Hostile means the source is hostile to the target.
+	Hostile: bool
+
 	// Height is target depth minus source depth: positive when the source is above.
 	Height: int
 

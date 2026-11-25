@@ -65,6 +65,21 @@ _#Monster: {
 	...
 }
 
+// What the soul-feeder does when it hurts a body that is slowly dying: it grows stronger for a while
+// (rule.hit reads the status). Placeholder numbers, for tuning.
+_feederGrows: {
+	on:   "combat.part_damaged"
+	role: "source"
+	if:   "target.dying"
+	do: [{do: "add_status", params: {bodies: "self", status: "status.feeding", ticks: "40"}}]
+}
+_feederFeeds: {
+	on:   "combat.part_damaged"
+	role: "source"
+	if:   "true"
+	do: [{do: "satisfy", params: {need: "need.soul", amount: "0.15", bodies: "self"}}]
+}
+
 _residentBehaviors: [
 	"behavior.resident.drink", "behavior.resident.eat", "behavior.resident.sleep",
 	"behavior.resident.leave", "behavior.resident.wander",
@@ -93,6 +108,18 @@ _#Generic: {
 	needs: {"need.food": 0, "need.safety": 0, "need.terror": 0}
 	behaviors: ["behavior.resident.eat", "behavior.resident.wander"]
 	triggers: [_severedTerror, _deathTerror]
+	...
+}
+
+// A recruit from the deep: hirable like a generic, but with no graftable tag, so no graft can be
+// fitted to it, and a want and an ability of its own.
+_#Exotic: {
+	actor: controller: "agents"
+	faction: "faction.people"
+	actions: ["action.step", "action.strike"]
+	lists: types: ["type.cut"]
+	needs: {"need.terror": 0, ...}
+	behaviors: ["behavior.resident.wander"]
 	...
 }
 
@@ -141,12 +168,7 @@ templates: {
 		actions: ["action.step", "action.strike"]
 		needs: {"need.soul": 0.5}
 		behaviors: ["behavior.feeder.hunt"]
-		triggers: [{
-			on:   "combat.part_damaged"
-			role: "source"
-			if:   "true"
-			do: [{do: "satisfy", params: {need: "need.soul", amount: "0.15", bodies: "self"}}]
-		}]
+		triggers: [_feederFeeds]
 	}
 	// A creature of the archon: it guards the believers and attacks the party near them.
 	"template.creature.archon_warden": _#Monster & {
@@ -304,6 +326,7 @@ templates: {
 	"template.generic.guard": _#Generic & {
 		name: "text.template.generic.guard"
 		appearance: {glyph: "G", color: "white"}
+		tags: ["graftable"]
 		recruit: {
 			wants: [{item: "item.ration", count: 2}, {item: "item.coal", count: 1}]
 			worth: "1.0"
@@ -313,10 +336,43 @@ templates: {
 	"template.generic.field_hand": _#Generic & {
 		name: "text.template.generic.field_hand"
 		appearance: {glyph: "f", color: "green"}
+		tags: ["graftable"]
 		recruit: {
 			wants: [{item: "item.ration", count: 1}, {item: "item.lake_water", count: 1}]
 			worth: "1.0"
 			upkeep: [{item: "item.ration", count: 1}]
+		}
+	}
+	// A moving clay that has been tamed. It wants the dead, and takes a part severed from a hostile
+	// body in its sight as its own.
+	"template.generic.tamed_clay": _#Exotic & {
+		name: "text.template.generic.tamed_clay"
+		appearance: {glyph: "c", color: "yellow"}
+		body: "body.moving_clay"
+		needs: {"need.hold_dead": 0.5}
+		triggers: [{
+			on:   "combat.part_severed"
+			role: "witness"
+			if:   "hostile"
+			do: [{do: "attach_part", params: {from: "severed", to: "source"}}]
+		}]
+		recruit: {
+			wants: [{item: "item.bone", count: 2}]
+			worth: "1.0"
+			upkeep: [{item: "item.bone", count: 1}]
+		}
+	}
+	// A soul-feeder on a leash. It wants to feed, and grows stronger near the slowly dying.
+	"template.generic.leashed_feeder": _#Exotic & {
+		name: "text.template.generic.leashed_feeder"
+		appearance: {glyph: "s", color: "red"}
+		body: "body.soul_feeder"
+		needs: {"need.soul": 0.5}
+		triggers: [_feederFeeds, _feederGrows]
+		recruit: {
+			wants: [{item: "item.ration", count: 3}, {item: "item.lees", count: 1}]
+			worth: "1.0"
+			upkeep: [{item: "item.ration", count: 2}]
 		}
 	}
 	// A well the haulers draw from: a thing with water in it, not a body to fight.
@@ -337,6 +393,7 @@ templates: {
 			{item: "item.daylight_jar", count: 3},
 			{item: "item.violet_blood", count: 3},
 			{item: "item.lees", count: 3},
+			{item: "item.bone", count: 3},
 		]
 	}
 }
@@ -365,6 +422,8 @@ text: {
 	"text.template.person.salken":          "Salken"
 	"text.template.generic.guard":          "A guard"
 	"text.template.generic.field_hand":     "A field hand"
+	"text.template.generic.tamed_clay":     "A tamed moving clay"
+	"text.template.generic.leashed_feeder": "A leashed soul-feeder"
 	"text.template.resident.plain":         "A resident"
 	"text.template.resident.hauler":        "A water hauler"
 	"text.template.town.well":              "The well"

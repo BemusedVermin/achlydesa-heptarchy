@@ -12,6 +12,7 @@ items: {
 	"item.daylight_jar": {name: "text.item.daylight_jar", tags: ["consumable"]}
 	"item.violet_blood": {name: "text.item.violet_blood", tags: ["consumable"]}
 	"item.lees": {name: "text.item.lees", tags: ["consumable"]}
+	"item.bone": {name: "text.item.bone", tags: ["consumable"]}
 	// A belonging of one candidate, burned by the keepsake type against that candidate.
 	"item.keepsake": {name: "text.item.keepsake", tags: ["keepsake"], bound: true}
 }
@@ -43,5 +44,6 @@ text: {
 	"text.item.daylight_jar": "daylight jar"
 	"text.item.violet_blood": "Violet blood"
 	"text.item.lees":         "lees"
+	"text.item.bone":         "bone"
 	"text.item.keepsake":     "keepsake"
 }
