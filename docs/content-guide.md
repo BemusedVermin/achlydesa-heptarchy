@@ -21,7 +21,8 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
-| `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque) and the `open` terrain of a marked cell |
+| `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque), the `open` terrain of a marked cell and the `geography` that generates the cells no place covers |
+| `geography.cue` | `geographies`: kinds of generated ground. A geography lists its `stages` in order, each a registered stage's name (`stage`) and its numbers (`params`). Procgen checks that every stage is registered and takes its params. Fixed cells always keep what their place authors |
 | `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks` and `spawns`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
 | `start.cue` | `start`: the place and mark a new game begins at, and the party template |
 | `rules.cue` | `rules`: named formulas |
@@ -47,6 +48,7 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `templates` | `template.` | `template.creature.beast` |
 | `actions` | `action.` | `action.strike` |
 | `places` | `place.` | `place.test.hall` |
+| `geographies` | `geography.` | `geography.deep` |
 | `parts` | `part.` | `part.human_arm` |
 | `claims` | `claim.` | `claim.material` |
 | `origins` | `origin.` | `origin.sweep` |

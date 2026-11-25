@@ -6,6 +6,10 @@ import (
 	"math/rand/v2"
 )
 
+// Rand is a generator from this package, named so that the rest of the core, which may not import
+// math/rand, can hold one.
+type Rand = rand.Rand
+
 // stream pairs a generator with the PCG source behind it, so the source's
 // state can be saved and restored.
 type stream struct {

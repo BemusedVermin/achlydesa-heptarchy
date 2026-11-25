@@ -15,6 +15,7 @@ type WorldSource struct {
 	fill, edge hexmap.Terrain
 	bounds     hexmap.Bounds
 	authored   map[hexmap.ChunkKey][]placed
+	covered    map[api.Cell]bool
 	marks      map[placeMark]api.Cell
 	spawns     []Spawn
 }
@@ -35,6 +36,7 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 		},
 		authored: map[hexmap.ChunkKey][]placed{},
 		marks:    map[placeMark]api.Cell{},
+		covered:  map[api.Cell]bool{},
 	}
 	var err error
 	if src.fill, err = Terrain(reg, world.Fill); err != nil {
@@ -56,8 +58,16 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 			return nil, fmt.Errorf("place %q: %w", id, err)
 		}
 	}
+	for _, cells := range src.authored {
+		for _, p := range cells {
+			src.covered[p.cell] = true
+		}
+	}
 	return src, nil
 }
+
+// Covers reports whether a place authors the cell. It makes WorldSource the fixed layer of procgen.
+func (s *WorldSource) Covers(cell api.Cell) bool { return s.covered[cell] }
 
 // Chunk implements [hexmap.Source].
 func (s *WorldSource) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
