@@ -1,7 +1,7 @@
 ---
 id: M4-06
 title: "Content: the world and its places"
-status: todo
+status: in-progress
 milestone: M4
 kind: seam
 depends_on: [M4-04]
