@@ -110,6 +110,7 @@ The deep is generated around the fixed towns and populated by monsters and peopl
 
 - **Fixed:** the towns, the salk, the shallow soops, and set pieces such as the oldest layer where the reveal happens.
 - **Generated:** everything else, grown right up to the edges of the fixed places, so nothing shows where a town ends and the generated deep begins.
+- **Ways out:** a fixed place opens onto the generated deep only where its author marks an exit. Each marked exit gets a tunnel to the nearest cave; a wall-less edge is not an exit, and a place with no marks stays closed.
 - **Reseeding:** each export regenerates the generated deep from a seed derived from the world seed and the export count, so any run can be replayed.
 - **Exports come on an irregular schedule** set in content. The world counts them, and each one regenerates the generated deep. Generated chunks are never saved: they are rebuilt from the seed and the export count, and chunks far from the party are unloaded to stay within a memory budget.
 - **Seats** keep their stage and progress; their regions land somewhere new.
