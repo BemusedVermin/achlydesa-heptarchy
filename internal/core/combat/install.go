@@ -43,6 +43,7 @@ func primitives() []effects.Primitive {
 	parts := map[string]effects.Kind{"parts": effects.KindChannels}
 	return []effects.Primitive{
 		{Name: "damage", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyDamage},
+		{Name: "heal", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyHeal},
 		{Name: "sever", Params: []string{"parts"}, Optional: []string{"when"}, Kinds: parts, Apply: applySever},
 		{
 			Name: "add_status", Params: []string{"bodies", "status", "ticks"},

@@ -3,6 +3,7 @@ package data
 // The room the party starts in, with one gate to each playground map.
 maps: "map.play.hub": _#TestMap & {
 	name: "text.map.play.hub"
+	tags: ["town"]
 	marks: {
 		"@": "party_start"
 		"a": "from_hall"

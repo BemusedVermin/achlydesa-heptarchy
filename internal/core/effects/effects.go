@@ -42,6 +42,8 @@ type Context struct {
 	Dir *api.Dir
 	// The action's chosen values, e.g. "type": "type.soak".
 	Choices map[string]string
+	// Elapsed is the ticks the action wound up before landing.
+	Elapsed int64
 }
 
 // Kind says how a primitive reads one of its parameters. The zero value is an Expr.
@@ -426,7 +428,7 @@ func (p *params) env(withRoll bool) content.EffectEnv {
 // baseEnv works out everything in the formula environment except roll.
 func baseEnv(ctx *Context) content.EffectEnv {
 	w := ctx.World
-	env := content.EffectEnv{Now: w.Now, Chosen: ChosenRecords(w, ctx.Choices)}
+	env := content.EffectEnv{Now: w.Now, Elapsed: ctx.Elapsed, Chosen: ChosenRecords(w, ctx.Choices)}
 	// Absent or malformed means no fall.
 	env.Cells, _ = strconv.Atoi(ctx.Choices["cells"])
 	env.Source = BodyEnvOf(w, ctx.Source, timeline.FirstPart(ctx.Used))

@@ -522,6 +522,9 @@ import (
 	// Name is a text ID.
 	name: api.#ContentID @go(Name)
 
+	// Tags are free words formulas read as source.map_tags, such as "town".
+	tags?: [...string] @go(Tags,[]string)
+
 	// Fill is the terrain of every cell not authored, forever in every direction.
 	fill: api.#ContentID @go(Fill)
 

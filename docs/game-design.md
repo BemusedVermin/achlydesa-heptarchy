@@ -553,7 +553,7 @@ Forms and archon prices have behavior, so the engine defines a small vocabulary 
 **Code (the engine):**
 
 - Combat resolution: parts grant actions, sever rules, Pin and Stand semantics, graft autonomy.
-- Effect primitives: `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part` and `step`.
+- Effect primitives: `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `heal`, `set_rest_place`, `heal`, `set_rest_place`, `reveal`, `consume`, `act_alone`, `spawn_from_part` and `step`.
 - The seat state machine and stage events, the piece sensor, and investigation.
 - The cast model: wound scoring, seat passing and the wish generator.
 - Schedulers: the day clock and time costs, exports and the flock.

@@ -42,6 +42,13 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 				env.Needs[strings.TrimPrefix(string(level.Need), needPrefix)] = level.Level
 			}
 		}
+		if positions := ecs.NewMap[comp.Pos](w.ECS); positions.Has(body) {
+			if m := w.Maps.Get(positions.Get(body).Map); m != nil {
+				if def, ok := w.Content.Map(api.ContentID(m.Name())); ok {
+					env.MapTags = def.Tags
+				}
+			}
+		}
 		if party, ok := anatomy.PartyOf(w, body); ok {
 			if parties := ecs.NewMap[comp.Party](w.ECS); parties.Has(party) {
 				env.Alert = parties.Get(party).Alert
