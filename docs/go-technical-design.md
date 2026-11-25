@@ -165,7 +165,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `explore` | The world built from placed content, stepping, lead and follow, remembered cells and the plan-view projection | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
-| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party; goals chosen from needs and desires, and planned with GOAP from what the agent believes (M6) | Expr for need curves, Ark relations for grudges and relationships |
+| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
 | `rumor` | Facts carried between people and towns, drifting with each retelling | `knowledge`, `text/template` for the words |
@@ -247,25 +247,26 @@ The `core/game` API stays plain Go types for now. If a Godot or other non-Go fro
 
 ## Harness and testing
 
-The harness tunes the game with data, and the tests guard the invariants the design depends on.
+This is a hobby project: the harness and the tests are as small as they can be while still catching what would break play.
 
 ### The harness
 
-- `harness run --seeds 500 --days 365` runs headless games with a scripted or idle party and writes one CSV row per event or per day: seat stages and passes, deaths per town, migrations, towns emptied, export effects.
-- Analysis happens outside Go, in a spreadsheet or notebook, so no custom tooling is needed.
+- `harness run --seeds N --steps N` plays headless games with a random policy and writes one CSV row per step.
 - `harness replay <file>` reproduces any run from its seed and command log.
+- Analysis happens outside Go, in a spreadsheet or notebook. Tuning (M9) adds what it needs then.
 
 ### Tests
 
+AGENTS.md has the rule: test game rules that can really break, and nothing that only tests helpers, the harness, tooling or trivial code.
+
 | Kind | Tool | Examples |
 | --- | --- | --- |
-| Property tests | rapid | Exactly seven seats exist at all times; every town reaches the deep after any reseed; the party's pocket survives an export; replaying a log gives the same world hash |
-| Golden tests | `testing` | Procgen output for fixed seeds; combat results for scripted fights |
-| Fuzzing | Go native fuzzing | The content loader and Expr formulas against malformed input |
+| Rules | `testing` | Combat, effects, actions, the timeline, pathing and sight, saves, content loading |
+| Determinism | `testing` | The same seed gives the same harness CSV; replaying a log gives the same world hash |
+| Properties | rapid | Where one property covers many cases, such as saves round-tripping |
+| Fuzzing | Go native fuzzing | The content loader against malformed input (nightly) |
 | Content checks | `cue vet` | Every data file against the generated schema |
 | Architecture | golangci-lint depguard | `internal/core` imports no UI package; feature packages import only foundation packages |
-| Shared sample content | `contenttest.Sample` | One cached, immutable registry per test binary; tests that mutate content take a deep copy |
-| Performance | `testing.B`, pprof | A seeded year of the sample world runs in at most 60 s, so 500 seeds fit in a night |
 
 ## Custom code inventory and build order
 
@@ -289,12 +290,12 @@ Each step ends with something playable or measurable.
 
 1. **Skeleton:** module, depguard rule, content pipeline with one material, Ark world, `core/game` API, and the Bubble Tea frontend walking a hand-made hex map.
 2. **Combat:** bodies of parts, a few materials and forms, the effect primitives, fighting on the map with the action menu.
-3. **Agents:** needs scoring for creatures and people, behaviors, recruits.
-4. **One world:** the towns and the deep as one bounded, continuous world at human scale, with regions as areas of it, and one agent model in which everyone is an individual; M3's separate maps, gates and outcome systems deleted.
-5. **Procgen:** the generated deep between the fixed places, exports reseeding it, the pocket, the guarantees as property tests.
-6. **Minds:** desires and personality, goals by utility, GOAP planning from beliefs, travel for needs anywhere in the world, far agents, the time budget.
+3. **Agents:** built and then reverted. It put AI before the world existed, so it hard-coded behavior around stand-in maps. Minds (6) replaces it.
+4. **One world:** the towns and the deep as one bounded, continuous world at human scale, with no separate maps.
+5. **Procgen:** the generated deep between the fixed places, regions as areas of it, exports reseeding it, the pocket.
+6. **Minds:** how creatures and people decide what to do, designed when we get there.
 7. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
-8. **Emergence:** births and arrivals, immigration and emigration points, new crawlspaces, rumors and hearsay, grudges and memory, dreams.
+8. **Emergence:** births and arrivals, immigration and emigration points, new crawlspaces, rumors, grudges and memory, dreams.
 9. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
 
 After the MVP: post-MVP milestones live under `tasks/post-mvp/`, each with its own design doc. The first is the story system (`docs/story.md`). Nothing in the MVP depends on them.
@@ -305,7 +306,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 
 - [ ] CUE or YAML plus JSON Schema? CUE removes the most custom validation code, but it has a learning curve for content authoring.
 - [x] Hex library: decided, gravitton/hexagon (double-width layout, field of view and line drawing).
-- [x] The world is bounded: decided, small and hand-built at first, grown by procgen; how often far agents decide is in Level of detail. A seeded year of the sample world costs at most 60 s in the harness.
+- [x] The world is bounded: decided, small and hand-built at first, grown by procgen. How cheap agents must be is settled with M6.
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
 - [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.
