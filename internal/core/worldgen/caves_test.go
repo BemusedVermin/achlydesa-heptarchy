@@ -32,7 +32,7 @@ func caveSource(tb testing.TB, seed, exportCount uint64) (*worldgen.Source, hexm
 	if err := worldgen.RegisterCaves(stages); err != nil {
 		tb.Fatal(err)
 	}
-	geography, _ := reg.Geography(reg.World().Geography)
+	geography, _ := reg.Geography("geography.deep")
 	geography.Stages = geography.Stages[:1]
 	src, err := worldgen.NewSource(worldgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),

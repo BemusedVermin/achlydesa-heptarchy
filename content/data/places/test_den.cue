@@ -4,7 +4,7 @@ package data
 // remnant, so the hall keeps one creature. Tests start a game here by setting start.place.
 places: "place.test.den": _#TestPlace & {
 	name: "text.place.test.den"
-	at: {col: 56, row: 4, depth: 0}
+	at: {col: 170, row: 230, depth: 20}
 	marks: {"@": "party_start", "r": "remnant", "b": "beast"}
 	spawns: {
 		"r": "template.creature.remnant"

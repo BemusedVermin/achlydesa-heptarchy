@@ -16,9 +16,46 @@ type T interface {
 	Fatal(args ...any)
 }
 
-// sample loads content/data once. The registry is never written to, which makes it the one shared
+// sample builds the fixture world once. The registry is never written to, which makes it the one shared
 // value tests may hold.
-var sample = sync.OnceValues(func() (*content.Registry, error) { return content.Load(Dir()) })
+var sample = sync.OnceValues(func() (*content.Registry, error) {
+	bundle, err := content.LoadBundle(Dir())
+	if err != nil {
+		return nil, err
+	}
+	Fixture(&bundle)
+	return content.New(bundle)
+})
+
+// fixturePlaces are where the fixture world puts the places: side by side in a small world.
+var fixturePlaces = map[string]content.PlaceAt{
+	"place.test.hall":    {Col: 4, Row: 4},
+	"place.test.descent": {Col: 30, Row: 4},
+	"place.test.den":     {Col: 56, Row: 4},
+}
+
+// Fixture turns the real content's world into the small fixture: a few chunks with the places side by side,
+// no generated deep, and the prototype's hall as the start. Tests run on it so that none generates the
+// real world.
+func Fixture(bundle *content.Bundle) {
+	bundle.World.Cols, bundle.World.Rows = 70, 30
+	bundle.World.MinDepth, bundle.World.MaxDepth = 0, 7
+	bundle.World.Geography = ""
+	for id, at := range fixturePlaces {
+		Edit(bundle.Places, id, func(place *content.PlaceDef) { place.At = at })
+	}
+	bundle.Start.Place = "place.test.hall"
+}
+
+// Full returns the registry of the real content in content/data, with its large generated world.
+func Full(t T) *content.Registry {
+	t.Helper()
+	reg, err := content.Load(Dir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return reg
+}
 
 // Dir is the path of the sample content directory, whatever package the test runs in.
 func Dir() string {
@@ -26,7 +63,7 @@ func Dir() string {
 	return filepath.Join(filepath.Dir(file), "..", "..", "..", "content", "data")
 }
 
-// Sample returns the registry of the sample content, shared by every test in the binary.
+// Sample returns the registry of the sample content with the fixture world, shared by every test in the binary.
 // A test that changes content takes SampleBundle instead.
 func Sample(t T) *content.Registry {
 	t.Helper()
@@ -42,6 +79,7 @@ var sampleBundle = sync.OnceValues(func() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	Fixture(&bundle)
 	return json.Marshal(bundle)
 })
 

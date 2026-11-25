@@ -179,7 +179,11 @@ func buildWorld(w *sim.World) (*WorldSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
-	w.Map = hexmap.NewMap(src, hexmap.Prisms{})
+	cells, err := cellSource(w, src)
+	if err != nil {
+		return nil, fmt.Errorf("explore: world: %w", err)
+	}
+	w.Map = hexmap.NewMap(cells, hexmap.Prisms{})
 	w.Map.SetBounds(src.Bounds(), src.Edge())
 	return src, nil
 }

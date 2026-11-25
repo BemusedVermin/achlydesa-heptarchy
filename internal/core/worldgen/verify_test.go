@@ -41,7 +41,7 @@ func newVerifiedWorld(tb testing.TB, seed, exportCount uint64) (*worldgen.Source
 			tb.Fatal(err)
 		}
 	}
-	geography, _ := reg.Geography(reg.World().Geography)
+	geography, _ := reg.Geography("geography.deep")
 	src, err := worldgen.NewSource(worldgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
 		Geography: geography, Stages: stages, Fixed: fixed, Open: open,
