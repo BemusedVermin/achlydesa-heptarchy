@@ -19,8 +19,15 @@ func TestPlacesAreChecked(t *testing.T) {
 	tests := []struct {
 		name          string
 		places        map[string]PlaceAt
+		marks         map[string]string
 		wantFragments []string
 	}{
+		{
+			name:          "one mark name for two characters",
+			places:        map[string]PlaceAt{"place.a": {}},
+			marks:         map[string]string{".": "start", "#": "start"},
+			wantFragments: []string{`places["place.a"].marks["."]`, `mark "start" is also named by "#"`},
+		},
 		{
 			name:          "out of bounds",
 			places:        map[string]PlaceAt{"place.a": {Col: 62, Row: 0}},
@@ -48,6 +55,7 @@ func TestPlacesAreChecked(t *testing.T) {
 			bundle.Places = map[string]PlaceDef{}
 			for id, at := range test.places {
 				def := testPlace(id, at)
+				def.Marks = test.marks
 				bundle.Places[id] = def
 				bundle.Text[string(def.Name)] = "a place"
 			}

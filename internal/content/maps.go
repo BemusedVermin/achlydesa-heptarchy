@@ -74,10 +74,15 @@ func (r *Registry) checkLayout(p *problems, path string, def MapDef) {
 			p.addf("%s: character %q is both a legend entry and a mark", path, char)
 		}
 	}
+	names := map[string]string{}
 	for _, char := range sortedKeys(def.Marks) {
 		if utf8.RuneCountInString(char) != 1 {
 			p.addf("%s.marks[%q]: a key is exactly one character", path, char)
 		}
+		if other, taken := names[def.Marks[char]]; taken {
+			p.addf("%s.marks[%q]: mark %q is also named by %q", path, char, def.Marks[char], other)
+		}
+		names[def.Marks[char]] = char
 	}
 	found := map[string]int{}
 	depths := map[int]bool{}
