@@ -84,6 +84,9 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	stone := bundle.Templates["template.test.dummy"]
 	stone.Tags = nil
 	templates["stone"] = stone
+	wild := bundle.Templates["template.test.dummy"]
+	wild.Faction = new(api.ContentID("faction.wild"))
+	templates["wild"] = wild
 	for name, source := range map[string]string{
 		"recruit": "template.generic.guard", "exotic": "template.generic.tamed_clay",
 	} {
@@ -91,6 +94,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 		hired.Actor = &content.ActorDef{Controller: "idle"}
 		hired.Behaviors = nil
 		hired.Recruit = nil
+		hired.Faction = new(api.ContentID("faction.party"))
 		templates[name] = hired
 	}
 	for name, template := range templates {
@@ -116,7 +120,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 			return nil
 		},
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
-			for _, name := range []string{"fighter", "ally", "victim", "crawler", "relic", "clay", "stone", "recruit", "exotic"} {
+			for _, name := range []string{"fighter", "ally", "victim", "crawler", "relic", "clay", "stone", "recruit", "exotic", "wild"} {
 				q, ok := at[name]
 				if !ok {
 					continue

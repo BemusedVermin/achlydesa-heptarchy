@@ -23,7 +23,10 @@ func TestExoticRecruitsAreHirableInTheSampleWorldAndNotGraftable(t *testing.T) {
 		if slices.Contains(template.Tags, "graftable") {
 			t.Errorf("%s can be grafted", id)
 		}
-		if !slices.ContainsFunc(lake.Region.Town.Generics, func(g content.GenericDef) bool { return g.Template == id }) {
+		if !slices.ContainsFunc(
+			lake.Region.Town.Generics,
+			func(g content.GenericDef) bool { return g.Template == id },
+		) {
 			t.Errorf("the lake town does not keep %s", id)
 		}
 	}

@@ -6,9 +6,34 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
+
+func TestATamedClayTakesAHostilePartItSeesSeveredAndGainsItsAction(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "victim": 1, "wild": -1, "exotic": 2})
+	clay, wild, victim := r.body("exotic"), r.body("wild"), r.body("victim")
+	before := len(timeline.Channels(r.w, clay))
+	r.do("sever", "type.cut", r.uid(victim), r.uid(r.part(victim, "arm")))
+	r.wait(7)
+	if got := r.attached(clay, "arm"); got != 0 {
+		t.Fatalf("the clay took a part from a body that is not hostile: %d arms", got)
+	}
+	arm := r.part(wild, "arm")
+	r.do("sever", "type.cut", r.uid(wild), r.uid(arm))
+	events := r.wait(7)
+	if !has(events, func(e api.PartAttached) bool { return e.Body == r.w.UIDOf(clay) && e.Part == r.w.UIDOf(arm) }) {
+		t.Fatalf("the clay did not take the arm: %v", events)
+	}
+	if got := len(timeline.Channels(r.w, clay)); got != before+1 {
+		t.Errorf("the clay has %d channels, want %d", got, before+1)
+	}
+	if r.attached(wild, "arm") != 1 {
+		t.Error("the wild body still has the severed arm")
+	}
+}
 
 func TestALeashedSoulFeederGrowsStrongerNearTheDying(t *testing.T) {
 	r := newRig(t)

@@ -120,6 +120,8 @@ type EffectEnv struct {
 	// Inventory counts, per item ID, the stacks the source's inventory can use on the target.
 	Inventory map[string]int `expr:"inventory"`
 
+	// Hostile means the source is hostile to the target.
+	Hostile bool `expr:"hostile"`
 	// Height is target depth minus source depth: positive when the source is above.
 	Height int `expr:"height"`
 	// Cells is the cells a fall dropped, or 0.

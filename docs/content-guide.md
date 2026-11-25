@@ -128,7 +128,7 @@ triggers: [{
 ```
 
 - `on` is an event kind, `<package>.<event>`, such as `combat.part_damaged`, `explore.fell` or `timeline.ready`. The kinds are the event `...Kind` constants in `internal/core/api`; an unknown one fails when a game starts.
-- `role` says which subject of the event the carrier must be: `source` (the acting body), `target` (the body acted on), `part` (the part acted on) or `any`. The remnant's trigger above runs when the remnant is the target of a severing; clay's trigger in `materials.cue` uses `part`, because it is the part that is clay.
+- `role` says which subject of the event the carrier must be: `source` (the acting body), `target` (the body acted on), `part` (the part acted on), `any`, or `witness` (a body in sight of the target, not the target: it is the source of the trigger's effects, and the formula variable `hostile` says whether it is hostile to the target). The remnant's trigger above runs when the remnant is the target of a severing; clay's trigger in `materials.cue` uses `part`, because it is the part that is clay.
 - `if` is a formula; empty means always. It sees the event's subjects as `source` and `target`, its params as `chosen.<name>.id` (`chosen.type.id` on `combat.part_damaged`, as clay's trigger reads), and a fall's drop as `cells`.
 - `do` is a list of effects, the same as an action's `on_land`.
 
@@ -146,7 +146,7 @@ A body whose template has `actor: controller: "agents"` acts on the behaviors it
 
 A template with `recruit: {wants, worth, upkeep}` can be hired when it is a town's generic. `wants` are item stacks and `worth` is a formula over the body (`template`, `needs`, `integrity` and so on): the price is each want's count times `worth`, rounded up. `upkeep` is what the recruit wants each day after hiring.
 
-An exotic recruit is a generic with a strange want and an ability, and no `graftable` tag, so Graft is never offered onto it (`action.graft` requires the tag). The leashed soul-feeder in `templates.cue` wants rations and lees, and its trigger `_feederGrows` adds `status.feeding` when it hurts a body for which `dying` holds; `rule.hit` in `rules.cue` reads the status to hit harder. Keep it hirable by listing its template in a town's `generics`, with a family of its own.
+An exotic recruit is a generic with a strange want and an ability, and no `graftable` tag, so Graft is never offered onto it (`action.graft` requires the tag). The leashed soul-feeder in `templates.cue` wants rations and lees, and its trigger `_feederGrows` adds `status.feeding` when it hurts a body for which `dying` holds; `rule.hit` in `rules.cue` reads the status to hit harder. The tamed clay's trigger, a `witness` of `combat.part_severed` with `if: "hostile"`, does `attach_part` with `from: "severed"` and `to: "source"`, so it takes the severed part and gains its action. Keep it hirable by listing its template in a town's `generics`, with a family of its own.
 
 `do` names the behavior primitive that carries it out, one step per decision: `idle` waits, `wander` steps to a random open neighbour, and `move_toward` walks to the target with `combat.step_action`, until it stands on the cell (or next to the body). `params` give the primitive's parameters; one that a primitive doesn't take fails when a game starts.
 
@@ -169,7 +169,7 @@ A family (`families.cue`, `family.*`) is a kind of creature a region counts whil
 
 ## Effects
 
-An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `heal`, `set_rest_place`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
+An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `heal`, `set_rest_place`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts. `attach_part` fits a piece (`from: "inventory"`, with `item`) or a severed part (`from: "severed"`) onto the target, or with `to: "source"` onto the acting body, which then takes the part the event is about.
 
 Params that pick bodies or parts are selectors:
 

@@ -144,7 +144,6 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M3-17.F1](followups/M3-17.F1-take-severed-part-as-witness.md) | Let a body that sees a part severed take it as its own | proposed | seam | M3 | M3-17 |
 | [M3-16.F2](followups/M3-16.F2-deserters-hostility.md) | Decide how deserters stand toward the party | done | question | M6 | M3-16 |
 | [M3-16.F1](followups/M3-16.F1-terror-witness-selector.md) | Raise terror in the bodies that witness an event, not those in the striker's sight | done | seam | M3 | M3-16 |
 | [M3-18.F2](followups/M3-18.F2-satisfy-from-source.md) | Let a trigger satisfy a need of the acting body | done | seam | M3 | M3-18 |

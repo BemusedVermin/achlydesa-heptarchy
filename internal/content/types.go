@@ -398,10 +398,15 @@ const (
 	RoleTarget TriggerRole = "target"
 	RolePart   TriggerRole = "part"
 	RoleAny    TriggerRole = "any"
+	// RoleWitness is a body that stands in sight of the event's target, and is not the target. The
+	// witness is the source of its trigger's effects; the target and part stay the event's.
+	RoleWitness TriggerRole = "witness"
 )
 
 // triggerRoles lists the roles a trigger may name, for bundles built in Go, which skip the schema.
-func triggerRoles() []TriggerRole { return []TriggerRole{RoleSource, RoleTarget, RolePart, RoleAny} }
+func triggerRoles() []TriggerRole {
+	return []TriggerRole{RoleSource, RoleTarget, RolePart, RoleAny, RoleWitness}
+}
 
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.

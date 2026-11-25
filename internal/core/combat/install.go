@@ -51,8 +51,10 @@ func primitives() []effects.Primitive {
 			VerifyContent: verifyKnownIDs, Apply: applyAddStatus,
 		},
 		{
-			Name: "attach_part", Params: []string{"from"}, Optional: []string{"item"},
-			Kinds:  map[string]effects.Kind{"from": effects.KindText, "item": effects.KindText},
+			Name: "attach_part", Params: []string{"from"}, Optional: []string{"item", "to"},
+			Kinds: map[string]effects.Kind{
+				"from": effects.KindText, "item": effects.KindText, "to": effects.KindText,
+			},
 			Verify: verifyAttach, VerifyContent: verifyAttachContent, Apply: applyAttach, Check: checkAttach,
 		},
 		{Name: "raise_max_integrity", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyRaiseMaxIntegrity},

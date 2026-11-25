@@ -343,13 +343,19 @@ templates: {
 			upkeep: [{item: "item.ration", count: 1}]
 		}
 	}
-	// A moving clay that has been tamed. It wants the dead; It does not yet take severed parts: that
-	// waits on M3-17.F1.
+	// A moving clay that has been tamed. It wants the dead, and takes a part severed from a hostile
+	// body in its sight as its own.
 	"template.generic.tamed_clay": _#Exotic & {
 		name: "text.template.generic.tamed_clay"
 		appearance: {glyph: "c", color: "yellow"}
 		body: "body.moving_clay"
 		needs: {"need.hold_dead": 0.5}
+		triggers: [{
+			on:   "combat.part_severed"
+			role: "witness"
+			if:   "hostile"
+			do: [{do: "attach_part", params: {from: "severed", to: "source"}}]
+		}]
 		recruit: {
 			wants: [{item: "item.bone", count: 2}]
 			worth: "1.0"
