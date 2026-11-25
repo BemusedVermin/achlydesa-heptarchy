@@ -1,7 +1,7 @@
 ---
 id: M3-14
 title: "Rest in town: heal integrity and set the rest place"
-status: todo
+status: done
 milestone: M3
 kind: feature
 depends_on: [M3-06]
@@ -42,10 +42,10 @@ The party can rest in a town. Resting moves time on, restores damaged parts' int
 
 ## Acceptance criteria
 
-- [ ] M2-07.F1.F1.F1's criterion: a party that rests in a town and is then wiped wakes in that town.
-- [ ] A member with a damaged arm and a severed hand rests one night: the arm's integrity rises by the content amount, and the hand is still gone.
-- [ ] Rest is not offered outside a town map, nor with a hostile in sight.
-- [ ] `go tool task check` passes.
+- [x] M2-07.F1.F1.F1's criterion: a party that rests in a town and is then wiped wakes in that town.
+- [x] A member with a damaged arm and a severed hand rests one night: the arm's integrity rises by the content amount, and the hand is still gone.
+- [x] Rest is not offered outside a town map, nor with a hostile in sight.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -54,3 +54,10 @@ The party can rest in a town. Resting moves time on, restores damaged parts' int
 ## Notes
 
 
+
+- `MapDef.Tags` is separate from the region's own tags; `source.map_tags` reads the former.
+- Beyond the Deliverables: `ActionEnv` gains `now` and `day_ticks` (wind-up is `day_ticks - now % day_ticks`, taking the day to start at dawn), `EffectEnv` gains `elapsed` (heal is `elapsed / 120`, a placeholder rate), `Calendar.DayTicks`, and `action.rest` joins the person templates' actions. Docs: primitive lists in `docs/content-guide.md` and `docs/game-design.md`.
+- Rest heals only the resting member; each member rests separately. Rest is hidden (via `requires`) while on alert.
+- Both the test town and the playground hub are tagged `town`.
+- `go tool task lint` could not run here (golangci-lint built with an older Go); vet, gofmt, content and tests pass.
+- No follow-ups filed.

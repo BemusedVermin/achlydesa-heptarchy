@@ -94,6 +94,21 @@ actions: {
 		on_land: [{do: "satisfy", params: {need: "need.hold_dead", amount: "0.3"}}]
 		tags: ["corpse"]
 	}
+	// Rest in a town until the next dawn, mending one integrity per 120 ticks rested (placeholder), and
+	// waking here after a wipe.
+	"action.rest": {
+		name: "text.action.rest"
+		key:  "rest"
+		uses: [{tag: "body", count: 1}]
+		target:   "self"
+		requires: "\"town\" in source.map_tags && !source.alert"
+		windup:   "day_ticks - now % day_ticks"
+		recovery: "0"
+		on_land: [
+			{do: "heal", params: {parts: "self:all", amount: "elapsed / 120"}},
+			{do: "set_rest_place", params: {}},
+		]
+	}
 	// For tests: a bite at a body next to the source, which may be a corpse.
 	"action.gnaw": {
 		name: "text.action.gnaw"
@@ -117,4 +132,5 @@ text: {
 	"text.action.drink_stock": "Drink from the stock"
 	"text.action.eat_stock":   "Eat from the stock"
 	"text.action.sleep":       "Sleep"
+	"text.action.rest":        "Rest until dawn"
 }

@@ -53,6 +53,8 @@ type BodyEnv struct {
 	Alert bool `expr:"alert"`
 	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
 	Needs map[string]float64 `expr:"needs"`
+	// MapTags are the tags of the map the body stands on.
+	MapTags []string `expr:"map_tags"`
 	// Dying means a vital part is at or below agents.dying_below of its integrity.
 	Dying bool `expr:"dying"`
 }
@@ -112,11 +114,17 @@ type EffectEnv struct {
 	Height int `expr:"height"`
 	// Cells is the cells a fall dropped, or 0.
 	Cells int `expr:"cells"`
+	// Elapsed is the ticks the action wound up before landing, or 0.
+	Elapsed int64 `expr:"elapsed"`
 }
 
 // ActionEnv is what an action's formulas see.
 type ActionEnv struct {
-	Speed int `expr:"speed"`
+	// Now is the current tick.
+	Now int64 `expr:"now"`
+	// DayTicks is the length of a day in ticks; a day starts at dawn, the first phase.
+	DayTicks int64 `expr:"day_ticks"`
+	Speed    int   `expr:"speed"`
 	// StepTicks is the base ticks a step takes at this speed (timeline.step_ticks).
 	StepTicks int64 `expr:"step_ticks"`
 	// Distance is hexes from the actor to its target, or 0.

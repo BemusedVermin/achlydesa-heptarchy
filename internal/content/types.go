@@ -200,6 +200,15 @@ type Calendar struct {
 	Phases []Phase `json:"phases"`
 }
 
+// DayTicks is how long a day lasts.
+func (c Calendar) DayTicks() int64 {
+	var total int64
+	for _, phase := range c.Phases {
+		total += phase.Ticks
+	}
+	return total
+}
+
 // Phase is one part of the day, such as dawn.
 type Phase struct {
 	// ID is like "phase.dawn".
@@ -435,6 +444,8 @@ type CombatConfig struct {
 type MapDef struct {
 	// Name is a text ID.
 	Name api.ContentID `json:"name"`
+	// Tags are free words formulas read as source.map_tags, such as "town".
+	Tags []string `json:"tags,omitempty"`
 	// Fill is the terrain of every cell not authored, forever in every direction.
 	Fill api.ContentID `json:"fill"`
 	// Open is the terrain of a marked cell, usually air.

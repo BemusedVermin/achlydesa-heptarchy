@@ -110,6 +110,29 @@ func applyRaiseMaxIntegrity(ctx *effects.Context, p effects.Params) error {
 	return nil
 }
 
+// applyHeal raises each attached part's integrity toward its maximum. A severed part is not
+// attached, so it never comes back this way.
+func applyHeal(ctx *effects.Context, p effects.Params) error {
+	channels, err := p.Channels("parts")
+	if err != nil {
+		return err
+	}
+	w := ctx.World
+	parts := ecs.NewMap[comp.Part](w.ECS)
+	for _, c := range channels {
+		if bodyOf(w, c.Entity).IsZero() || !parts.Has(c.Entity) {
+			continue
+		}
+		amount, err := nonNegative(p.For(c), "amount")
+		if err != nil {
+			return err
+		}
+		part := parts.Get(c.Entity)
+		part.Integrity = min(part.Integrity+amount, part.MaxIntegrity)
+	}
+	return nil
+}
+
 func applySever(ctx *effects.Context, p effects.Params) error {
 	channels, err := p.Channels("parts")
 	if err != nil {

@@ -4,6 +4,7 @@ package data
 // playground hub. Its residents are counted in the region and appear when the party arrives.
 maps: "map.test.town": _#TestMap & {
 	name: "text.map.test.town"
+	tags: ["town"]
 	marks: {
 		"@": "party_start"
 		"w": "well"

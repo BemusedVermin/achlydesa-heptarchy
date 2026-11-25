@@ -67,6 +67,7 @@ type plan struct {
 	env      content.ActionEnv
 	windup   int64
 	recovery int64
+	elapsed  int64
 	onStart  []content.EffectRef
 	onLand   []content.EffectRef
 	// refusal is why the action's allowed formula, or a chosen record's requires formula, says the plan
@@ -84,7 +85,7 @@ func (p *plan) intent() Intent {
 func (p *plan) context(w *sim.World) *effects.Context {
 	return &effects.Context{
 		World: w, Source: p.actor, Used: p.channels, Target: p.target, TargetPart: p.part, Dir: p.dir,
-		Choices: p.choices,
+		Choices: p.choices, Elapsed: p.elapsed,
 	}
 }
 
@@ -285,6 +286,7 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	}
 	source := effects.BodyEnvOf(ev.w, p.actor, timeline.FirstPart(p.channels))
 	return content.ActionEnv{
+		Now: ev.w.Now, DayTicks: ev.w.Content.Calendar().DayTicks(),
 		Speed: speed, StepTicks: stepTicks,
 		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
 		Source: source, Target: effects.BodyEnvOf(ev.w, p.target, p.part),
@@ -557,7 +559,7 @@ func (ev *evaluator) landingPlan(pending ecs.Entity) (*plan, api.Text, error) {
 	if !ok || !actorOK {
 		return nil, why("channel_gone"), nil
 	}
-	p := &plan{id: landing.Action, def: def, actor: actor, choices: landing.Choices}
+	p := &plan{id: landing.Action, def: def, actor: actor, choices: landing.Choices, elapsed: w.Now - pend.Started}
 	p.target, _ = w.ByUID(pend.Target)
 	p.part, _ = w.ByUID(landing.TargetPart)
 	if landing.HasDir {

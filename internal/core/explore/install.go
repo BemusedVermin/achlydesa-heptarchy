@@ -39,6 +39,10 @@ func Install(w *sim.World) error {
 	if err != nil {
 		return err
 	}
+	err = effects.Register(w, effects.Primitive{Name: "set_rest_place", Apply: applySetRestPlace})
+	if err != nil {
+		return err
+	}
 	effects.SetMaps(w, w.Maps.Get)
 	timeline.SetVisible(w, visibleBody)
 	if err := installControl(w); err != nil {

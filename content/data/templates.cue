@@ -17,7 +17,7 @@ _fallInjury: {
 // innate to grafts: the type choice offers it to a body that carries one.
 _actions: [
 	"action.step", "action.strike", "action.sweep", "action.sever", "action.pin", "action.stand",
-	"action.give", "action.graft", "action.eat", "action.drink",
+	"action.give", "action.graft", "action.eat", "action.drink", "action.rest",
 ]
 _innateTypes: ["type.cut", "type.name", "type.press"]
 
