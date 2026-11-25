@@ -2,6 +2,7 @@ package worldgen_test
 
 import (
 	"flag"
+	"maps"
 	"os"
 	"slices"
 	"strconv"
@@ -18,7 +19,8 @@ import (
 
 var verifyRules = hexmap.StepRules{MaxStepUp: 1, MaxStepDown: 1, MaxDrop: 1}
 
-func newVerifiedWorld(tb testing.TB, seed, exportCount uint64) (*worldgen.Source, *hexmap.Map) {
+// newVerifiedWorld builds the fixture world's deep; a budget above zero replaces verify's max_chunks.
+func newVerifiedWorld(tb testing.TB, seed, exportCount uint64, budget int) (*worldgen.Source, *hexmap.Map) {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
 	fixed, err := explore.NewWorldSource(reg)
@@ -42,6 +44,13 @@ func newVerifiedWorld(tb testing.TB, seed, exportCount uint64) (*worldgen.Source
 		}
 	}
 	geography, _ := reg.Geography("geography.deep")
+	geography.Stages = slices.Clone(geography.Stages)
+	for i, stage := range geography.Stages {
+		if stage.Stage == worldgen.VerifyStage && budget > 0 {
+			geography.Stages[i].Params = maps.Clone(stage.Params)
+			geography.Stages[i].Params["max_chunks"] = float64(budget)
+		}
+	}
 	src, err := worldgen.NewSource(worldgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
 		Geography: geography, Stages: stages, Fixed: fixed, Open: open,
@@ -78,7 +87,8 @@ func TestVerifyEveryPlaceReachesEveryOther(t *testing.T) {
 	withChecks(t, 12)
 	rapid.Check(t, func(rt *rapid.T) {
 		seed := rapid.Uint64Range(1, 1<<20).Draw(rt, "seed")
-		src, m := newVerifiedWorld(t, seed, 0)
+		budget := rapid.IntRange(4, 12).Draw(rt, "budget")
+		src, m := newVerifiedWorld(t, seed, 0, budget)
 		openings := src.Openings()
 		if len(openings) == 0 {
 			rt.Fatal("the test places have no openings")
@@ -98,6 +108,9 @@ func TestVerifyEveryPlaceReachesEveryOther(t *testing.T) {
 					frontier = append(frontier, step.To.Cell)
 				}
 			}
+		}
+		if peak := worldgen.PeakChunks(src); peak < 1 || peak > budget {
+			rt.Fatalf("seed %d: verify held %d chunks at once, want 1 to %d", seed, peak, budget)
 		}
 		for _, opening := range openings {
 			if !reaches(rt, m, seen, opening) {
@@ -129,8 +142,8 @@ func reaches(rt *rapid.T, m *hexmap.Map, seen map[api.Cell]bool, opening worldge
 
 func TestVerifyIsOrderIndependent(t *testing.T) {
 	for _, seed := range []uint64{3, 9} {
-		forward, _ := newVerifiedWorld(t, seed, 1)
-		backward, _ := newVerifiedWorld(t, seed, 1)
+		forward, _ := newVerifiedWorld(t, seed, 1, 0)
+		backward, _ := newVerifiedWorld(t, seed, 1, 0)
 		var keys []hexmap.ChunkKey
 		for q := range 6 {
 			for r := range 3 {

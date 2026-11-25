@@ -53,6 +53,8 @@ _#verify: {
 		max_step_up:   1
 		max_step_down: 1
 		min_pocket:    24
+		// Chunks the check holds at once; first value, for tuning.
+		max_chunks: 256
 	}
 }
 
