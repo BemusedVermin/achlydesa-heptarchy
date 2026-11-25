@@ -27,7 +27,7 @@
 | [M3-17](M3-17-exotic-recruits.md) | Graftable and exotic recruits | M3-16, M3-18 |
 | [M3-18](M3-18-monster-families.md) | Monster families as content | M3-05, M3-10 |
 | [M3-19](M3-19-sample-world.md) | The sample world: two towns and the deep between them | M3-10, M3-11, M3-14, M3-18 |
-| [M3-20](M3-20-harness-emergence.md) | Harness columns and the camping check | M3-16, M3-19 |
+| [M3-20](M3-20-harness-emergence.md) | Harness columns and the rest policy | M3-16, M3-19 |
 
 M3-01, M3-02 and M3-06 can start in parallel. After them, three lanes run side by side: agents (M3-03 → M3-04 → M3-05), maps (M3-07, M3-08 → M3-09 → M3-10, and M3-14), and the party's needs (M3-13). People (M3-11 → M3-12 → M3-15 → M3-16) opens once M3-04 and M3-08 are done.
 
@@ -41,7 +41,6 @@ M3-07 was added at the owner's request: a playground of the test maps joined by 
 | A resident fetches water on a schedule, and a town short of water starts to lose people. | M3-11 (on screen), M3-10 (off screen), M3-20 (golden) |
 | A recruit hired in town fights, then deserts when their wants go unmet. | M3-15, M3-16 |
 | Off-screen populations drift and promote into full agents when the party arrives. | M3-09, M3-10, M3-19 |
-| 100 harness seeds show no degenerate camping (one family sitting in one town). | M3-20 |
 
 ## Decisions
 
