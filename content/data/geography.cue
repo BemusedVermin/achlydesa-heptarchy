@@ -20,5 +20,19 @@ geographies: "geography.deep": {
 			fade_layers:         2
 			deep_rarity:         0.3
 		}
+	}, {
+		stage: "sinks"
+		params: {
+			spacing:      44
+			jitter:       0.4
+			density:      0.5
+			riser_chance: 0.3
+			rim_depth:    1
+			lap_height:   3
+			laps:         2
+			headroom:     2
+			shaft_radius: 1.5
+			outer_radius: 8
+		}
 	}]
 }
