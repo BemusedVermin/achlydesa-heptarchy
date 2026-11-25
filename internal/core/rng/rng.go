@@ -21,11 +21,17 @@ func (g *Generator) IntN(n int) int { return g.rand.IntN(n) }
 // Float64 returns a number in [0, 1).
 func (g *Generator) Float64() float64 { return g.rand.Float64() }
 
+// NewGenerator returns a generator seeded by both words, for callers outside the world that
+// need a reproducible sequence of their own.
+func NewGenerator(seed, stream uint64) *Generator {
+	return &Generator{rand: rand.New(rand.NewPCG(seed, stream))}
+}
+
 // stream pairs a generator with the PCG source behind it, so the source's
 // state can be saved and restored.
 type stream struct {
 	source *rand.PCG
-	rand   *rand.Rand
+	gen    *Generator
 }
 
 // Streams hands out one PCG stream per name, all derived from the world seed.
@@ -46,11 +52,11 @@ func (s *Streams) Seed() uint64 { return s.seed }
 
 // Get returns the named stream, creating it on first use. The sequence depends
 // only on the world seed and the name, never on the order streams were created in.
-func (s *Streams) Get(name string) *rand.Rand {
+func (s *Streams) Get(name string) *Generator {
 	if existing, ok := s.streams[name]; ok {
-		return existing.rand
+		return existing.gen
 	}
-	return s.add(name, rand.NewPCG(s.seed, fnv64a(name))).rand
+	return s.add(name, rand.NewPCG(s.seed, fnv64a(name))).gen
 }
 
 // Derived returns a fresh generator for (name, salt) that is not registered or
@@ -81,14 +87,14 @@ func (s *Streams) Restore(state map[string][]byte) error {
 		if err := source.UnmarshalBinary(data); err != nil {
 			return fmt.Errorf("rng: restore stream %q: %w", name, err)
 		}
-		restored[name] = &stream{source: source, rand: rand.New(source)}
+		restored[name] = &stream{source: source, gen: &Generator{rand: rand.New(source)}}
 	}
 	s.streams = restored
 	return nil
 }
 
 func (s *Streams) add(name string, source *rand.PCG) *stream {
-	st := &stream{source: source, rand: rand.New(source)}
+	st := &stream{source: source, gen: &Generator{rand: rand.New(source)}}
 	s.streams[name] = st
 	return st
 }

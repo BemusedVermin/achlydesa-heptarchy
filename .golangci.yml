@@ -77,7 +77,7 @@ linters:
               desc: "feature packages import only foundation packages (AGENTS.md rule 2)"
         randomness-through-rng:
           files:
-            - "**/internal/core/**"
+            - "$all"
             - "!**/internal/core/rng/**"
           deny:
             - pkg: "math/rand"
