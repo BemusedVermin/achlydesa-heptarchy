@@ -39,6 +39,7 @@ func Install(w *sim.World) error {
 		return err
 	}
 	timeline.SetVisible(w, visibleBody)
+	sim.Subscribe(w.Bus, "explore.export", regenerate)
 	if err := installControl(w); err != nil {
 		return err
 	}

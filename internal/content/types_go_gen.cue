@@ -407,7 +407,7 @@ import (
 	min_depth: int @go(MinDepth)
 	max_depth: int @go(MaxDepth)
 
-	// Fill is the terrain of every cell no place covers: solid clay until procgen generates the deep.
+	// Fill is the terrain of every cell no place covers: solid clay until worldgen generates the deep.
 	fill: api.#ContentID @go(Fill)
 
 	// Edge is the terrain beyond the bounds. It must be solid and opaque.
@@ -425,6 +425,14 @@ import (
 
 	// NearChunks is the radius in chunks around each party member whose chunks are never dropped.
 	near_chunks?: int @go(NearChunks)
+
+	// PocketChunks is the radius in chunks around each party member kept as it was when an export
+	// regenerates the deep.
+	pocket_chunks?: int @go(PocketChunks)
+
+	// PocketExits is the most ways out of the pocket that the regenerated deep is joined to. A world with
+	// a geography needs at least 1.
+	pocket_exits?: int @go(PocketExits)
 }
 
 // GeographyDef lists the stages that build chunks of one kind of ground, in order.
@@ -432,7 +440,7 @@ import (
 	stages: [...#StageDef] @go(Stages,[]StageDef)
 }
 
-// StageDef names a registered procgen stage and its numbers. Whether the stage takes those params is the
+// StageDef names a registered worldgen stage and its numbers. Whether the stage takes those params is the
 // stage's to check, against the stage registry.
 #StageDef: {
 	// Stage is the registered stage's name, such as "caves".
@@ -461,7 +469,7 @@ import (
 	// Each character must also be one of Marks, so the layers may use it.
 	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
 
-	// Openings lists mark characters that stand where the place opens onto the generated deep: procgen
+	// Openings lists mark characters that stand where the place opens onto the generated deep: worldgen
 	// carves a tunnel from each such cell. The character may appear any number of times (at least once)
 	// and must be one of Marks and not one of Spawns.
 	openings?: [...string] @go(Openings,[]string)

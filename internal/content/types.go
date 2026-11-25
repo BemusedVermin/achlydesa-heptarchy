@@ -350,6 +350,12 @@ type WorldDef struct {
 	ChunkBudget int `json:"chunk_budget,omitempty"`
 	// NearChunks is the radius in chunks around each party member whose chunks are never dropped.
 	NearChunks int `json:"near_chunks,omitempty"`
+	// PocketChunks is the radius in chunks around each party member kept as it was when an export
+	// regenerates the deep.
+	PocketChunks int `json:"pocket_chunks,omitempty"`
+	// PocketExits is the most ways out of the pocket that the regenerated deep is joined to. A world with
+	// a geography needs at least 1.
+	PocketExits int `json:"pocket_exits,omitempty"`
 }
 
 // GeographyDef lists the stages that build chunks of one kind of ground, in order.

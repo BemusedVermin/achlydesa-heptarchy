@@ -21,6 +21,7 @@ import (
 // state is what explore keeps on the world, as an Ark resource.
 type state struct {
 	rules hexmap.StepRules
+	world *WorldSource
 }
 
 func stateOf(w *sim.World) *state {
@@ -179,10 +180,11 @@ func buildWorld(w *sim.World) (*WorldSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
-	cells, err := cellSource(w, src)
+	cells, err := cellSource(w, src, src.Bounds())
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
+	stateOf(w).world = src
 	w.Map = hexmap.NewMap(cells, hexmap.Prisms{})
 	w.Map.SetBounds(src.Bounds(), src.Edge())
 	return src, nil

@@ -96,6 +96,19 @@ func (m *Map) Unload(keep func(ChunkKey) bool) {
 	}
 }
 
+// Replace swaps the map's source for src and drops every loaded chunk. Edits stay only where keepEdit
+// returns true.
+func (m *Map) Replace(src Source, keepEdit func(api.Cell) bool) {
+	m.src = src
+	clear(m.chunks)
+	for cell := range m.edits {
+		if !keepEdit(cell) {
+			delete(m.edits, cell)
+		}
+	}
+	clear(m.sights)
+}
+
 // CompareKeys orders chunk keys by Depth, then R, then Q.
 func CompareKeys(a, b ChunkKey) int {
 	return cmp.Or(cmp.Compare(a.Depth, b.Depth), cmp.Compare(a.R, b.R), cmp.Compare(a.Q, b.Q))
