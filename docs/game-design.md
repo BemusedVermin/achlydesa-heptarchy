@@ -54,7 +54,7 @@ The game takes place on the clay plain and in the deep beneath its crawlspaces, 
 
 The towns are fixed islands inside the deep, at different depths, with generated dungeon all around them. Depth is the geography: the deeper the town, the older and less decayed its ground, and the stranger it is. The surface is uniform decayed clay, so variety comes from what lies underground.
 
-**One world, no seams.** The salk, the towns and the deep are one continuous world. The party walks from anywhere to anywhere: nothing loads behind a gate, a door or a transition. Towns and regions of the deep are areas of that one world, never maps of their own.
+**One world, no seams.** The salk, the towns and the deep are one continuous world. The party walks from anywhere to anywhere: nothing loads behind a gate, a door or a transition. Towns and the deep are areas of that one world, never maps of their own.
 
 | Depth | Environment | Town | Local material or service |
 | --- | --- | --- | --- |
@@ -576,7 +576,7 @@ Forms and archon prices have behavior, so the engine defines a small vocabulary 
 
 **Data (the content):**
 
-- Materials, forms (compositions of primitives with parameters), part templates, enemy templates and regions.
+- Materials, forms (compositions of primitives with parameters), part templates and enemy templates.
 - Authored candidates: wound, wish, curdle mode, price as composed effects, and form.
 - Cast members, the curdle-mode library and clue definitions.
 - Tuning constants: seat speed, kill setback, export rate.

@@ -11,17 +11,17 @@
 | [M5-01](M5-01-procgen-source.md) | Geography content and the procgen chunk source | M4-07 |
 | [M5-02](M5-02-cave-noise.md) | Cave noise stage | M5-01 |
 | [M5-03](M5-03-sinks.md) | Sinks stage | M5-01 |
-| [M5-04](M5-04-regions.md) | Regions as areas and the region graph | M5-01 |
+| [M5-04](M5-04-regions.md) | ~~Regions as areas and the region graph~~ (cut, see Decisions) | M5-01 |
 | [M5-05](M5-05-join-places.md) | Join the generated deep to the fixed places | M5-02 |
 | [M5-06](M5-06-the-large-world.md) | The large world: procgen in the game | M5-05 |
-| [M5-07](M5-07-verify-guarantees.md) | Verify stage and the guarantees | M5-04, M5-05 |
+| [M5-07](M5-07-verify-guarantees.md) | Verify stage and the guarantees | M5-05 |
 | [M5-08](M5-08-unload-chunks.md) | Unload far chunks and keep Seen as bitsets | M5-01 |
 | [M5-09](M5-09-export-schedule.md) | The export schedule and count | M4-07 |
 | [M5-10](M5-10-regenerate-on-export.md) | Regenerate the deep on an export | M5-06, M5-07, M5-08, M5-09 |
-| [M5-11](M5-11-populate.md) | Populate generated ground | M5-04, M5-06, M5-08 |
-| [M5-12](M5-12-decay-spreads.md) | Decay spreads downward over exports | M5-04, M5-10 |
+| [M5-11](M5-11-populate.md) | Populate generated ground | M5-06, M5-08 |
+| [M5-12](M5-12-decay-spreads.md) | Decay spreads downward over exports | M5-10 |
 
-M5-01 and M5-09 can start at once. After M5-01, M5-02, M5-03, M5-04 and M5-08 run side by side. The chain M5-02 → M5-05 → M5-06 is the critical path.
+M5-01 and M5-09 can start at once. After M5-01, M5-02, M5-03 and M5-08 run side by side. The chain M5-02 → M5-05 → M5-06 is the critical path.
 
 ## Exit criteria
 
@@ -40,11 +40,12 @@ Settled with the owner on 2026-11-25:
 - **Saves and memory:** generated chunks are regenerated from the seed and export count, never saved; chunks far from the party are unloaded under a content-set budget. Recorded in `docs/go-technical-design.md` → "Level of detail" and `docs/game-design.md` → "Procgen and exports".
 - **Exports:** M5 adds the schedule and the regeneration; seats hook into the same event later (M7). Recorded in `docs/game-design.md` → "Procgen and exports".
 - **Bodies in regenerated deep:** moved to the nearest open ground, never lost. Recorded in `docs/game-design.md` → "An export with the party below".
+- **No regions in procgen** (M5-04 cut). Depth already decides what the deep is like, so decay, materials and spawns read depth through content, and the guarantees check chunks. What the piece reports as a seat's region is M7's to define. Recorded in `docs/go-technical-design.md` → "Level of detail".
 
 Provisional (the owner didn't settle them, so they are the most reversible choice):
 
 - **Set pieces are places.** M4's places already hold fixed hand-built pieces, so no stage is needed to place them. Which set pieces exist and where is content, added as the story needs them.
 - **Populating** happens once per chunk per export count and is recorded in the save (M5-11). M6 may change it.
-- **One geography** for the whole world. A geography per region is a later seam.
+- **One geography** for the whole world; the ground changes with depth. A geography per area, for ground that differs side by side at the same depth, is a later seam.
 
 Left open: the useful depth range beyond the first values, and the real chunk budget (both tuned with the large world).

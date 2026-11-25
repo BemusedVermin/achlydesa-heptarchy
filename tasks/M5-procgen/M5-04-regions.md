@@ -1,7 +1,7 @@
 ---
 id: M5-04
 title: Regions as areas and the region graph
-status: todo
+status: obsolete
 milestone: M5
 kind: seam
 depends_on: [M5-01]
@@ -49,4 +49,10 @@ A region is a named area of the one world carrying data (decay, and which materi
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+Cut on 2026-11-25 by the owner, before anyone started it. Depth already decides what the deep is like, so named regions added little on top of it. Where each piece went:
+
+- Decay: a formula of a cell's depth and the export count (M5-12).
+- Spawns: by depth band on the geography (M5-11).
+- Materials by depth: wait for the content that has those materials.
+- The connectivity graph: chunks, not regions (M5-07).
+- Where a seat is, which the piece reports: M7 defines it.

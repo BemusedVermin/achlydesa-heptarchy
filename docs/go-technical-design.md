@@ -72,7 +72,6 @@ Every subsystem below reuses a library; the last column is all that's left to wr
 | Formulas in content | [Expr](https://github.com/expr-lang/expr) | Type-checked, sandboxed expressions that always terminate, compiled to bytecode | The variables each formula can see |
 | Hex math | [gravitton/hexagon](https://pkg.go.dev/github.com/gravitton/hexagon) | Axial and offset coordinates, including double-width, which is exactly the ASCII layout | Chunked 3D storage and sight lines with depth |
 | Pathfinding | [fzipp/astar](https://github.com/fzipp/astar) | Generic A\*: supply neighbours and costs | Hex neighbour and cost functions |
-| Region graph | gonum graph | Connectivity and shortest paths for procgen guarantees | Building the graph from regions |
 | Procgen noise | opensimplex-go | Seeded 3D noise for caves, and for depth and material fields | The generation rules |
 | Randomness | `math/rand/v2` (PCG) | Seedable, deterministic, in the standard library | A registry of named streams |
 | Saves | ark-serde | Serializes the whole ECS world | RNG states and content IDs |
@@ -145,7 +144,7 @@ achlydesa-heptarchy/
 
 ## Core packages
 
-Each package owns one part of the rules and leans on a library for everything else. The world itself is one Ark ECS world: towns, regions, creatures, people, parts and seats are all entities.
+Each package owns one part of the rules and leans on a library for everything else. The world itself is one Ark ECS world: towns, creatures, people, parts and seats are all entities.
 
 | Package | Owns | Reuses |
 | --- | --- | --- |
@@ -163,7 +162,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
 | `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options, and the registry of choosers that pick among intents | `timeline`, `effects` |
 | `explore` | The world built from placed content, stepping, lead and follow, remembered cells and the plan-view projection | `hexmap` |
-| `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
+| `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, fzipp/astar for the guarantees |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
 | `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
@@ -209,7 +208,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 - **Everyone is an individual.** Every creature and person is a full Ark entity with a body, needs, an inventory and memory, all the time. Nothing is ever folded into a count.
 - **Detail is fidelity, not existence.** Near the party, agents act through the timeline and move cell by cell. Far from it, they decide less often and travel a coarse graph of the world (chunks and the openings between them), so pathfinding stays affordable. All three numbers are content, first set and then tuned with the harness: an agent is near within a radius of chunks of any party member (first value 2 chunks, 32 hexes), far agents decide every `agents.far_ticks` (first value a tenth of a phase), and the graph is chunks and the openings between them.
 - **Chunks in memory.** Generated chunks are rebuilt from the world seed and export count and are never saved; only edits are. Chunks far from every party member are unloaded, farthest first, under a chunk budget set in content.
-- **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. A region describes ground; it holds no population. For now regions are drawn by hand in content; procgen generates them later.
+- **Towns are areas of one world.** Towns and the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. The world isn't divided into regions: what the deep is like changes with depth, through content.
 
 ### Determinism rules
 
@@ -293,7 +292,7 @@ Each step ends with something playable or measurable.
 2. **Combat:** bodies of parts, a few materials and forms, the effect primitives, fighting on the map with the action menu.
 3. **Agents:** built and then reverted. It put AI before the world existed, so it hard-coded behavior around stand-in maps. Minds (6) replaces it.
 4. **One world:** the towns and the deep as one bounded, continuous world at human scale, with no separate maps.
-5. **Procgen:** the generated deep between the fixed places, regions as areas of it, exports reseeding it, the pocket.
+5. **Procgen:** the generated deep between the fixed places, exports reseeding it, the pocket.
 6. **Minds:** how creatures and people decide what to do, designed when we get there.
 7. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
 8. **Emergence:** births and arrivals, immigration and emigration points, new crawlspaces, rumors, grudges and memory, dreams.
