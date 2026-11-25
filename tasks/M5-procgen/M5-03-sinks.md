@@ -1,7 +1,7 @@
 ---
 id: M5-03
 title: Sinks stage
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-01]
@@ -37,10 +37,10 @@ A `sinks` stage carves funnels that spiral down around a shaft: a gentle helicoi
 
 ## Acceptance criteria
 
-- [ ] A test walks a sink's ramp from its rim to its bottom using the real stepping rules, and walks back up a riser.
-- [ ] A test that dropping the shaft is a fall of several depth steps and lands on open ground.
-- [ ] Order-independence holds for chunks a sink crosses.
-- [ ] `go tool task check` passes.
+- [x] A test walks a sink's ramp from its rim to its bottom using the real stepping rules, and walks back up a riser.
+- [x] A test that dropping the shaft is a fall of several depth steps and lands on open ground.
+- [x] Order-independence holds for chunks a sink crosses.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -49,4 +49,10 @@ A `sinks` stage carves funnels that spiral down around a shaft: a gentle helicoi
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- Shape: floors under a hex repeat every `lap_height` depth, offset by the angle around the axis, so the lap seam is continuous by construction and needs no noise. The spec's `slope(radius)` term is left out: the ramp steepens toward the axis because a step covers more angle there, and the shaft is the cut-off radius. `shaft_radius` is checked so the steepest step stays within one depth step.
+- A riser is the mirror image; both have a shaft. Walking either spiral one way lowers the floor and the other way raises it, so the sink/riser difference is only which way round is down.
+- `headroom` (min 2) is a param: climbing needs a free cell above the body. Axes never overlap (checked against `spacing`, `jitter` and `outer_radius`).
+- The stage sets every cell of its footprint from `rim_depth` to one below the shaft floor (closed cells take the fixed layer's fill), so it must come after `caves` in the geography; the sample content does so. A sink is not trimmed around fixed places, so one beside a place may be cut (M5-05).
+- `Run` returns an error when the sink does not fit between the bounds' depths (rim below the top layer, shaft floor within the bottom).
+- Outside Deliverables: `caves_test.go` now builds its source from the geography's caves stage only, so its golden stays about caves. Nothing outside tests registers stages yet (`RegisterSinks` like `RegisterCaves`).
+- Follow-ups filed: none.

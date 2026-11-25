@@ -33,6 +33,7 @@ func caveSource(tb testing.TB, seed, exportCount uint64) (*procgen.Source, hexma
 		tb.Fatal(err)
 	}
 	geography, _ := reg.Geography(reg.World().Geography)
+	geography.Stages = geography.Stages[:1]
 	src, err := procgen.NewSource(procgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
 		Geography: geography, Stages: stages, Fixed: fixed, Open: open,
