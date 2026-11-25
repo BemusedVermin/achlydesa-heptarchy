@@ -42,11 +42,13 @@ func newTownField(t *testing.T, seed uint64, start api.ContentID, mutate func(*c
 	return &townField{t: t, g: g, w: w}
 }
 
-func (f *townField) wait() {
+func (f *townField) wait() []api.Event {
 	f.t.Helper()
-	if _, err := f.g.Apply(api.Wait{Source: f.g.Current(), Until: api.WaitEvent}); err != nil {
+	events, err := f.g.Apply(api.Wait{Source: f.g.Current(), Until: api.WaitEvent})
+	if err != nil {
 		f.t.Fatal(err)
 	}
+	return events
 }
 
 func (f *townField) phase() string {
@@ -163,17 +165,31 @@ func TestResidentsLeaveThroughTheGateWhenWaterRunsOut(t *testing.T) {
 	if residents() != 3 {
 		t.Fatalf("%d residents at the start, want 3", residents())
 	}
+	var migrated []api.Migrated
 	for range 3000 {
 		if residents() == 0 {
 			break
 		}
-		f.wait()
+		for _, e := range f.wait() {
+			if m, ok := e.(api.Migrated); ok {
+				migrated = append(migrated, m)
+			}
+		}
 	}
 	if residents() != 0 {
 		t.Fatalf("%d residents still in town at tick %d", residents(), f.w.Now)
 	}
 	if got := countPeople(); got != 3 {
 		t.Errorf("the hub counts %d people, want 3", got)
+	}
+	from, to := f.mapID(townMap), f.mapID("map.play.hub")
+	if len(migrated) != 3 {
+		t.Errorf("%d Migrated events, want 3", len(migrated))
+	}
+	for _, m := range migrated {
+		if m.From != from || m.To != to || m.Count != 1 || m.Short != "" {
+			t.Errorf("migrated %+v, want one resident from %d to %d", m, from, to)
+		}
 	}
 }
 

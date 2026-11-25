@@ -36,14 +36,14 @@ type Demoted struct {
 // EventKind implements [Event].
 func (Demoted) EventKind() string { return DemotedKind }
 
-// Migrated reports that a town's residents left it for a neighbouring town because a stock ran
-// short.
+// Migrated reports that residents left a map for a neighbouring one: off screen because a stock
+// ran short, or a body crossing a gate to a map the party is not on.
 type Migrated struct {
 	From   MapID     `json:"from"`
 	To     MapID     `json:"to"`
 	Family ContentID `json:"family"`
 	Count  int       `json:"count"`
-	// Short is the item that ran short.
+	// Short is the item that ran short; empty for a body that crossed a gate.
 	Short ContentID `json:"short"`
 }
 
