@@ -2,6 +2,7 @@ package agents
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -290,7 +291,7 @@ func (p *placer) place(def content.FamilyDef, n int, intN func(int) int) (api.Ce
 	if byMark {
 		anchor = anchors[n%len(anchors)]
 	} else if !p.hasParty {
-		return api.Cell{}, fmt.Errorf("no party on the map to place around")
+		return api.Cell{}, errors.New("no party on the map to place around")
 	}
 	free, err := p.free(anchor)
 	if err != nil {

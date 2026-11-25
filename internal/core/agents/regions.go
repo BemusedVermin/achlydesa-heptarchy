@@ -31,9 +31,11 @@ func SpawnRegions(w *sim.World) error {
 		populations := &comp.Populations{}
 		if def.Region != nil {
 			for _, family := range slices.Sorted(maps.Keys(def.Region.Populations)) {
-				if count := def.Region.Populations[family]; count > 0 {
-					populations.Of = append(populations.Of, comp.Population{Family: api.ContentID(family), Count: count})
+				count := def.Region.Populations[family]
+				if count == 0 {
+					continue
 				}
+				populations.Of = append(populations.Of, comp.Population{Family: api.ContentID(family), Count: count})
 			}
 		}
 		region := regions.NewEntity(&comp.Region{Map: id, Def: name}, populations)

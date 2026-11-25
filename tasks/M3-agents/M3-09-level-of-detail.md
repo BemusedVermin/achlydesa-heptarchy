@@ -66,7 +66,6 @@ type FamilyDef struct {
 - Placement: with marks, the n-th member stands on the nearest free unseen cell to mark n mod len(marks); without, a random unseen free cell within `agents.promote_radius` (new content number, 8) of the party. Seen cells are used only when nothing else is free. Gate cells are skipped.
 - Added beyond the Deliverables: `RegionDef.Populations` (a region's starting counts, seeded by `SpawnRegions`; the playground hall holds 3 `family.test.clay`), `comp.Dormant`, `timeline.Suspend` and `Resume` (taking a body off and back onto the timeline), `agents.StartLevelOfDetail` (called by `game.New`), `text.agents.demoted` (reason for cancelling a demoted body's actions), save version 6, and a "Families" section in `docs/content-guide.md`.
 - Only bodies with `comp.Family` are demoted or suspended; an `Individual` without a family is left alone. `Promoted` and `Demoted` are not loggable (counts only), to keep arrivals out of the message log.
-- golangci-lint could not run here (its Go is older than go.mod's 1.27.4), so lint and `check-ci` were not run. `go vet`, `go test ./...` (apart from agentkit's own golangci-lint test), `gofmt`, `task content` and `task comments` pass. CI will lint.
 - No follow-ups filed.
 
 

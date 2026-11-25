@@ -25,7 +25,7 @@ func Suspend(w *sim.World, body ecs.Entity, reason api.ContentID) {
 	if st.hasCurrent && st.current == body {
 		st.hasCurrent = false
 	}
-	sim.Put(w, body, comp.Dormant{Controller: actor.Controller, WaitUntil: actor.WaitUntil})
+	sim.Put(w, body, comp.Dormant(actor))
 }
 
 // Resume puts a suspended body back on the timeline under its old controller. Any other body is
