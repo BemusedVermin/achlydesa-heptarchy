@@ -22,12 +22,36 @@ _#Hunger: {
 	...
 }
 
+// A need no behavior meets yet: it creeps up too slowly to reach any threshold, and has none.
+_#Slow: {
+	rise: "0.005"
+	urge: "level"
+	...
+}
+
 needs: {
 	"need.water": _#Hunger & {name: "text.need.water"}
 	"need.food": _#Hunger & {name: "text.need.food"}
+	// People's needs. Rest builds by day and is not built at night, while sleeping.
+	"need.rest": {
+		name: "text.need.rest"
+		rise: "phase == \"phase.night\" ? 0 : 0.0625"
+		urge: "level"
+	}
+	"need.safety": _#Slow & {name: "text.need.safety"}
+	"need.belonging": _#Slow & {name: "text.need.belonging"}
+	"need.faith": _#Slow & {name: "text.need.faith"}
+	"need.duty": _#Slow & {name: "text.need.duty"}
+	"need.grief": _#Slow & {name: "text.need.grief"}
 }
 
 text: {
-	"text.need.water": "water"
-	"text.need.food":  "food"
+	"text.need.water":     "water"
+	"text.need.food":      "food"
+	"text.need.rest":      "rest"
+	"text.need.safety":    "safety"
+	"text.need.belonging": "belonging"
+	"text.need.faith":     "faith"
+	"text.need.duty":      "duty"
+	"text.need.grief":     "grief"
 }

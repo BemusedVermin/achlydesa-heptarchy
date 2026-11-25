@@ -109,7 +109,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-09](M3-agents/M3-09-level-of-detail.md) | Level of detail: promotion and demotion | done | feature | M | M3-03, M3-08 |
 | [M3-05](M3-agents/M3-05-agents-chooser-dodging.md) | The agents chooser for combat, and dodging | done | feature | M | M3-04 |
 | [M3-10](M3-agents/M3-10-off-screen-tick.md) | The off-screen tick: drift, stocks and migration | todo | feature | M | M3-09 |
-| [M3-11](M3-agents/M3-11-residents.md) | Residents: needs, roles and schedules in town | todo | feature | M | M3-04, M3-08 |
+| [M3-11](M3-agents/M3-11-residents.md) | Residents: needs, roles and schedules in town | done | feature | M | M3-04, M3-08 |
 | [M3-12](M3-agents/M3-12-generic-npcs.md) | Generic NPCs and replacement timers | todo | feature | S | M3-11 |
 | [M3-18](M3-agents/M3-18-monster-families.md) | Monster families as content | todo | content | M | M3-05, M3-10 |
 | [M3-15](M3-agents/M3-15-hiring-recruits.md) | Hiring recruits | todo | feature | M | M3-12 |
@@ -143,6 +143,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M3-11.F1](followups/M3-11.F1-leave-emit-migrated.md) | Emit Migrated when a resident leaves to an off-screen map | proposed | seam | M3 | M3-11 |
 | [M3-08.F1](followups/M3-08.F1-draw-region-panel.md) | Draw the region section in the terminal frontend | done | feature | M3 | M3-08 |
 | [M3-04.F2.F1](followups/M3-04.F2.F1-action-target-tags.md) | Say what an action may target with a tag, not a new ActionDef field | done | debt | M3 | M3-04.F2 |
 | [M3-04.F1](followups/M3-04.F1-path-around-bodies.md) | Path around standing bodies in the behavior primitives | done | bug | M3 | M3-04 |

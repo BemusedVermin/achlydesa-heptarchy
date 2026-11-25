@@ -58,6 +58,7 @@ func TestThePlaygroundHasARegionPerMapJoinedByItsGates(t *testing.T) {
 	hub := mapNamed(t, w, "map.play.hub")
 	want := []api.MapID{
 		mapNamed(t, w, "map.play.den"), mapNamed(t, w, "map.play.descent"), mapNamed(t, w, "map.play.hall"),
+		mapNamed(t, w, "map.test.town"),
 	}
 	slices.Sort(want)
 	tests := []struct {

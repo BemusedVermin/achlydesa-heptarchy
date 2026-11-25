@@ -82,6 +82,8 @@ type ConsiderEnv struct {
 	// Threatened is the ticks until the soonest landing of a hostile's action aimed at the agent, or
 	// -1 when there is none.
 	Threatened int64 `expr:"threatened"`
+	// Stock counts, per item ID, what the stock of the agent's town holds; empty off a town's map.
+	Stock map[string]int `expr:"stock"`
 }
 
 // EffectEnv is everything an effect formula can see.

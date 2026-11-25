@@ -178,7 +178,7 @@ func (c *chooser) env(def content.BehaviorDef, target Target) content.ConsiderEn
 	env := content.ConsiderEnv{
 		Source: c.source, Target: effects.BodyEnvOf(c.w, target.Body, ecs.Entity{}),
 		Phase: c.phase, Now: c.w.Now, Doing: string(c.doing.Behavior),
-		Threatened: c.threat,
+		Threatened: c.threat, Stock: stockOfMap(c.w, c.pos.Map),
 	}
 	if def.Target != nil {
 		env.Distance = hexmap.CellDistance(c.pos.At, target.Cell)

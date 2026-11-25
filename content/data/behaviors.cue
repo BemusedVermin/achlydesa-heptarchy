@@ -80,14 +80,69 @@ behaviors: {
 	}
 }
 
+// What people do in a town. Roles are the lists in templates.cue and schedules are the phase
+// considerations here. Placeholder numbers, for tuning.
+behaviors: {
+	"behavior.resident.drink": {
+		name: "text.behavior.resident.drink"
+		do:   "consume"
+		params: action: "action.drink_stock"
+		consider: [
+			"source.needs.water > 0.3 ? 0.5 + source.needs.water / 2 : 0",
+			"stock[\"item.lake_water\"] > 0 ? 1 : 0",
+		]
+		target: {kind: "mark", mark: "cistern"}
+	}
+	"behavior.resident.eat": {
+		name: "text.behavior.resident.eat"
+		do:   "consume"
+		params: action: "action.eat_stock"
+		consider: [
+			"source.needs.food > 0.3 ? 0.4 + source.needs.food / 2 : 0",
+			"stock[\"item.ration\"] > 0 ? 1 : 0",
+		]
+		target: {kind: "mark", mark: "cistern"}
+	}
+	"behavior.resident.sleep": {
+		name: "text.behavior.resident.sleep"
+		do:   "consume"
+		params: action: "action.sleep"
+		consider: ["phase == \"phase.night\" ? 0.4 : 0"]
+		target: {kind: "mark", mark: "house"}
+	}
+	"behavior.resident.haul_water": {
+		name: "text.behavior.resident.haul_water"
+		do:   "carry"
+		params: {item: "item.lake_water", count: "2", to: "cistern"}
+		consider: ["phase == \"phase.night\" ? 0 : 0.5"]
+		target: {kind: "body", tags: ["well"]}
+	}
+	"behavior.resident.leave": {
+		name: "text.behavior.resident.leave"
+		do:   "leave"
+		consider: ["source.needs.water > 0.5 && stock[\"item.lake_water\"] <= 0 ? 1 : 0"]
+	}
+	"behavior.resident.wander": {
+		name: "text.behavior.resident.wander"
+		do:   "wander"
+		consider: ["0.1"]
+	}
+}
+
 text: {
-	"text.behavior.test.wander":      "wandering"
-	"text.behavior.test.to_water":    "going for water"
-	"text.behavior.test.gnaw_corpse": "gnawing a corpse"
-	"text.behavior.test.haul_water":  "hauling water"
-	"text.behavior.test.run":         "running"
-	"text.behavior.test.guard_post":  "guarding a post"
-	"text.behavior.test.fight":       "fighting"
-	"text.behavior.test.dodge":       "dodging"
-	"text.behavior.test.idle":        "standing about"
+	"text.behavior.resident.drink":      "drinking"
+	"text.behavior.resident.eat":        "eating"
+	"text.behavior.resident.sleep":      "sleeping"
+	"text.behavior.resident.haul_water": "hauling water"
+	"text.behavior.resident.leave":      "leaving the town"
+	"text.behavior.resident.wander":     "wandering"
+	"text.behavior.test.wander":         "wandering"
+	"text.behavior.test.to_water":       "going for water"
+	"text.behavior.test.gnaw_corpse":    "gnawing a corpse"
+	"text.behavior.test.haul_water":     "hauling water"
+	"text.behavior.test.run":            "running"
+	"text.behavior.test.guard_post":     "guarding a post"
+	"text.behavior.test.fight":          "fighting"
+	"text.behavior.test.dodge":          "dodging"
+	"text.behavior.test.idle":           "standing about"
 }

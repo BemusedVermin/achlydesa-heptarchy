@@ -201,11 +201,12 @@ func TestSwappingToContentWithoutANeedLetsTheGamePlayOn(t *testing.T) {
 	bundle := contenttest.SampleBundle(t)
 	delete(bundle.Needs, "need.water")
 	delete(bundle.Actions, "action.drink")
+	delete(bundle.Actions, "action.drink_stock")
 	for key, template := range bundle.Templates {
 		delete(template.Needs, "need.water")
 		template.Actions = slices.DeleteFunc(
 			slices.Clone(template.Actions),
-			func(id api.ContentID) bool { return id == "action.drink" },
+			func(id api.ContentID) bool { return id == "action.drink" || id == "action.drink_stock" },
 		)
 		bundle.Templates[key] = template
 	}

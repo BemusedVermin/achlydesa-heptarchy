@@ -39,6 +39,7 @@ func primitives() []Primitive {
 		{Name: "flee", Step: stepFlee},
 		{Name: "guard", Params: []string{"radius"}, Step: stepGuard},
 		{Name: "dodge", Params: []string{"within"}, Step: stepDodge},
+		{Name: "leave", Step: stepLeave},
 		{Name: "engage", Optional: []string{"controller"}, Step: stepEngage},
 	}
 }
@@ -122,12 +123,28 @@ func routeCrosses(route []api.Cell, held map[api.Cell]bool, goal api.Cell) bool 
 	return slices.ContainsFunc(route[1:], func(cell api.Cell) bool { return held[cell] && cell != goal })
 }
 
-// stepConsume starts params.action on the target once it can, walking up to it until then. It is
-// done when the action starts; what it does lands later.
+// stepConsume starts params.action once it can, walking up to the target first. An action that
+// targets a body is started on it; one that targets self or nothing is started once the body is
+// next to the behavior's target, or at once when the behavior has none. It is done when the action
+// starts; what it does lands later.
 func stepConsume(w *sim.World, body ecs.Entity, b content.BehaviorDef, target Target) (bool, error) {
 	action := api.ContentID(b.Params["action"])
-	if _, ok := w.Content.Action(action); !ok {
+	def, ok := w.Content.Action(action)
+	if !ok {
 		return false, fmt.Errorf("unknown action %q", action)
+	}
+	if def.Target == content.TargetSelf || def.Target == content.TargetNone {
+		if b.Target != nil {
+			arrived, err := approach(w, body, target.Cell, true)
+			if err != nil || !arrived {
+				return false, err
+			}
+		}
+		in := actions.Intent{Actor: body, Action: action}
+		if valid, _ := actions.Validate(w, in); !valid {
+			return false, nil
+		}
+		return true, actions.Start(w, in)
 	}
 	other, ok := ownerAt(w, body, target)
 	if !ok {
