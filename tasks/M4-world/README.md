@@ -1,13 +1,12 @@
 # M4 · One world
 
-**Status:** outline. Break it into task files once M3 is done.
-
 **Goal:** the salk, the towns and the deep are one bounded, continuous world at human scale, and everyone in it is an individual agent all the time. The party walks from anywhere to anywhere with nothing loading in between. What happens in the world comes from agents meeting their needs. M3's separate maps, gates, counts and outcome systems are deleted, not wrapped.
 
 **Design sources:** `docs/game-design.md`:
 
-- "World and towns": One world, no seams; authored and emergent crawlspaces; the bounded world.
+- "World and towns": One world, no seams; authored and emergent crawlspaces; the bounded world; small at first.
 - "The living deep": Outcomes emerge; Procgen and exports; The hex grid; People with needs; Three tiers of people; Keeping it affordable.
+- "Party" → "Recruits" → "Paying them".
 
 Tech design → "Designing for pivots" (The world, Outcomes emerge), "Level of detail". AGENTS.md rule 10.
 
@@ -21,48 +20,70 @@ M3 built stand-ins that contradict the design:
 
 M4 deletes all of that before procgen and seats build on it. What's left is one world and one agent model.
 
-## Planned tasks
+## Tasks
 
-- **One world.** There is one `hexmap` world with edges, and its size is content. Content places each town, set piece and hand-built stretch of the deep at a fixed position in it (a hex offset and a depth). Cells nothing covers are solid clay until M5 generates them. A position is a cell, and the start puts the party at a cell of the world.
-- **Delete separate maps.** `api.MapID`, `Pos.Map`, `hexmap.Maps`, the content registry of maps, `Seen.ByMap`, per-map edits in saves, and every "which map" check.
-- **Delete gates.** `hexmap.Gate`, `GateDef`, `GateSite`, `explore/gates.go`, `crossGate`, `rankedGate`, gate marks, the playground hub and the gate-chained starts.
-- **Everyone is an individual.** Content places actual bodies at the start, never family counts.
-  - Delete `FamilyCount` populations and the off-screen drift of counts (`offscreen.go`).
-  - Delete promotion and demotion (`lod.go`), and `api.Promoted` and `api.Demoted`.
-  - Agents far from the party decide less often and travel a coarse graph of the world (chunks and the openings between them); near the party they act through the timeline cell by cell. One agent model, at two fidelities.
-- **Delete the outcome systems.** Each outcome below becomes a choice agents make from their needs, through behaviors and content:
-  - `api.Migrated`, `api.TownEmptied` and `api.PopulationDied`;
-  - the generic NPC replacement timers (`generics.go`, `comp.Town`'s timers);
-  - the abstract town stock and its refill (`stock.go`): water and food become items in places, carried there by people;
-  - upkeep's own grumble, desert and flee machinery (`upkeep.go`, `api.Grumbled`, `api.Deserted`, `api.Fled`). A recruit leaves when the deal stops meeting their needs, through the same behaviors as anyone else.
+| ID | Title | Depends on |
+| --- | --- | --- |
+| [M4-01](M4-01-delete-level-of-detail.md) | Everyone is an individual: delete level of detail and counts | none |
+| [M4-02](M4-02-containers-replace-stock.md) | Containers replace the town stock; delete generics and emptying | M4-01 |
+| [M4-03](M4-03-recruits-pay-need.md) | Recruits on a pay need | M4-02 |
+| [M4-04](M4-04-bounded-world-store.md) | hexmap: one bounded world store | none |
+| [M4-05](M4-05-chunk-graph.md) | hexmap: the coarse chunk graph | M4-04 |
+| [M4-06](M4-06-world-and-places.md) | Content: the world and its places | M4-04 |
+| [M4-07](M4-07-one-world.md) | One world: delete maps and gates | M4-01, M4-02, M4-03, M4-06 |
+| [M4-08](M4-08-regions-as-areas.md) | Regions drawn by hand as areas | M4-07 |
+| [M4-09](M4-09-far-agents.md) | Far agents: two fidelities | M4-05, M4-07 |
+| [M4-10](M4-10-leaving-is-a-behavior.md) | Leaving is a behavior | M4-08, M4-09 |
+| [M4-11](M4-11-sample-world.md) | The human-scale sample world | M4-02, M4-03, M4-08 |
+| [M4-12](M4-12-playground-and-guide.md) | Playground and test places at human scale; the content guide | M4-07, M4-08 |
+| [M4-13](M4-13-harness-from-state.md) | The harness measures from state, within the time budget | M4-10, M4-11 |
+| [M4-14](M4-14-exit-check.md) | Exit check: walk the world, and the vocabulary sweep | M4-12, M4-13 |
 
-  Events say what an agent did, such as a member leaving the party, never why a system decided it.
-- **Regions describe ground.** A region is an area of the world drawn in content, carrying tags, props such as decay, and lists. It holds no population, stock, residents or generics. A crawlspace is a region where people happen to live. Formulas and the region panel read the region a cell lies in.
-- **Leaving is a behavior.** `leave` and migration become ordinary behaviors: an agent whose needs aren't met where it is picks somewhere they could be, ranked by content formulas, and walks there, or travels the coarse graph when far from the party.
-- **Human scale.** One hex and one depth step are 1.5 m. Rebuild the test maps, the playground and the sample world as one continuous world at that scale:
-  - buildings with walls, rooms and doors;
-  - wells as shafts, and lakes as water;
-  - towns hundreds of hexes across;
-  - a deep between the towns that takes real time to cross.
-
-  The content guide states the scale and how to build a structure.
-- **The harness measures from state.** Replace M3-20's event-counted `migrations` and `towns_emptied` columns with counts taken from the world: deaths, people per crawlspace, crawlspaces nobody lives in. The camping check counts positions.
-- **Saves and the view follow.** A save holds individuals and cells in one world (bump the save version). The plan view never names a map.
-- **Docs.** The glossary drops gate, aggregate and promote/demote, and redefines region. The content guide describes placing towns, regions and bodies in the world.
+M4-01 and M4-04 start in parallel. Two lanes run side by side: the deletions (M4-01 → M4-02 → M4-03), which all touch `agents`, and the world foundation (M4-04 → M4-05 and M4-06). They meet at M4-07. After it, regions (M4-08) and far agents (M4-09) run side by side, then leave (M4-10); the content tasks (M4-11, M4-12) run beside them. M4-13 and M4-14 close the milestone.
 
 ## Exit criteria
 
-- Walk from the shallow town down through the deep to the lake town and back: no gate, no load, no jump in the view.
-- Every creature and person in the sample world is an entity from the first tick to its death; nothing is ever a count.
-- Off screen, residents fetch water and food, monsters roam and hunt, people leave a crawlspace whose water fails, and a recruit walks off when unpaid. All of it comes from behaviors, with no system, timer or event dedicated to the outcome.
-- No cell in the sample world stands for a whole structure: every house, well and cistern is built of cells at 1.5 m.
-- `git grep -i -w -E "gates?|MapID|ByMap|TownEmptied|Migrated|PopulationDied|Promoted|Demoted|Grumbled|Deserted|FamilyCount"` over `internal/`, `content/` and `docs/` finds nothing.
-- A year of the sample world in the harness stays inside the time budget the questions below settle.
+| Exit criterion | Covered by |
+| --- | --- |
+| Walk from the shallow town down through the deep to the lake town and back: no gate, no load, no jump in the view. | M4-07 (no gates), M4-11 (the world), M4-14 (the walk test) |
+| Every creature and person in the sample world is an entity from the first tick to its death; nothing is ever a count. | M4-01, M4-11 |
+| Off screen, residents fetch water and food, monsters roam and hunt, people leave a crawlspace whose water fails, and a recruit walks off when unpaid. All of it comes from behaviors, with no system, timer or event dedicated to the outcome. | M4-02 (containers), M4-03 (pay), M4-09 (far agents), M4-10 (leave), M4-13 (tests) |
+| No cell in the sample world stands for a whole structure: every house, well and cistern is built of cells at 1.5 m. | M4-11, M4-12 |
+| `git grep -i -w -E "gates?\|MapID\|ByMap\|TownEmptied\|Migrated\|PopulationDied\|Promoted\|Demoted\|Grumbled\|Deserted\|FamilyCount"` over `internal/`, `content/` and `docs/` finds nothing. | M4-01, M4-02, M4-03, M4-07, M4-14 |
+| A year of the sample world in the harness stays inside the time budget: at most 60 s per seeded year. | M4-09, M4-13 |
 
-## Questions to settle before breaking it down
+## Decisions
 
-- **Headroom.** Does a standing body need two cells of height (3 m), with one cell enough for crawling? People crawl inside shelter, so low passages could be the norm.
-- **How big the world is,** and the distances between the fixed places, which set how long crossing the deep takes.
-- **How far is far:** the radius around the party, how often far agents decide, and how coarse their graph is. The harness's time budget settles it.
-- **How content draws a region:** whole chunks, or painted cells.
-- **How recruits and the party deal:** what a recruit's needs are while hired, so that leaving falls out of them.
+Settled with the owner on 2026-11-25:
+
+- **Headroom:** every body fills one cell, standing or crawling; low passages are the norm. Recorded in `docs/game-design.md` → "The hex grid" → "Headroom". Used by M4-11, M4-12.
+- **World size:** small at first and built by hand (the towns and a short stretch of deep); procgen grows the rest of the deep later. Recorded in `docs/game-design.md` → "World and towns" → "Small at first". The owner chose a hand-built stand-in deep in M4-11 that M5 replaces. Used by M4-06, M4-11.
+- **How far is far:** near is within 2 chunks of any party member or in sight; far agents decide every `agents.far_ticks` (first value a tenth of a phase); the graph is chunks and the openings between them. All content, tuned with the harness. Recorded in `docs/go-technical-design.md` → "Level of detail". Used by M4-05, M4-09.
+- **Time budget:** a seeded year of the sample world costs at most 60 s in the harness. Recorded in `docs/go-technical-design.md` → "Tests" (Performance) and "Open questions". Used by M4-13.
+- **Regions:** a named area of the world, drawn by hand in content for now; procgen generates regions later. Recorded in `docs/go-technical-design.md` → "Level of detail". Used by M4-08.
+- **Recruits:** pay is a need; as it goes unmet, grumbling and then walking off score higher. Personality (robbery), and loyalty keeping people around, come later (M4-03.F1). Recorded in `docs/game-design.md` → "Recruits" → "Paying them". Used by M4-03.
+- **Things in places:** water and food lie in containers, entities with a position and an inventory. Recorded in `docs/game-design.md` → "The living deep" → "Outcomes emerge". Used by M4-02.
+
+No questions are left open.
+
+## The one-world model
+
+Every M4 task builds on this. Where the design docs are silent, the choice here is provisional and marked.
+
+**One world.** There is one `hexmap` world with bounds (M4-04); its size is content (`world.cue`, M4-06). Content sets **places** (towns, set pieces, hand-built stretches) into it at a fixed offset and depth. Cells nothing covers are the world's fill, solid clay until M5 generates them. A position is a cell; nothing has a map ID (M4-07).
+
+**Everyone is an individual** (M4-01). Content places actual bodies. There are no families, counts, promotion or demotion.
+
+**Things in places** (M4-02). A container is a body with an inventory and no actor (a cistern, a larder); `carry` fills it and `consume` takes from it. Nothing refills a container and nothing replaces a dead person.
+
+**Recruits** (M4-03). A hired recruit carries `need.pay` and acts under the agents controller while the party follows, through `follow_party`, `take_wage`, `grumble`, `flee` and `leave_party`. The only event is `api.LeftParty`, which says what it did.
+
+**Regions** (M4-08). A region is a named area drawn as boxes, carrying `Data`. The smallest box containing a cell wins. Formulas read the region of the body's own cell. A crawlspace is a region tagged `crawlspace`.
+
+**Two fidelities** (M4-05, M4-09). Near agents act through the timeline cell by cell. Far agents decide every `far_ticks` and travel a coarse graph whose nodes are the connected standable cells of a chunk. A far agent that engages a hostile in its chunk becomes near until the fight ends (provisional).
+
+**Leaving** (M4-10). `leave` ranks regions by their records, never by counting what is in them, and walks or travels there. What an agent knows of a distant region is its data until rumors carry news (provisional, M7).
+
+**Interim** (M4-07 to M4-10). After M4-07 the old maps are places side by side in clay, unjoined, and nothing leaves; M4-10 and M4-11 restore both.
+
+**Determinism.** Spawns run in place ID order, then layer order. Regions are ranked and listed in region ID order. Far decisions are timeline entries, ordered like any other. Every task that changes a component bumps the save version.

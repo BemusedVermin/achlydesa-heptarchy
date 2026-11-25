@@ -71,6 +71,7 @@ The towns are fixed islands inside the deep, at different depths, with generated
 - Towns are open to the deep. Nothing scripted keeps monsters out (see The living deep).
 - **Crawlspaces are authored and emergent.** The story's crawlspaces are hand-built places. People can also dig and settle new ones, and abandon old ones, when that meets their needs.
 - **The world is bounded.** Its size is content. People arrive from beyond it and leave for beyond it at immigration and emigration points.
+- **Small at first.** The first world is small and built by hand: the towns, and a short stretch of deep between them. Procgen generates the rest of the deep, and its regions, later.
 
 ### The enshrined archon
 
@@ -99,7 +100,7 @@ Access matters: a salken can only enter ibben towns through the lunn, the way th
 
 The deep is generated around the fixed towns and populated by monsters and people with needs, not by scripted events. Emergent play is the priority: when something walks into a town, it's because what it needs is there.
 
-**Outcomes emerge; nothing forces them.** Every creature and person is an individual with a body, needs, an inventory and memory, all the time, on screen or off. A migration, a crawlspace emptying, a recruit walking off: each is agents choosing what meets their needs, never a system or a timer that makes it happen or an event that announces it. Resources are things in places: the water in a cistern is water somebody carried there.
+**Outcomes emerge; nothing forces them.** Every creature and person is an individual with a body, needs, an inventory and memory, all the time, on screen or off. A migration, a crawlspace emptying, a recruit walking off: each is agents choosing what meets their needs, never a system or a timer that makes it happen or an event that announces it. Resources are things in places: the water in a cistern is water somebody carried there. A cistern, a larder or a pile on the floor is a container: something with a place and an inventory, filled and emptied by whoever carries things there.
 
 **Needs change.** What an agent needs isn't fixed. Needs appear, fade and change weight with age, losses, grafts, faith, place and whatever has happened to it: a death adds grief, a grudge adds revenge, a child growing up takes on an adult's needs. Behavior drifts over a run because needs do.
 
@@ -122,6 +123,7 @@ Exploring and fighting both happen on the hex grid, on the same clock; actions a
 - **Why hexes suit the deep:** six even directions make organic caves and tunnels rather than corridors and rooms, and distances are uniform for creature movement.
 - **ASCII handles it:** each hex is one glyph, two columns wide, with alternate rows offset by one column. Terminal cells are about twice as tall as they are wide, so the hexes come out roughly even.
 - **Human scale:** one hex is 1.5 m across and one depth step is 1.5 m, so a person fills a hex. Everything is built from cells at that scale: a house is walls, rooms and a door; a well is a shaft; a lake is water; a town runs hundreds of hexes. No cell stands for a whole structure.
+- **Headroom:** every body fills one cell, standing or crawling. There's no separate headroom, and low passages are the norm.
 - **Depth is continuous and seamless:** the deep is a 3D world of hex columns, layered as finely as Minecraft's blocks, so soops cross over and under each other, slope gently and drop off ledges. The plan view shows what the party can see as one continuous map, shaded by how far above or below the party it lies. No layers are ever visible.
 
 ```
@@ -502,7 +504,7 @@ Recruits take one of the four fight slots; a fifth slot is something to playtest
 
 **Price:** there is no fixed wage or currency. Each NPC names their own price, in what they want, scaled by what they bring. Merchants work the same way.
 
-**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list. Pay is one of their needs: as it goes unmet, complaining and then walking off score higher than staying, through the same behaviors as anyone else. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M7), one individual at a time.
+**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list. Pay is one of their needs: as it goes unmet, complaining and then walking off score higher than staying, through the same behaviors as anyone else. Later, personality decides what a recruit does as pay goes unmet: grumble, then walk off or rob the party, and loyalty can keep one around; for now it grumbles, then walks off. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M7), one individual at a time.
 
 ### Exotic recruits
 
