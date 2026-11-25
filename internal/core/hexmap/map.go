@@ -2,6 +2,7 @@ package hexmap
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -22,6 +23,10 @@ type Map struct {
 	topo   Topology
 	chunks map[ChunkKey]*Chunk
 	edits  map[api.Cell]Terrain
+	// bounded is false for an endless map, which ignores bounds and edge.
+	bounded bool
+	bounds  Bounds
+	edge    Terrain
 	// sights remembers Visible results until the next edit. It is derived, never saved or hashed.
 	sights map[sightKey][]api.Cell
 }
@@ -41,8 +46,22 @@ func (m *Map) ID() api.MapID { return m.id }
 // Name is the map's display name.
 func (m *Map) Name() string { return m.name }
 
-// At returns the terrain of c, loading its chunk on first use and caching it.
+// ErrOutOfBounds is returned by [Map.Set] for a cell outside the map's bounds.
+var ErrOutOfBounds = errors.New("hexmap: cell outside the map's bounds")
+
+// SetBounds limits the map to b. Every cell outside it reads as edge, which should be solid and opaque so that
+// nothing stands on, walks into or sees through it, and no chunk outside is ever loaded.
+func (m *Map) SetBounds(b Bounds, edge Terrain) {
+	m.bounded, m.bounds, m.edge = true, b, edge
+	clear(m.sights)
+}
+
+// At returns the terrain of c, loading its chunk on first use and caching it. Outside the map's bounds it is the
+// edge terrain.
 func (m *Map) At(c api.Cell) (Terrain, error) {
+	if m.bounded && !m.bounds.Contains(c) {
+		return m.edge, nil
+	}
 	if t, ok := m.edits[c]; ok {
 		return t, nil
 	}
@@ -64,6 +83,9 @@ func (m *Map) At(c api.Cell) (Terrain, error) {
 
 // Set edits c. The edit lives in an overlay, so it can be saved and survives reloading the chunk.
 func (m *Map) Set(c api.Cell, t Terrain) error {
+	if m.bounded && !m.bounds.Contains(c) {
+		return fmt.Errorf("set %v of map %d: %w", c, m.id, ErrOutOfBounds)
+	}
 	m.edits[c] = t
 	clear(m.sights)
 	return nil

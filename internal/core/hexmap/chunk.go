@@ -44,15 +44,17 @@ func floorMod(n int) int {
 	return n - floorDiv(n, ChunkSize)*ChunkSize
 }
 
-// Chunk holds ChunkSize³ cells as indexes into a small terrain palette.
+// Chunk holds ChunkSize³ cells as indexes into a small terrain palette. A chunk that is all its fill terrain
+// stores no slots, so a uniform chunk costs about as much as one terrain.
 type Chunk struct {
 	palette []Terrain
-	cells   []uint16
+	// cells is nil while every cell is palette[0].
+	cells []uint16
 }
 
 // NewChunk returns a chunk filled with one terrain.
 func NewChunk(fill Terrain) *Chunk {
-	return &Chunk{palette: []Terrain{fill}, cells: make([]uint16, ChunkSize*ChunkSize*ChunkSize)}
+	return &Chunk{palette: []Terrain{fill}}
 }
 
 // index maps local coordinates, each in [0, ChunkSize), to a slot; it panics outside that range.
@@ -65,12 +67,22 @@ func index(q, r, depth int) int {
 
 // Get returns the terrain at local coordinates, each in [0, ChunkSize).
 func (c *Chunk) Get(q, r, depth int) Terrain {
-	return c.palette[c.cells[index(q, r, depth)]]
+	slot := index(q, r, depth)
+	if c.cells == nil {
+		return c.palette[0]
+	}
+	return c.palette[c.cells[slot]]
 }
 
 // Set changes the terrain at local coordinates, each in [0, ChunkSize).
 func (c *Chunk) Set(q, r, depth int, t Terrain) {
 	slot := index(q, r, depth)
+	if c.cells == nil {
+		if t == c.palette[0] {
+			return
+		}
+		c.cells = make([]uint16, ChunkSize*ChunkSize*ChunkSize)
+	}
 	for i, p := range c.palette {
 		if p == t {
 			c.cells[slot] = uint16(i)
