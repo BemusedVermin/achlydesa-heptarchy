@@ -14,4 +14,5 @@ world: {
 	fill:      "terrain.packed_clay"
 	edge:      "terrain.packed_clay"
 	open:      "terrain.air"
+	geography: "geography.deep"
 }

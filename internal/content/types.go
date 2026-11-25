@@ -18,10 +18,12 @@ type Bundle struct {
 	Actions   map[string]ActionDef `json:"actions"`
 	World     WorldDef             `json:"world"`
 	// Places are the hand-made pieces of the world ("place." IDs).
-	Places  map[string]PlaceDef `json:"places"`
-	Start   Start               `json:"start"`
-	Claims  map[string]Claim    `json:"claims"`
-	Origins map[string]Origin   `json:"origins"`
+	Places map[string]PlaceDef `json:"places"`
+	// Geographies are the kinds of generated ground ("geography." IDs).
+	Geographies map[string]GeographyDef `json:"geographies,omitempty"`
+	Start       Start                   `json:"start"`
+	Claims      map[string]Claim        `json:"claims"`
+	Origins     map[string]Origin       `json:"origins"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
@@ -330,6 +332,21 @@ type WorldDef struct {
 	Edge api.ContentID `json:"edge"`
 	// Open is the terrain of a marked cell.
 	Open api.ContentID `json:"open"`
+	// Geography builds the cells no place covers ("geography." ID). Empty leaves them all Fill.
+	Geography api.ContentID `json:"geography,omitempty"`
+}
+
+// GeographyDef lists the stages that build chunks of one kind of ground, in order.
+type GeographyDef struct {
+	Stages []StageDef `json:"stages"`
+}
+
+// StageDef names a registered procgen stage and its numbers. Whether the stage takes those params is the
+// stage's to check, against the stage registry.
+type StageDef struct {
+	// Stage is the registered stage's name, such as "caves".
+	Stage  string             `json:"stage"`
+	Params map[string]float64 `json:"params,omitempty"`
 }
 
 // PlaceDef is a piece of hand-made world, such as a town or a set piece, set at a fixed position.

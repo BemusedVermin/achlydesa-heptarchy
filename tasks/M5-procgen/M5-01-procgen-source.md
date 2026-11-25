@@ -1,7 +1,7 @@
 ---
 id: M5-01
 title: Geography content and the procgen chunk source
-status: todo
+status: done
 milestone: M5
 kind: seam
 depends_on: [M4-07]
@@ -62,7 +62,7 @@ type Stage interface {
 }
 ```
 
-- `Context` carries: the chunk key, the world bounds, a `*rand.Rand` derived from `(world seed, export count, chunk key)`, the stage's params, and read-only access to `Fixed`. Suggestion: derive the generator by mixing the key into `rng.Streams.Derived("procgen", exportCount)`'s salt; it never touches a registered stream, so world play cannot change generation.
+- `Context` carries: the chunk key, the world bounds, an `*rng.Generator` derived from `(world seed, export count, chunk key)`, the stage's params, and read-only access to `Fixed`. Suggestion: derive the generator by mixing the key into `rng.Streams.Derived("procgen", exportCount)`'s salt; it never touches a registered stream, so world play cannot change generation.
 - **Order independence is the property that matters.** A stage that needs a neighbor chunk's contents must compute them from the seed (as noise does), never read them from a loaded chunk.
 - **Fixed cells win.** After the stages run, cells `Fixed.Covers` are copied over from the fixed layer, so a stage cannot damage a place.
 - **Checks:** every stage name is registered; a geography's stages and params are valid for that stage (each stage validates its own params through the registry).
@@ -70,10 +70,10 @@ type Stage interface {
 
 ## Acceptance criteria
 
-- [ ] `go tool task test -- ./internal/core/procgen ./internal/core/explore ./internal/content` passes.
-- [ ] `play --seed 1` starts and the plan view looks as it did (no stages yet).
-- [ ] `procgen` imports no feature package (`go tool task lint`).
-- [ ] `go tool task check` passes.
+- [x] `go tool task test -- ./internal/core/procgen ./internal/core/explore ./internal/content` passes.
+- [x] `play --seed 1` starts and the plan view looks as it did (no stages yet).
+- [x] `procgen` imports no feature package (`go tool task lint`).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -83,4 +83,11 @@ type Stage interface {
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- **Where the stage checks live.** Content only checks that a stage is named and that `world.geography` exists; whether a stage is registered and takes its params is checked by procgen (`Stages.Validate` for all of content, and `NewSource` for its own geography), as effect primitives are checked by `effects`. Nothing calls `Stages.Validate` yet: M5-06 wires the source into the game.
+- **`world.geography` is optional** (empty means every unplaced cell is the fill), so hand-built test worlds need no geography. `geographies` is optional in the bundle for the same reason. The geography collection gets an ID prefix check but no `Collection` constant, so choices cannot list it.
+- **`StageDef`** sits in `internal/content/types.go` beside `GeographyDef`; `content.GeographyPath` formats a stage's path for errors on both sides.
+- **Randomness.** Each stage of each chunk draws from `Derived("procgen", salt)`, the salt an FNV hash of the export count, the chunk key, the stage's index and its name. `Source` keeps its own `rng.New(seed)` and never touches a registered stream.
+- **Fixed cells win, and so do cells outside the bounds:** after the stages run, every such cell is reset to the fixed layer's chunk. A chunk wholly outside the bounds skips the stages.
+- **Files outside the Deliverables:** `internal/core/rng/rng.go` gains `Generator`, the type `Derived` returns, with only `Uint64`, `IntN` and `Float64`, so procgen draws randomness without importing `math/rand` or reaching the standard generator. `internal/content/records.go` and `load.go` register the collection and its check.
+- The test builds the source over `explore.WorldSource` from the sample content (tests may import across features) and checks order independence, fixed and out-of-bounds cells, export count and seed, and stage rejection.
+- **Follow-up filed:** M5-01.F1, so that only `rng` imports `math/rand`; `Streams.Get` and `internal/harness` still use it.
