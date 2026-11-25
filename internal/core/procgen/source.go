@@ -28,12 +28,20 @@ type Config struct {
 	Geography   content.GeographyDef
 	Stages      *Stages
 	Fixed       Fixed
+	// Open is the terrain stages carve open cells with.
+	Open hexmap.Terrain
 }
 
 // Context is all a stage may read while it builds one chunk.
 type Context struct {
 	Key    hexmap.ChunkKey
 	Bounds hexmap.Bounds
+	// Seed and ExportCount are the world's, for stages that sample world-space noise: a chunk's Rand differs
+	// from its neighbor's, so noise seeded from it would show seams.
+	Seed        uint64
+	ExportCount uint64
+	// Open is the terrain of a carved cell.
+	Open hexmap.Terrain
 	// Rand depends only on the world seed, the export count, the chunk key and the stage's place in the
 	// geography, so a chunk comes out the same whatever order chunks are built in.
 	Rand *rng.Generator
@@ -53,7 +61,9 @@ type boundStage struct {
 // cells outside the bounds always come out as the fixed layer has them. It never changes after NewSource, so
 // chunks may be built on several goroutines at once.
 type Source struct {
+	seed        uint64
 	streams     *rng.Streams
+	open        hexmap.Terrain
 	exportCount uint64
 	bounds      hexmap.Bounds
 	fixed       Fixed
@@ -66,7 +76,9 @@ func NewSource(cfg Config) (*Source, error) {
 		return nil, errors.New("procgen: source: no fixed layer")
 	}
 	src := &Source{
+		seed:        cfg.Seed,
 		streams:     rng.New(cfg.Seed),
+		open:        cfg.Open,
 		exportCount: cfg.ExportCount,
 		bounds:      cfg.Bounds,
 		fixed:       cfg.Fixed,
@@ -96,11 +108,14 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 	chunk := copyChunk(fixed)
 	for i, bound := range s.stages {
 		ctx := &Context{
-			Key:    key,
-			Bounds: s.bounds,
-			Rand:   s.streams.Derived("procgen", s.salt(key, i, bound.name)),
-			Params: maps.Clone(bound.params),
-			Fixed:  s.fixed,
+			Key:         key,
+			Bounds:      s.bounds,
+			Seed:        s.seed,
+			ExportCount: s.exportCount,
+			Open:        s.open,
+			Rand:        s.streams.Derived("procgen", s.salt(key, i, bound.name)),
+			Params:      maps.Clone(bound.params),
+			Fixed:       s.fixed,
 		}
 		if err := bound.stage.Run(ctx, chunk); err != nil {
 			return nil, fmt.Errorf("procgen: stage %q on chunk %v: %w", bound.name, key, err)

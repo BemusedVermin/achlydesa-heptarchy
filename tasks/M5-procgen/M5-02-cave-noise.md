@@ -1,7 +1,7 @@
 ---
 id: M5-02
 title: Cave noise stage
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-01]
@@ -38,9 +38,9 @@ A `caves` stage carves the solid fill with 3D noise into wide chambers, long win
 
 ## Acceptance criteria
 
-- [ ] Golden and order-independence tests pass.
+- [x] Golden and order-independence tests pass.
 - [ ] `play --seed 1` shows tunnels and chambers in the plan view away from the places, shaded by depth.
-- [ ] `go tool task check` passes.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -48,4 +48,11 @@ A `caves` stage carves the solid fill with 3D noise into wide chambers, long win
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- Not ticked: the `play --seed 1` criterion. Nothing builds the game's map from a `procgen.Source` yet (explore uses `WorldSource` directly, and feature packages cannot import each other), so the plan view cannot show caves until M5-06 wires procgen into the game. The stage and content are ready for it; M5-06 should check this criterion.
+- Added `Seed`, `ExportCount` and `Open` to `procgen.Context`, and `Open` to `procgen.Config` (source.go, outside the Deliverables): noise must be seeded by the world, not by the per-chunk `Rand`, to have no seams, and the stage needs the world's Open terrain without naming a record.
+- `RegisterCaves(stages)` is the registration; callers register it before `NewSource`. Params are all required and checked.
+- Content numbers (`geography.deep`) are first guesses, not tuned. The world is only 8 deep, so `solid_layers` 1, `fade_layers` 2 and `deep_rarity` 0.3 act over those 8 layers.
+- Noise is plain float math, so a golden could differ on an architecture that fuses multiply-add (arm64); CI and the owner run amd64.
+- `opensimplex-go` was already in go.sum as an indirect dependency; it is now direct. Named in the tech design.
+- Tooling: the installed golangci-lint was built with Go 1.26, too old for go.mod; I installed v2.15.0 built with 1.27.4 to run the checks.
+- No follow-ups filed.
