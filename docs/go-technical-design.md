@@ -219,7 +219,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 ### Saves and replays
 
-- **A save** is one JSON document: an ark-serde snapshot of the entities (resources are rebuilt by `Install`, and the timeline is exported by `timeline`), every RNG stream's state, the UID counter, the world's edits, the command history and the message log. ark-serde's output is canonicalized (entities sorted by ECS ID, keys sorted) so equal worlds give equal bytes, and `Game.Hash` is the SHA-256 of those bytes.
+- **A save** is one JSON document: an ark-serde snapshot of the entities (resources are rebuilt by `Install`, and the timeline is exported by `timeline`), every RNG stream's state, the UID counter, the export count and next export day, the world's edits, the command history and the message log. ark-serde's output is canonicalized (entities sorted by ECS ID, keys sorted) so equal worlds give equal bytes, and `Game.Hash` is the SHA-256 of those bytes.
 - **A replay** is the world seed plus the player's command log. The harness uses replays to reproduce any bug or odd emergent run.
 - **Versioned.** Every save header carries a save version and a content hash, and migration functions upgrade older saves one version at a time. Until v1.0.0, saves are disposable: a change bumps the save version without a migration, and older saves stop loading.
 

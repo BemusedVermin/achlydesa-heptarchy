@@ -234,6 +234,19 @@ import (
 #Calendar: {
 	// Phases are in order; at least one.
 	phases: [...#Phase] @go(Phases,[]Phase)
+
+	// Exports says when the deep is exported and regenerated.
+	exports: #ExportSchedule @go(Exports)
+}
+
+// ExportSchedule sets the irregular days on which the world exports.
+#ExportSchedule: {
+	// FirstDay is the day of the first export, counting from 1.
+	first_day: int @go(FirstDay)
+
+	// MinGap and MaxGap bound the days between one export and the next, both at least 1.
+	min_gap: int @go(MinGap)
+	max_gap: int @go(MaxGap)
 }
 
 // Phase is one part of the day, such as dawn.

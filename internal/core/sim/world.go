@@ -27,8 +27,12 @@ type World struct {
 	// Content is the loaded content; game.New sets it.
 	Content *content.Registry
 	// Now is the current tick; only clock writes it.
-	Now     int64
-	nextUID atomic.Uint64
+	Now int64
+	// ExportCount is how many exports have begun, and NextExportDay the day of the next one (0
+	// until the clock schedules the first). Only clock writes them.
+	ExportCount   int
+	NextExportDay int
+	nextUID       atomic.Uint64
 
 	// Spawning state belongs to the world's one writer, like the ECS.
 	maps     *mappers

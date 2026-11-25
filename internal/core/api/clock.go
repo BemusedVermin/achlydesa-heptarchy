@@ -6,6 +6,7 @@ import "strconv"
 const (
 	PhaseStartedKind = "clock.phase_started"
 	DayStartedKind   = "clock.day_started"
+	ExportBeganKind  = "clock.export_began"
 )
 
 // PhaseStarted reports that a new day phase began.
@@ -34,6 +35,16 @@ func (DayStarted) EventKind() string { return DayStartedKind }
 func (d DayStarted) LogText() Text {
 	return Text{ID: "text.clock.day_started", Args: map[string]string{"day": strconv.Itoa(d.Day)}}
 }
+
+// ExportBegan reports that the world exported. Count is the number of exports so far, this one
+// included; procgen's seed is the world seed and Count.
+type ExportBegan struct {
+	Day   int `json:"day"`
+	Count int `json:"count"`
+}
+
+// EventKind implements [Event].
+func (ExportBegan) EventKind() string { return ExportBeganKind }
 
 // ClockView is the time of day. Day counts from 1.
 type ClockView struct {

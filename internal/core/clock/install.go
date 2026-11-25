@@ -19,6 +19,9 @@ func Install(w *sim.World, c *Clock) error {
 	if err := api.RegisterEvent[api.DayStarted](w.Codec); err != nil {
 		return err
 	}
+	if err := api.RegisterEvent[api.ExportBegan](w.Codec); err != nil {
+		return err
+	}
 	return w.Views.Register(sim.ViewBuilder{
 		Name: "clock",
 		Build: func(w *sim.World, v *api.View) error {

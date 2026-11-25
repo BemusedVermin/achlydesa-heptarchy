@@ -12,6 +12,7 @@ calendar: {
 		{id: "phase.dusk", name: "text.phase.dusk", ticks: 30},
 		{id: "phase.night", name: "text.phase.night", ticks: 90},
 	]
+	exports: {first_day: 30, min_gap: 20, max_gap: 40}
 }
 
 text: {

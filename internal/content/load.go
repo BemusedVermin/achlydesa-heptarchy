@@ -269,6 +269,16 @@ func (r *Registry) checkCalendar() []error {
 		}
 		p.text(path+".name", phase.Name)
 	}
+	exports := cal.Exports
+	if exports.FirstDay < 1 {
+		p.addf("calendar.exports.first_day: must be at least 1, got %d", exports.FirstDay)
+	}
+	if exports.MinGap < 1 {
+		p.addf("calendar.exports.min_gap: must be at least 1, got %d", exports.MinGap)
+	}
+	if exports.MaxGap < exports.MinGap {
+		p.addf("calendar.exports.max_gap: must be at least min_gap (%d), got %d", exports.MinGap, exports.MaxGap)
+	}
 	return p.errs
 }
 

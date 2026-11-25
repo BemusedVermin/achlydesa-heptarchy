@@ -1,7 +1,7 @@
 ---
 id: M5-09
 title: The export schedule and count
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M4-07]
@@ -37,8 +37,8 @@ Exports happen on an irregular schedule from content. The world counts them, and
 
 ## Acceptance criteria
 
-- [ ] The test above passes.
-- [ ] `go tool task check` passes.
+- [x] The test above passes.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -46,4 +46,10 @@ Exports happen on an irregular schedule from content. The world counts them, and
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- The next export day is stored on the world (`NextExportDay`, 0 until the first is scheduled) beside `ExportCount`, and saved with it in a new `exports` block. The first export is on `first_day` and draws nothing; each later gap is drawn from the `clock.exports` stream.
+- The export fires after `DayStarted` and before per-day systems.
+- Placeholder numbers: first day 30, gaps 20 to 40. Content validation rejects a first day or minimum gap below 1, or a maximum below the minimum.
+- Save version is now 5; the migration test chain in `save_test.go` gained a step.
+- `docs/go-technical-design.md` save paragraph now lists the export fields.
+- The resume test restores the RNG state and world fields by hand; the game save path itself is the two-line copy in `game/save.go`.
+- No follow-ups filed.

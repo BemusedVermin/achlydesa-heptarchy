@@ -6,6 +6,7 @@ package api
 
 #PhaseStartedKind: "clock.phase_started"
 #DayStartedKind:   "clock.day_started"
+#ExportBeganKind:  "clock.export_began"
 
 // PhaseStarted reports that a new day phase began.
 #PhaseStarted: {
@@ -16,6 +17,13 @@ package api
 // DayStarted reports that a new day began.
 #DayStarted: {
 	day: int @go(Day)
+}
+
+// ExportBegan reports that the world exported. Count is the number of exports so far, this one
+// included; procgen's seed is the world seed and Count.
+#ExportBegan: {
+	day:   int @go(Day)
+	count: int @go(Count)
 }
 
 // ClockView is the time of day. Day counts from 1.
