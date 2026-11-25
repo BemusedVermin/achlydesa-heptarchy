@@ -434,6 +434,7 @@ func baseEnv(ctx *Context) content.EffectEnv {
 	env.Source = BodyEnvOf(w, ctx.Source, timeline.FirstPart(ctx.Used))
 	env.Target = BodyEnvOf(w, ctx.Target, ctx.TargetPart)
 	env.Inventory = inventory.Usable(w, ctx.Source, ctx.Target)
+	env.Hostile = w.Alive(ctx.Source) && w.Alive(ctx.Target) && Hostile(w, ctx.Source, ctx.Target)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if w.Alive(ctx.Source) && w.Alive(ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)

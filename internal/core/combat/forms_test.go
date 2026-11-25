@@ -84,6 +84,19 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	stone := bundle.Templates["template.test.dummy"]
 	stone.Tags = nil
 	templates["stone"] = stone
+	wild := bundle.Templates["template.test.dummy"]
+	wild.Faction = new(api.ContentID("faction.wild"))
+	templates["wild"] = wild
+	for name, source := range map[string]string{
+		"recruit": "template.generic.guard", "exotic": "template.generic.tamed_clay",
+	} {
+		hired := bundle.Templates[source]
+		hired.Actor = &content.ActorDef{Controller: "idle"}
+		hired.Behaviors = nil
+		hired.Recruit = nil
+		hired.Faction = new(api.ContentID("faction.party"))
+		templates[name] = hired
+	}
 	for name, template := range templates {
 		textID := api.ContentID("text.template.test." + name)
 		template.Name = &textID
@@ -107,7 +120,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 			return nil
 		},
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
-			for _, name := range []string{"fighter", "ally", "victim", "crawler", "relic", "clay", "stone"} {
+			for _, name := range []string{"fighter", "ally", "victim", "crawler", "relic", "clay", "stone", "recruit", "exotic", "wild"} {
 				q, ok := at[name]
 				if !ok {
 					continue
@@ -541,6 +554,22 @@ func TestGraftNeedsAGraftableAllyAndAPieceFromTheInventory(t *testing.T) {
 	}
 	if got := inventory.Count(r.w, fighter, "item.test_arm", 0); got != 0 {
 		t.Errorf("pieces left = %d, want it fitted", got)
+	}
+}
+
+func TestAGraftableRecruitTakesAGraftAndAnExoticOneDoesNot(t *testing.T) {
+	r := newRing(t, map[string]int{"fighter": 0, "recruit": 1, "exotic": -1})
+	r.give("item.test_arm", 1, ecs.Entity{})
+	if option, ok := r.option("graft", "item.test_arm", r.uid(r.body("exotic"))); ok && option.Enabled {
+		t.Errorf("Graft is offered onto an exotic recruit: %+v", option)
+	}
+	recruit := r.body("recruit")
+	before := len(timeline.Channels(r.w, recruit))
+	events := r.do("graft", "item.test_arm", r.uid(recruit))
+	events = append(events, r.wait(6)...)
+	if !has(events, func(e api.PartAttached) bool { return e.From == api.AttachedFromInventory }) ||
+		len(timeline.Channels(r.w, recruit)) != before+1 {
+		t.Errorf("the graft did not fit the recruit: %v", events)
 	}
 }
 
