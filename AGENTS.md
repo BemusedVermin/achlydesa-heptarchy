@@ -33,7 +33,7 @@ Module path: `github.com/BemusedVermin/achlydesa-heptarchy`. The owner works in 
 2. **Layers hold.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `timeline`, `hexmap`, `knowledge`, `inventory`, `effects`, `actions`) may be imported anywhere in the core. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; they talk through components and events. `game` and `save` sit on top.
 3. **Determinism.** Randomness comes only from `internal/core/rng` named streams. Never call `time.Now` in the core. Never let map iteration order or thread timing decide an outcome: sort by `comp.UID` or content ID first.
    - **One writer.** Only one goroutine at a time changes the world: the ECS, `World.Now` and the RNG streams.
-   - **Parallel, then in order.** Work may run on other goroutines only as a pure computation: it reads its inputs and returns a result without touching the world. The world's goroutine then applies the results in a fixed order (by chunk key, region ID or seed). Procgen chunks, harness games run side by side, and off-screen region updates all fit this pattern.
+   - **Parallel, then in order.** Work may run on other goroutines only as a pure computation: it reads its inputs and returns a result without touching the world. The world's goroutine then applies the results in a fixed order (by chunk key, region ID or seed). Procgen chunks, harness games run side by side, and far agents' decisions all fit this pattern.
    - **Safe registries aren't a safe world.** The `sim` registries (bus, scheduler, commands, views, UID counter) are safe for concurrent use, but that doesn't make concurrent changes to the world deterministic.
 4. **Content is data.** Anything a designer would tune (numbers, names, text, glyphs, formulas) lives in `content/data` as CUE, not in Go. Player-facing strings are content text IDs.
 5. **IDs, not pointers.** Components hold content IDs (strings like `material.clay`) and UIDs, never pointers into the content registry or into other entities.
@@ -41,6 +41,7 @@ Module path: `github.com/BemusedVermin/achlydesa-heptarchy`. The owner works in 
 7. **Choices come from the core.** Frontends render the view and send commands. Valid moves, menus and their order come from the core's view.
 8. **Reuse first.** Use the libraries named in the tech design. A new dependency needs a sentence in the task's Notes saying why.
 9. **Don't decide the game design.** If a task needs a design decision the docs don't make, file a question (see below) and pick the most reversible option meanwhile.
+10. **Outcomes emerge.** Behavior comes from individual agents with needs choosing actions. Never add a system, timer or event whose job is to make an outcome happen or to announce it (a migration, a desertion, a town emptying, a respawn). Add needs, behaviors and content instead, and let the harness measure outcomes from state.
 
 ## Working on a task
 

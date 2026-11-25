@@ -2,18 +2,21 @@
 
 **Status:** outline. Break it into task files once M6 is done.
 
-**Goal:** the systems that make runs tell stories: rumors that drift, grudges and memory, dreams, generated candidates, and the flock.
+**Goal:** what makes runs tell stories, all through agents with needs: people born and arriving, people leaving and founding crawlspaces, rumors that drift, grudges and memory, dreams, generated candidates, and the flock.
 
-**Design sources:** `docs/game-design.md` → "People with needs" (Rumors travel and drift), "Grudges and memory", "Core loop and time management → Dreams", "Candidates and seats → How wishes curdle", "Time pressures" (The flock is weather).
+**Design sources:** `docs/game-design.md` → "World and towns" (crawlspaces authored and emergent, the bounded world), "The living deep" (Outcomes emerge), "People with needs" (Rumors travel and drift), "Three tiers of people" (new people), "Grudges and memory", "Core loop and time management → Dreams", "Candidates and seats → How wishes curdle", "Time pressures" (The flock is weather).
 
 ## Planned tasks
 
+- **Births and growing up.** Children are born, grow, and take the test at ten, which sorts them into ibben or salken.
+- **Immigration and emigration points.** Places at the world's edges where people arrive from beyond it, and leave for beyond it, when that meets their needs. Nobody respawns.
+- **New crawlspaces.** People who can't meet their needs anywhere dig and settle a new crawlspace; one nobody needs is abandoned.
 - **Rumors.** Facts carried between people and towns, drifting with each retelling (`text/template` for the words); drifted rumors as a source of false positives.
-- **Memory and grudges.** Survivors remember who maimed them; revenge becomes a need; bodies come back with replaced parts; deserters persist as `Individual`s.
+- **Memory and grudges.** Survivors remember who maimed them; revenge becomes a need; bodies come back with replaced parts; deserters live on like anyone else.
 - **The deepest nemesis.** An abandoned recruit can take a passed seat, through the existing wound scoring.
 - **Dreams.** Sleeping in town picks one image by content conditions over world state; clue dreams write low-confidence facts; graft count deepens Serilmen's dreams.
 - **The wish generator.** Wound, then wish, then curdle mode, then price, then form, over content tables, for generated candidates.
-- **The flock.** A scheduled surface movement that closes routes and kills anyone caught.
+- **The flock.** Hibblejaunts as agents with needs on the salk; where they roam closes routes and kills anyone caught. Nothing schedules it.
 
 ## Exit criteria
 

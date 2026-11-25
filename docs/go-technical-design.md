@@ -24,7 +24,7 @@ The game will change once it's played, so every place the game design already ex
 
 | Seam | From day one | Leaves room for |
 | --- | --- | --- |
-| The world | One world, not maps: a position is a cell, a hex plus a depth step, each 1.5 m. The world is stored in chunks so it can be infinite, and neighbors come from a topology. Towns and set pieces are places in it, never maps of their own | Soops crossing over and under each other, slopes and ledges, sinks, an infinite deep and plain, impossible folds |
+| The world | One world, not maps: a position is a cell, a hex plus a depth step, each 1.5 m. The world is stored in chunks, its size bounded by content, and neighbors come from a topology. Towns and set pieces are places in it, never maps of their own | Soops crossing over and under each other, slopes and ledges, sinks, a larger world, impossible folds |
 | Plan view | The core projects the 3D world into one 2D hex view: for each hex, the visible cell nearest the party's depth, shaded only by how far above or below it lies. The view never holds a depth or a layer | A seamless deep in the terminal now, and the same view or a richer one for Ebitengine later |
 | Entity templates | Content defines templates as bags of optional components, not one Go type per kind; one spawn function builds any of them | A person who becomes a monster, a creature that trades, a recruit who becomes a candidate, with no new content types |
 | Parts as entities | Each part is its own entity, tied to its body by an Ark relation, `PartOf` | Severed parts that crawl off and fight, a hand that latches onto an ally, moving clay taking a part, grafting and reattaching |
@@ -53,6 +53,7 @@ The game will change once it's played, so every place the game design already ex
 - **Primitives in Go, compositions in data.** No embedded scripting language beyond Expr formulas; a new primitive is a deliberate code change.
 - **No mod loader and no networking.** The `core/game` boundary already allows an out-of-process frontend if one is ever built.
 - **A seam needs a feature.** No abstraction goes in unless the game design names something that needs it.
+- **Outcomes emerge.** Behavior comes from individual agents with needs choosing actions. No system, timer or event exists to make an outcome happen or to announce it (a migration, a desertion, a town emptying, a respawn); a new outcome means new needs, behaviors and content. Events say what an agent did. The harness measures outcomes from state.
 
 ### The pivot test
 
@@ -164,7 +165,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `explore` | The world built from placed content, stepping, lead and follow, remembered cells and the plan-view projection | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
-| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; full agents on screen, region aggregates off screen | Expr for need curves, Ark relations for grudges and relationships |
+| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
 | `rumor` | Facts carried between people and towns, drifting with each retelling | `knowledge`, `text/template` for the words |
@@ -199,16 +200,15 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 1. The earliest entry on the timeline happens next, and the clock jumps to its tick: an attack landing, or a body deciding. At the same tick, landings go first, then decisions by UID.
 2. A deciding body's controller picks actions: the player for party members (only the leader while no hostile is in sight), a follow controller for the rest of the party, and behaviors for everyone else. Each action occupies the channels it needs (a step the body, a swing one or more arms) for its wind-up and recovery; legs, terrain and climbing set how long a step takes.
 3. After every entry, per-entry systems run: statuses expire and the party's alert updates.
-4. At each day-phase boundary the clock crosses, the off-screen tick runs: region populations drift, town residents follow their routines. Generic NPCs are replaced on timers kept on the town (`comp.Town`) and checked after every timeline entry.
+4. Agents far from the party take their decisions on a coarser schedule and travel a coarse graph of the world; near the party, they act through the timeline like everyone else.
 5. Once a day: seats advance, the export schedule is checked, rumors move between towns.
 6. Ark events fire after each step (a death, a severed part, a passed seat), and subscribers update wounds, grudges and readings.
 
 ### Level of detail
 
-- **On screen:** creatures and people near the party are full Ark entities with bodies, needs and memory.
-- **Off screen:** each region holds aggregate populations per creature family; each town runs its residents on coarse schedules.
-- **Promotion and demotion:** as the party nears a region, its aggregates turn into full agents before they can come into sight; as the party leaves, they fold back, keeping named agents and anyone with a grudge as individuals.
-- **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. The detail radius, how near counts as near, is open.
+- **Everyone is an individual.** Every creature and person is a full Ark entity with a body, needs, an inventory and memory, all the time. Nothing is ever folded into a count.
+- **Detail is fidelity, not existence.** Near the party, agents act through the timeline and move cell by cell. Far from it, they decide less often and travel a coarse graph of the world (chunks and the openings between them), so pathfinding stays affordable. The radius, how often far agents decide, and how coarse the graph is are open.
+- **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. A region describes ground; it holds no population.
 
 ### Determinism rules
 
@@ -289,11 +289,11 @@ Each step ends with something playable or measurable.
 
 1. **Skeleton:** module, depguard rule, content pipeline with one material, Ark world, `core/game` API, and the Bubble Tea frontend walking a hand-made hex map.
 2. **Combat:** bodies of parts, a few materials and forms, the effect primitives, fighting on the map with the action menu.
-3. **Agents:** needs scoring for creatures and people, on-screen and off-screen ticks, generic NPC timers, recruits.
-4. **One world:** the towns and the deep as one continuous world at human scale, with regions as areas of it; M3's separate maps and gates deleted.
+3. **Agents:** needs scoring for creatures and people, behaviors, recruits.
+4. **One world:** the towns and the deep as one bounded, continuous world at human scale, with regions as areas of it, and one agent model in which everyone is an individual; M3's separate maps, gates and outcome systems deleted.
 5. **Procgen:** the generated deep between the fixed places, exports reseeding it, the pocket, the guarantees as property tests.
 6. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
-7. **Emergence:** rumors, grudges and memory, dreams.
+7. **Emergence:** births and arrivals, immigration and emigration points, new crawlspaces, rumors, grudges and memory, dreams.
 8. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
 
 After the MVP: post-MVP milestones live under `tasks/post-mvp/`, each with its own design doc. The first is the story system (`docs/story.md`). Nothing in the MVP depends on them.
@@ -304,7 +304,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 
 - [ ] CUE or YAML plus JSON Schema? CUE removes the most custom validation code, but it has a learning curve for content authoring.
 - [x] Hex library: decided, gravitton/hexagon (double-width layout, field of view and line drawing).
-- [ ] The deep is infinite, so: what's the chunk memory budget, and how far is the detail radius (see Level of detail)?
+- [ ] The world is bounded: how big is it, what's the chunk memory budget, and how often do far agents decide (see Level of detail)?
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
 - [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.

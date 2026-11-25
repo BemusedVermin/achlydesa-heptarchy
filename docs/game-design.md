@@ -69,6 +69,8 @@ The towns are fixed islands inside the deep, at different depths, with generated
 - Only the surface and the shallow soops are fixed. Every route between deeper towns is dungeon, and regenerates on export days.
 - Towns keep their layout but not their condition. As exports push decay downward, deep towns change: the still town starts to rot, and old matter retreats past the archon's crawlspace.
 - Towns are open to the deep. Nothing scripted keeps monsters out (see The living deep).
+- **Crawlspaces are authored and emergent.** The story's crawlspaces are hand-built places. People can also dig and settle new ones, and abandon old ones, when that meets their needs.
+- **The world is bounded.** Its size is content. People arrive from beyond it and leave for beyond it at immigration and emigration points.
 
 ### The enshrined archon
 
@@ -96,6 +98,8 @@ Access matters: a salken can only enter ibben towns through the lunn, the way th
 ## The living deep
 
 The deep is generated around the fixed towns and populated by monsters and people with needs, not by scripted events. Emergent play is the priority: when something walks into a town, it's because what it needs is there.
+
+**Outcomes emerge; nothing forces them.** Every creature and person is an individual with a body, needs, an inventory and memory, all the time, on screen or off. A migration, a crawlspace emptying, a recruit walking off: each is agents choosing what meets their needs, never a system or a timer that makes it happen or an event that announces it. Resources are things in places: the water in a cistern is water somebody carried there.
 
 ### Procgen and exports
 
@@ -161,7 +165,7 @@ What falls out of it:
 Residents run on the same needs engine as monsters, plus a social layer. One agent model serves both, so the code is shared.
 
 - **Needs:** water, food, rest, safety, belonging, faith and duty, and grief after a loss.
-- **Behaviors:** work (hauling water, mining coal, farming the fields, pressing the dead), trade, worship, attend town events, call the Reaper for the slowly dying, flee, migrate, and go below.
+- **Behaviors:** work (hauling water, mining coal, farming the fields, pressing the dead), trade, worship, attend town events, call the Reaper for the slowly dying, flee, migrate, dig and settle a new crawlspace, and go below.
 - **Roles and customs act as constraints:** ibben and salken, jobs, the lunn, standing at attention, and the test at ten sorting children.
 
 What falls out of it:
@@ -169,7 +173,7 @@ What falls out of it:
 - **Candidates leave a trail.** When a seat passes, the offer finds the most wounded person and draws them below. Noticing who slips out of town at night is investigation.
 - **Rumors travel and drift.** News moves only when people carry it, between towns and through the deep, and it distorts with each retelling. Drifted rumors are where many false positives come from.
 - **Quests come from unmet needs.** A resident who can't meet a need asks the party: find a missing son, bring water, carry a body to the thrukk. There is no quest list. After the MVP, a request becomes a story like any other (see the Story tab).
-- **Towns can empty.** If water fails or monsters keep coming, people migrate to other towns, and a town can be abandoned.
+- **Towns can empty.** If water fails or monsters keep coming, people leave for other crawlspaces, or dig new ones, and a town can be abandoned. Nothing counts it as emptied; nobody lives there any more.
 - **Traders cross the deep.** When a trader dies on the way, the next town runs short.
 - **Plot armor is allowed.** Authored characters can be flagged as protected in their data; everyone else can die, and the seat simulation adapts.
 
@@ -179,11 +183,11 @@ What falls out of it:
 | --- | --- | --- | --- |
 | Party | The two protagonists and the fixed roster | Authored, never generated | Protected where plot armor is set |
 | Named cast | The authored core cast and generated candidates | Full needs agents with relationships, rumors and wounds | Permanent; plot armor optional per character |
-| Generic | Guards, merchants, recruits and similar | Very basic needs and wants | Replaced on a timer while the town is still inhabited |
+| Generic | Guards, merchants, recruits and similar | Very basic needs and wants | Permanent; nobody respawns |
 
 **A party wipe is not game over.** When every member of the party is dead or downed, the deuteragonists wake at the town they last rested in, with some time consumed. The party mends and wakes after `party.wake_ticks`, where it last rested (the opening cell until towns exist); the dead stay dead, and a party with nobody downed stays lost. What the enemies did meanwhile, and any other cost, are still open.
 
-Generic NPCs keep towns working without much simulation cost. An abandoned town stops replacing them, so emptied towns stay empty. A town counts as emptied when its last resident leaves or dies, wherever the party is, including while the party stands in it.
+**New people come from births and arrivals,** never timers. Children grow up and take the test at ten. People arrive from beyond the world, and leave for it, at its immigration and emigration points, when that meets their needs. An abandoned crawlspace stays empty until someone has a reason to live there.
 
 ### Grudges and memory
 
@@ -198,9 +202,10 @@ Survivors remember, and their grudges come from the memory and needs systems alr
 
 ### Keeping it affordable
 
-- **Off-screen:** creatures and residents are simulated coarsely at the region or town level; their needs tick and they move between regions.
-- **On-screen:** near the party, they become full agents with real movement and fights.
-- **Harness logging:** the headless harness logs emergent events (deaths, migrations, towns emptied), so degenerate outcomes such as every monster camping one town show up in tuning rather than in play.
+- **Everyone is always an individual.** There are no counts standing in for creatures or people, anywhere.
+- **Off screen, less often and coarser.** Far from the party, agents decide less often and travel a coarse graph of the world instead of cell by cell. Near the party, they move and fight cell by cell.
+- **The world is bounded,** so the population and the pathing stay finite.
+- **The harness measures; the game doesn't announce.** The headless harness counts outcomes from the world's state (deaths, where people are, crawlspaces nobody lives in), so degenerate outcomes such as every monster camping one town show up in tuning rather than in play.
 
 ## Story
 
@@ -346,7 +351,7 @@ Investigation turns time into knowledge of a holder's parts and weaknesses. Ther
 - **Healing and grafting take days.** Pushing on while maimed saves time but costs actions in every fight.
 - **Food and water run out below.** What the party carries sets how long a descent can last.
 - **Supplies are fetched from places:** coal from dead crawlspaces, salk dust and Violet blood from the surface, lake water from underground lakes, daylight jars from the salk, lees from the thrukk, keepsakes from people.
-- **The flock is weather.** It moves across the salk on its own schedule and decides which surface routes are open. Anyone it catches is annihilated, if the doctrine is right.
+- **The flock is weather.** The hibblejaunts are agents with needs like everything else, and where they roam decides which surface routes are open. Anyone they catch is annihilated, if the doctrine is right.
 - **Export days** land irregularly, on a schedule set by a vote and an algorithm in another world. They reshape the deep overnight.
 
 ### Kills and the clock
@@ -485,15 +490,15 @@ The protagonists can hire generic people to fight beside the fixed roster. Recru
 
 - **Who:** each town offers different recruits by caste and trade: guards and miners in ibben towns, field hands in the salken village, exiles on the salk.
 - **Bodies:** the same part-based bodies as everyone else, so a lost arm is a lost action.
-- **Needs and wants:** basic ones such as pay, food, safety and faith. Unmet needs mean grumbling, then desertion; terror means flight mid-fight.
+- **Needs and wants:** basic ones such as pay, food, safety and faith. Unmet needs make them complain and eventually walk off; terror makes them flee mid-fight. Both are ordinary behaviors, not a desertion system.
 - **Caste friction (proposal):** ibben recruits may refuse to follow a salken, and some balk at sacrilege such as collecting Violet blood.
-- **Death is permanent,** with no plot armor. Towns replace their generic people on a timer while still inhabited, so the hiring pool refills.
+- **Death is permanent,** with no plot armor. The hiring pool refills only as people are born, grow up and arrive.
 
 Recruits take one of the four fight slots; a fifth slot is something to playtest. Recruits can be grafted, which makes them the cheapest way to learn what a piece does, and the graft's pull works on them too. A grafted recruit who deserts takes the piece with them.
 
 **Price:** there is no fixed wage or currency. Each NPC names their own price, in what they want, scaled by what they bring. Merchants work the same way.
 
-**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list; every day it goes unpaid raises their discontent, which turns into grumbling and then desertion. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M7), one individual at a time.
+**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list. Pay is one of their needs: as it goes unmet, complaining and then walking off score higher than staying, through the same behaviors as anyone else. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M7), one individual at a time.
 
 ### Exotic recruits
 
