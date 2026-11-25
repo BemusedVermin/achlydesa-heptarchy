@@ -25,11 +25,13 @@ func Install(w *sim.World) error {
 	if err := effects.Register(w, satisfyPrimitive()); err != nil {
 		return err
 	}
-	if err := w.Systems.Register(sim.System{Name: needsSystem, Cadence: sim.PerPhase, Run: tickNeeds}); err != nil {
-		return err
-	}
-	if err := w.Systems.Register(sim.System{Name: offscreenSystem, Cadence: sim.PerPhase, Run: tickOffscreen}); err != nil {
-		return err
+	for _, system := range []sim.System{
+		{Name: needsSystem, Cadence: sim.PerPhase, Run: tickNeeds},
+		{Name: offscreenSystem, Cadence: sim.PerPhase, Run: tickOffscreen},
+	} {
+		if err := w.Systems.Register(system); err != nil {
+			return err
+		}
 	}
 	for _, p := range primitives() {
 		if err := RegisterPrimitive(w, p); err != nil {

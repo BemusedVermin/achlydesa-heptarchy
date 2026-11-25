@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"fmt"
 	"math"
-	"math/rand/v2"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -60,13 +59,17 @@ func tickOffscreen(w *sim.World) error {
 		return err
 	}
 	away, hasParty := partyMap(w)
+	var awayPtr *api.MapID
+	if hasParty {
+		awayPtr = &away
+	}
 	stream := w.RNG.Get(lodStream)
 	var plans []regionPlan
 	for from, state := range states {
 		if hasParty && state.id == away {
 			continue
 		}
-		plan, err := planRegion(w, states, from, stream, away, hasParty)
+		plan, err := planRegion(w, states, from, stream, awayPtr)
 		if err != nil {
 			return fmt.Errorf("agents: off-screen map %d: %w", state.id, err)
 		}
@@ -137,12 +140,12 @@ func snapshotRegions(w *sim.World) ([]regionState, error) {
 
 // planRegion works out the deaths, moves and stock changes of one region. A family's deaths and
 // moves share its count, so none of them can take more than the region holds.
-func planRegion(w *sim.World, states []regionState, from int, stream *rand.Rand, away api.MapID, hasParty bool) (regionPlan, error) {
+func planRegion(w *sim.World, states []regionState, from int, stream floatSource, away *api.MapID) (regionPlan, error) {
 	state := states[from]
 	plan := regionPlan{from: from}
 	var open []int
 	for _, next := range state.neighbours {
-		if !hasParty || states[next].id != away {
+		if away == nil || states[next].id != *away {
 			open = append(open, next)
 		}
 	}
@@ -154,7 +157,8 @@ func planRegion(w *sim.World, states []regionState, from int, stream *rand.Rand,
 		}
 		id := api.ContentID(family)
 		remaining := count
-		dying, err := w.Content.FamilyAttrition(id, content.AttritionEnv{Region: state.env, Family: family, Count: count})
+		attrition := content.AttritionEnv{Region: state.env, Family: family, Count: count}
+		dying, err := w.Content.FamilyAttrition(id, attrition)
 		if err != nil {
 			return plan, err
 		}
@@ -165,7 +169,8 @@ func planRegion(w *sim.World, states []regionState, from int, stream *rand.Rand,
 		fractions := make([]float64, len(open))
 		total := 0.0
 		for i, next := range open {
-			drift, err := w.Content.FamilyDrift(id, content.DriftEnv{Region: state.env, Neighbour: states[next].env, Family: family})
+			env := content.DriftEnv{Region: state.env, Neighbour: states[next].env, Family: family}
+			drift, err := w.Content.FamilyDrift(id, env)
 			if err != nil {
 				return plan, err
 			}
@@ -258,7 +263,9 @@ func applyPlan(w *sim.World, states []regionState, plan regionPlan) {
 		addToPopulation(populations, move.family, -move.count)
 		addToPopulation(ecs.NewMap[comp.Populations](w.ECS).Get(to.entity), move.family, move.count)
 		if move.short != "" {
-			w.Bus.Publish(api.Migrated{From: state.id, To: to.id, Family: move.family, Count: move.count, Short: move.short})
+			w.Bus.Publish(api.Migrated{
+				From: state.id, To: to.id, Family: move.family, Count: move.count, Short: move.short,
+			})
 		}
 	}
 	if state.town == nil || state.town.Residents == "" {
@@ -279,8 +286,11 @@ func countOf(populations *comp.Populations, family api.ContentID) int {
 	return 0
 }
 
+// floatSource is a random stream that draws floats in [0, 1).
+type floatSource interface{ Float64() float64 }
+
 // roundWith rounds up with the probability of the fraction, so that the expected value is kept.
-func roundWith(stream *rand.Rand, x float64) int {
+func roundWith(stream floatSource, x float64) int {
 	if x <= 0 {
 		return 0
 	}
