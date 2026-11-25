@@ -14,7 +14,7 @@
 - **Stage effects.** The ascending body changes through stages (parts added or swapped from content); archon prices as composed effects.
 - **The piece of Serilmen.** An item whose readings (region and progression, never who) form a view section, read slightly stronger near other pieces.
 - **Investigation.** Clues from people, places, bodies and dreams write facts; names and keepsakes become items; a journal screen as a view over the party's facts.
-- **Regions.** The fixed places M4 builds and the regions M5 generates; the piece reports them.
+- **Where a seat is.** The piece reports a seat's region. Procgen doesn't divide the world into regions, so M7 defines what that is.
 
 ## Exit criteria
 
@@ -25,3 +25,4 @@
 
 - What exactly the companion beat needs from the seat system.
 - Act I: is the first god the already-enshrined archon, or a second seat completing? (Open in the game design.)
+- What the piece's region is: an area around the holder, a direction and a depth, or something else. It has to be coarse enough to hold a holder and their false positives.

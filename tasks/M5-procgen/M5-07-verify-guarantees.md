@@ -4,7 +4,7 @@ title: Verify stage and the guarantees
 status: todo
 milestone: M5
 kind: feature
-depends_on: [M5-04, M5-05]
+depends_on: [M5-05]
 discovered_by: null
 size: M
 ---
@@ -18,22 +18,22 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 ## Context
 
 - `docs/game-design.md` → "Procgen and exports" (Guarantees), "An export with the party below" (a route to at least one town).
-- `docs/go-technical-design.md` → "Procgen stages" (verify); gonum for the guarantees.
-- M5-04's region graph; M5-05's tunnels.
+- `docs/go-technical-design.md` → "Procgen stages" (verify); fzipp/astar, which pathing already uses.
+- M5-05's tunnels.
 - The brief's exit criterion: "The guarantees hold on a handful of seeds."
 
 ## Deliverables
 
-- `internal/core/procgen/verify.go`: the `verify` stage and its registration.
+- `internal/core/procgen/verify.go`: the `verify` stage, its registration, and the chunk graph it reads.
 - `content/data/geography.cue`: `verify` last.
 - `internal/core/procgen/verify_test.go`: property tests with `pgregory.net/rapid` over seeds.
 
 ## Spec
 
-- **The check** runs over the chunk graph of walkable connectivity (chunks as nodes, open openings as edges, per M4's stepping rules at chunk borders). It is a pure function of the seed, so every chunk can compute the same result.
-- **The repair** carves the shortest corridor (A* on the chunk graph, then cells) between the nearest disconnected components, carved deterministically so order independence holds. A repair never touches a fixed place's cells.
-- **Guarantees tested:** every place has a walkable route to every other place; no walkable region is smaller than a threshold while another larger one exists (stranded pockets are joined or filled), threshold content.
-- Materials appearing where they belong (coal near dead crawlspaces) waits for the content that has those materials; this task checks only that a material only appears in regions that list it.
+- **The check** runs over the chunk graph of walkable connectivity (chunks as nodes, open openings as edges, per M4's stepping rules at chunk borders), built from a summary of each chunk's openings, never the whole world at once. Components come from a flood fill. It is a pure function of the seed, so every chunk can compute the same result.
+- **The repair** carves the shortest corridor (A* on the chunk graph with fzipp/astar, then cells) between the nearest disconnected components, carved deterministically so order independence holds. A repair never touches a fixed place's cells.
+- **Guarantees tested:** every place has a walkable route to every other place; no walkable pocket is smaller than a threshold while another larger one exists (stranded pockets are joined or filled), threshold content.
+- Materials appearing where they belong (coal near dead crawlspaces) waits for the content that has those materials.
 
 ## Acceptance criteria
 
