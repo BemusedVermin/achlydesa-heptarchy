@@ -2,6 +2,7 @@ package explore
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
@@ -100,3 +101,10 @@ func (s *WorldSource) Mark(place api.ContentID, name string) (api.Cell, bool) {
 
 // Spawns lists every place's spawn marks: places in ID order, then layers as authored, rows and columns.
 func (s *WorldSource) Spawns() []Spawn { return slices.Clone(s.spawns) }
+
+// ChunkKeys lists the chunks any place covers, sorted by [hexmap.CompareKeys].
+func (s *WorldSource) ChunkKeys() []hexmap.ChunkKey {
+	keys := slices.Collect(maps.Keys(s.authored))
+	slices.SortFunc(keys, hexmap.CompareKeys)
+	return keys
+}

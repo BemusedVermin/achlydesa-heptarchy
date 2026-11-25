@@ -19,4 +19,8 @@ world: {
 	chunk_budget: 256
 	// A chunk this many chunks or fewer from any party member stays loaded whatever the budget.
 	near_chunks: 2
+	// An export keeps the chunks this many chunks or fewer from any party member as they were; first value.
+	pocket_chunks: 1
+	// The pocket is joined to the new deep by at most this many tunnels; first value.
+	pocket_exits: 4
 }
