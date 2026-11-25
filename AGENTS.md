@@ -18,7 +18,6 @@ Every development command is a task in `Taskfile.yml`, run through Go so nothing
 - One part: `go tool task test`, `go tool task lint`, `go tool task content`
 - Pass arguments after `--`: `go tool task test -- -run TestName ./internal/core/sim`
 - Regenerate CUE schemas after changing content structs: `go tool task schema`
-- Show a refactor changed no behavior: `go tool task same-behavior` (renames: `-- --rename old=new`)
 - Check this branch's task bookkeeping, as CI does on every pull request: `go tool task check-pr`
 - Play: `go tool task run -- play --seed 1`
 - List them all: `go tool task --list`
@@ -86,7 +85,7 @@ If the follow-up blocks your task, set your task to `blocked`, say why in Notes,
 - The frontend's own text is key help (chrome) only. Every other word the player sees comes from the core's view.
 - A new shared helper lives in the lowest layer every user may import. Shared git code for the tools is `internal/tools/internal/gitcmd`; `internal/tools/agentkit` keeps its own copy, so an agent cannot change the guard.
 - Run `go tool cue fmt ./content/...` after editing content; `go tool task content` fails on unformatted CUE.
-- Table-driven tests; `pgregory.net/rapid` for properties; golden files under `testdata/`.
+- Tests: this is a hobby project. Test game rules that can really break: combat, effects, actions, the timeline, pathing and sight, saves, content loading. Don't test test helpers, the harness, tooling (the guard hooks excepted) or trivial code, and don't add near-duplicate cases. Table-driven where there are several real cases; `pgregory.net/rapid` for properties; golden files under `testdata/`.
 - Return errors for programmer and content bugs (wrap with `%w`). An invalid player command is not an error: emit an `api.Rejected` event.
 - No global mutable state. Registries hang off a world or a content registry value.
 - Saves are disposable until v1.0.0: renaming content IDs or changing the save format needs no migration. Bump the save version so old saves fail cleanly.

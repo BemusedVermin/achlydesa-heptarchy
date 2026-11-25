@@ -1,8 +1,6 @@
 package effects
 
 import (
-	"strings"
-
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
@@ -12,9 +10,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
-
-// needPrefix is dropped from a need's ID to give its key in BodyEnv.Needs.
-const needPrefix = "need."
 
 // BodyEnvOf is what a formula sees of a body and one of its parts: their records and facts. An entity that is
 // gone, zero or has no such component reads as an empty record.
@@ -32,41 +27,10 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 				env.Statuses = append(env.Statuses, string(entry.Status))
 			}
 		}
-		if needs := ecs.NewMap[comp.Needs](w.ECS); needs.Has(body) {
-			levels := needs.Get(body).Levels
-			env.Needs = make(map[string]float64, len(levels))
-			for _, level := range levels {
-				if _, known := w.Content.Need(level.Need); !known {
-					continue
-				}
-				env.Needs[strings.TrimPrefix(string(level.Need), needPrefix)] = level.Level
-			}
-		}
-		if positions := ecs.NewMap[comp.Pos](w.ECS); positions.Has(body) {
-			if m := w.Maps.Get(positions.Get(body).Map); m != nil {
-				if def, ok := w.Content.Map(api.ContentID(m.Name())); ok {
-					env.MapTags = def.Tags
-				}
-			}
-		}
-		if party, ok := anatomy.PartyOf(w, body); ok {
-			if parties := ecs.NewMap[comp.Party](w.ECS); parties.Has(party) {
-				env.Alert = parties.Get(party).Alert
-			}
-		}
 		grafts := ecs.NewMap[comp.Graft](w.ECS)
-		partData := ecs.NewMap[comp.Part](w.ECS)
-		dyingBelow := w.Content.Agents().DyingBelow
 		for _, attached := range anatomy.Parts(w, body) {
 			if grafts.Has(attached) {
 				env.Grafts++
-			}
-			if !partData.Has(attached) {
-				continue
-			}
-			data := partData.Get(attached)
-			if data.Vital && isDying(data, dyingBelow) {
-				env.Dying = true
 			}
 		}
 	}
@@ -81,11 +45,6 @@ func BodyEnvOf(w *sim.World, body, part ecs.Entity) content.BodyEnv {
 		}
 	}
 	return env
-}
-
-// isDying says whether the part's integrity is at or below the fraction of its maximum.
-func isDying(part *comp.Part, fraction float64) bool {
-	return float64(part.Integrity) <= fraction*float64(part.MaxIntegrity)
 }
 
 // ChosenRecords reads each choice's value as the record it names. A value that names no record,

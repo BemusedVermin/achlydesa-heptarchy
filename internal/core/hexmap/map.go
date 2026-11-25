@@ -23,7 +23,6 @@ type Map struct {
 	topo   Topology
 	chunks map[ChunkKey]*Chunk
 	edits  map[api.Cell]Terrain
-	gates  map[api.Cell]Gate
 	// bounded is false for an endless map, which ignores bounds and edge.
 	bounded bool
 	bounds  Bounds
@@ -46,20 +45,6 @@ func (m *Map) ID() api.MapID { return m.id }
 
 // Name is the map's display name.
 func (m *Map) Name() string { return m.name }
-
-// Marked is a [Source] that names some of its cells, such as where a party starts.
-type Marked interface {
-	Mark(name string) (api.Cell, bool)
-}
-
-// Mark returns the cell of the named mark, when the map's source is [Marked] and has it.
-func (m *Map) Mark(name string) (api.Cell, bool) {
-	marked, ok := m.src.(Marked)
-	if !ok {
-		return api.Cell{}, false
-	}
-	return marked.Mark(name)
-}
 
 // ErrOutOfBounds is returned by [Map.Set] for a cell outside the map's bounds.
 var ErrOutOfBounds = errors.New("hexmap: cell outside the map's bounds")

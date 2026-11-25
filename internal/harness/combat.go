@@ -1,7 +1,6 @@
 package harness
 
 import (
-	"fmt"
 	"slices"
 	"strconv"
 
@@ -25,17 +24,6 @@ type Binder interface {
 	Bind(g *game.Game)
 }
 
-// FightResult says how one seeded fight went.
-type FightResult struct {
-	Seed    uint64
-	Outcome string
-	// Ticks is how long the fight lasted: from the alert to the last hostile's death or the party's
-	// fall. It is zero when the alert never came.
-	Ticks int64
-	// Steps is how many commands the policy sent.
-	Steps int
-}
-
 // tracker follows a run's combat from its events and views.
 type tracker struct {
 	alertStart   int64
@@ -46,9 +34,6 @@ type tracker struct {
 	misses       int
 	severed      int
 	deaths       int
-	offScreen    int
-	migrations   int
-	towns        int
 	hostiles     map[api.UID]bool
 	hostileDeath int
 	outcome      string
@@ -90,12 +75,6 @@ func (t *tracker) observe(events []api.Event, view api.View) {
 				t.hostileDeath++
 				t.end = e.Tick
 			}
-		case api.PopulationDied:
-			t.offScreen += e.Count
-		case api.Migrated:
-			t.migrations += e.Count
-		case api.TownEmptied:
-			t.towns++
 		case api.PartyWiped:
 			if t.outcome == OutcomeNone {
 				t.outcome, t.end = OutcomeWiped, e.Tick
@@ -115,50 +94,8 @@ func (t *tracker) observe(events []api.Event, view api.View) {
 func (t *tracker) columns() []string {
 	return []string{
 		strconv.FormatInt(t.alertTicks, 10), strconv.Itoa(t.landings), strconv.Itoa(t.misses),
-		strconv.Itoa(t.severed), strconv.Itoa(t.deaths + t.offScreen), t.outcome,
-		strconv.Itoa(t.migrations), strconv.Itoa(t.towns),
+		strconv.Itoa(t.severed), strconv.Itoa(t.deaths), t.outcome,
 	}
-}
-
-func (t *tracker) result(seed uint64, steps int) FightResult {
-	result := FightResult{Seed: seed, Outcome: t.outcome, Steps: steps}
-	if t.started && t.outcome != OutcomeNone {
-		result.Ticks = t.end - t.alertStart
-	}
-	return result
-}
-
-// PlayFight plays one seeded game until its fight is decided or maxSteps commands have been sent.
-func PlayFight(reg *content.Registry, seed uint64, policy Policy, maxSteps int) (FightResult, error) {
-	g, err := game.New(game.Config{Seed: seed, Content: reg})
-	if err != nil {
-		return FightResult{}, err
-	}
-	if binder, ok := policy.(Binder); ok {
-		binder.Bind(g)
-	}
-	track := newTracker()
-	steps := 0
-	view, err := g.View()
-	if err != nil {
-		return FightResult{}, err
-	}
-	track.noteView(view)
-	for steps < maxSteps && track.outcome == OutcomeNone {
-		events, ok, err := stepFrom(g, policy, view)
-		if err != nil {
-			return FightResult{}, fmt.Errorf("step %d: %w", steps+1, err)
-		}
-		if !ok {
-			break
-		}
-		steps++
-		if view, err = g.View(); err != nil {
-			return FightResult{}, err
-		}
-		track.observe(events, view)
-	}
-	return track.result(seed, steps), nil
 }
 
 // FightPolicy plays a fight from the options alone. The blind one takes the first attack offered

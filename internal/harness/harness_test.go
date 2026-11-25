@@ -2,8 +2,6 @@ package harness_test
 
 import (
 	"bytes"
-	"encoding/csv"
-	"strings"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
@@ -26,20 +24,6 @@ func runCSV(t *testing.T, reg *content.Registry, seeds, steps int) []byte {
 		t.Fatal(err)
 	}
 	return buf.Bytes()
-}
-
-func TestRunWritesOneRowPerStep(t *testing.T) {
-	data := runCSV(t, load(t), 2, 10)
-	rows, err := csv.NewReader(bytes.NewReader(data)).ReadAll()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got, want := len(rows), 1+2*10; got != want {
-		t.Fatalf("rows = %d, want %d (header plus 20)", got, want)
-	}
-	if strings.Join(rows[0], ",") != strings.Join(harness.Header, ",") {
-		t.Errorf("header = %v", rows[0])
-	}
 }
 
 func TestRunIsByteIdentical(t *testing.T) {

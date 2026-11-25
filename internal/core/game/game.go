@@ -9,7 +9,6 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/agents"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/combat"
@@ -25,14 +24,12 @@ type Config struct {
 	Seed uint64
 	// Content is required.
 	Content *content.Registry
-	// Install, when set, runs after the standard packages are installed and before any map is built
-	// or any body spawned, so the start map's bodies may name the controllers and choosers it
-	// registers. Tests and the harness use it to register hooks. It runs in New and in Load, so it
+	// Install, when set, runs after the standard packages are installed and before the scheduler
+	// freezes. Tests and the harness use it to register hooks. It runs in New and in Load, so it
 	// must not spawn entities.
 	Install func(w *sim.World, clk *clock.Clock) error
-	// Spawn, when set, runs after the start map's bodies are spawned and adds the entities a
-	// scenario needs, such as a test actor. New runs it; Load skips it, because the save holds the
-	// entities.
+	// Spawn, when set, runs after Install and adds the entities a scenario needs, such as a test
+	// actor. New runs it; Load skips it, because the save holds the entities.
 	Spawn func(w *sim.World, clk *clock.Clock) error
 }
 
@@ -54,12 +51,6 @@ func New(cfg Config) (*Game, error) {
 		if err := explore.Start(w); err != nil {
 			return fmt.Errorf("game: start: %w", err)
 		}
-		if err := agents.SpawnRegions(w); err != nil {
-			return fmt.Errorf("game: start: %w", err)
-		}
-		if err := agents.StartLevelOfDetail(w); err != nil {
-			return fmt.Errorf("game: start: %w", err)
-		}
 		return nil
 	}, cfg.Spawn)
 	if err != nil {
@@ -79,8 +70,7 @@ func New(cfg Config) (*Game, error) {
 }
 
 // build is the path New and Load share: an empty world with every package installed, the content
-// checked and the scheduler frozen. scenario builds the maps and their first entities, after
-// cfg.Install.
+// checked and the scheduler frozen. scenario fills the world with its first entities and maps.
 func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World, *clock.Clock) error) (*Game, error) {
 	if cfg.Content == nil {
 		return nil, errors.New("game: no content")
@@ -96,13 +86,13 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 	if err := installAll(g.world, g.clock); err != nil {
 		return nil, fmt.Errorf("game: install: %w", err)
 	}
+	if err := scenario(g.world); err != nil {
+		return nil, err
+	}
 	if cfg.Install != nil {
 		if err := cfg.Install(g.world, g.clock); err != nil {
 			return nil, fmt.Errorf("game: install hook: %w", err)
 		}
-	}
-	if err := scenario(g.world); err != nil {
-		return nil, err
 	}
 	if spawn != nil {
 		if err := spawn(g.world, g.clock); err != nil {
@@ -119,15 +109,12 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 }
 
 // validateContent runs the content checks that need the packages installed: effect primitives and
-// references, action choice providers, and behavior primitives.
+// references, and action choice providers.
 func validateContent(w *sim.World) error {
 	if err := effects.ValidateContent(w); err != nil {
 		return err
 	}
-	if err := actions.ValidateContent(w); err != nil {
-		return err
-	}
-	return agents.ValidateContent(w)
+	return actions.ValidateContent(w)
 }
 
 // SwapContent replaces the game's content with reg, for hot reload in dev builds. It runs the

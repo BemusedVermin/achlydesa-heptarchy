@@ -130,26 +130,3 @@ func TestCellsInSortedAndStable(t *testing.T) {
 		t.Errorf("empty depth range gave %v", got)
 	}
 }
-
-// markedSource is open air with one named cell.
-type markedSource struct {
-	FuncSource
-	name string
-	at   api.Cell
-}
-
-func (s markedSource) Mark(name string) (api.Cell, bool) { return s.at, name == s.name }
-
-func TestMarkComesFromAMarkedSource(t *testing.T) {
-	open := FuncSource(func(api.Cell) Terrain { return air })
-	marked := NewMap(1, "marked", markedSource{FuncSource: open, name: "well", at: cell(3, -2, 0)}, Prisms{})
-	if got, ok := marked.Mark("well"); !ok || got != cell(3, -2, 0) {
-		t.Errorf("Mark(well) = %v, %v; want %v, true", got, ok, cell(3, -2, 0))
-	}
-	if _, ok := marked.Mark("gate"); ok {
-		t.Error("Mark(gate) found a mark the source does not have")
-	}
-	if _, ok := NewMap(2, "plain", open, Prisms{}).Mark("well"); ok {
-		t.Error("a map whose source has no marks found one")
-	}
-}

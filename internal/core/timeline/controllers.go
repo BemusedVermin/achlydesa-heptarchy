@@ -45,13 +45,6 @@ func RegisterController(w *sim.World, name string, c Controller) error {
 	return nil
 }
 
-// ControllerNamed looks up a registered controller, so one controller can hand a decision to another.
-// The reserved player controller is never found, since nothing implements it.
-func ControllerNamed(w *sim.World, name string) (Controller, bool) {
-	c, ok := stateOf(w).controllers[name]
-	return c, ok
-}
-
 // SetChannels replaces how a body's channels are found. The default is one channel, the body
 // itself, tagged "body"; anatomy adds one per attached part.
 func SetChannels(w *sim.World, fn func(w *sim.World, body ecs.Entity) []Channel) {

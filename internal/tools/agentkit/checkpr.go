@@ -5,32 +5,14 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 )
 
 // cleanupID matches the ID of a task in a cleanup milestone, such as C1-03 or C1-03.F1.
 var cleanupID = regexp.MustCompile(`^C\d+-`)
-
-// behaviorChecker runs the same-behavior check in a checkout against base, with the given
-// old=new renames, and returns its report and whether it passed.
-type behaviorChecker func(root, base string, renames []string) (string, bool)
-
-// runSameBehavior runs internal/tools/samebehavior.
-func runSameBehavior(root, base string, renames []string) (string, bool) {
-	args := []string{"run", "./internal/tools/samebehavior", "--base", base}
-	for _, rename := range renames {
-		args = append(args, "--rename", rename)
-	}
-	cmd := exec.Command("go", args...)
-	cmd.Dir = root
-	out, err := cmd.CombinedOutput()
-	return string(out), err == nil
-}
 
 // prCheck is what check-pr found: problems fail the check, warnings and comments don't.
 type prCheck struct {
@@ -44,9 +26,8 @@ type prCheck struct {
 //   - the comments on the lines it changed aren't filler;
 //   - tasks/INDEX.md agrees with every task file;
 //   - on a task branch, the task is done or blocked, with its unticked criteria reported;
-//   - on a cleanup task's branch, a tests task changed only tests and task files, and any other
-//     cleanup task plays exactly as base does, after its declared renames and allowed differences.
-func checkPR(root, branch, base string, sameBehavior behaviorChecker) (prCheck, error) {
+//   - on a cleanup tests task's branch, it changed only tests and task files.
+func checkPR(root, branch, base string) (prCheck, error) {
 	var result prCheck
 	tasks, err := loadTasks(root)
 	if err != nil {
@@ -91,53 +72,10 @@ func checkPR(root, branch, base string, sameBehavior behaviorChecker) (prCheck, 
 		result.warnings = append(result.warnings, fmt.Sprintf(
 			"%s has %d unticked acceptance criteria; its Notes should say why", id, unticked))
 	}
-	if !cleanupID.MatchString(id) {
-		return result, nil
-	}
-	if task.kind == "test" {
+	if cleanupID.MatchString(id) && task.kind == "test" {
 		return result, checkOnlyTests(root, base, id, &result)
 	}
-	report, same := sameBehavior(root, base, task.renames)
-	judgeBehavior(id, strings.TrimSpace(report), same, task.allowedDifferences, &result)
 	return result, nil
-}
-
-// judgeBehavior passes a same-behavior report whose every difference is in allowed, and warns
-// about each allowed difference that didn't happen when the comparison ran. A failed report that
-// lists no differences, such as a build error, always fails.
-func judgeBehavior(id, report string, same bool, allowed []string, result *prCheck) {
-	var found, unexpected []string
-	if !same {
-		for line := range strings.SplitSeq(strings.ReplaceAll(report, "\r\n", "\n"), "\n") {
-			difference, isDifference := strings.CutPrefix(line, "- ")
-			if !isDifference {
-				continue
-			}
-			found = append(found, difference)
-			if !slices.Contains(allowed, difference) {
-				unexpected = append(unexpected, difference)
-			}
-		}
-	}
-	compared := same || len(found) > 0
-	for _, difference := range allowed {
-		if compared && !slices.Contains(found, difference) {
-			result.warnings = append(result.warnings, fmt.Sprintf(
-				"%s allows the difference %q, but it didn't happen", id, difference))
-		}
-	}
-	switch {
-	case same:
-		result.notes = append(result.notes, report)
-	case len(found) > 0 && len(unexpected) == 0:
-		result.notes = append(result.notes, id+" changed behavior only as its allowed_differences say:\n"+report)
-	case len(unexpected) > 0 && len(allowed) > 0:
-		result.problems = append(result.problems, fmt.Sprintf(
-			"%s changed behavior beyond its allowed_differences:\n- %s\n%s",
-			id, strings.Join(unexpected, "\n- "), report))
-	default:
-		result.problems = append(result.problems, id+" changed behavior:\n"+report)
-	}
 }
 
 // commentsSince reviews the comments on the Go lines changed since the branch left base.
@@ -210,7 +148,7 @@ func runCheckPR(args []string, stdout, stderr io.Writer) int {
 	if *branch == "" {
 		*branch = gitRepo{}.branch(root)
 	}
-	result, err := checkPR(root, *branch, *base, runSameBehavior)
+	result, err := checkPR(root, *branch, *base)
 	if err != nil {
 		warn(stderr, "agentkit check-pr:", err)
 		return exitFailed

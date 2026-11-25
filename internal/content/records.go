@@ -35,12 +35,7 @@ func collections() []collection {
 		described(CollectionActions, "action", func(b *Bundle) map[string]ActionDef { return b.Actions },
 			nil, func(a ActionDef) (api.ContentID, bool) { return a.Name, true }),
 		described(CollectionMaps, "map", func(b *Bundle) map[string]MapDef { return b.Maps },
-			func(m MapDef) Data {
-				if m.Region == nil {
-					return Data{}
-				}
-				return m.Region.Data
-			}, func(m MapDef) (api.ContentID, bool) { return m.Name, true }),
+			nil, func(m MapDef) (api.ContentID, bool) { return m.Name, true }),
 		shared(described(
 			CollectionParts,
 			"part",
@@ -67,12 +62,6 @@ func collections() []collection {
 			func(f Faction) Data { return f.Data }, func(f Faction) (api.ContentID, bool) { return f.Name, true }),
 		described(CollectionStatuses, "status", func(b *Bundle) map[string]Status { return b.Statuses },
 			func(s Status) Data { return s.Data }, func(s Status) (api.ContentID, bool) { return s.Name, true }),
-		described(CollectionNeeds, "need", func(b *Bundle) map[string]NeedDef { return b.Needs },
-			nil, func(n NeedDef) (api.ContentID, bool) { return n.Name, true }),
-		described(CollectionBehaviors, "behavior", func(b *Bundle) map[string]BehaviorDef { return b.Behaviors },
-			nil, func(d BehaviorDef) (api.ContentID, bool) { return d.Name, true }),
-		described(CollectionFamilies, "family", func(b *Bundle) map[string]FamilyDef { return b.Families },
-			nil, func(f FamilyDef) (api.ContentID, bool) { return f.Name, true }),
 	}
 }
 

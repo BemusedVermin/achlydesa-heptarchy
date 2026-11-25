@@ -19,8 +19,7 @@ const allTag = "all"
 // BodySet is which bodies a selector means.
 type BodySet string
 
-// The body selectors. Allies, enemies, others and everyone all mean "in sight of the source";
-// witnesses means in sight of the target.
+// The body selectors. Allies, enemies, others and everyone all mean "in sight of the source".
 const (
 	BodiesSelf   BodySet = "self"
 	BodiesTarget BodySet = "target"
@@ -32,13 +31,9 @@ const (
 	BodiesOthers BodySet = "others"
 	// In sight, and the source.
 	BodiesEveryone BodySet = "everyone"
-	// In sight of the target, and the target, whoever the source was.
-	BodiesWitnesses BodySet = "witnesses"
 )
 
-var bodySets = []BodySet{
-	BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, BodiesOthers, BodiesEveryone, BodiesWitnesses,
-}
+var bodySets = []BodySet{BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, BodiesOthers, BodiesEveryone}
 
 // BodySelector is a parsed body selector: a set of bodies, optionally narrowed to those whose
 // template carries a tag, written <set>[<tag>] such as others[crawls].
@@ -120,11 +115,7 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 	case BodiesTarget:
 		out = livingOnly(w, ctx.Target)
 	default:
-		viewer := ctx.Source
-		if s.Set == BodiesWitnesses {
-			viewer = ctx.Target
-		}
-		inSight, err := bodiesInSight(ctx, viewer)
+		inSight, err := bodiesInSight(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +123,7 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 		for _, body := range inSight {
 			isSource := body == ctx.Source
 			switch s.Set {
-			case BodiesEveryone, BodiesWitnesses:
+			case BodiesEveryone:
 				out = append(out, body)
 			case BodiesOthers:
 				if !isSource {
@@ -212,16 +203,16 @@ func livingOnly(w *sim.World, e ecs.Entity) []ecs.Entity {
 }
 
 // bodiesInSight lists the bodies (entities on the timeline with a position) standing in a cell the
-// viewer can see, the viewer itself included. Sight is hexmap.Visible out to the party's sight
+// source can see, the source itself included. Sight is hexmap.Visible out to the party's sight
 // radius, and as many depths up and down, until content says otherwise.
-func bodiesInSight(ctx *Context, viewer ecs.Entity) ([]ecs.Entity, error) {
+func bodiesInSight(ctx *Context) ([]ecs.Entity, error) {
 	w := ctx.World
 	st := stateOf(w)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if !w.Alive(viewer) || !positions.Has(viewer) || st.maps == nil {
+	if !w.Alive(ctx.Source) || !positions.Has(ctx.Source) || st.maps == nil {
 		return nil, nil
 	}
-	from := positions.Get(viewer)
+	from := positions.Get(ctx.Source)
 	m := st.maps(from.Map)
 	if m == nil {
 		return nil, nil

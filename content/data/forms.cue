@@ -17,7 +17,7 @@ actions: {
 		uses: [{tag: "grant:action", count: 1}]
 		target: "part"
 		choices: ["type"]
-		windup:   "3 + rule.lag"
+		windup:   "3"
 		recovery: "4"
 		on_land: [{do: "damage", params: {parts: "target_part", amount: "rule.hit"}}]
 	}
@@ -28,7 +28,7 @@ actions: {
 		uses: [{tag: "grant:action", count: 2}]
 		target: "body"
 		choices: ["type"]
-		windup:   "4 + rule.lag"
+		windup:   "4"
 		recovery: "5"
 		on_land: [
 			{do: "damage", params: {parts: "target:all", amount: "rule.graze"}},
@@ -44,7 +44,7 @@ actions: {
 		uses: [{tag: "grant:action", count: 1}]
 		target: "part"
 		choices: ["type"]
-		windup:   "2 + rule.lag"
+		windup:   "2"
 		recovery: "5"
 		on_land: [
 			{do: "damage", params: {parts: "target_part", amount: "rule.immune ? 0 : 1"}},
@@ -56,7 +56,7 @@ actions: {
 		key:  "pin"
 		uses: [{tag: "grant:action", count: 1}]
 		target:   "part"
-		windup:   "1 + rule.lag"
+		windup:   "1"
 		recovery: "3"
 		on_land: [{do: "lock", params: {channels: "target_part", ticks: "8"}}]
 	}
@@ -100,7 +100,7 @@ actions: {
 		sight:  true
 		choices: ["piece"]
 		requires: "\"graftable\" in target.template.tags"
-		windup:   "6 + rule.lag"
+		windup:   "6"
 		recovery: "6"
 		on_land: [{do: "attach_part", params: {from: "inventory", item: "= chosen.piece.id"}}]
 		tags: ["form", "support", "graft"]

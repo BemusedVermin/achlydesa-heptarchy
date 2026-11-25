@@ -12,7 +12,6 @@ func installLabels(w *sim.World) error {
 			Actions:   w.Content.Render(api.Text{ID: "text.game.actions"}),
 			Look:      w.Content.Render(api.Text{ID: "text.game.look"}),
 			LookEmpty: w.Content.Render(api.Text{ID: "text.game.look_empty"}),
-			Stock:     w.Content.Render(api.Text{ID: "text.game.stock"}),
 		}
 		return nil
 	}})

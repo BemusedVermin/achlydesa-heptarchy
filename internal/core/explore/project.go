@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
-	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -66,7 +65,6 @@ func buildParty(w *sim.World, v *api.View) error {
 			look := appearances.Get(member)
 			item.Glyph, item.Color = look.Glyph, look.Color
 		}
-		item.Needs = needLines(w, member)
 		view.Members = append(view.Members, item)
 	}
 	if state.Alert {
@@ -80,25 +78,6 @@ func buildParty(w *sim.World, v *api.View) error {
 	}
 	v.Party = view
 	return nil
-}
-
-// needLines renders each of the member's needs as its name and level.
-func needLines(w *sim.World, member ecs.Entity) []string {
-	needs := ecs.NewMap[comp.Needs](w.ECS)
-	if !needs.Has(member) {
-		return nil
-	}
-	var lines []string
-	for _, held := range needs.Get(member).Levels {
-		def, ok := w.Content.Need(held.Need)
-		if !ok {
-			continue
-		}
-		lines = append(lines, w.Content.Render(api.Text{ID: "text.explore.need", Args: map[string]string{
-			"need": w.Content.Render(api.Text{ID: def.Name}), "percent": strconv.Itoa(int(held.Level * 100)),
-		}}))
-	}
-	return lines
 }
 
 // column is the cells of one hex worth considering, by depth.

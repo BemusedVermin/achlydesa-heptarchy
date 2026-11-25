@@ -22,9 +22,6 @@ import (
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
 	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
 	start: #Start @go(Start)
-
-	// Starts are named scenarios ("start." IDs) a run may begin on instead of Start.
-	starts?: {[string]: #Start} @go(Starts,map[string]Start)
 	claims: {[string]: #Claim} @go(Claims,map[string]Claim)
 	origins: {[string]: #Origin} @go(Origins,map[string]Origin)
 
@@ -40,18 +37,6 @@ import (
 
 	// Statuses are the conditions a body can be under for a while ("status." IDs).
 	statuses: {[string]: #Status} @go(Statuses,map[string]Status)
-
-	// Needs are what bodies run low on ("need." IDs); a template says which ones its bodies carry.
-	needs: {[string]: #NeedDef} @go(Needs,map[string]NeedDef)
-
-	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
-	// bodies weigh.
-	behaviors: {[string]: #BehaviorDef} @go(Behaviors,map[string]BehaviorDef)
-
-	// Families are the kinds of creature a region counts off screen ("family." IDs).
-	families: {[string]: #FamilyDef} @go(Families,map[string]FamilyDef)
-	agents:   #AgentsConfig   @go(Agents)
-	recruits: #RecruitsConfig @go(Recruits)
 
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	rules?: {[string]: string} @go(Rules,map[string]string)
@@ -284,178 +269,6 @@ import (
 
 	// Faction is the side ("faction." ID) a body of this template fights for.
 	faction?: null | api.#ContentID @go(Faction,*api.ContentID)
-
-	// Needs maps each need ("need." ID) a body of this template carries to its starting level, 0 to 1.
-	needs?: {[string]: float64} @go(Needs,map[string]float64)
-
-	// Behaviors lists the behaviors ("behavior." IDs) the agents controller weighs for a body of this
-	// template.
-	behaviors?: [...api.#ContentID] @go(Behaviors,[]api.ContentID)
-
-	// Recruit makes a body of this template hirable by the party.
-	recruit?: null | #RecruitDef @go(Recruit,*RecruitDef)
-}
-
-// RecruitDef is what a hirable person asks for.
-#RecruitDef: {
-	// Wants are the items hiring costs, at base counts; each count is multiplied by Worth.
-	wants: [...#StackDef] @go(Wants,[]StackDef)
-
-	// Worth is an Expr float over BodyEnv: what the recruit brings. The price is each want's count
-	// times Worth, rounded up.
-	worth: string @go(Worth)
-
-	// Upkeep is what the recruit wants each day after hiring.
-	upkeep?: [...#StackDef] @go(Upkeep,[]StackDef)
-}
-
-// RecruitsConfig holds the numbers that keep recruits in the party.
-#RecruitsConfig: {
-	// GrumbleAt is the discontent at which a recruit grumbles, once a day.
-	grumble_at: int @go(GrumbleAt)
-
-	// DesertAt is the discontent at which a recruit deserts.
-	desert_at: int @go(DesertAt)
-
-	// FleeAt is the terror level, 0 to 1, at or above which a recruit flees.
-	flee_at: float64 @go(FleeAt)
-
-	// TerrorNeed is the need ("need." ID) whose level is a recruit's terror.
-	terror_need: api.#ContentID @go(TerrorNeed)
-
-	// FleeBehavior is the behavior ("behavior." ID) a fleeing recruit does, whatever its template lists.
-	flee_behavior: api.#ContentID @go(FleeBehavior)
-
-	// DesertersFaction is the faction ("faction." ID) a deserter joins.
-	deserters_faction: api.#ContentID @go(DesertersFaction)
-}
-
-// BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a
-// template lists and runs one step of the best.
-#BehaviorDef: {
-	// Name is a text ID.
-	name: api.#ContentID @go(Name)
-
-	// Do names a registered behavior primitive.
-	do: string @go(Do)
-
-	// Params are Expr sources or IDs, as the primitive declares.
-	params?: {[string]: string} @go(Params,map[string]string)
-
-	// Consider are Expr floats over ConsiderEnv. The score is their product, 1 when there are none.
-	consider?: [...string] @go(Consider,[]string)
-
-	// Rank is an Expr float over RankEnv. A primitive that picks among options, such as the gates
-	// of a map, takes the option that ranks highest.
-	rank?: string @go(Rank)
-
-	// Target is what the behavior goes for: the nearest match on the agent's map. Nil means nothing.
-	target?: null | #TargetDef @go(Target,*TargetDef)
-}
-
-// BehaviorTargetKind is what a behavior goes for.
-#BehaviorTargetKind: #enumBehaviorTargetKind
-
-#enumBehaviorTargetKind:
-	#BehaviorTargetBody |
-	#BehaviorTargetMark |
-	#BehaviorTargetCell
-
-#BehaviorTargetBody: #BehaviorTargetKind & "body"
-#BehaviorTargetMark: #BehaviorTargetKind & "mark"
-#BehaviorTargetCell: #BehaviorTargetKind & "cell"
-
-// TargetDef is a filter for what a behavior goes for. Each field after Kind applies only to the kind
-// it names.
-#TargetDef: {
-	kind: #BehaviorTargetKind @go(Kind)
-
-	// Tags are template tags a body must all have.
-	tags?: [...string] @go(Tags,[]string)
-
-	// Dead asks for a dead or a living body; nil takes either.
-	dead?: null | bool @go(Dead,*bool)
-
-	// Hostile asks for a body hostile, or not, to the agent; nil takes either.
-	hostile?: null | bool @go(Hostile,*bool)
-
-	// Mark names a mark of the agent's map; required for a mark.
-	mark?: string @go(Mark)
-
-	// Terrain is the cell's terrain ("terrain." ID); required for a cell.
-	terrain?: api.#ContentID @go(Terrain)
-}
-
-// AgentsConfig holds the numbers every agent shares.
-#AgentsConfig: {
-	// KeepBonus is added to the score of the behavior an agent is already doing, so it does not
-	// switch back and forth between behaviors that score about the same.
-	keep_bonus: float64 @go(KeepBonus)
-
-	// CellRadius is how far an agent looks for a cell target, in hexes and in depths.
-	cell_radius: int @go(CellRadius)
-
-	// ScoreRule names the rule (without "rule.") that rates an intent for a body whose template
-	// picks attacks with the agents chooser; it is an Expr over ScoreEnv.
-	score_rule: string @go(ScoreRule)
-
-	// DyingBelow is the fraction of its integrity at or below which a vital part marks its body as
-	// dying, as target.dying reads in a formula.
-	dying_below: float64 @go(DyingBelow)
-
-	// PromoteRadius is how far from a mark, or from the party, a promoted body may be placed, in
-	// hexes.
-	promote_radius: int @go(PromoteRadius)
-}
-
-// FamilyDef is a kind of creature that a region holds as a count while the party is away, and as
-// bodies while it is there.
-#FamilyDef: {
-	// Name is a text ID.
-	name: api.#ContentID @go(Name)
-
-	// Templates are the templates a promoted member may be, chosen by weight.
-	templates: [...#Weighted] @go(Templates,[]Weighted)
-
-	// Marks are the names of map marks members appear at; empty means any open cell.
-	marks?: [...string] @go(Marks,[]string)
-
-	// Drift is an Expr float over DriftEnv: the fraction of the family's count in a region that moves
-	// to one neighbour each phase while the party is elsewhere. Empty means none.
-	drift?: string @go(Drift)
-
-	// Attrition is an Expr float over AttritionEnv: how many of the family in a region die each phase
-	// while the party is elsewhere. Empty means none.
-	attrition?: string @go(Attrition)
-}
-
-// Weighted is a template and the weight it is chosen with.
-#Weighted: {
-	template: api.#ContentID @go(Template)
-	weight:   int            @go(Weight)
-}
-
-// NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
-// (desperate) and rises at every day-phase boundary.
-#NeedDef: {
-	// Name is a text ID.
-	name: api.#ContentID @go(Name)
-
-	// Rise is an Expr float over NeedEnv: how much the level rises per phase.
-	rise: string @go(Rise)
-
-	// Urge is an Expr float over NeedEnv: how pressing the need is at this level, 0 to 1.
-	urge: string @go(Urge)
-
-	// Thresholds are in ascending At.
-	thresholds?: [...#Threshold] @go(Thresholds,[]Threshold)
-}
-
-// Threshold applies effects to a body once per phase while its level of the need is at least At.
-// The body is both source and target.
-#Threshold: {
-	at: float64 @go(At)
-	do: [...#EffectRef] @go(Do,[]EffectRef)
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.
@@ -465,17 +278,12 @@ import (
 	#RoleSource |
 	#RoleTarget |
 	#RolePart |
-	#RoleAny |
-	#RoleWitness
+	#RoleAny
 
 #RoleSource: #TriggerRole & "source"
 #RoleTarget: #TriggerRole & "target"
 #RolePart:   #TriggerRole & "part"
 #RoleAny:    #TriggerRole & "any"
-
-// RoleWitness is a body that stands in sight of the event's target, and is not the target. The
-// witness is the source of its trigger's effects; the target and part stay the event's.
-#RoleWitness: #TriggerRole & "witness"
 
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
@@ -558,10 +366,6 @@ import (
 	// StepAction is the action ("action." ID) a hunting creature closes in with; it targets a direction.
 	step_action: api.#ContentID @go(StepAction)
 
-	// CorpseTag is the action tag that lets a body, ally or part target be a dead body as well as a
-	// living one.
-	corpse_tag: string @go(CorpseTag)
-
 	// MaterialClaim is the claim ("claim." ID) that says what a part is made of, so the bodies view
 	// can show "?" until the party has learned it. Empty means no material is ever known.
 	material_claim: api.#ContentID @go(MaterialClaim)
@@ -571,9 +375,6 @@ import (
 #MapDef: {
 	// Name is a text ID.
 	name: api.#ContentID @go(Name)
-
-	// Tags are free words formulas read as source.map_tags, such as "town".
-	tags?: [...string] @go(Tags,[]string)
 
 	// Fill is the terrain of every cell not authored, forever in every direction.
 	fill: api.#ContentID @go(Fill)
@@ -592,74 +393,6 @@ import (
 	// such character at the start, in row order, and the character may appear any number of times
 	// (at least once). Each character must also be one of Marks, so the layers may use it.
 	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
-
-	// Gates maps a mark character to the gate it is: each such character in the layers leads to a
-	// mark of another map. Each character must also be one of Marks, so the layers may use it.
-	gates?: {[string]: #GateDef} @go(Gates,map[string]GateDef)
-
-	// Region is what the map is as a region of the world. Every map is a region, named by the map's
-	// name; a map without one is a region with no data that is not a town.
-	region?: null | #RegionDef @go(Region,*RegionDef)
-}
-
-// RegionDef is a map's region: the data formulas read about it, such as its decay, and its town
-// when it is one.
-#RegionDef: {
-	#Data
-	town?: null | #TownDef @go(Town,*TownDef)
-
-	// Populations maps each family ("family." ID) to how many of it the region starts with.
-	populations?: {[string]: int} @go(Populations,map[string]int)
-}
-
-// TownDef makes a region a town, whose stock the region entity holds as its inventory.
-#TownDef: {
-	// Stock is what the stock starts with.
-	stock?: [...#StackDef] @go(Stock,[]StackDef)
-
-	// StockMarks are marks of the map where carried goods go into the stock. Each is a plain mark,
-	// not a spawn or a gate.
-	stock_marks?: [...string] @go(StockMarks,[]string)
-
-	// Residents is the family ("family." ID) whose count in the region is the town's residents. It is
-	// required when the town uses stock.
-	residents?: api.#ContentID @go(Residents)
-
-	// Use is what each resident spends from the stock every phase while the party is away.
-	use?: [...#StackDef] @go(Use,[]StackDef)
-
-	// Refill is what the stock gains every phase while the party is away.
-	refill?: [...#StackDef] @go(Refill,[]StackDef)
-
-	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
-	// to 1.
-	exodus?: float64 @go(Exodus)
-
-	// Generics are the people the town keeps, replaced on a timer. It needs residents.
-	generics?: [...#GenericDef] @go(Generics,[]GenericDef)
-}
-
-// GenericDef is one kind of generic person a town keeps.
-#GenericDef: {
-	// Template is the template ("template." ID) of the generic. Exactly one family lists it, as its
-	// only template, and that family's count is how many the town holds off screen.
-	template: api.#ContentID @go(Template)
-
-	// Count is how many of it the town keeps.
-	count: int @go(Count)
-
-	// Ticks is how long after one is lost its replacement arrives.
-	ticks: int64 @go(Ticks)
-}
-
-// GateDef is where a gate leads.
-#GateDef: {
-	// To is the ID of the destination map ("map." ID).
-	to: api.#ContentID @go(To)
-
-	// Mark names the cell of the destination map where arrivals are set down; it must be a plain
-	// mark, not a spawn or a gate.
-	mark: string @go(Mark)
 }
 
 // LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per
@@ -699,9 +432,6 @@ import (
 #ActorDef: {
 	// Controller is "player", "follow", "idle", ...
 	controller: string @go(Controller)
-
-	// Chooser names the registered chooser the body's attacks are picked with; empty means "score".
-	chooser?: string @go(Chooser)
 }
 
 // EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for
@@ -728,10 +458,7 @@ import (
 	#CollectionTypes |
 	#CollectionItems |
 	#CollectionFactions |
-	#CollectionStatuses |
-	#CollectionNeeds |
-	#CollectionBehaviors |
-	#CollectionFamilies
+	#CollectionStatuses
 
 #CollectionMaterials: #Collection & "materials"
 #CollectionTerrains:  #Collection & "terrains"
@@ -747,9 +474,6 @@ import (
 #CollectionItems:     #Collection & "items"
 #CollectionFactions:  #Collection & "factions"
 #CollectionStatuses:  #Collection & "statuses"
-#CollectionNeeds:     #Collection & "needs"
-#CollectionBehaviors: #Collection & "behaviors"
-#CollectionFamilies:  #Collection & "families"
 
 // TargetKind is what an action targets.
 #TargetKind: #enumTargetKind
@@ -794,15 +518,8 @@ import (
 	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	choices?: [...string] @go(Choices,[]string)
 
-	// Requires is an Expr bool over ActionEnv; false leaves the action out of the menu.
+	// Requires is an Expr bool over ActionEnv.
 	requires?: string @go(Requires)
-
-	// Allowed is an Expr bool over ActionEnv; false keeps the action in the menu but disabled, with
-	// Refusal as the reason. Empty allows it.
-	allowed?: string @go(Allowed)
-
-	// Refusal is a text ID; empty means text.actions.requires.
-	refusal?: api.#ContentID @go(Refusal)
 
 	// Windup is an Expr for ticks before it lands; 0 lands at once.
 	windup: string @go(Windup)

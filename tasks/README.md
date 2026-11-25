@@ -10,7 +10,7 @@ tasks/
 ├── TEMPLATE.md           # copy this for new tasks and follow-ups
 ├── M1-skeleton/          # README.md (milestone brief) + one file per task
 ├── M2-combat/
-├── M3-agents/ ... M8-tuning/   # briefs only until the milestone is broken down
+├── M3-agents/ ... M9-tuning/   # briefs only until the milestone is broken down
 ├── post-mvp/             # post-MVP milestones, one folder each
 └── followups/            # tasks agents filed while working; triaged by the owner
 ```
@@ -22,7 +22,7 @@ tasks/
 id: M1-03
 title: "sim: world, event bus and system scheduler"   # quote titles that contain a colon
 status: todo            # proposed | todo | in-progress | blocked | done | obsolete
-milestone: M1           # M1..M8, a cleanup milestone (C1, C2, ...), a post-MVP milestone (PM-STORY), or unplanned
+milestone: M1           # M1..M9, a cleanup milestone (C1, C2, ...), a post-MVP milestone (PM-STORY), or unplanned
 kind: feature           # feature | seam | bug | debt | test | content | question
 depends_on: [M1-01]
 discovered_by: null     # the task ID that filed it, for follow-ups
@@ -87,7 +87,7 @@ Between milestones, the owner runs a cleanup: `/audit` has read-only agents look
 
 Developer tools (`internal/tools/` and what they run) are excluded from cleanups: `/audit` does not sweep them, and a cleanup task does not touch them.
 
-Every cleanup task must show it changed no behavior: `go tool task same-behavior` plays the same harness games on `origin/master` and on the working tree, and compares the CSV, the final hashes and the golden files. A rename task lists its renames in its front matter (`renames: [old=new, ...]`), so the comparison allows exactly those. A task whose Spec changes behavior on purpose, such as deleting a golden file, lists each line of the same-behavior report it expects in `allowed_differences` (for example `allowed_differences: ["internal/core/combat/testdata/hunt.golden: golden file removed"]`); check-pr passes when every difference is listed, fails on any other, and warns about a listed one that didn't happen. A tests task (`kind: test`) instead changes only tests. `go tool task check-pr` picks the right check from the branch's task, and CI runs it on every pull request, along with the task bookkeeping checks.
+A cleanup task changes no behavior on purpose; its Notes name any change it makes anyway. A tests task (`kind: test`) changes only tests, which `go tool task check-pr` checks, and CI runs it on every pull request, along with the task bookkeeping checks.
 
 ## Writing a task spec
 

@@ -18,10 +18,8 @@ type Bundle struct {
 	Actions   map[string]ActionDef `json:"actions"`
 	Maps      map[string]MapDef    `json:"maps"`
 	Start     Start                `json:"start"`
-	// Starts are named scenarios ("start." IDs) a run may begin on instead of Start.
-	Starts  map[string]Start  `json:"starts,omitempty"`
-	Claims  map[string]Claim  `json:"claims"`
-	Origins map[string]Origin `json:"origins"`
+	Claims    map[string]Claim     `json:"claims"`
+	Origins   map[string]Origin    `json:"origins"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
@@ -32,15 +30,6 @@ type Bundle struct {
 	Factions map[string]Faction `json:"factions"`
 	// Statuses are the conditions a body can be under for a while ("status." IDs).
 	Statuses map[string]Status `json:"statuses"`
-	// Needs are what bodies run low on ("need." IDs); a template says which ones its bodies carry.
-	Needs map[string]NeedDef `json:"needs"`
-	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
-	// bodies weigh.
-	Behaviors map[string]BehaviorDef `json:"behaviors"`
-	// Families are the kinds of creature a region counts off screen ("family." IDs).
-	Families map[string]FamilyDef `json:"families"`
-	Agents   AgentsConfig         `json:"agents"`
-	Recruits RecruitsConfig       `json:"recruits"`
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	Rules map[string]string `json:"rules,omitempty"`
 	// Choices are the choices actions may ask for, served from a collection of records.
@@ -203,15 +192,6 @@ type Calendar struct {
 	Phases []Phase `json:"phases"`
 }
 
-// DayTicks is how long a day lasts.
-func (c Calendar) DayTicks() int64 {
-	var total int64
-	for _, phase := range c.Phases {
-		total += phase.Ticks
-	}
-	return total
-}
-
 // Phase is one part of the day, such as dawn.
 type Phase struct {
 	// ID is like "phase.dawn".
@@ -242,151 +222,6 @@ type Template struct {
 	Triggers []Trigger `json:"triggers,omitempty"`
 	// Faction is the side ("faction." ID) a body of this template fights for.
 	Faction *api.ContentID `json:"faction,omitempty"`
-	// Needs maps each need ("need." ID) a body of this template carries to its starting level, 0 to 1.
-	Needs map[string]float64 `json:"needs,omitempty"`
-	// Behaviors lists the behaviors ("behavior." IDs) the agents controller weighs for a body of this
-	// template.
-	Behaviors []api.ContentID `json:"behaviors,omitempty"`
-	// Recruit makes a body of this template hirable by the party.
-	Recruit *RecruitDef `json:"recruit,omitempty"`
-}
-
-// RecruitDef is what a hirable person asks for.
-type RecruitDef struct {
-	// Wants are the items hiring costs, at base counts; each count is multiplied by Worth.
-	Wants []StackDef `json:"wants"`
-	// Worth is an Expr float over BodyEnv: what the recruit brings. The price is each want's count
-	// times Worth, rounded up.
-	Worth string `json:"worth"`
-	// Upkeep is what the recruit wants each day after hiring.
-	Upkeep []StackDef `json:"upkeep,omitempty"`
-}
-
-// RecruitsConfig holds the numbers that keep recruits in the party.
-type RecruitsConfig struct {
-	// GrumbleAt is the discontent at which a recruit grumbles, once a day.
-	GrumbleAt int `json:"grumble_at"`
-	// DesertAt is the discontent at which a recruit deserts.
-	DesertAt int `json:"desert_at"`
-	// FleeAt is the terror level, 0 to 1, at or above which a recruit flees.
-	FleeAt float64 `json:"flee_at"`
-	// TerrorNeed is the need ("need." ID) whose level is a recruit's terror.
-	TerrorNeed api.ContentID `json:"terror_need"`
-	// FleeBehavior is the behavior ("behavior." ID) a fleeing recruit does, whatever its template lists.
-	FleeBehavior api.ContentID `json:"flee_behavior"`
-	// DesertersFaction is the faction ("faction." ID) a deserter joins.
-	DesertersFaction api.ContentID `json:"deserters_faction"`
-}
-
-// BehaviorDef is something an agent may choose to do. The agents controller scores each behavior a
-// template lists and runs one step of the best.
-type BehaviorDef struct {
-	// Name is a text ID.
-	Name api.ContentID `json:"name"`
-	// Do names a registered behavior primitive.
-	Do string `json:"do"`
-	// Params are Expr sources or IDs, as the primitive declares.
-	Params map[string]string `json:"params,omitempty"`
-	// Consider are Expr floats over ConsiderEnv. The score is their product, 1 when there are none.
-	Consider []string `json:"consider,omitempty"`
-	// Rank is an Expr float over RankEnv. A primitive that picks among options, such as the gates
-	// of a map, takes the option that ranks highest.
-	Rank string `json:"rank,omitempty"`
-	// Target is what the behavior goes for: the nearest match on the agent's map. Nil means nothing.
-	Target *TargetDef `json:"target,omitempty"`
-}
-
-// BehaviorTargetKind is what a behavior goes for.
-type BehaviorTargetKind string
-
-// Kinds of a behavior's target.
-const (
-	BehaviorTargetBody BehaviorTargetKind = "body"
-	BehaviorTargetMark BehaviorTargetKind = "mark"
-	BehaviorTargetCell BehaviorTargetKind = "cell"
-)
-
-// behaviorTargetKinds lists the kinds a behavior's target may name, for bundles built in Go, which
-// skip the schema.
-func behaviorTargetKinds() []BehaviorTargetKind {
-	return []BehaviorTargetKind{BehaviorTargetBody, BehaviorTargetMark, BehaviorTargetCell}
-}
-
-// TargetDef is a filter for what a behavior goes for. Each field after Kind applies only to the kind
-// it names.
-type TargetDef struct {
-	Kind BehaviorTargetKind `json:"kind"`
-	// Tags are template tags a body must all have.
-	Tags []string `json:"tags,omitempty"`
-	// Dead asks for a dead or a living body; nil takes either.
-	Dead *bool `json:"dead,omitempty"`
-	// Hostile asks for a body hostile, or not, to the agent; nil takes either.
-	Hostile *bool `json:"hostile,omitempty"`
-	// Mark names a mark of the agent's map; required for a mark.
-	Mark string `json:"mark,omitempty"`
-	// Terrain is the cell's terrain ("terrain." ID); required for a cell.
-	Terrain api.ContentID `json:"terrain,omitempty"`
-}
-
-// AgentsConfig holds the numbers every agent shares.
-type AgentsConfig struct {
-	// KeepBonus is added to the score of the behavior an agent is already doing, so it does not
-	// switch back and forth between behaviors that score about the same.
-	KeepBonus float64 `json:"keep_bonus"`
-	// CellRadius is how far an agent looks for a cell target, in hexes and in depths.
-	CellRadius int `json:"cell_radius"`
-	// ScoreRule names the rule (without "rule.") that rates an intent for a body whose template
-	// picks attacks with the agents chooser; it is an Expr over ScoreEnv.
-	ScoreRule string `json:"score_rule"`
-	// DyingBelow is the fraction of its integrity at or below which a vital part marks its body as
-	// dying, as target.dying reads in a formula.
-	DyingBelow float64 `json:"dying_below"`
-	// PromoteRadius is how far from a mark, or from the party, a promoted body may be placed, in
-	// hexes.
-	PromoteRadius int `json:"promote_radius"`
-}
-
-// FamilyDef is a kind of creature that a region holds as a count while the party is away, and as
-// bodies while it is there.
-type FamilyDef struct {
-	// Name is a text ID.
-	Name api.ContentID `json:"name"`
-	// Templates are the templates a promoted member may be, chosen by weight.
-	Templates []Weighted `json:"templates"`
-	// Marks are the names of map marks members appear at; empty means any open cell.
-	Marks []string `json:"marks,omitempty"`
-	// Drift is an Expr float over DriftEnv: the fraction of the family's count in a region that moves
-	// to one neighbour each phase while the party is elsewhere. Empty means none.
-	Drift string `json:"drift,omitempty"`
-	// Attrition is an Expr float over AttritionEnv: how many of the family in a region die each phase
-	// while the party is elsewhere. Empty means none.
-	Attrition string `json:"attrition,omitempty"`
-}
-
-// Weighted is a template and the weight it is chosen with.
-type Weighted struct {
-	Template api.ContentID `json:"template"`
-	Weight   int           `json:"weight"`
-}
-
-// NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
-// (desperate) and rises at every day-phase boundary.
-type NeedDef struct {
-	// Name is a text ID.
-	Name api.ContentID `json:"name"`
-	// Rise is an Expr float over NeedEnv: how much the level rises per phase.
-	Rise string `json:"rise"`
-	// Urge is an Expr float over NeedEnv: how pressing the need is at this level, 0 to 1.
-	Urge string `json:"urge"`
-	// Thresholds are in ascending At.
-	Thresholds []Threshold `json:"thresholds,omitempty"`
-}
-
-// Threshold applies effects to a body once per phase while its level of the need is at least At.
-// The body is both source and target.
-type Threshold struct {
-	At float64     `json:"at"`
-	Do []EffectRef `json:"do"`
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.
@@ -398,15 +233,10 @@ const (
 	RoleTarget TriggerRole = "target"
 	RolePart   TriggerRole = "part"
 	RoleAny    TriggerRole = "any"
-	// RoleWitness is a body that stands in sight of the event's target, and is not the target. The
-	// witness is the source of its trigger's effects; the target and part stay the event's.
-	RoleWitness TriggerRole = "witness"
 )
 
 // triggerRoles lists the roles a trigger may name, for bundles built in Go, which skip the schema.
-func triggerRoles() []TriggerRole {
-	return []TriggerRole{RoleSource, RoleTarget, RolePart, RoleAny, RoleWitness}
-}
+func triggerRoles() []TriggerRole { return []TriggerRole{RoleSource, RoleTarget, RolePart, RoleAny} }
 
 // Trigger says "when this event happens to me, if this holds, do these effects". It lives on a
 // template, material, status or item; the entities that carry that thing run it.
@@ -472,9 +302,6 @@ type CombatConfig struct {
 	AttackTag string `json:"attack_tag"`
 	// StepAction is the action ("action." ID) a hunting creature closes in with; it targets a direction.
 	StepAction api.ContentID `json:"step_action"`
-	// CorpseTag is the action tag that lets a body, ally or part target be a dead body as well as a
-	// living one.
-	CorpseTag string `json:"corpse_tag"`
 	// MaterialClaim is the claim ("claim." ID) that says what a part is made of, so the bodies view
 	// can show "?" until the party has learned it. Empty means no material is ever known.
 	MaterialClaim api.ContentID `json:"material_claim"`
@@ -484,8 +311,6 @@ type CombatConfig struct {
 type MapDef struct {
 	// Name is a text ID.
 	Name api.ContentID `json:"name"`
-	// Tags are free words formulas read as source.map_tags, such as "town".
-	Tags []string `json:"tags,omitempty"`
 	// Fill is the terrain of every cell not authored, forever in every direction.
 	Fill api.ContentID `json:"fill"`
 	// Open is the terrain of a marked cell, usually air.
@@ -499,62 +324,6 @@ type MapDef struct {
 	// such character at the start, in row order, and the character may appear any number of times
 	// (at least once). Each character must also be one of Marks, so the layers may use it.
 	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
-	// Gates maps a mark character to the gate it is: each such character in the layers leads to a
-	// mark of another map. Each character must also be one of Marks, so the layers may use it.
-	Gates map[string]GateDef `json:"gates,omitempty"`
-	// Region is what the map is as a region of the world. Every map is a region, named by the map's
-	// name; a map without one is a region with no data that is not a town.
-	Region *RegionDef `json:"region,omitempty"`
-}
-
-// RegionDef is a map's region: the data formulas read about it, such as its decay, and its town
-// when it is one.
-type RegionDef struct {
-	Data
-	Town *TownDef `json:"town,omitempty"`
-	// Populations maps each family ("family." ID) to how many of it the region starts with.
-	Populations map[string]int `json:"populations,omitempty"`
-}
-
-// TownDef makes a region a town, whose stock the region entity holds as its inventory.
-type TownDef struct {
-	// Stock is what the stock starts with.
-	Stock []StackDef `json:"stock,omitempty"`
-	// StockMarks are marks of the map where carried goods go into the stock. Each is a plain mark,
-	// not a spawn or a gate.
-	StockMarks []string `json:"stock_marks,omitempty"`
-	// Residents is the family ("family." ID) whose count in the region is the town's residents. It is
-	// required when the town uses stock.
-	Residents api.ContentID `json:"residents,omitempty"`
-	// Use is what each resident spends from the stock every phase while the party is away.
-	Use []StackDef `json:"use,omitempty"`
-	// Refill is what the stock gains every phase while the party is away.
-	Refill []StackDef `json:"refill,omitempty"`
-	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
-	// to 1.
-	Exodus float64 `json:"exodus,omitempty"`
-	// Generics are the people the town keeps, replaced on a timer. It needs residents.
-	Generics []GenericDef `json:"generics,omitempty"`
-}
-
-// GenericDef is one kind of generic person a town keeps.
-type GenericDef struct {
-	// Template is the template ("template." ID) of the generic. Exactly one family lists it, as its
-	// only template, and that family's count is how many the town holds off screen.
-	Template api.ContentID `json:"template"`
-	// Count is how many of it the town keeps.
-	Count int `json:"count"`
-	// Ticks is how long after one is lost its replacement arrives.
-	Ticks int64 `json:"ticks"`
-}
-
-// GateDef is where a gate leads.
-type GateDef struct {
-	// To is the ID of the destination map ("map." ID).
-	To api.ContentID `json:"to"`
-	// Mark names the cell of the destination map where arrivals are set down; it must be a plain
-	// mark, not a spawn or a gate.
-	Mark string `json:"mark"`
 }
 
 // LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per
@@ -589,8 +358,6 @@ type TimelineConfig struct {
 type ActorDef struct {
 	// Controller is "player", "follow", "idle", ...
 	Controller string `json:"controller"`
-	// Chooser names the registered chooser the body's attacks are picked with; empty means "score".
-	Chooser string `json:"chooser,omitempty"`
 }
 
 // EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for
@@ -619,9 +386,6 @@ const (
 	CollectionItems     Collection = "items"
 	CollectionFactions  Collection = "factions"
 	CollectionStatuses  Collection = "statuses"
-	CollectionNeeds     Collection = "needs"
-	CollectionBehaviors Collection = "behaviors"
-	CollectionFamilies  Collection = "families"
 )
 
 // TargetKind is what an action targets.
@@ -661,13 +425,8 @@ type ActionDef struct {
 	Sight bool `json:"sight,omitempty"`
 	// Choices are extra choices the player makes, by provider name, e.g. "type".
 	Choices []string `json:"choices,omitempty"`
-	// Requires is an Expr bool over ActionEnv; false leaves the action out of the menu.
+	// Requires is an Expr bool over ActionEnv.
 	Requires string `json:"requires,omitempty"`
-	// Allowed is an Expr bool over ActionEnv; false keeps the action in the menu but disabled, with
-	// Refusal as the reason. Empty allows it.
-	Allowed string `json:"allowed,omitempty"`
-	// Refusal is a text ID; empty means text.actions.requires.
-	Refusal api.ContentID `json:"refusal,omitempty"`
 	// Windup is an Expr for ticks before it lands; 0 lands at once.
 	Windup string `json:"windup"`
 	// Recovery is an Expr for ticks the used channels stay busy after landing.

@@ -1,5 +1,7 @@
 # M3 · Agents
 
+**Reverted on 2026-11-25 (M4-01).** M3 put AI before the world existed and hard-coded behavior around stand-in maps. Its code and content are gone; what to add back is listed in `tasks/M4-world/M4-01-revert-m3.md`. The tasks below record what was built.
+
 **Goal:** monsters and people act on their needs: on screen as full agents, off screen as region and town aggregates. Generic NPCs are replaced on timers, and the party can hire recruits.
 
 **Design sources:** `docs/game-design.md` → "The living deep" (Monsters with needs, People with needs, Three tiers of people, Keeping it affordable), "What to do in town", "Party" (Food and water, Recruits, Exotic recruits). `docs/go-technical-design.md` → "Level of detail" and "Designing for pivots" → "Behaviors".
