@@ -35,43 +35,68 @@ func NewSource(reg *content.Registry, def content.MapDef) (*Source, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open: %w", err)
 	}
+	err = layOut(reg, def, content.PlaceAt{}, open, src.authored, func(name string, cell api.Cell) {
+		src.marks[name] = cell
+	}, func(spawn Spawn) { src.spawns = append(src.spawns, spawn) })
+	if err != nil {
+		return nil, err
+	}
+	return src, nil
+}
+
+// layOut adds the authored cells of def's layers, offset by at, to authored, and reports each mark
+// and spawn in row order.
+func layOut(
+	reg *content.Registry,
+	def content.MapDef,
+	at content.PlaceAt,
+	open hexmap.Terrain,
+	authored map[hexmap.ChunkKey][]placed,
+	mark func(name string, cell api.Cell),
+	spawn func(Spawn),
+) error {
 	for _, layer := range def.Layers {
 		for row, text := range layer.Rows {
 			for col, char := range []rune(text) {
 				if char == ' ' {
 					continue
 				}
-				cell := api.Cell{Hex: hexmap.FromOffsetOddR(col, row), Depth: layer.Depth}
+				cell := api.Cell{Hex: hexmap.FromOffsetOddR(at.Col+col, at.Row+row), Depth: at.Depth + layer.Depth}
 				t := open
 				if id, ok := def.Legend[string(char)]; ok {
-					if t, err = terrain(id); err != nil {
-						return nil, fmt.Errorf("legend %q: %w", string(char), err)
+					var err error
+					if t, err = Terrain(reg, id); err != nil {
+						return fmt.Errorf("legend %q: %w", string(char), err)
 					}
 				} else if name, ok := def.Marks[string(char)]; ok {
 					if template, spawns := def.Spawns[string(char)]; spawns {
-						src.spawns = append(src.spawns, Spawn{Cell: cell, Template: template})
+						spawn(Spawn{Cell: cell, Template: template})
 					} else {
-						src.marks[name] = cell
+						mark(name, cell)
 					}
 				} else {
-					return nil, fmt.Errorf("character %q is in neither the legend nor the marks", string(char))
+					return fmt.Errorf("character %q is in neither the legend nor the marks", string(char))
 				}
 				key := hexmap.KeyOf(cell)
-				src.authored[key] = append(src.authored[key], placed{cell: cell, terrain: t})
+				authored[key] = append(authored[key], placed{cell: cell, terrain: t})
 			}
 		}
 	}
-	return src, nil
+	return nil
 }
 
 // Chunk implements [hexmap.Source].
 func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
-	chunk := hexmap.NewChunk(s.fill)
+	return filledChunk(key, s.fill, s.authored[key]), nil
+}
+
+func filledChunk(key hexmap.ChunkKey, fill hexmap.Terrain, authored []placed) *hexmap.Chunk {
+	chunk := hexmap.NewChunk(fill)
 	origin := key.Origin()
-	for _, p := range s.authored[key] {
+	for _, p := range authored {
 		chunk.Set(p.cell.Hex.Q-origin.Hex.Q, p.cell.Hex.R-origin.Hex.R, p.cell.Depth-origin.Depth, p.terrain)
 	}
-	return chunk, nil
+	return chunk
 }
 
 // Mark returns the cell of the named mark.

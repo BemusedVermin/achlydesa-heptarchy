@@ -55,6 +55,16 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 	p.text(path+".name", def.Name)
 	checkTerrain("fill", def.Fill)
 	checkTerrain("open", def.Open)
+	r.checkLayout(p, path, def)
+	return p.errs
+}
+
+// checkLayout checks the layers, legend, marks and spawns of a map or a place; Name, Fill and Open
+// are the caller's.
+func (r *Registry) checkLayout(p *problems, path string, def MapDef) {
+	checkTerrain := func(field string, id api.ContentID) {
+		ref(p, r.bundle.Terrains, path+"."+field, "terrain", id)
+	}
 	for _, char := range sortedKeys(def.Legend) {
 		checkTerrain(fmt.Sprintf("legend[%q]", char), def.Legend[char])
 		if utf8.RuneCountInString(char) != 1 {
@@ -64,10 +74,15 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 			p.addf("%s: character %q is both a legend entry and a mark", path, char)
 		}
 	}
+	names := map[string]string{}
 	for _, char := range sortedKeys(def.Marks) {
 		if utf8.RuneCountInString(char) != 1 {
 			p.addf("%s.marks[%q]: a key is exactly one character", path, char)
 		}
+		if other, taken := names[def.Marks[char]]; taken {
+			p.addf("%s.marks[%q]: mark %q is also named by %q", path, char, def.Marks[char], other)
+		}
+		names[def.Marks[char]] = char
 	}
 	found := map[string]int{}
 	depths := map[int]bool{}
@@ -100,7 +115,7 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 	for _, char := range sortedKeys(def.Spawns) {
 		template := def.Spawns[char]
 		if _, ok := def.Marks[char]; !ok {
-			p.addf("%s.spawns[%q]: not a mark of the map", path, char)
+			p.addf("%s.spawns[%q]: not one of the marks", path, char)
 		}
 		ref(p, r.bundle.Templates, fmt.Sprintf("%s.spawns[%q]", path, char), "template", template)
 		if found[char] < 1 {
@@ -115,7 +130,6 @@ func (r *Registry) checkMap(key string, def MapDef) []error {
 			p.addf("%s.marks[%q]: mark %q must appear exactly once, found %d", path, char, def.Marks[char], n)
 		}
 	}
-	return p.errs
 }
 
 // checkStart validates the start scenario when the content has one.

@@ -22,6 +22,8 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
 | `maps/` | `maps`: `maps.cue` holds the schema and `_#TestMap`, one file per map (`test_hall.cue`, `test_den.cue`, `test_descent.cue`) |
+| `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque) and the `open` terrain of a marked cell; and the schema of `places` |
+| `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each. A place has a map's `layers`, `legend`, `marks` and `spawns`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
 | `start.cue` | `start`: the map, party template and mark a new game begins with |
 | `rules.cue` | `rules`: named formulas |
 | `choices.cue` | `choices`: what an action can ask the player to pick |
@@ -46,6 +48,7 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `templates` | `template.` | `template.creature.beast` |
 | `actions` | `action.` | `action.strike` |
 | `maps` | `map.` | `map.test.den` |
+| `places` | `place.` | `place.test.hall` |
 | `parts` | `part.` | `part.human_arm` |
 | `claims` | `claim.` | `claim.material` |
 | `origins` | `origin.` | `origin.sweep` |

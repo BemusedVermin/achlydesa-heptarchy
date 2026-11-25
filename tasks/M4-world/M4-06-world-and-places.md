@@ -1,7 +1,7 @@
 ---
 id: M4-06
 title: "Content: the world and its places"
-status: todo
+status: done
 milestone: M4
 kind: seam
 depends_on: [M4-04]
@@ -69,9 +69,9 @@ type PlaceDef struct {
 
 ## Acceptance criteria
 
-- [ ] A test: a world of two places at different offsets and depths gives the right terrain at a cell of each, the fill between them, and the edge outside the bounds.
-- [ ] The loader rejects a place out of bounds or overlapping another, with an error naming it.
-- [ ] `go tool task content` and `go tool task check` pass.
+- [x] A test: a world of two places at different offsets and depths gives the right terrain at a cell of each, the fill between them, and the edge outside the bounds.
+- [x] The loader rejects a place out of bounds or overlapping another, with an error naming it.
+- [x] `go tool task content` and `go tool task check` pass.
 
 ## Out of scope
 
@@ -80,4 +80,12 @@ type PlaceDef struct {
 
 ## Notes
 
-Filled in by the implementer.
+- **Placeholders in `world.cue`:** 64 by 64 hexes, depths 0 to 7, fill and edge both `terrain.packed_clay`, open `terrain.air`. M4-07 sizes it to fit the places it moves in.
+- **Edge must be solid and opaque:** the loader rejects any other edge terrain, since `hexmap.Map.SetBounds` relies on it.
+- **Marks:** `WorldSource.Mark(place, name)`, as suggested. A mark name must now be unique within its map or place; that check is in the shared layout check, so it applies to maps too (no current map breaks it).
+- **Reuse:** `checkMap` is split so places reuse its layout part (`checkLayout`); `NewSource` and `NewWorldSource` share `layOut` and `filledChunk` in `explore`. One map error message changed from "not a mark of the map" to "not one of the marks".
+- **Extras on `WorldSource`:** `Bounds()` and `Edge()`, so a `hexmap.Map` over it can call `SetBounds`.
+- **Errors:** an out-of-bounds or overlapping place is reported once per place (per other place, for overlaps), at the first offending cell, not once per cell.
+- `places/` has no files yet; the `places` schema line is in `world.cue`.
+- `docs/content-guide.md`: `world.cue`, `places/` and the `place.` prefix added.
+- No follow-ups filed.
