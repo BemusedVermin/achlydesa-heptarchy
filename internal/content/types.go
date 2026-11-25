@@ -18,8 +18,10 @@ type Bundle struct {
 	Actions   map[string]ActionDef `json:"actions"`
 	Maps      map[string]MapDef    `json:"maps"`
 	Start     Start                `json:"start"`
-	Claims    map[string]Claim     `json:"claims"`
-	Origins   map[string]Origin    `json:"origins"`
+	// Starts are named scenarios ("start." IDs) a run may begin on instead of Start.
+	Starts  map[string]Start  `json:"starts,omitempty"`
+	Claims  map[string]Claim  `json:"claims"`
+	Origins map[string]Origin `json:"origins"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`

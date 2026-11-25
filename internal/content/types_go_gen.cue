@@ -22,6 +22,9 @@ import (
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
 	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
 	start: #Start @go(Start)
+
+	// Starts are named scenarios ("start." IDs) a run may begin on instead of Start.
+	starts?: {[string]: #Start} @go(Starts,map[string]Start)
 	claims: {[string]: #Claim} @go(Claims,map[string]Claim)
 	origins: {[string]: #Origin} @go(Origins,map[string]Origin)
 

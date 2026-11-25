@@ -10,3 +10,12 @@ start: {
 	party:         "template.party.main"
 	party_at_mark: "party_start"
 }
+
+// Named scenarios a test or the harness may start on in place of the playground.
+starts: [string]: content.#Start
+
+starts: "start.sample": {
+	map:           "map.sample.shallow"
+	party:         "template.party.main"
+	party_at_mark: "party_start"
+}
