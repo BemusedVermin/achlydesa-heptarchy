@@ -19,12 +19,11 @@ type Fixed interface {
 	hexmap.Source
 	// Covers reports whether a cell belongs to a place.
 	Covers(api.Cell) bool
-	// Places lists every fixed place's open cells, in a fixed order.
+	// Places lists every fixed place's marked openings, in a fixed order.
 	Places() []hexmap.Footprint
 }
 
-// Opening is an open cell of a fixed place with a neighbor outside the place: a spot where the place meets
-// the generated ground.
+// Opening is a cell its place's author marked as a way out to the generated ground.
 type Opening struct {
 	Place api.ContentID
 	Cell  api.Cell
@@ -94,6 +93,10 @@ func NewSource(cfg Config) (*Source, error) {
 	if cfg.Fixed == nil {
 		return nil, errors.New("procgen: source: no fixed layer")
 	}
+	openings, err := openingsOf(cfg.Fixed, cfg.Bounds)
+	if err != nil {
+		return nil, err
+	}
 	src := &Source{
 		seed:        cfg.Seed,
 		streams:     rng.New(cfg.Seed),
@@ -101,7 +104,7 @@ func NewSource(cfg Config) (*Source, error) {
 		exportCount: cfg.ExportCount,
 		bounds:      cfg.Bounds,
 		fixed:       cfg.Fixed,
-		openings:    openingsOf(cfg.Fixed, cfg.Bounds),
+		openings:    openings,
 		siblings:    map[string]map[string]float64{},
 	}
 	if len(cfg.Geography.Stages) > 0 && cfg.Stages == nil {
@@ -160,20 +163,26 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 // Openings lists where the fixed places meet the generated ground, places in the fixed layer's order.
 func (s *Source) Openings() []Opening { return slices.Clone(s.openings) }
 
-func openingsOf(fixed Fixed, bounds hexmap.Bounds) []Opening {
+func openingsOf(fixed Fixed, bounds hexmap.Bounds) ([]Opening, error) {
 	var openings []Opening
 	for _, footprint := range fixed.Places() {
-		for _, cell := range footprint.Open {
+		for _, cell := range footprint.Openings {
+			found := false
 			for dir := range api.Dir(api.DirCount) {
 				exit := hexmap.Prisms{}.Neighbor(cell, dir).Cell
 				if bounds.Contains(exit) && !fixed.Covers(exit) {
 					openings = append(openings, Opening{Place: footprint.Place, Cell: cell, Exit: exit})
+					found = true
 					break
 				}
 			}
+			if !found {
+				return nil, fmt.Errorf("procgen: source: opening %v of %q has no neighbor outside the places",
+					cell, footprint.Place)
+			}
 		}
 	}
-	return openings
+	return openings, nil
 }
 
 // salt gives each stage of each chunk its own stream under the export count's.

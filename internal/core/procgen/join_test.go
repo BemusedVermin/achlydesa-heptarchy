@@ -123,11 +123,26 @@ func TestJoinLeadsEveryOpeningOut(t *testing.T) {
 			if !w.cavesWithin(t, opening.Exit, joinReach/3) {
 				continue
 			}
-			if !slices.ContainsFunc(reached, func(cell api.Cell) bool { return !w.at(t, w.caves, cell).Solid }) {
+			if !slices.ContainsFunc(reached, func(cell api.Cell) bool { return w.touchesCave(t, cell) }) {
 				t.Errorf("seed %d: opening %v has a cave near but its tunnel does not reach one", seed, opening.Cell)
 			}
 		}
 	}
+}
+
+// touchesCave reports whether the cell, the one under it or a neighbor on its level is a cave cell.
+func (w joinWorld) touchesCave(tb testing.TB, cell api.Cell) bool {
+	tb.Helper()
+	isCave := func(c api.Cell) bool { return !w.fixed.Covers(c) && !w.at(tb, w.caves, c).Solid }
+	if isCave(cell) || isCave(hexmap.Prisms{}.Below(cell).Cell) {
+		return true
+	}
+	for dir := range api.Dir(api.DirCount) {
+		if isCave(hexmap.Prisms{}.Neighbor(cell, dir).Cell) {
+			return true
+		}
+	}
+	return false
 }
 
 func (w joinWorld) cavesWithin(tb testing.TB, from api.Cell, distance int) bool {

@@ -97,21 +97,38 @@ func (join) Run(ctx *Context, chunk *hexmap.Chunk) error {
 	return nil
 }
 
-// tunnel lists the cells the opening's tunnel carves.
+// tunnel lists the cells the opening's tunnel carves. The width is added around the walk last and spares the
+// ground under each climb's landing, which the climb steps from.
 func (j joiner) tunnel(opening Opening) []api.Cell {
-	cells := j.disc(opening.Exit)
-	if j.joins(opening.Exit) {
-		return cells
+	stands := []api.Cell{opening.Exit}
+	var path []api.Cell
+	spared := map[api.Cell]bool{}
+	if !j.joins(opening.Exit) {
+		if target, found := j.nearestCave(opening.Exit); found {
+			stands, path = j.walk(opening, target, spared)
+		}
 	}
-	target, found := j.nearestCave(opening.Exit)
-	if !found {
-		return cells
+	cells := path
+	for _, stand := range stands {
+		for _, cell := range j.disc(stand) {
+			if !spared[cell] {
+				cells = append(cells, cell)
+			}
+		}
 	}
+	return cells
+}
+
+// walk takes the biased random walk from the opening's exit, returning the cells stood on and the cells the
+// steps need open. It marks in spared the ground under each climb's landing.
+func (j joiner) walk(opening Opening, target api.Cell, spared map[api.Cell]bool) (stands, path []api.Cell) {
 	gen := rng.New(j.ctx.Seed).Derived(JoinStage, j.ctx.ExportCount^cellHash(opening.Cell))
 	visited := map[api.Cell]bool{opening.Exit: true}
+	opened := map[api.Cell]bool{opening.Exit: true}
 	stand := opening.Exit
+	stands = []api.Cell{stand}
 	for range j.reach {
-		moves := j.moves(stand, target, visited)
+		moves := j.moves(stand, target, visited, opened, spared)
 		if len(moves) == 0 {
 			break
 		}
@@ -128,14 +145,20 @@ func (j joiner) tunnel(opening Opening) []api.Cell {
 			pick -= move.weight
 		}
 		visited[chosen.stand] = true
-		cells = append(cells, chosen.carve...)
-		cells = append(cells, j.disc(chosen.stand)...)
+		path = append(path, chosen.carve...)
+		for _, cell := range chosen.carve {
+			opened[cell] = true
+		}
+		stands = append(stands, chosen.stand)
+		if chosen.stand.Depth < stand.Depth {
+			spared[hexmap.Prisms{}.Below(chosen.stand).Cell] = true
+		}
 		stand = chosen.stand
 		if j.joins(stand) {
 			break
 		}
 	}
-	return cells
+	return stands, path
 }
 
 type tunnelMove struct {
@@ -145,8 +168,9 @@ type tunnelMove struct {
 }
 
 // moves lists the steps a body could take from stand, each with the cells it needs open: a level step, a
-// climb with headroom, or a step down into a lowered cell.
-func (j joiner) moves(stand, target api.Cell, visited map[api.Cell]bool) []tunnelMove {
+// climb with headroom, or a step down into a lowered cell. A climb needs the ground under its landing solid,
+// so it is not offered where the walk already opened that ground, and no step opens ground a climb needs.
+func (j joiner) moves(stand, target api.Cell, visited, opened, spared map[api.Cell]bool) []tunnelMove {
 	var moves []tunnelMove
 	for dir := range api.Dir(api.DirCount) {
 		next := hexmap.Prisms{}.Neighbor(stand, dir).Cell
@@ -159,7 +183,11 @@ func (j joiner) moves(stand, target api.Cell, visited map[api.Cell]bool) []tunne
 			case 1:
 				carve = []api.Cell{next, to}
 			}
-			if visited[to] || slices.ContainsFunc(carve, func(cell api.Cell) bool { return !j.usable(cell) }) {
+			if visited[to] ||
+				slices.ContainsFunc(carve, func(cell api.Cell) bool { return !j.usable(cell) || spared[cell] }) {
+				continue
+			}
+			if rise == -1 && opened[hexmap.Prisms{}.Below(to).Cell] {
 				continue
 			}
 			gain := float64(hexmap.CellDistance(stand, target) - hexmap.CellDistance(to, target))

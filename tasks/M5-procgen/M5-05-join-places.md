@@ -48,10 +48,11 @@ A `join` stage carves the generated deep into each fixed place's openings, so no
 
 ## Notes
 
+- Deviation at the owner's direction: the Spec says an opening is any open cell on a place's boundary touching fill. Read literally that gave 33 openings on the sample world, because the test descent's wall-less soop and ledge layers make every cell an opening. Openings are now marked in content: a place lists mark characters in `openings`, and `explore` reports each such cell (`content.PlaceDef.Openings`, checked in `internal/content/places.go`). `hexmap.Footprint` holds those marked cells. A marked cell with no neighbor outside the places is an error from `procgen.NewSource`. The sample descent marks three: both ends of its depth-2 ledge and the end of its depth-4 soop. M5-05.F1 was folded into this task at the owner's request; he will triage its file.
 - Footprints: `hexmap.Footprint` (foundation layer, so `explore` can return it without importing `procgen`) and `Fixed.Places()`, built in `explore/world_source.go`. `procgen.Source` computes `Openings()` once and gives them to stages in `Context.Openings`. `Context.Siblings` gives a stage the other stages' params; join reads the caves' params from it. Caves got a `caveField` so join can ask whether a cell is cave from the seed alone.
-- Tunnels walk level, one climb or one step down at a time (the real step rules), toward the nearest cave found within `reach`. Each step is drawn with weight `1 + bias * progress`. Every chunk recomputes the tunnels near it, so chunk order cannot matter (rapid test).
+- Tunnels walk level, one climb or one step down at a time (the real step rules), toward the nearest cave found within `reach`. Each step is drawn with weight `1 + bias * progress`. Width is added around the walk last, sparing the ground under a climb's landing, and a climb is not offered where the walk already opened that ground. Every chunk recomputes the tunnels near it, so chunk order cannot matter (rapid test).
 - With no cave within `reach` an opening gets only its exit cell; M5-07 repairs that.
 - Content: `join` sits between `caves` and `sinks`, so sink footprints, which set every cell, win over tunnels. `width: 2`, `reach: 24`, `bias: 1.5` are first values to tune.
-- The acceptance test checks that every exit is open and has a real step outward, and that openings with a cave within a third of `reach` reach one. Reaching a cave from every opening is not guaranteed.
+- The acceptance test checks that every exit is open and has a real step outward, and that openings with a cave within a third of `reach` reach ground touching one. Reaching a cave from every opening is not guaranteed.
+- `docs/content-guide.md` describes `openings`.
 - The stage is not registered in the game yet (M5-06).
-- Follow-up filed: M5-05.F1 (question: wall-less layers make an opening of every cell; 33 on the sample world).

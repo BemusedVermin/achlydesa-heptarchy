@@ -381,6 +381,10 @@ type PlaceDef struct {
 	// such character at the start, and the character may appear any number of times (at least once).
 	// Each character must also be one of Marks, so the layers may use it.
 	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
+	// Openings lists mark characters that stand where the place opens onto the generated deep: procgen
+	// carves a tunnel from each such cell. The character may appear any number of times (at least once)
+	// and must be one of Marks and not one of Spawns.
+	Openings []string `json:"openings,omitempty"`
 }
 
 // PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.
