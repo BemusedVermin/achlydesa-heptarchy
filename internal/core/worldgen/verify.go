@@ -63,7 +63,12 @@ func (verify) Run(ctx *Context, chunk *hexmap.Chunk) error {
 	}
 	origin := ctx.Key.Origin()
 	for _, edit := range value.(map[hexmap.ChunkKey][]hexmap.Edit)[ctx.Key] {
-		chunk.Set(edit.Cell.Hex.Q-origin.Hex.Q, edit.Cell.Hex.R-origin.Hex.R, edit.Cell.Depth-origin.Depth, edit.Terrain)
+		chunk.Set(
+			edit.Cell.Hex.Q-origin.Hex.Q,
+			edit.Cell.Hex.R-origin.Hex.R,
+			edit.Cell.Depth-origin.Depth,
+			edit.Terrain,
+		)
 	}
 	return nil
 }
