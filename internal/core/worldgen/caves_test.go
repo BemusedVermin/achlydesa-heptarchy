@@ -1,4 +1,4 @@
-package procgen_test
+package worldgen_test
 
 import (
 	"flag"
@@ -12,12 +12,12 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/procgen"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
 var update = flag.Bool("update", false, "rewrite the golden files")
 
-func caveSource(tb testing.TB, seed, exportCount uint64) (*procgen.Source, hexmap.Terrain) {
+func caveSource(tb testing.TB, seed, exportCount uint64) (*worldgen.Source, hexmap.Terrain) {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
 	fixed, err := explore.NewWorldSource(reg)
@@ -28,13 +28,13 @@ func caveSource(tb testing.TB, seed, exportCount uint64) (*procgen.Source, hexma
 	if err != nil {
 		tb.Fatal(err)
 	}
-	stages := procgen.NewStages()
-	if err := procgen.RegisterCaves(stages); err != nil {
+	stages := worldgen.NewStages()
+	if err := worldgen.RegisterCaves(stages); err != nil {
 		tb.Fatal(err)
 	}
 	geography, _ := reg.Geography(reg.World().Geography)
 	geography.Stages = geography.Stages[:1]
-	src, err := procgen.NewSource(procgen.Config{
+	src, err := worldgen.NewSource(worldgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
 		Geography: geography, Stages: stages, Fixed: fixed, Open: open,
 	})

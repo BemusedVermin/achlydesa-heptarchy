@@ -1,4 +1,4 @@
-package procgen_test
+package worldgen_test
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/procgen"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
 const (
@@ -22,7 +22,7 @@ var walkRules = hexmap.StepRules{MaxStepUp: 1, MaxStepDown: 1, MaxDrop: 8}
 
 type sinkWorld struct {
 	m      *hexmap.Map
-	src    *procgen.Source
+	src    *worldgen.Source
 	open   hexmap.Terrain
 	bounds hexmap.Bounds
 }
@@ -50,14 +50,14 @@ func newSinkWorld(tb testing.TB, seed, exportCount uint64, riserChance float64) 
 	if err != nil {
 		tb.Fatal(err)
 	}
-	stages := procgen.NewStages()
-	if err := procgen.RegisterSinks(stages); err != nil {
+	stages := worldgen.NewStages()
+	if err := worldgen.RegisterSinks(stages); err != nil {
 		tb.Fatal(err)
 	}
-	src, err := procgen.NewSource(procgen.Config{
+	src, err := worldgen.NewSource(worldgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
 		Geography: content.GeographyDef{Stages: []content.StageDef{
-			{Stage: procgen.SinksStage, Params: sinkParams(riserChance)},
+			{Stage: worldgen.SinksStage, Params: sinkParams(riserChance)},
 		}},
 		Stages: stages, Fixed: fixed, Open: open,
 	})

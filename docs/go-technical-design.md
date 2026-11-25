@@ -118,7 +118,8 @@ achlydesa-heptarchy/
 │   │   ├── effects/        # effect core, selectors, timing primitives, triggers
 │   │   ├── actions/        # content-defined actions and the do command
 │   │   ├── explore/        # party movement, plan-view projection
-│   │   ├── procgen/        # stage pipeline, reseeding, guarantees
+│   │   ├── worldgen/       # stage pipeline, chunk source, guarantees (foundation)
+│   │   ├── procgen/        # reseeding on exports, the party's pocket
 │   │   ├── combat/         # hostility, alert, actions with reach, death
 │   │   ├── agents/         # behavior registry, needs scoring, level of detail
 │   │   ├── seats/          # seat state machine, passing, the piece's readings
@@ -140,7 +141,7 @@ achlydesa-heptarchy/
 
 - **One API boundary.** Frontends and the harness talk only to `core/game`: they send commands and receive events plus a read-only view.
 - **No package reaches sideways into another's internals.** Packages communicate through components and Ark events.
-- **Two layers.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `timeline`, `hexmap`, `knowledge`, `inventory`, `effects`, `actions`) can be imported by anyone. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; `game` and `save` sit on top. depguard enforces it.
+- **Two layers.** Foundation packages (`api`, `sim`, `comp`, `anatomy`, `rng`, `clock`, `timeline`, `hexmap`, `worldgen`, `knowledge`, `inventory`, `effects`, `actions`) can be imported by anyone. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages, never each other; `game` and `save` sit on top. depguard enforces it.
 
 ## Core packages
 
@@ -162,7 +163,8 @@ Each package owns one part of the rules and leans on a library for everything el
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
 | `actions` | Content-defined actions: channel requirements, wind-up and recovery, targets, effects on start and on landing, choices served from content and what a chosen record changes, the generic do command and its options, and the registry of choosers that pick among intents | `timeline`, `effects` |
 | `explore` | The world built from placed content, stepping, lead and follow, remembered cells and the plan-view projection | `hexmap` |
-| `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, fzipp/astar for the guarantees |
+| `worldgen` | Foundation. A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, and the guarantees on it. A pure function of seed, export count and content | opensimplex-go, fzipp/astar for the guarantees |
+| `procgen` | Reseeding the deep on exports and keeping the party's pocket; reads game state, so it is a feature | `worldgen` |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
 | `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |

@@ -1,4 +1,4 @@
-package procgen_test
+package worldgen_test
 
 import (
 	"flag"
@@ -12,12 +12,12 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/procgen"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
 var verifyRules = hexmap.StepRules{MaxStepUp: 1, MaxStepDown: 1, MaxDrop: 1}
 
-func newVerifiedWorld(tb testing.TB, seed, exportCount uint64) (*procgen.Source, *hexmap.Map) {
+func newVerifiedWorld(tb testing.TB, seed, exportCount uint64) (*worldgen.Source, *hexmap.Map) {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
 	fixed, err := explore.NewWorldSource(reg)
@@ -32,16 +32,16 @@ func newVerifiedWorld(tb testing.TB, seed, exportCount uint64) (*procgen.Source,
 	if err != nil {
 		tb.Fatal(err)
 	}
-	stages := procgen.NewStages()
-	for _, register := range []func(*procgen.Stages) error{
-		procgen.RegisterCaves, procgen.RegisterJoin, procgen.RegisterSinks, procgen.RegisterVerify,
+	stages := worldgen.NewStages()
+	for _, register := range []func(*worldgen.Stages) error{
+		worldgen.RegisterCaves, worldgen.RegisterJoin, worldgen.RegisterSinks, worldgen.RegisterVerify,
 	} {
 		if err := register(stages); err != nil {
 			tb.Fatal(err)
 		}
 	}
 	geography, _ := reg.Geography(reg.World().Geography)
-	src, err := procgen.NewSource(procgen.Config{
+	src, err := worldgen.NewSource(worldgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
 		Geography: geography, Stages: stages, Fixed: fixed, Open: open,
 	})
@@ -108,7 +108,7 @@ func TestVerifyEveryPlaceReachesEveryOther(t *testing.T) {
 }
 
 // reaches reports whether the walk met the opening's cell or ground a step from it or its exit leads to.
-func reaches(rt *rapid.T, m *hexmap.Map, seen map[api.Cell]bool, opening procgen.Opening) bool {
+func reaches(rt *rapid.T, m *hexmap.Map, seen map[api.Cell]bool, opening worldgen.Opening) bool {
 	for _, base := range []api.Cell{opening.Cell, opening.Exit} {
 		if seen[base] {
 			return true

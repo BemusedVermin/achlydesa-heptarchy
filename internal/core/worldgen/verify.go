@@ -1,4 +1,4 @@
-package procgen
+package worldgen
 
 import (
 	"errors"

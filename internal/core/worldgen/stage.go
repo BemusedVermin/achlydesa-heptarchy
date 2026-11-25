@@ -1,4 +1,4 @@
-package procgen
+package worldgen
 
 import (
 	"errors"
@@ -37,10 +37,10 @@ func NewStages() *Stages {
 // Register adds a stage under name. A nil check accepts any params.
 func (s *Stages) Register(name string, stage Stage, check CheckParams) error {
 	if name == "" || stage == nil {
-		return errors.New("procgen: register: a stage needs a name and an implementation")
+		return errors.New("worldgen: register: a stage needs a name and an implementation")
 	}
 	if _, taken := s.byName[name]; taken {
-		return fmt.Errorf("procgen: register: stage %q is already registered", name)
+		return fmt.Errorf("worldgen: register: stage %q is already registered", name)
 	}
 	s.byName[name] = registeredStage{stage: stage, check: check}
 	return nil

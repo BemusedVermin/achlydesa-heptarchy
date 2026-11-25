@@ -24,9 +24,9 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 
 ## Deliverables
 
-- `internal/core/procgen/verify.go`: the `verify` stage, its registration, and the chunk graph it reads.
+- `internal/core/worldgen/verify.go`: the `verify` stage, its registration, and the chunk graph it reads.
 - `content/data/geography.cue`: `verify` last.
-- `internal/core/procgen/verify_test.go`: property tests with `pgregory.net/rapid` over seeds.
+- `internal/core/worldgen/verify_test.go`: property tests with `pgregory.net/rapid` over seeds.
 
 ## Spec
 
@@ -55,3 +55,4 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 - The stage is not registered anywhere yet; M5-06 wires the procgen stages into the game.
 - Test count is lowered to 12 checks (about 1.5 s each); `-rapid.checks` overrides.
 - Follow-up filed: M5-07.F1.
+- Package renamed `internal/core/procgen` to `internal/core/worldgen` and made a foundation package, at the owner's request: it imports only `content`, `api`, `hexmap` and `rng`, so `explore` and `game` may import it. The feature package `procgen` is kept for reseeding on exports and the party's pocket (M5-10), not yet written. Edited `AGENTS.md`, `.claude/rules/core.md`, `docs/go-technical-design.md` and the paths in M5-11, M5-12 and the two follow-ups to match. The `procgen` rng stream name is unchanged so goldens stay valid. Open PR 183 still imports `procgen` and needs updating from this branch.

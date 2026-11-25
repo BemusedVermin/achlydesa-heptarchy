@@ -337,7 +337,7 @@ type WorldDef struct {
 	// MinDepth and MaxDepth are inclusive.
 	MinDepth int `json:"min_depth"`
 	MaxDepth int `json:"max_depth"`
-	// Fill is the terrain of every cell no place covers: solid clay until procgen generates the deep.
+	// Fill is the terrain of every cell no place covers: solid clay until worldgen generates the deep.
 	Fill api.ContentID `json:"fill"`
 	// Edge is the terrain beyond the bounds. It must be solid and opaque.
 	Edge api.ContentID `json:"edge"`
@@ -357,7 +357,7 @@ type GeographyDef struct {
 	Stages []StageDef `json:"stages"`
 }
 
-// StageDef names a registered procgen stage and its numbers. Whether the stage takes those params is the
+// StageDef names a registered worldgen stage and its numbers. Whether the stage takes those params is the
 // stage's to check, against the stage registry.
 type StageDef struct {
 	// Stage is the registered stage's name, such as "caves".
@@ -381,7 +381,7 @@ type PlaceDef struct {
 	// such character at the start, and the character may appear any number of times (at least once).
 	// Each character must also be one of Marks, so the layers may use it.
 	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
-	// Openings lists mark characters that stand where the place opens onto the generated deep: procgen
+	// Openings lists mark characters that stand where the place opens onto the generated deep: worldgen
 	// carves a tunnel from each such cell. The character may appear any number of times (at least once)
 	// and must be one of Marks and not one of Spawns.
 	Openings []string `json:"openings,omitempty"`
