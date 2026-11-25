@@ -405,6 +405,13 @@ import (
 
 	// Geography builds the cells no place covers ("geography." ID). Empty leaves them all Fill.
 	geography?: api.#ContentID @go(Geography)
+
+	// ChunkBudget is the most chunks kept in memory; chunks far from every party member are dropped past
+	// it. 0 keeps every chunk.
+	chunk_budget?: int @go(ChunkBudget)
+
+	// NearChunks is the radius in chunks around each party member whose chunks are never dropped.
+	near_chunks?: int @go(NearChunks)
 }
 
 // GeographyDef lists the stages that build chunks of one kind of ground, in order.

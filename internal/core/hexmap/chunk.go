@@ -31,6 +31,30 @@ func (k ChunkKey) Origin() api.Cell {
 	return api.Cell{Hex: api.Hex{Q: k.Q * ChunkSize, R: k.R * ChunkSize}, Depth: k.Depth * ChunkSize}
 }
 
+// Cell is the cell at a slot of the chunk, the inverse of [SlotOf].
+func (k ChunkKey) Cell(slot int) api.Cell {
+	origin := k.Origin()
+	q, rest := slot%ChunkSize, slot/ChunkSize
+	r, depth := rest%ChunkSize, rest/ChunkSize
+	return api.Cell{Hex: api.Hex{Q: origin.Hex.Q + q, R: origin.Hex.R + r}, Depth: origin.Depth + depth}
+}
+
+// ChunkCells is the number of cells, and so of slots, in one chunk.
+const ChunkCells = ChunkSize * ChunkSize * ChunkSize
+
+// SlotOf is c's place within its chunk, in [0, ChunkCells): cells of a chunk ordered by depth, then R, then Q.
+func SlotOf(c api.Cell) int {
+	return index(floorMod(c.Hex.Q), floorMod(c.Hex.R), floorMod(c.Depth))
+}
+
+// ChunkDistance is how many chunks apart two chunks are: the hex distance between their keys, or their
+// difference in depth when that is larger.
+func ChunkDistance(a, b ChunkKey) int {
+	return max(Distance(api.Hex{Q: a.Q, R: a.R}, api.Hex{Q: b.Q, R: b.R}), abs(a.Depth-b.Depth))
+}
+
+func abs(n int) int { return max(n, -n) }
+
 // floorDiv divides rounding toward negative infinity, for a positive divisor.
 func floorDiv(n, divisor int) int {
 	q := n / divisor
@@ -81,7 +105,7 @@ func (c *Chunk) Set(q, r, depth int, t Terrain) {
 		if t == c.palette[0] {
 			return
 		}
-		c.cells = make([]uint16, ChunkSize*ChunkSize*ChunkSize)
+		c.cells = make([]uint16, ChunkCells)
 	}
 	for i, p := range c.palette {
 		if p == t {

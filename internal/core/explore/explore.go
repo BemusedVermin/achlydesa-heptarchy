@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"math/bits"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -79,32 +80,26 @@ func markSeen(w *sim.World, party ecs.Entity, cells []api.Cell) {
 		seen.Add(party, &comp.Seen{})
 	}
 	known := seen.Get(party)
-	fresh := slices.Clone(cells)
-	slices.SortFunc(fresh, hexmap.CompareCells)
-	fresh = slices.CompactFunc(fresh, func(a, b api.Cell) bool { return a == b })
-	known.Cells = mergeCells(known.Cells, fresh)
+	for _, cell := range cells {
+		key := hexmap.KeyOf(cell)
+		i, found := slices.BinarySearchFunc(known.Chunks, key, compareSeenChunk)
+		if !found {
+			chunk := comp.SeenChunk{Q: key.Q, R: key.R, Depth: key.Depth, Bits: make([]uint64, seenWords)}
+			known.Chunks = slices.Insert(known.Chunks, i, chunk)
+		}
+		slot := hexmap.SlotOf(cell)
+		known.Chunks[i].Bits[slot/64] |= 1 << (slot % 64)
+	}
 }
 
-// mergeCells merges two sorted, unique slices into one.
-func mergeCells(a, b []api.Cell) []api.Cell {
-	out := make([]api.Cell, 0, len(a)+len(b))
-	i, j := 0, 0
-	for i < len(a) && j < len(b) {
-		switch c := hexmap.CompareCells(a[i], b[j]); {
-		case c < 0:
-			out = append(out, a[i])
-			i++
-		case c > 0:
-			out = append(out, b[j])
-			j++
-		default:
-			out = append(out, a[i])
-			i++
-			j++
-		}
-	}
-	out = append(out, a[i:]...)
-	return append(out, b[j:]...)
+const seenWords = hexmap.ChunkCells / 64
+
+func seenKey(chunk comp.SeenChunk) hexmap.ChunkKey {
+	return hexmap.ChunkKey{Q: chunk.Q, R: chunk.R, Depth: chunk.Depth}
+}
+
+func compareSeenChunk(chunk comp.SeenChunk, key hexmap.ChunkKey) int {
+	return hexmap.CompareKeys(seenKey(chunk), key)
 }
 
 // seenIn returns the cells a party has seen, sorted by depth, then R, then Q.
@@ -113,7 +108,19 @@ func seenIn(w *sim.World, party ecs.Entity) []api.Cell {
 	if !w.Alive(party) || !seen.Has(party) {
 		return nil
 	}
-	return seen.Get(party).Cells
+	var out []api.Cell
+	for _, chunk := range seen.Get(party).Chunks {
+		key := seenKey(chunk)
+		for word, set := range chunk.Bits {
+			for set != 0 {
+				bit := bits.TrailingZeros64(set)
+				set &^= 1 << bit
+				out = append(out, key.Cell(word*64+bit))
+			}
+		}
+	}
+	slices.SortFunc(out, hexmap.CompareCells)
+	return out
 }
 
 func sightOf(w *sim.World, pos comp.Pos) ([]api.Cell, error) {

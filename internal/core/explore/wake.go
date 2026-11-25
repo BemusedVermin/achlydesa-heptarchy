@@ -91,6 +91,7 @@ func Wake(w *sim.World) error {
 	if err := markSeenByParty(w, party); err != nil {
 		return err
 	}
+	unloadFar(w)
 	w.Bus.Publish(api.PartyWoke{Party: w.UIDOf(party), At: place.At, Tick: w.Now})
 	return nil
 }

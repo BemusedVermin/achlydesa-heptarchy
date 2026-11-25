@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -71,6 +72,33 @@ func (m *Map) At(c api.Cell) (Terrain, error) {
 		m.chunks[key] = chunk
 	}
 	return chunk.Get(floorMod(c.Hex.Q), floorMod(c.Hex.R), floorMod(c.Depth)), nil
+}
+
+// Loaded lists the chunks in memory, sorted by Depth, R, Q.
+func (m *Map) Loaded() []ChunkKey {
+	keys := slices.Collect(maps.Keys(m.chunks))
+	slices.SortFunc(keys, CompareKeys)
+	return keys
+}
+
+// Unload drops every loaded chunk that keep rejects. Edits stay, and a dropped chunk is loaded from the source
+// again on its next use.
+func (m *Map) Unload(keep func(ChunkKey) bool) {
+	dropped := false
+	for key := range m.chunks {
+		if !keep(key) {
+			delete(m.chunks, key)
+			dropped = true
+		}
+	}
+	if dropped {
+		clear(m.sights)
+	}
+}
+
+// CompareKeys orders chunk keys by Depth, then R, then Q.
+func CompareKeys(a, b ChunkKey) int {
+	return cmp.Or(cmp.Compare(a.Depth, b.Depth), cmp.Compare(a.R, b.R), cmp.Compare(a.Q, b.Q))
 }
 
 // Set edits c. The edit lives in an overlay, so it can be saved and survives reloading the chunk.

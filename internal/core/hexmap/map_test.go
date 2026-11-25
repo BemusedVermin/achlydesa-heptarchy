@@ -130,3 +130,69 @@ func TestCellsInSortedAndStable(t *testing.T) {
 		t.Errorf("empty depth range gave %v", got)
 	}
 }
+
+func TestAnUnloadedChunkReloadsTheSameWithItsEdits(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		m := NewMap(FuncSource(func(c api.Cell) Terrain {
+			if (c.Hex.Q*7+c.Hex.R*3+c.Depth)%5 == 0 {
+				return rock
+			}
+			return air
+		}), Prisms{})
+		coord := rapid.IntRange(-40, 40)
+		cells := make([]api.Cell, 8)
+		for i := range cells {
+			cells[i] = cell(coord.Draw(rt, "q"), coord.Draw(rt, "r"), coord.Draw(rt, "depth"))
+		}
+		edited := cells[0]
+		if err := m.Set(edited, Terrain{ID: "terrain.edit"}); err != nil {
+			rt.Fatal(err)
+		}
+		before := make([]Terrain, len(cells))
+		for i, c := range cells {
+			before[i], _ = m.At(c)
+		}
+		m.Unload(func(ChunkKey) bool { return false })
+		if loaded := m.Loaded(); len(loaded) != 0 {
+			rt.Fatalf("after unloading everything, loaded %v", loaded)
+		}
+		for i, c := range cells {
+			if got, _ := m.At(c); got != before[i] {
+				rt.Fatalf("At(%v) after reload = %v, want %v", c, got, before[i])
+			}
+		}
+		if got, _ := m.At(edited); got.ID != "terrain.edit" {
+			rt.Fatalf("edit at %v lost on unload: %v", edited, got)
+		}
+	})
+}
+
+func TestUnloadKeepsWhatKeepAccepts(t *testing.T) {
+	src := &countingSource{inner: FuncSource(func(api.Cell) Terrain { return air }), calls: map[ChunkKey]int{}}
+	m := NewMap(src, Prisms{})
+	for _, q := range []int{0, 16, 32} {
+		if _, err := m.At(cell(q, 0, 0)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	m.Unload(func(k ChunkKey) bool { return k.Q != 1 })
+	if got, want := m.Loaded(), []ChunkKey{{0, 0, 0}, {2, 0, 0}}; !slices.Equal(got, want) {
+		t.Fatalf("loaded %v, want %v", got, want)
+	}
+	if _, err := m.At(cell(16, 0, 0)); err != nil {
+		t.Fatal(err)
+	}
+	if got := src.calls[ChunkKey{1, 0, 0}]; got != 2 {
+		t.Errorf("chunk 1 loaded %d times, want 2", got)
+	}
+}
+
+func TestSlotOfAndCellAreInverse(t *testing.T) {
+	rapid.Check(t, func(rt *rapid.T) {
+		coord := rapid.IntRange(-100, 100)
+		c := cell(coord.Draw(rt, "q"), coord.Draw(rt, "r"), coord.Draw(rt, "depth"))
+		if got := KeyOf(c).Cell(SlotOf(c)); got != c {
+			rt.Fatalf("KeyOf(%v).Cell(SlotOf) = %v", c, got)
+		}
+	})
+}
