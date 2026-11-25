@@ -59,6 +59,17 @@ _#Resident: {
 	...
 }
 
+// A generic townsperson: replaced on a timer, so it carries only the basic needs of food and safety.
+_#Generic: {
+	actor: controller: "agents"
+	body:    "body.human"
+	faction: "faction.people"
+	actions: ["action.step", "action.eat_stock"]
+	needs: {"need.food": 0, "need.safety": 0}
+	behaviors: ["behavior.resident.eat", "behavior.resident.wander"]
+	...
+}
+
 templates: {
 	"template.person.reaper": _#Person & {
 		name: "text.template.person.reaper"
@@ -222,6 +233,14 @@ templates: {
 		appearance: {glyph: "h", color: "cyan"}
 		behaviors: [for b in _residentBehaviors {b}, "behavior.resident.haul_water"]
 	}
+	"template.generic.guard": _#Generic & {
+		name: "text.template.generic.guard"
+		appearance: {glyph: "G", color: "white"}
+	}
+	"template.generic.field_hand": _#Generic & {
+		name: "text.template.generic.field_hand"
+		appearance: {glyph: "f", color: "green"}
+	}
 	// A well the haulers draw from: a thing with water in it, not a body to fight.
 	"template.town.well": {
 		name: "text.template.town.well"
@@ -263,6 +282,8 @@ text: {
 	"text.template.test.dodger":          "Dodger"
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"
+	"text.template.generic.guard":        "A guard"
+	"text.template.generic.field_hand":   "A field hand"
 	"text.template.resident.plain":       "A resident"
 	"text.template.resident.hauler":      "A water hauler"
 	"text.template.town.well":            "The well"

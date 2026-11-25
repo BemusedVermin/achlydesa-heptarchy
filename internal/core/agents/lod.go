@@ -89,6 +89,7 @@ func promote(w *sim.World, id api.MapID) error {
 				return fmt.Errorf("agents: promote %q: %w", population.Family, err)
 			}
 			sim.Put(w, body, comp.Family{ID: population.Family})
+			markGeneric(w, body, id, template)
 		}
 		promoted = append(promoted, api.FamilyCount{Family: population.Family, Count: population.Count})
 		population.Count = 0

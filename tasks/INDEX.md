@@ -110,7 +110,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-05](M3-agents/M3-05-agents-chooser-dodging.md) | The agents chooser for combat, and dodging | done | feature | M | M3-04 |
 | [M3-10](M3-agents/M3-10-off-screen-tick.md) | The off-screen tick: drift, stocks and migration | done | feature | M | M3-09 |
 | [M3-11](M3-agents/M3-11-residents.md) | Residents: needs, roles and schedules in town | done | feature | M | M3-04, M3-08 |
-| [M3-12](M3-agents/M3-12-generic-npcs.md) | Generic NPCs and replacement timers | todo | feature | S | M3-11 |
+| [M3-12](M3-agents/M3-12-generic-npcs.md) | Generic NPCs and replacement timers | done | feature | S | M3-11 |
 | [M3-18](M3-agents/M3-18-monster-families.md) | Monster families as content | todo | content | M | M3-05, M3-10 |
 | [M3-15](M3-agents/M3-15-hiring-recruits.md) | Hiring recruits | todo | feature | M | M3-12 |
 | [M3-16](M3-agents/M3-16-upkeep-desertion.md) | Upkeep, grumbling, desertion and flight | todo | feature | M | M3-04, M3-15 |

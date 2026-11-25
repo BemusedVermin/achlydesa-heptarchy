@@ -232,7 +232,21 @@ type Region struct {
 }
 
 // Town marks a region that is a town. Its stock is the region entity's Inventory.
-type Town struct{}
+type Town struct {
+	// Replacements are the generics due to arrive, in the order they were queued.
+	Replacements []Replacement `json:"replacements,omitempty"`
+}
+
+// Replacement is a generic of a town due to arrive at a tick.
+type Replacement struct {
+	Template api.ContentID `json:"template"`
+	At       int64         `json:"at"`
+}
+
+// Generic marks a body as one of the generic people of the town on the map with the ID.
+type Generic struct {
+	Town api.MapID `json:"town"`
+}
 
 // Population is how many of one family a region holds off screen.
 type Population struct {
@@ -294,6 +308,7 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Doing](world)
 	ecs.ComponentID[Region](world)
 	ecs.ComponentID[Town](world)
+	ecs.ComponentID[Generic](world)
 	ecs.ComponentID[Populations](world)
 	ecs.ComponentID[Individual](world)
 	ecs.ComponentID[Family](world)

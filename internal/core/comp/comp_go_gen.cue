@@ -241,7 +241,21 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 }
 
 // Town marks a region that is a town. Its stock is the region entity's Inventory.
-#Town: {}
+#Town: {
+	// Replacements are the generics due to arrive, in the order they were queued.
+	replacements?: [...#Replacement] @go(Replacements,[]Replacement)
+}
+
+// Replacement is a generic of a town due to arrive at a tick.
+#Replacement: {
+	template: api.#ContentID @go(Template)
+	at:       int64          @go(At)
+}
+
+// Generic marks a body as one of the generic people of the town on the map with the ID.
+#Generic: {
+	town: api.#MapID @go(Town)
+}
 
 // Population is how many of one family a region holds off screen.
 #Population: {

@@ -18,8 +18,16 @@ maps: "map.test.town": _#TestMap & {
 		town: {
 			stock: [{item: "item.lake_water", count: 6}, {item: "item.ration", count: 10}]
 			stock_marks: ["cistern"]
+			residents: "family.people"
+			generics: [
+				{template: "template.generic.guard", count: 2, ticks: 40},
+				{template: "template.generic.field_hand", count: 1, ticks: 60},
+			]
 		}
-		populations: {"family.people": 2, "family.people.haulers": 1}
+		populations: {
+			"family.people":        2, "family.people.haulers":     1
+			"family.people.guards": 2, "family.people.field_hands": 1
+		}
 	}
 	layers: [
 		{

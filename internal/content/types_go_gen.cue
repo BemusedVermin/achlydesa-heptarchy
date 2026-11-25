@@ -581,6 +581,22 @@ import (
 	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
 	// to 1.
 	exodus?: float64 @go(Exodus)
+
+	// Generics are the people the town keeps, replaced on a timer. It needs residents.
+	generics?: [...#GenericDef] @go(Generics,[]GenericDef)
+}
+
+// GenericDef is one kind of generic person a town keeps.
+#GenericDef: {
+	// Template is the template ("template." ID) of the generic. Exactly one family lists it, as its
+	// only template, and that family's count is how many the town holds off screen.
+	template: api.#ContentID @go(Template)
+
+	// Count is how many of it the town keeps.
+	count: int @go(Count)
+
+	// Ticks is how long after one is lost its replacement arrives.
+	ticks: int64 @go(Ticks)
 }
 
 // GateDef is where a gate leads.
