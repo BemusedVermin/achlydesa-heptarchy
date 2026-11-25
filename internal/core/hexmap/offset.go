@@ -13,3 +13,9 @@ func FromOffsetOddR(col, row int) api.Hex {
 	h := hex.OffsetOddR.From(geom.Pt(col, row))
 	return api.Hex{Q: h.Q, R: h.R}
 }
+
+// ToOffsetOddR converts a hex to its column and row in the layout of [FromOffsetOddR].
+func ToOffsetOddR(h api.Hex) (col, row int) {
+	p := hex.OffsetOddR.To(hex.Hex{Q: h.Q, R: h.R})
+	return p.X, p.Y
+}

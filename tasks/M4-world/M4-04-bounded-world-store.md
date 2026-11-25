@@ -1,7 +1,7 @@
 ---
 id: M4-04
 title: "hexmap: one bounded world store"
-status: todo
+status: in-progress
 milestone: M4
 kind: seam
 depends_on: []
