@@ -43,6 +43,9 @@ func (r *Registry) checkGeographies() []error {
 	}
 	if id := r.bundle.World.Geography; id != "" {
 		ref(p, r.bundle.Geographies, "world.geography", "geography", id)
+		if r.bundle.World.PocketExits < 1 {
+			p.addf("world.pocket_exits: must be at least 1")
+		}
 	}
 	return p.errs
 }

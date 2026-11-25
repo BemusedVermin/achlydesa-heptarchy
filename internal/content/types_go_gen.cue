@@ -425,6 +425,14 @@ import (
 
 	// NearChunks is the radius in chunks around each party member whose chunks are never dropped.
 	near_chunks?: int @go(NearChunks)
+
+	// PocketChunks is the radius in chunks around each party member kept as it was when an export
+	// regenerates the deep.
+	pocket_chunks?: int @go(PocketChunks)
+
+	// PocketExits is the most ways out of the pocket that the regenerated deep is joined to. A world with
+	// a geography needs at least 1.
+	pocket_exits?: int @go(PocketExits)
 }
 
 // GeographyDef lists the stages that build chunks of one kind of ground, in order.

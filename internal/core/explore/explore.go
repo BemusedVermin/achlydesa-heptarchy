@@ -22,6 +22,7 @@ import (
 // state is what explore keeps on the world, as an Ark resource.
 type state struct {
 	rules hexmap.StepRules
+	world *WorldSource
 	// generated is the world's generated ground, nil when the world has none.
 	generated *worldgen.Source
 	// populated holds the chunks whose starting bodies have been spawned for generated's export count.
@@ -184,11 +185,12 @@ func buildWorld(w *sim.World) (*WorldSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
-	cells, err := cellSource(w, src)
+	cells, err := cellSource(w, src, src.Bounds())
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
 	st := stateOf(w)
+	st.world = src
 	st.generated, _ = cells.(*worldgen.Source)
 	clear(st.populated)
 	w.Map = hexmap.NewMap(cells, hexmap.Prisms{})
