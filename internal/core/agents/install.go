@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
@@ -35,6 +36,15 @@ func Install(w *sim.World) error {
 	if err := actions.RegisterChooser(w, chooserName, attackChooser{}); err != nil {
 		return err
 	}
+	for _, register := range []func(*api.Codec) error{
+		api.RegisterEvent[api.Promoted],
+		api.RegisterEvent[api.Demoted],
+	} {
+		if err := register(w.Codec); err != nil {
+			return err
+		}
+	}
+	sim.Subscribe(w.Bus, "agents.lod", onPartyCrossed)
 	if err := w.Views.Register(sim.ViewBuilder{Name: regionView, Build: buildRegion}); err != nil {
 		return err
 	}

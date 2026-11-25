@@ -157,6 +157,10 @@ region: town: {
 }
 ```
 
+## Families
+
+A family (`families.cue`, `family.*`) is a kind of creature a region counts while the party is away. When the party enters a map, each count in that region becomes bodies: each is one of the family's `templates`, picked by `weight`, standing beside one of its `marks` (map marks, in turn) or, with no marks on the map, at random around the party. Bodies stand out of the party's sight when a cell is free, within `agents.promote_radius` hexes. A region starts with `region: populations: {"family.test.clay": 3}`. On leaving, living bodies of a family without `Individual` are counted back; the dead stay on the map.
+
 ## Effects
 
 An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.

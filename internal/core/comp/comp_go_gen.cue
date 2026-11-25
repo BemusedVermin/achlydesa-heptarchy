@@ -256,3 +256,14 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Individual marks a body that is never demoted into a population count.
 #Individual: {}
+
+// Family records the family a body was promoted from.
+#Family: {
+	id: api.#ContentID @go(ID)
+}
+
+// Dormant marks a body taken off the timeline, and keeps what putting it back needs.
+#Dormant: {
+	controller: string @go(Controller)
+	wait_until: int64  @go(WaitUntil)
+}

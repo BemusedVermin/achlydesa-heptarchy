@@ -57,6 +57,9 @@ func New(cfg Config) (*Game, error) {
 		if err := agents.SpawnRegions(w); err != nil {
 			return fmt.Errorf("game: start: %w", err)
 		}
+		if err := agents.StartLevelOfDetail(w); err != nil {
+			return fmt.Errorf("game: start: %w", err)
+		}
 		return nil
 	}, cfg.Spawn)
 	if err != nil {

@@ -35,7 +35,9 @@ type Bundle struct {
 	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
 	// bodies weigh.
 	Behaviors map[string]BehaviorDef `json:"behaviors"`
-	Agents    AgentsConfig           `json:"agents"`
+	// Families are the kinds of creature a region counts off screen ("family." IDs).
+	Families map[string]FamilyDef `json:"families"`
+	Agents   AgentsConfig         `json:"agents"`
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	Rules map[string]string `json:"rules,omitempty"`
 	// Choices are the choices actions may ask for, served from a collection of records.
@@ -295,6 +297,26 @@ type AgentsConfig struct {
 	// DyingBelow is the fraction of its integrity at or below which a vital part marks its body as
 	// dying, as target.dying reads in a formula.
 	DyingBelow float64 `json:"dying_below"`
+	// PromoteRadius is how far from a mark, or from the party, a promoted body may be placed, in
+	// hexes.
+	PromoteRadius int `json:"promote_radius"`
+}
+
+// FamilyDef is a kind of creature that a region holds as a count while the party is away, and as
+// bodies while it is there.
+type FamilyDef struct {
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Templates are the templates a promoted member may be, chosen by weight.
+	Templates []Weighted `json:"templates"`
+	// Marks are the names of map marks members appear at; empty means any open cell.
+	Marks []string `json:"marks,omitempty"`
+}
+
+// Weighted is a template and the weight it is chosen with.
+type Weighted struct {
+	Template api.ContentID `json:"template"`
+	Weight   int           `json:"weight"`
 }
 
 // NeedDef is something a body runs low on, such as water. Its level runs from 0 (met) to 1
@@ -433,6 +455,8 @@ type MapDef struct {
 type RegionDef struct {
 	Data
 	Town *TownDef `json:"town,omitempty"`
+	// Populations maps each family ("family." ID) to how many of it the region starts with.
+	Populations map[string]int `json:"populations,omitempty"`
 }
 
 // TownDef makes a region a town, whose stock the region entity holds as its inventory.
@@ -517,6 +541,7 @@ const (
 	CollectionStatuses  Collection = "statuses"
 	CollectionNeeds     Collection = "needs"
 	CollectionBehaviors Collection = "behaviors"
+	CollectionFamilies  Collection = "families"
 )
 
 // TargetKind is what an action targets.
