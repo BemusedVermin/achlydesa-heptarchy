@@ -1,7 +1,7 @@
 ---
 id: M5-07
 title: Verify stage and the guarantees
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-05]
@@ -37,9 +37,9 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 
 ## Acceptance criteria
 
-- [ ] A rapid property: for any of many seeds, a walk using the real stepping rules from any place's start reaches every other place's start.
-- [ ] Order independence still holds.
-- [ ] `go tool task check` passes.
+- [x] A rapid property: for any of many seeds, a walk using the real stepping rules from any place's start reaches every other place's start.
+- [x] Order independence still holds.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -48,4 +48,10 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- Deviation: the check runs over the whole ground before verify (once per source, memoized), not over per-chunk summaries; fine for the sample world, filed as M5-07.F1 for the large one. The repair uses a BFS over tunnel steps (as join's), not A* on a chunk graph.
+- Files outside the list: `source.go` gains `Context.Before` (the chunks as earlier stages leave them) and `Context.Shared` (compute once per source and stage).
+- Walkability counts only steps that can be made both ways, so a drop never joins areas. An opening's area is the standable ground it or its exit stands on or steps to. A pocket under `min_pocket` cells with no place cells is filled; larger cut-off pockets are joined.
+- Step limits and `min_pocket` (24) are verify params in content, duplicating the party's step limits; they must match `party.cue`.
+- The stage is not registered anywhere yet; M5-06 wires the procgen stages into the game.
+- Test count is lowered to 12 checks (about 1.5 s each); `-rapid.checks` overrides.
+- Follow-up filed: M5-07.F1.

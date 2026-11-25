@@ -41,5 +41,12 @@ geographies: "geography.deep": {
 			shaft_radius: 1.5
 			outer_radius: 8
 		}
+	}, {
+		stage: "verify"
+		params: {
+			max_step_up:   1
+			max_step_down: 1
+			min_pocket:    24
+		}
 	}]
 }

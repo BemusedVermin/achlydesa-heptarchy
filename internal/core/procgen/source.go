@@ -7,6 +7,7 @@ import (
 	"hash/fnv"
 	"maps"
 	"slices"
+	"sync"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -65,12 +66,29 @@ type Context struct {
 	// Siblings holds the params of every stage of the geography by name, the first of a name winning. Must
 	// only be read.
 	Siblings map[string]map[string]float64
+	// Before builds chunks as the stages before this one leave them.
+	Before hexmap.Source
+	// Shared runs compute once per source and stage, on whichever chunk asks first, and hands every later
+	// caller the same value, which must only be read. A failure is kept too.
+	Shared func(compute func() (any, error)) (any, error)
 }
 
 type boundStage struct {
 	name   string
 	stage  Stage
 	params map[string]float64
+	memo   *memo
+}
+
+type memo struct {
+	once  sync.Once
+	value any
+	err   error
+}
+
+func (m *memo) do(compute func() (any, error)) (any, error) {
+	m.once.Do(func() { m.value, m.err = compute() })
+	return m.value, m.err
 }
 
 // Source is a [hexmap.Source] that runs a geography's stages on the fixed layer's chunks. Fixed cells and
@@ -118,7 +136,7 @@ func NewSource(cfg Config) (*Source, error) {
 		if _, seen := src.siblings[def.Stage]; !seen {
 			src.siblings[def.Stage] = def.Params
 		}
-		src.stages = append(src.stages, boundStage{name: def.Stage, stage: stage, params: def.Params})
+		src.stages = append(src.stages, boundStage{name: def.Stage, stage: stage, params: def.Params, memo: &memo{}})
 	}
 	return src, nil
 }
@@ -145,6 +163,8 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 			Fixed:       s.fixed,
 			Openings:    s.openings,
 			Siblings:    s.siblings,
+			Before:      s.before(i),
+			Shared:      bound.memo.do,
 		}
 		if err := bound.stage.Run(ctx, chunk); err != nil {
 			return nil, fmt.Errorf("procgen: stage %q on chunk %v: %w", bound.name, key, err)
@@ -158,6 +178,13 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 		}
 	})
 	return chunk, nil
+}
+
+// before is a source of the chunks as the first count stages leave them.
+func (s *Source) before(count int) *Source {
+	prior := *s
+	prior.stages = s.stages[:count:count]
+	return &prior
 }
 
 // Openings lists where the fixed places meet the generated ground, places in the fixed layer's order.
