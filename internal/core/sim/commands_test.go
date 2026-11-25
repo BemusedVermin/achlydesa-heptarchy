@@ -52,12 +52,3 @@ func TestHandleRegistersWithCodecAndRejectsDuplicates(t *testing.T) {
 		t.Errorf("round trip = %#v", decoded)
 	}
 }
-
-func TestKindsAreSorted(t *testing.T) {
-	w := NewWorld(1)
-	_ = Handle(w, func(*World, testCommand) (int64, error) { return 0, nil })
-	_ = Handle(w, func(*World, otherCommand) (int64, error) { return 0, nil })
-	if got := w.Commands.Kinds(); !slices.Equal(got, []string{"test.cmd", "test.other"}) {
-		t.Errorf("Kinds() = %v", got)
-	}
-}

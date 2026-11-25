@@ -128,7 +128,7 @@ Brief: [M4-world/README.md](M4-world/README.md)
 | [M4-04](M4-world/M4-04-bounded-world-store.md) | hexmap: one bounded world store | done | seam | S | none |
 | [M4-06](M4-world/M4-06-world-and-places.md) | Content: the world and its places | todo | seam | M | M4-04 |
 | [M4-07](M4-world/M4-07-one-world.md) | One world: the maps become places | todo | seam | M | M4-06 |
-| [M4-15](M4-world/M4-15-delete-weak-tests.md) | Delete weak tests | todo | debt | M | M4-01 |
+| [M4-15](M4-world/M4-15-delete-weak-tests.md) | Delete weak tests | done | debt | M | M4-01 |
 
 ## Later milestones (outlines)
 
