@@ -84,7 +84,7 @@ func withChecks(t *testing.T, checks int) {
 }
 
 func TestVerifyEveryPlaceReachesEveryOther(t *testing.T) {
-	withChecks(t, 12)
+	withChecks(t, 40)
 	rapid.Check(t, func(rt *rapid.T) {
 		seed := rapid.Uint64Range(1, 1<<20).Draw(rt, "seed")
 		budget := rapid.IntRange(4, 12).Draw(rt, "budget")

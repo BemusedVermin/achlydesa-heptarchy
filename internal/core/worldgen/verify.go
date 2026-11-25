@@ -133,9 +133,9 @@ type repairer struct {
 	pocket int
 	budget int
 	// loaded is the chunks the ground holds, oldest first; peak is the most it held at once.
-	loaded     []hexmap.ChunkKey
-	peak       int
-	keys []hexmap.ChunkKey
+	loaded []hexmap.ChunkKey
+	peak   int
+	keys   []hexmap.ChunkKey
 	// sweep is keys column by column: a chunk's summary reads its neighbors, and a column's neighbors are
 	// read again soon after, while they are still held.
 	sweep      []hexmap.ChunkKey
@@ -165,7 +165,6 @@ func (s boundedSource) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbgLoads++
 	r.loaded = append(r.loaded, key)
 	r.peak = max(r.peak, len(r.loaded))
 	return chunk, nil
@@ -276,7 +275,6 @@ func (r *repairer) settle() error {
 		if len(targets) == 0 {
 			return nil
 		}
-		dbg("round %d comps %d targets %d loads %d", round, len(r.components), len(targets), dbgLoads)
 		if err := r.join(main, targets); err != nil {
 			return err
 		}
@@ -298,7 +296,6 @@ func (r *repairer) summarize() error {
 		r.summaries[key] = summary
 		r.keepTable(key, table)
 	}
-	dbg("summarized %d dirty, loads %d", len(r.dirty), dbgLoads)
 	clear(r.dirty)
 	nodes := 0
 	for _, key := range r.keys {
@@ -462,8 +459,8 @@ func (r *repairer) keepTable(key hexmap.ChunkKey, table []int32) {
 	r.tables[key] = table
 }
 
-// cellsOf lists a component's cells within the given chunks, in chunk order then slot order.
-func (r *repairer) cellsOf(i int, within []hexmap.ChunkKey) ([]api.Cell, error) {
+// cellsOf lists the cells of the components in within the given chunks, in chunk order then slot order.
+func (r *repairer) cellsOf(in func(int) bool, within []hexmap.ChunkKey) ([]api.Cell, error) {
 	var cells []api.Cell
 	for _, key := range within {
 		summary, ok := r.summaries[key]
@@ -475,7 +472,7 @@ func (r *repairer) cellsOf(i int, within []hexmap.ChunkKey) ([]api.Cell, error) 
 			return nil, err
 		}
 		for slot, area := range table {
-			if area >= 0 && r.componentOf[summary.node+int(area)] == i {
+			if area >= 0 && in(r.componentOf[summary.node+int(area)]) {
 				cells = append(cells, key.Cell(slot))
 			}
 		}
@@ -734,18 +731,21 @@ func (r *repairer) join(main int, targets map[int]bool) error {
 		return errors.New("verify: no chain of chunks joins the walkable areas")
 	}
 	for _, width := range corridorWidths {
-		dbg("  width %d path %d", width, len(path))
 		within := r.widen(path, width)
 		inside := map[hexmap.ChunkKey]bool{}
 		for _, key := range within {
 			inside[key] = true
 		}
-		sources, err := r.cellsOf(main, within)
+		sources, err := r.cellsOf(func(i int) bool { return i == main }, within)
+		if err != nil {
+			return err
+		}
+		goals, err := r.cellsOf(func(i int) bool { return targets[i] }, within)
 		if err != nil {
 			return err
 		}
 		for _, fill := range []bool{false, true} {
-			joined, err := r.bridge(sources, inside, targets, fill)
+			joined, err := r.bridge(sources, goals, inside, fill)
 			if err != nil || joined {
 				return err
 			}
@@ -754,36 +754,109 @@ func (r *repairer) join(main int, targets map[int]bool) error {
 	return errors.New("verify: no corridor can join the walkable areas")
 }
 
-// bridge searches for a corridor inside the given chunks and carves it, reporting whether it found one. With
-// fill set, a step may fill an open cell that is no walkable ground to give its landing a floor.
-func (r *repairer) bridge(
-	sources []api.Cell, inside map[hexmap.ChunkKey]bool, targets map[int]bool, fill bool,
-) (bool, error) {
-	parents := make(map[api.Cell]bridgeMove, len(sources))
-	for _, cell := range sources {
-		parents[cell] = bridgeMove{from: cell, to: cell}
+// tunnelReach is the fewest tunnel steps between two cells: each step moves one hex and at most one depth.
+func tunnelReach(a, b api.Cell) int {
+	return max(hexmap.Distance(a.Hex, b.Hex), a.Depth-b.Depth, b.Depth-a.Depth)
+}
+
+// bridgeEntry is a cell waiting in the corridor search, ordered by its estimate, then by when it was queued.
+type bridgeEntry struct {
+	cell            api.Cell
+	steps, estimate int
+	queued          int
+}
+
+// bridgeQueue is a binary heap of entries; container/heap would box every entry.
+type bridgeQueue []bridgeEntry
+
+func (q bridgeQueue) before(i, j int) bool {
+	return q[i].estimate < q[j].estimate || q[i].estimate == q[j].estimate && q[i].queued < q[j].queued
+}
+
+func (q *bridgeQueue) push(entry bridgeEntry) {
+	*q = append(*q, entry)
+	for i := len(*q) - 1; i > 0; {
+		up := (i - 1) / 2
+		if !q.before(i, up) {
+			break
+		}
+		(*q)[i], (*q)[up] = (*q)[up], (*q)[i]
+		i = up
 	}
-	queue := slices.Clone(sources)
-	for head := 0; head < len(queue); head++ {
-		from := queue[head]
+}
+
+func (q *bridgeQueue) pop() bridgeEntry {
+	top := (*q)[0]
+	last := len(*q) - 1
+	(*q)[0] = (*q)[last]
+	*q = (*q)[:last]
+	for i := 0; ; {
+		least := i
+		for _, child := range []int{2*i + 1, 2*i + 2} {
+			if child < last && q.before(child, least) {
+				least = child
+			}
+		}
+		if least == i {
+			return top
+		}
+		(*q)[i], (*q)[least] = (*q)[least], (*q)[i]
+		i = least
+	}
+}
+
+// bridge carves the shortest corridor inside the given chunks from a source cell to a goal cell, reporting
+// whether one exists. It is an A* search over tunnel steps, ties broken by queue order so the corridor is a
+// pure function of the ground. With fill set, a step may fill an open cell that is no walkable ground to give
+// its landing a floor.
+func (r *repairer) bridge(sources, goals []api.Cell, inside map[hexmap.ChunkKey]bool, fill bool) (bool, error) {
+	isGoal := make(map[api.Cell]bool, len(goals))
+	for _, cell := range goals {
+		isGoal[cell] = true
+	}
+	estimate := func(cell api.Cell) int {
+		least := math.MaxInt
+		for _, goal := range goals {
+			least = min(least, tunnelReach(cell, goal))
+		}
+		return least
+	}
+	parents := make(map[api.Cell]bridgeMove, len(sources))
+	best := make(map[api.Cell]int, len(sources))
+	var queue bridgeQueue
+	for i, cell := range sources {
+		parents[cell] = bridgeMove{from: cell, to: cell}
+		best[cell] = 0
+		queue.push(bridgeEntry{cell: cell, estimate: estimate(cell), queued: i})
+	}
+	queued := len(sources)
+	for len(queue) > 0 {
+		entry := queue.pop()
+		if entry.steps > best[entry.cell] {
+			continue
+		}
+		if isGoal[entry.cell] {
+			return true, r.carvePath(parents, entry.cell)
+		}
 		for dir := range api.Dir(api.DirCount) {
 			for _, rise := range []int{0, -1, 1} {
-				move, ok, err := r.tunnelStep(from, dir, rise, fill)
+				move, ok, err := r.tunnelStep(entry.cell, dir, rise, fill)
 				if err != nil {
 					return false, err
 				}
-				if _, seen := parents[move.to]; !ok || seen || !inside[hexmap.KeyOf(move.to)] {
+				if !ok || !inside[hexmap.KeyOf(move.to)] {
 					continue
 				}
+				steps := entry.steps + 1
+				if known, seen := best[move.to]; seen && known <= steps {
+					continue
+				}
+				best[move.to] = steps
 				parents[move.to] = move
-				area, walks, err := r.componentAt(move.to)
-				if err != nil {
-					return false, err
-				}
-				if walks && targets[area] {
-					return true, r.carvePath(parents, move.to)
-				}
-				queue = append(queue, move.to)
+				queued++
+				queue.push(bridgeEntry{
+					cell: move.to, steps: steps, estimate: steps + estimate(move.to), queued: queued,
+				})
 			}
 		}
 	}
