@@ -355,6 +355,23 @@ type WorldDef struct {
 // GeographyDef lists the stages that build chunks of one kind of ground, in order.
 type GeographyDef struct {
 	Stages []StageDef `json:"stages"`
+	// Spawns is what lives on the generated ground: each entry can start a body of its template on any
+	// open cell with solid ground below, within its depth band.
+	Spawns []GeographySpawn `json:"spawns,omitempty"`
+}
+
+// GeographySpawn is one kind of creature a geography starts with.
+type GeographySpawn struct {
+	// Template is the "template." ID of the body to spawn.
+	Template api.ContentID `json:"template"`
+	// Weight is the template's share among the entries that apply to a cell.
+	Weight float64 `json:"weight"`
+	// MinDepth and MaxDepth bound the depths the entry applies at, both inclusive.
+	MinDepth int `json:"min_depth"`
+	MaxDepth int `json:"max_depth"`
+	// Density is in [0, 1]: how likely a cell the entry applies to is to start a body, before the entry's
+	// weight shares that chance with the other entries that apply there.
+	Density float64 `json:"density"`
 }
 
 // StageDef names a registered worldgen stage and its numbers. Whether the stage takes those params is the

@@ -414,7 +414,14 @@ func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
 	got, err := save.ReadWith(
 		bytes.NewReader(old),
 		save.CurrentVersion,
-		map[int]save.Migration{0: renameSeed, 1: noMigration, 2: noMigration, 3: noMigration, 4: noMigration},
+		map[int]save.Migration{
+			0: renameSeed,
+			1: noMigration,
+			2: noMigration,
+			3: noMigration,
+			4: noMigration,
+			5: noMigration,
+		},
 	)
 	if err != nil {
 		t.Fatal(err)
