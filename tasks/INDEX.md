@@ -144,7 +144,7 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 | [M5-08](M5-procgen/M5-08-unload-chunks.md) | Unload far chunks and keep Seen as bitsets | done | seam | M | M5-01 |
 | [M5-05](M5-procgen/M5-05-join-places.md) | Join the generated deep to the fixed places | done | feature | M | M5-02 |
 | [M5-06](M5-procgen/M5-06-the-large-world.md) | The large world: procgen in the game | done | feature | M | M5-05 |
-| [M5-07](M5-procgen/M5-07-verify-guarantees.md) | Verify stage and the guarantees | todo | feature | M | M5-05 |
+| [M5-07](M5-procgen/M5-07-verify-guarantees.md) | Verify stage and the guarantees | done | feature | M | M5-05 |
 | [M5-10](M5-procgen/M5-10-regenerate-on-export.md) | Regenerate the deep on an export | todo | feature | M | M5-06, M5-07, M5-08, M5-09 |
 | [M5-11](M5-procgen/M5-11-populate.md) | Populate generated ground | todo | feature | M | M5-06, M5-08 |
 | [M5-12](M5-procgen/M5-12-decay-spreads.md) | Decay spreads downward over exports | todo | feature | S | M5-10 |
@@ -174,6 +174,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M5-07.F1](followups/M5-07.F1-verify-chunk-summaries.md) | Verify from chunk summaries, not the whole ground | proposed | debt | M5 | M5-07 |
 | [M5-05.F1](followups/M5-05.F1-wall-less-place-edges.md) | Stop wall-less place layers from sprouting a tunnel per cell | proposed | question | M5 | M5-05 |
 | [M5-09.F1](followups/M5-09.F1-flaky-watch-burst-test.md) | Stop TestWatchOneCallbackPerBurst flaking on a loaded CI runner | proposed | test | unplanned | M5-09 |
 | [M5-01.F1](followups/M5-01.F1-rng-only-math-rand.md) | Only the rng package imports math/rand | done | debt | M5 | M5-01 |

@@ -1,4 +1,4 @@
-package procgen_test
+package worldgen_test
 
 import (
 	"errors"
@@ -10,16 +10,16 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/procgen"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
-type stageFunc func(ctx *procgen.Context, chunk *hexmap.Chunk) error
+type stageFunc func(ctx *worldgen.Context, chunk *hexmap.Chunk) error
 
-func (f stageFunc) Run(ctx *procgen.Context, chunk *hexmap.Chunk) error { return f(ctx, chunk) }
+func (f stageFunc) Run(ctx *worldgen.Context, chunk *hexmap.Chunk) error { return f(ctx, chunk) }
 
 var noise = []hexmap.Terrain{{ID: "terrain.test.noise_a"}, {ID: "terrain.test.noise_b", Solid: true}}
 
-func scatter(ctx *procgen.Context, chunk *hexmap.Chunk) error {
+func scatter(ctx *worldgen.Context, chunk *hexmap.Chunk) error {
 	for depth := range hexmap.ChunkSize {
 		for r := range hexmap.ChunkSize {
 			for q := range hexmap.ChunkSize {
@@ -32,7 +32,7 @@ func scatter(ctx *procgen.Context, chunk *hexmap.Chunk) error {
 
 type fixture struct {
 	fixed  *explore.WorldSource
-	stages *procgen.Stages
+	stages *worldgen.Stages
 }
 
 func newFixture(t *testing.T) fixture {
@@ -41,7 +41,7 @@ func newFixture(t *testing.T) fixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	stages := procgen.NewStages()
+	stages := worldgen.NewStages()
 	if err := stages.Register("scatter", stageFunc(scatter), func(params map[string]float64) error {
 		if _, ok := params["unknown"]; ok {
 			return errors.New("takes no param unknown")
@@ -53,9 +53,9 @@ func newFixture(t *testing.T) fixture {
 	return fixture{fixed: fixed, stages: stages}
 }
 
-func (f fixture) source(t *testing.T, seed, exportCount uint64) *procgen.Source {
+func (f fixture) source(t *testing.T, seed, exportCount uint64) *worldgen.Source {
 	t.Helper()
-	src, err := procgen.NewSource(procgen.Config{
+	src, err := worldgen.NewSource(worldgen.Config{
 		Seed:        seed,
 		ExportCount: exportCount,
 		Bounds:      f.fixed.Bounds(),
@@ -158,7 +158,7 @@ func TestSourceChunkDependsOnlyOnSeedExportCountAndKey(t *testing.T) {
 			{"bad params", content.StageDef{Stage: "scatter", Params: map[string]float64{"unknown": 1}}},
 		}
 		for _, test := range tests {
-			_, err := procgen.NewSource(procgen.Config{
+			_, err := worldgen.NewSource(worldgen.Config{
 				Bounds:    f.fixed.Bounds(),
 				Geography: content.GeographyDef{Stages: []content.StageDef{test.stage}},
 				Stages:    f.stages,

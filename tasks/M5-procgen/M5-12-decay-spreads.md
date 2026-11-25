@@ -23,7 +23,7 @@ The deep changes character over the game: each export lets decay reach a little 
 ## Deliverables
 
 - `internal/content/types.go`, `content/data/`: a rule giving a cell's decay from `(depth, export count)` as a named formula in `rules.cue`, plus the terrains decayed ground uses, on the geography.
-- `internal/core/procgen/`: stages read a cell's decay through the rule when choosing terrain.
+- `internal/core/worldgen/`: stages read a cell's decay through the rule when choosing terrain.
 - A test: the same cell is more decayed after more exports, and shallower cells decay before deeper ones.
 
 ## Spec

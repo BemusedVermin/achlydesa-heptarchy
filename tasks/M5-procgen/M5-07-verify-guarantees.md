@@ -1,7 +1,7 @@
 ---
 id: M5-07
 title: Verify stage and the guarantees
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-05]
@@ -24,9 +24,9 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 
 ## Deliverables
 
-- `internal/core/procgen/verify.go`: the `verify` stage, its registration, and the chunk graph it reads.
+- `internal/core/worldgen/verify.go`: the `verify` stage, its registration, and the chunk graph it reads.
 - `content/data/geography.cue`: `verify` last.
-- `internal/core/procgen/verify_test.go`: property tests with `pgregory.net/rapid` over seeds.
+- `internal/core/worldgen/verify_test.go`: property tests with `pgregory.net/rapid` over seeds.
 
 ## Spec
 
@@ -37,9 +37,9 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 
 ## Acceptance criteria
 
-- [ ] A rapid property: for any of many seeds, a walk using the real stepping rules from any place's start reaches every other place's start.
-- [ ] Order independence still holds.
-- [ ] `go tool task check` passes.
+- [x] A rapid property: for any of many seeds, a walk using the real stepping rules from any place's start reaches every other place's start.
+- [x] Order independence still holds.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -48,4 +48,12 @@ A `verify` stage checks the generated deep against the guarantees and repairs it
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- Deviation: the check runs over the whole ground before verify (once per source, memoized), not over per-chunk summaries; fine for the sample world, filed as M5-07.F1 for the large one. The repair uses a BFS over tunnel steps (as join's), not A* on a chunk graph.
+- Files outside the list: `source.go` gains `Context.Before` (the chunks as earlier stages leave them) and `Context.Shared` (compute once per source and stage).
+- Walkability counts only steps that can be made both ways, so a drop never joins areas. An opening's area is the standable ground it or its exit stands on or steps to. A pocket under `min_pocket` cells with no place cells is filled; larger cut-off pockets are joined.
+- Step limits and `min_pocket` (24) are verify params in content, duplicating the party's step limits; they must match `party.cue`.
+- The stage is not registered anywhere yet; M5-06 wires the procgen stages into the game.
+- Test count is lowered to 12 checks (about 1.5 s each); `-rapid.checks` overrides.
+- Repair rules found by random seeds: a corridor never opens ground a walkable cell stands on, and may fill an open cell (never walkable ground) to floor its landing, tried only when no corridor exists without it. An opening the earlier stages left sealed in solid ground gets its exit opened and floored. A place's walkable ground that no opening leads to (a sealed authored place, such as the sample's surface cells) is left alone: it is neither joined nor filled. If a place's exit cannot be made standable, the stage returns an error.
+- Follow-up filed: M5-07.F1.
+- Package renamed `internal/core/procgen` to `internal/core/worldgen` and made a foundation package, at the owner's request: it imports only `content`, `api`, `hexmap` and `rng`, so `explore` and `game` may import it. The feature package `procgen` is kept for reseeding on exports and the party's pocket (M5-10), not yet written. Edited `AGENTS.md`, `.claude/rules/core.md`, `docs/go-technical-design.md` and the paths in M5-11, M5-12 and the two follow-ups to match. The `procgen` rng stream name is unchanged so goldens stay valid. Open PR 183 still imports `procgen` and needs updating from this branch.

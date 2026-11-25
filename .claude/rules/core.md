@@ -32,7 +32,7 @@ Every rule in AGENTS.md applies here. This is how they play out in the code. Nam
 
 ## Layers (rule 2)
 
-Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages. To reach another feature, publish an event or write a component it reads. depguard enforces this.
+Foundation packages include `worldgen`. Feature packages (`explore`, `procgen`, `combat`, `agents`, `seats`, `cast`, `rumor`, `investigation`) import only foundation packages. To reach another feature, publish an event or write a component it reads. depguard enforces this.
 
 ## Tests
 

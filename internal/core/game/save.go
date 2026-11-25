@@ -84,10 +84,7 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 		return nil, nil, err
 	}
 	cfg.Seed = snapshot.Header.Seed
-	loadWorld := func(w *sim.World) error {
-		return explore.LoadWorldWith(w, generator(uint64(max(snapshot.Exports.Count, 0))))
-	}
-	g, err := build(cfg, loadWorld, nil)
+	g, err := build(cfg, explore.LoadWorld, nil)
 	if err != nil {
 		return nil, nil, err
 	}

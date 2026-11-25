@@ -75,7 +75,7 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 	return src, nil
 }
 
-// Covers reports whether a place authors the cell. It makes WorldSource the fixed layer of procgen.
+// Covers reports whether a place authors the cell. It makes WorldSource the fixed layer of worldgen.
 func (s *WorldSource) Covers(cell api.Cell) bool { return s.covered[cell] }
 
 // Places lists every place's marked openings, places in ID order.

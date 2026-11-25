@@ -1,4 +1,4 @@
-package procgen
+package worldgen
 
 import (
 	"encoding/binary"
@@ -7,6 +7,7 @@ import (
 	"hash/fnv"
 	"maps"
 	"slices"
+	"sync"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -14,7 +15,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/rng"
 )
 
-// Fixed is what procgen needs of the hand-made layer: the fixed places set in the world's fill.
+// Fixed is what worldgen needs of the hand-made layer: the fixed places set in the world's fill.
 type Fixed interface {
 	hexmap.Source
 	// Covers reports whether a cell belongs to a place.
@@ -65,12 +66,29 @@ type Context struct {
 	// Siblings holds the params of every stage of the geography by name, the first of a name winning. Must
 	// only be read.
 	Siblings map[string]map[string]float64
+	// Before builds chunks as the stages before this one leave them.
+	Before hexmap.Source
+	// Shared runs compute once per source and stage, on whichever chunk asks first, and hands every later
+	// caller the same value, which must only be read. A failure is kept too.
+	Shared func(compute func() (any, error)) (any, error)
 }
 
 type boundStage struct {
 	name   string
 	stage  Stage
 	params map[string]float64
+	memo   *memo
+}
+
+type memo struct {
+	once  sync.Once
+	value any
+	err   error
+}
+
+func (m *memo) do(compute func() (any, error)) (any, error) {
+	m.once.Do(func() { m.value, m.err = compute() })
+	return m.value, m.err
 }
 
 // Source is a [hexmap.Source] that runs a geography's stages on the fixed layer's chunks. Fixed cells and
@@ -91,7 +109,7 @@ type Source struct {
 // NewSource checks the geography's stages against cfg.Stages and returns a source for them.
 func NewSource(cfg Config) (*Source, error) {
 	if cfg.Fixed == nil {
-		return nil, errors.New("procgen: source: no fixed layer")
+		return nil, errors.New("worldgen: source: no fixed layer")
 	}
 	openings, err := openingsOf(cfg.Fixed, cfg.Bounds)
 	if err != nil {
@@ -108,17 +126,17 @@ func NewSource(cfg Config) (*Source, error) {
 		siblings:    map[string]map[string]float64{},
 	}
 	if len(cfg.Geography.Stages) > 0 && cfg.Stages == nil {
-		return nil, errors.New("procgen: source: no stage registry")
+		return nil, errors.New("worldgen: source: no stage registry")
 	}
 	for i, def := range cfg.Geography.Stages {
 		stage, err := cfg.Stages.lookup(def)
 		if err != nil {
-			return nil, fmt.Errorf("procgen: source: stages[%d]: %w", i, err)
+			return nil, fmt.Errorf("worldgen: source: stages[%d]: %w", i, err)
 		}
 		if _, seen := src.siblings[def.Stage]; !seen {
 			src.siblings[def.Stage] = def.Params
 		}
-		src.stages = append(src.stages, boundStage{name: def.Stage, stage: stage, params: def.Params})
+		src.stages = append(src.stages, boundStage{name: def.Stage, stage: stage, params: def.Params, memo: &memo{}})
 	}
 	return src, nil
 }
@@ -127,7 +145,7 @@ func NewSource(cfg Config) (*Source, error) {
 func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 	fixed, err := s.fixed.Chunk(key)
 	if err != nil {
-		return nil, fmt.Errorf("procgen: fixed chunk %v: %w", key, err)
+		return nil, fmt.Errorf("worldgen: fixed chunk %v: %w", key, err)
 	}
 	if len(s.stages) == 0 || !s.touchesBounds(key) {
 		return fixed, nil
@@ -145,9 +163,11 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 			Fixed:       s.fixed,
 			Openings:    s.openings,
 			Siblings:    s.siblings,
+			Before:      s.before(i),
+			Shared:      bound.memo.do,
 		}
 		if err := bound.stage.Run(ctx, chunk); err != nil {
-			return nil, fmt.Errorf("procgen: stage %q on chunk %v: %w", bound.name, key, err)
+			return nil, fmt.Errorf("worldgen: stage %q on chunk %v: %w", bound.name, key, err)
 		}
 	}
 	origin := key.Origin()
@@ -158,6 +178,13 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 		}
 	})
 	return chunk, nil
+}
+
+// before is a source of the chunks as the first count stages leave them.
+func (s *Source) before(count int) *Source {
+	prior := *s
+	prior.stages = s.stages[:count:count]
+	return &prior
 }
 
 // Openings lists where the fixed places meet the generated ground, places in the fixed layer's order.
@@ -177,7 +204,7 @@ func openingsOf(fixed Fixed, bounds hexmap.Bounds) ([]Opening, error) {
 				}
 			}
 			if !found {
-				return nil, fmt.Errorf("procgen: source: opening %v of %q has no neighbor outside the places",
+				return nil, fmt.Errorf("worldgen: source: opening %v of %q has no neighbor outside the places",
 					cell, footprint.Place)
 			}
 		}

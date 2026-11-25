@@ -14,7 +14,7 @@ world: {
 	fill:      "terrain.packed_clay"
 	edge:      "terrain.packed_clay"
 	open:      "terrain.air"
-	geography: "geography.deep"
+	geography: "geography.large"
 	// Chunks far from every party member are unloaded past this many; first value, for tuning.
 	chunk_budget: 256
 	// A chunk this many chunks or fewer from any party member stays loaded whatever the budget.

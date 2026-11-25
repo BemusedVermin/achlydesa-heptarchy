@@ -24,7 +24,7 @@ Generated ground gets its starting creatures as bodies, chosen from content by d
 ## Deliverables
 
 - `internal/content/types.go`, `content/data/`: `GeographyDef.Spawns` (template IDs, each with a weight, a depth band and a density), so what lives where is data. They sit on the geography so that a later geography per area brings its own.
-- `internal/core/procgen/populate.go`: the `populate` stage computes the spawns of a chunk as plain data (cell, template) from the seed; it does not touch the world.
+- `internal/core/worldgen/populate.go`: the `populate` stage computes the spawns of a chunk as plain data (cell, template) from the seed; it does not touch the world.
 - `internal/core/explore/`: the world's goroutine applies a chunk's spawns once, in chunk-key then cell order, the first time the chunk is generated for the current export count.
 - `internal/core/save/`: which chunks are populated for this export count; bump the save version.
 - A test: walking into a chunk spawns bodies once, reloading does not spawn again, and the same seed spawns the same bodies.

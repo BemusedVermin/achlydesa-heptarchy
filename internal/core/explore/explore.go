@@ -159,24 +159,16 @@ func templateName(w *sim.World, e ecs.Entity) api.Text {
 	return w.Content.TemplateName(w.TemplateOf(e))
 }
 
-// Generator builds the cells of the world around its fixed layer, the places. The explore package can't
-// import the feature that generates the deep, so the game supplies it.
-type Generator func(w *sim.World, fixed *WorldSource) (hexmap.Source, error)
-
 // LoadWorld builds the world's cells from content, without starting a game. Loading a save calls
 // it instead of Start, then reapplies the saved edits.
-func LoadWorld(w *sim.World) error { return LoadWorldWith(w, nil) }
-
-// LoadWorldWith is [LoadWorld] with generate building the cells beyond the places. A nil generate leaves
-// them all the world's fill.
-func LoadWorldWith(w *sim.World, generate Generator) error {
-	_, err := buildWorld(w, generate)
+func LoadWorld(w *sim.World) error {
+	_, err := buildWorld(w)
 	return err
 }
 
 // buildWorld sets w.Map to the cells of the content's world and places, bounded by the world's
 // size. Content with no world leaves w.Map nil.
-func buildWorld(w *sim.World, generate Generator) (*WorldSource, error) {
+func buildWorld(w *sim.World) (*WorldSource, error) {
 	if w.Content == nil {
 		return nil, errors.New("explore: start: world has no content")
 	}
@@ -187,11 +179,9 @@ func buildWorld(w *sim.World, generate Generator) (*WorldSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
-	var cells hexmap.Source = src
-	if generate != nil {
-		if cells, err = generate(w, src); err != nil {
-			return nil, fmt.Errorf("explore: world: %w", err)
-		}
+	cells, err := cellSource(w, src)
+	if err != nil {
+		return nil, fmt.Errorf("explore: world: %w", err)
 	}
 	w.Map = hexmap.NewMap(cells, hexmap.Prisms{})
 	w.Map.SetBounds(src.Bounds(), src.Edge())
@@ -200,11 +190,8 @@ func buildWorld(w *sim.World, generate Generator) (*WorldSource, error) {
 
 // Start builds the world and, when the content has a start scenario, spawns the start party on its
 // mark, then every place's spawns. game.New calls it once, after Install.
-func Start(w *sim.World) error { return StartWith(w, nil) }
-
-// StartWith is [Start] with generate building the cells beyond the places.
-func StartWith(w *sim.World, generate Generator) error {
-	src, err := buildWorld(w, generate)
+func Start(w *sim.World) error {
+	src, err := buildWorld(w)
 	if err != nil || src == nil {
 		return err
 	}

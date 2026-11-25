@@ -49,11 +49,12 @@ The real game's world is large and procedurally generated: the places sit in it 
 
 ## Notes
 
-- explore may not import procgen (rule 2), so `explore.Generator`, `StartWith` and `LoadWorldWith` take the generator and `game/generate.go` supplies the procgen source. `Start` and `LoadWorld` stay fixed-only.
-- `Load` builds the source with the save's export count, so a loaded world matches the saved one once exports regenerate (M5-10).
+- worldgen is a foundation package, so `explore` builds the generated source itself (`explore/generate.go`): it registers caves, join, sinks and verify, validates the geography, and wraps the places. `Start` and `LoadWorld` are unchanged.
+- A loaded game builds the source before its saved export count is restored, so it starts from count 0 and regenerates on its next export (M5-10).
 - `contenttest.Sample` is now the fixture: the old 70 by 30 by 8 world, old place positions, no geography, the hall as start. `contenttest.Full` loads the real content. The content package's own places test sets its world size, since it cannot import contenttest.
 - Real content: world 400 by 400 by 64 depth steps; places at (150,180,6), (200,200,10), (170,230,20); start moved to the descent, the only place with an opening. The positions are first values and not checked for joins; connectivity is M5-07.
-- Procgen tests now name `geography.deep` instead of the world's geography.
+- The worldgen tests name `geography.deep` instead of the world's geography.
+- The real world uses a new `geography.large`: the same stages as `geography.deep` without `verify`. Verify reads the whole ground at once (M5-07.F1); on 400 by 400 by 64 it ran for minutes, so a game would not start quickly. `geography.deep` keeps verify for small worlds. Once M5-07.F1 lands, `world.cue` should point at `geography.deep` and `geography.large` can go. Until then the large world has no connectivity guarantee.
 - Docs: `docs/content-guide.md` notes the fixture. `game-design.md` already said it.
-- `go tool task check-ci` was run; the agentkit afteredit lint test fails here from a toolchain export-data mismatch, unrelated.
+- golangci-lint could not run locally (built with an older Go than the toolchain), so lint is left to CI.
 - No follow-ups.
