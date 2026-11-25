@@ -16,6 +16,7 @@ type WorldSource struct {
 	bounds     hexmap.Bounds
 	authored   map[hexmap.ChunkKey][]placed
 	covered    map[api.Cell]bool
+	places     []hexmap.Footprint
 	marks      map[placeMark]api.Cell
 	spawns     []Spawn
 }
@@ -51,12 +52,24 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 	}
 	for _, id := range reg.PlaceIDs() {
 		def, _ := reg.Place(id)
-		err := layOut(reg, def, open, src.authored, func(name string, cell api.Cell) {
+		own := map[hexmap.ChunkKey][]placed{}
+		err := layOut(reg, def, open, own, func(name string, cell api.Cell) {
 			src.marks[placeMark{place: id, name: name}] = cell
 		}, func(spawn Spawn) { src.spawns = append(src.spawns, spawn) })
 		if err != nil {
 			return nil, fmt.Errorf("place %q: %w", id, err)
 		}
+		footprint := hexmap.Footprint{Place: id}
+		for key, cells := range own {
+			src.authored[key] = append(src.authored[key], cells...)
+			for _, p := range cells {
+				if !p.terrain.Solid {
+					footprint.Open = append(footprint.Open, p.cell)
+				}
+			}
+		}
+		slices.SortFunc(footprint.Open, hexmap.CompareCells)
+		src.places = append(src.places, footprint)
 	}
 	for _, cells := range src.authored {
 		for _, p := range cells {
@@ -68,6 +81,9 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 
 // Covers reports whether a place authors the cell. It makes WorldSource the fixed layer of procgen.
 func (s *WorldSource) Covers(cell api.Cell) bool { return s.covered[cell] }
+
+// Places lists every place's open cells, places in ID order.
+func (s *WorldSource) Places() []hexmap.Footprint { return slices.Clone(s.places) }
 
 // Chunk implements [hexmap.Source].
 func (s *WorldSource) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {

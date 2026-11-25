@@ -84,9 +84,29 @@ func newCaveNoise(seed, exportCount uint64) caveNoise {
 	return caveNoise{cheese: next(), spaghettiA: next(), spaghettiB: next(), noodleA: next(), noodleB: next()}
 }
 
+// caveField says which cells the caves stage opens, from the seed alone.
+type caveField struct {
+	noise  caveNoise
+	bounds hexmap.Bounds
+	params map[string]float64
+}
+
+func newCaveField(seed, exportCount uint64, bounds hexmap.Bounds, params map[string]float64) caveField {
+	return caveField{noise: newCaveNoise(seed, exportCount), bounds: bounds, params: params}
+}
+
+// open reports whether the stage carves the cell, ignoring the fixed places.
+func (f caveField) open(cell api.Cell) bool {
+	if !f.bounds.Contains(cell) {
+		return false
+	}
+	strength := caveStrength(f.bounds, cell.Depth, f.params)
+	return strength > 0 && carved(f.noise, cell, strength, f.params)
+}
+
 // Run carves every in-bounds cell of the chunk that the noises open.
 func (caves) Run(ctx *Context, chunk *hexmap.Chunk) error {
-	noise := newCaveNoise(ctx.Seed, ctx.ExportCount)
+	field := newCaveField(ctx.Seed, ctx.ExportCount, ctx.Bounds, ctx.Params)
 	origin := ctx.Key.Origin()
 	for depth := range hexmap.ChunkSize {
 		for r := range hexmap.ChunkSize {
@@ -95,11 +115,7 @@ func (caves) Run(ctx *Context, chunk *hexmap.Chunk) error {
 					Hex:   api.Hex{Q: origin.Hex.Q + q, R: origin.Hex.R + r},
 					Depth: origin.Depth + depth,
 				}
-				if !ctx.Bounds.Contains(cell) {
-					continue
-				}
-				strength := caveStrength(ctx.Bounds, cell.Depth, ctx.Params)
-				if strength > 0 && carved(noise, cell, strength, ctx.Params) {
+				if field.open(cell) {
 					chunk.Set(q, r, depth, ctx.Open)
 				}
 			}

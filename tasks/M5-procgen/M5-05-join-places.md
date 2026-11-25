@@ -1,7 +1,7 @@
 ---
 id: M5-05
 title: Join the generated deep to the fixed places
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-02]
@@ -37,9 +37,9 @@ A `join` stage carves the generated deep into each fixed place's openings, so no
 
 ## Acceptance criteria
 
-- [ ] On the three test places and several seeds, every opening of every place is the end of a carved tunnel (a test walks outward with the real stepping rules).
-- [ ] Order-independence holds for chunks tunnels cross.
-- [ ] `go tool task check` passes.
+- [x] On the three test places and several seeds, every opening of every place is the end of a carved tunnel (a test walks outward with the real stepping rules).
+- [x] Order-independence holds for chunks tunnels cross.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -48,4 +48,10 @@ A `join` stage carves the generated deep into each fixed place's openings, so no
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- Footprints: `hexmap.Footprint` (foundation layer, so `explore` can return it without importing `procgen`) and `Fixed.Places()`, built in `explore/world_source.go`. `procgen.Source` computes `Openings()` once and gives them to stages in `Context.Openings`. `Context.Siblings` gives a stage the other stages' params; join reads the caves' params from it. Caves got a `caveField` so join can ask whether a cell is cave from the seed alone.
+- Tunnels walk level, one climb or one step down at a time (the real step rules), toward the nearest cave found within `reach`. Each step is drawn with weight `1 + bias * progress`. Every chunk recomputes the tunnels near it, so chunk order cannot matter (rapid test).
+- With no cave within `reach` an opening gets only its exit cell; M5-07 repairs that.
+- Content: `join` sits between `caves` and `sinks`, so sink footprints, which set every cell, win over tunnels. `width: 2`, `reach: 24`, `bias: 1.5` are first values to tune.
+- The acceptance test checks that every exit is open and has a real step outward, and that openings with a cave within a third of `reach` reach one. Reaching a cave from every opening is not guaranteed.
+- The stage is not registered in the game yet (M5-06).
+- Follow-up filed: M5-05.F1 (question: wall-less layers make an opening of every cell; 33 on the sample world).

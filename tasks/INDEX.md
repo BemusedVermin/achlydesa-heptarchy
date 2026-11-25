@@ -142,7 +142,7 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 | [M5-03](M5-procgen/M5-03-sinks.md) | Sinks stage | done | feature | M | M5-01 |
 | [M5-04](M5-procgen/M5-04-regions.md) | Regions as areas and the region graph | obsolete | seam | M | M5-01 |
 | [M5-08](M5-procgen/M5-08-unload-chunks.md) | Unload far chunks and keep Seen as bitsets | done | seam | M | M5-01 |
-| [M5-05](M5-procgen/M5-05-join-places.md) | Join the generated deep to the fixed places | todo | feature | M | M5-02 |
+| [M5-05](M5-procgen/M5-05-join-places.md) | Join the generated deep to the fixed places | done | feature | M | M5-02 |
 | [M5-06](M5-procgen/M5-06-the-large-world.md) | The large world: procgen in the game | todo | feature | M | M5-05 |
 | [M5-07](M5-procgen/M5-07-verify-guarantees.md) | Verify stage and the guarantees | todo | feature | M | M5-05 |
 | [M5-10](M5-procgen/M5-10-regenerate-on-export.md) | Regenerate the deep on an export | todo | feature | M | M5-06, M5-07, M5-08, M5-09 |
@@ -174,6 +174,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M5-05.F1](followups/M5-05.F1-wall-less-place-edges.md) | Stop wall-less place layers from sprouting a tunnel per cell | proposed | question | M5 | M5-05 |
 | [M5-09.F1](followups/M5-09.F1-flaky-watch-burst-test.md) | Stop TestWatchOneCallbackPerBurst flaking on a loaded CI runner | proposed | test | unplanned | M5-09 |
 | [M5-01.F1](followups/M5-01.F1-rng-only-math-rand.md) | Only the rng package imports math/rand | done | debt | M5 | M5-01 |
 | [M4-03.F1](followups/M4-03.F1-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | todo | feature | M6 | M6 |
