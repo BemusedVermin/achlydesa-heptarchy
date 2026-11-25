@@ -16,11 +16,12 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// field is a running game on one of the sample maps, with the sample party and its creature.
+// field is a running game started in one of the sample places, with the sample party and its creature.
 type field struct {
 	t      *testing.T
 	g      *game.Game
@@ -28,10 +29,10 @@ type field struct {
 	events []api.Event
 }
 
-func newField(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle)) *field {
+func newField(t *testing.T, place api.ContentID, mutate func(*content.Bundle)) *field {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	bundle.Start.Map = mapID
+	bundle.Start.Place = place
 	contenttest.StepOnlyParty(&bundle)
 	if mutate != nil {
 		mutate(&bundle)
@@ -91,21 +92,27 @@ func (f *field) members() []ecs.Entity {
 	return anatomy.Members(f.w, e)
 }
 
-// creature is the sample creature.
+// creature is the sample creature nearest the party's first member.
 func (f *field) creature() ecs.Entity {
 	f.t.Helper()
-	mapID := f.view().Party.Map
 	positions := ecs.NewMap[comp.Pos](f.w.ECS)
+	from := positions.Get(f.members()[0]).At
+	var found ecs.Entity
+	best := 0
 	query := ecs.NewFilter1[comp.Identity](f.w.ECS).Query()
 	for query.Next() {
-		if query.Get().Template == "template.creature.moving_clay" && positions.Get(query.Entity()).Map == mapID {
-			e := query.Entity()
-			query.Close()
-			return e
+		if query.Get().Template != "template.creature.moving_clay" {
+			continue
+		}
+		distance := hexmap.CellDistance(from, positions.Get(query.Entity()).At)
+		if found.IsZero() || distance < best {
+			found, best = query.Entity(), distance
 		}
 	}
-	f.t.Fatal("no creature")
-	return ecs.Entity{}
+	if found.IsZero() {
+		f.t.Fatal("no creature")
+	}
+	return found
 }
 
 // moveParty places every member in a cell.
@@ -118,7 +125,7 @@ func (f *field) moveParty(at api.Cell) {
 }
 
 func TestWalkingIntoSightOfTheHallsCreatureRaisesTheAlert(t *testing.T) {
-	f := newField(t, "map.test.hall", nil)
+	f := newField(t, "place.test.hall", nil)
 	before := f.view().Party
 	if before.Alert || before.Control != api.ControlFollow {
 		t.Fatalf("party at the start = alert %v, control %q; want calm and following", before.Alert, before.Control)
@@ -151,7 +158,7 @@ func TestWalkingIntoSightOfTheHallsCreatureRaisesTheAlert(t *testing.T) {
 }
 
 func TestThereIsNoSightThroughRock(t *testing.T) {
-	f := newField(t, "map.test.descent", nil)
+	f := newField(t, "place.test.descent", nil)
 	creature := f.creature()
 	at := *ecs.NewMap[comp.Pos](f.w.ECS).Get(creature)
 	if at.At.Depth != 2 {
@@ -185,7 +192,7 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 		{"a chosen mode stays", true, api.ControlIndividual},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			f := newField(t, "map.test.hall", nil)
+			f := newField(t, "place.test.hall", nil)
 			if tt.individual {
 				f.option("control/individual")
 			}
@@ -222,7 +229,7 @@ func TestTheAlertEndsAfterTheCalmSpell(t *testing.T) {
 }
 
 func TestHostileIsSymmetricWhenOnlyOneFactionListsTheOther(t *testing.T) {
-	f := newField(t, "map.test.hall", func(b *content.Bundle) {
+	f := newField(t, "place.test.hall", func(b *content.Bundle) {
 		b.Factions["faction.a"] = content.Faction{Name: "text.faction.a", HostileTo: []api.ContentID{"faction.b"}}
 		b.Factions["faction.b"] = content.Faction{Name: "text.faction.b"}
 		b.Factions["faction.c"] = content.Faction{Name: "text.faction.c"}
@@ -276,7 +283,7 @@ func (f *field) damage(source, target ecs.Entity, slot string) {
 }
 
 func TestLosingEveryVitalPartKillsABodyAndLeavesACorpse(t *testing.T) {
-	f := newField(t, "map.test.hall", nil)
+	f := newField(t, "place.test.hall", nil)
 	creature, hero := f.creature(), f.members()[0]
 	f.events = nil
 	f.damage(hero, creature, "head")
@@ -319,7 +326,7 @@ func TestLosingEveryVitalPartKillsABodyAndLeavesACorpse(t *testing.T) {
 }
 
 func TestDeathCancelsPendingActions(t *testing.T) {
-	f := newField(t, "map.test.hall", nil)
+	f := newField(t, "place.test.hall", nil)
 	creature, hero := f.creature(), f.members()[0]
 	uid := f.w.UIDOf(creature)
 	if _, err := timeline.Schedule(
@@ -339,7 +346,7 @@ func TestDeathCancelsPendingActions(t *testing.T) {
 }
 
 func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
-	f := newField(t, "map.test.hall", nil)
+	f := newField(t, "place.test.hall", nil)
 	members := f.members()
 	f.events = nil
 	f.damage(members[1], members[1], "torso")
@@ -374,7 +381,7 @@ func TestAProtectedMemberIsDownedAndALostPartyEndsTheGame(t *testing.T) {
 }
 
 func TestAnOutOfFightMemberCannotLead(t *testing.T) {
-	f := newField(t, "map.test.hall", nil)
+	f := newField(t, "place.test.hall", nil)
 	members := f.members()
 	f.damage(members[0], members[1], "torso")
 	uid := f.w.UIDOf(members[1])
@@ -396,7 +403,7 @@ func TestAnOutOfFightMemberCannotLead(t *testing.T) {
 }
 
 func TestTheLeadPassesOnWhenTheLeaderGoesDown(t *testing.T) {
-	f := newField(t, "map.test.hall", nil)
+	f := newField(t, "place.test.hall", nil)
 	members := f.members()
 	f.damage(members[1], members[0], "torso")
 	state := f.party()

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"cmp"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -51,10 +52,10 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 		}
 		history = append(history, data)
 	}
-	edits := map[api.MapID][]save.MapEdit{}
-	for _, id := range g.world.Maps.IDs() {
-		for _, edit := range g.world.Maps.Get(id).Edits() {
-			edits[id] = append(edits[id], save.MapEdit{At: edit.Cell, Terrain: edit.Terrain.ID})
+	var edits []save.Edit
+	if g.world.Map != nil {
+		for _, edit := range g.world.Map.Edits() {
+			edits = append(edits, save.Edit{At: edit.Cell, Terrain: edit.Terrain.ID})
 		}
 	}
 	return save.Snapshot{
@@ -66,7 +67,7 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 		RNG:      streams,
 		NextUID:  g.world.NextUID(),
 		Timeline: timeline.Export(g.world),
-		MapEdits: edits,
+		Edits:    edits,
 		History:  history,
 		Log:      append([]api.LogLine{}, g.log...),
 	}, nil
@@ -82,7 +83,7 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 		return nil, nil, err
 	}
 	cfg.Seed = snapshot.Header.Seed
-	g, err := build(cfg, explore.LoadMaps, nil)
+	g, err := build(cfg, explore.LoadWorld, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -105,7 +106,7 @@ func (g *Game) restore(snapshot save.Snapshot) error {
 	if err := w.RNG.Restore(snapshot.RNG); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}
-	if err := applyEdits(w, snapshot.MapEdits); err != nil {
+	if err := applyEdits(w, snapshot.Edits); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}
 	if err := timeline.Import(w, snapshot.Timeline); err != nil {
@@ -123,21 +124,18 @@ func (g *Game) restore(snapshot save.Snapshot) error {
 	return nil
 }
 
-// applyEdits reapplies saved map edits, resolving each terrain from content.
-func applyEdits(w *sim.World, edits map[api.MapID][]save.MapEdit) error {
-	for id, list := range edits {
-		m := w.Maps.Get(id)
-		if m == nil {
-			return fmt.Errorf("saved edits for unknown map %d", id)
+// applyEdits reapplies saved edits to the world, resolving each terrain from content.
+func applyEdits(w *sim.World, edits []save.Edit) error {
+	if len(edits) > 0 && w.Map == nil {
+		return errors.New("saved edits but the world has no cells")
+	}
+	for _, edit := range edits {
+		terrain, err := explore.Terrain(w.Content, edit.Terrain)
+		if err != nil {
+			return fmt.Errorf("saved edit: %w", err)
 		}
-		for _, edit := range list {
-			terrain, err := explore.Terrain(w.Content, edit.Terrain)
-			if err != nil {
-				return fmt.Errorf("saved edit: %w", err)
-			}
-			if err := m.Set(edit.At, terrain); err != nil {
-				return err
-			}
+		if err := w.Map.Set(edit.At, terrain); err != nil {
+			return err
 		}
 	}
 	return nil

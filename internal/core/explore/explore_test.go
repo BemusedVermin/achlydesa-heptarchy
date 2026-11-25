@@ -17,7 +17,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// fixture is a running game on one of the test maps.
+// fixture is a running game started in one of the test places.
 type fixture struct {
 	t   *testing.T
 	cfg game.Config
@@ -25,17 +25,17 @@ type fixture struct {
 	w   *sim.World
 }
 
-// newFixture starts the sample content's party on the named map, or on its own start map if empty.
-func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle)) *fixture {
+// newFixture starts the sample content's party in the named place, or at its own start if empty.
+func newFixture(t *testing.T, place api.ContentID, mutate func(*content.Bundle)) *fixture {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
 	contenttest.StepOnlyParty(&bundle)
-	if mapID != "" {
-		bundle.Start.Map = mapID
+	if place != "" {
+		bundle.Start.Place = place
 	}
-	for id, def := range bundle.Maps {
+	for id, def := range bundle.Places {
 		def.Spawns = nil
-		bundle.Maps[id] = def
+		bundle.Places[id] = def
 	}
 	if mutate != nil {
 		mutate(&bundle)
@@ -152,13 +152,13 @@ func TestStartOpensOnTheLeaderAtTheHallsCenter(t *testing.T) {
 	if at.At.Depth != 0 || at.At.Hex != view.Party.Hex {
 		t.Errorf("leader at %+v, party hex %v; want depth 0 at the view's center", at, view.Party.Hex)
 	}
-	if view.Map == nil || view.Map.Name != "The test hall" {
-		t.Fatalf("map view = %+v, want the test hall", view.Map)
+	if view.Map == nil || len(view.Map.Cells) == 0 {
+		t.Fatalf("map view = %+v, want the hall drawn", view.Map)
 	}
 }
 
 func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	start := fx.pos(leader)
 	for range 6 {
@@ -193,7 +193,7 @@ func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
 	}
 }
 
-// checkSlopeIsFloor fails unless every slope hex of map.test.descent is drawn as floor with Below
+// checkSlopeIsFloor fails unless every slope hex of place.test.descent is drawn as floor with Below
 // equal to its depth minus the leader's. The slope's hex k, k = 1..4, is at depth k, k hexes east of
 // the hall's opening.
 func checkSlopeIsFloor(t *testing.T, fx *fixture, openingQ, row, leaderDepth int, when string) {
@@ -213,7 +213,7 @@ func checkSlopeIsFloor(t *testing.T, fx *fixture, openingQ, row, leaderDepth int
 }
 
 func TestTheSlopeIsDrawnAsFloorWalkingDownAndBackUp(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	start := fx.pos(leader)
 	for range 6 {
@@ -238,7 +238,7 @@ func TestTheSlopeIsDrawnAsFloorWalkingDownAndBackUp(t *testing.T) {
 
 func TestTheRangeCapLeavesFarSlopeFloorToTheWalls(t *testing.T) {
 	farSlope := func(planRange int) api.CellView {
-		fx := newFixture(t, "map.test.descent", func(b *content.Bundle) { b.Party.PlanRange = planRange })
+		fx := newFixture(t, "place.test.descent", func(b *content.Bundle) { b.Party.PlanRange = planRange })
 		leader := fx.view().Party.Members[0].UID
 		start := fx.pos(leader)
 		for range 6 {
@@ -259,10 +259,11 @@ func TestTheRangeCapLeavesFarSlopeFloorToTheWalls(t *testing.T) {
 }
 
 func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
-	fx := newFixture(t, "map.test.ledge", func(b *content.Bundle) {
-		b.Text["text.map.test.ledge"] = "ledge"
-		b.Maps["map.test.ledge"] = content.MapDef{
-			Name: "text.map.test.ledge", Fill: "terrain.packed_clay", Open: "terrain.air",
+	fx := newFixture(t, "place.test.ledge", func(b *content.Bundle) {
+		b.Text["text.place.test.ledge"] = "ledge"
+		b.Places["place.test.ledge"] = content.PlaceDef{
+			Name:   "text.place.test.ledge",
+			At:     content.PlaceAt{Col: 30, Row: 22, Depth: 3},
 			Legend: map[string]api.ContentID{"#": "terrain.packed_clay", ".": "terrain.air"},
 			Marks:  map[string]string{"@": "party_start"},
 			Layers: []content.LayerDef{
@@ -272,7 +273,6 @@ func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
 				{Depth: -3, Rows: []string{" .."}},
 			},
 		}
-		b.Start.Map = "map.test.ledge"
 		b.Templates["template.party.main"] = content.Template{
 			Party: &content.PartyDef{Members: []api.ContentID{"template.person.reaper"}},
 		}
@@ -280,7 +280,7 @@ func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
 	leader := fx.view().Party.Members[0].UID
 	at := fx.pos(leader).At
 	h := api.Hex{Q: at.Hex.Q + 2, R: at.Hex.R}
-	sight, err := fx.w.Maps.Get(fx.pos(leader).Map).Visible(at, 6, 6)
+	sight, err := fx.w.Map.Visible(at, 6, 6)
 	if err != nil || !slices.Contains(sight, api.Cell{Hex: h, Depth: -2}) {
 		t.Fatalf("the shelf at %v is not visible (%v); the test needs it in sight", h, err)
 	}
@@ -294,7 +294,7 @@ func TestAnUnreachableLedgeDoesNotHideTheWallBesideIt(t *testing.T) {
 }
 
 func TestTheSoopUnderTheHallIsNeverDrawnAndNoStepReachesIt(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	start := fx.pos(leader)
 	for _, dir := range []string{"w", "w", "sw", "se", "e", "ne", "ne", "nw", "w"} {
@@ -311,7 +311,7 @@ func TestTheSoopUnderTheHallIsNeverDrawnAndNoStepReachesIt(t *testing.T) {
 }
 
 func TestSteppingOffTheLedgeDropsThreeAndClimbingBackIsDisabled(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	for range 7 {
 		fx.stepLeader("e")
@@ -334,7 +334,7 @@ func TestSteppingOffTheLedgeDropsThreeAndClimbingBackIsDisabled(t *testing.T) {
 }
 
 func TestAStepUpCostsMoreThanTheSameStepDown(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	for range 10 {
 		fx.stepLeader("e")
@@ -381,7 +381,7 @@ func TestASlowerBodysStepsTakeLonger(t *testing.T) {
 }
 
 func TestRememberedCellsStayAfterTheyLeaveSight(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	first := fx.view().Map
 	var remembered api.CellView
@@ -406,7 +406,7 @@ func TestRememberedCellsStayAfterTheyLeaveSight(t *testing.T) {
 }
 
 func TestMapViewHasNoDepthOrLayerKeys(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	for range 8 {
 		fx.stepLeader("e")
 	}
@@ -476,7 +476,7 @@ func (fx *fixture) legsIntegrity() int {
 }
 
 func TestAThreeCellDropInjuresTheLegsAndAOneCellStepDownDoesNot(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	leader := fx.view().Party.Members[0].UID
 	for range 7 {
 		fx.stepLeader("e")

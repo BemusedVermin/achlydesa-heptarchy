@@ -3,12 +3,12 @@ package data
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
 world: content.#WorldDef
-places: [string]: content.#PlaceDef
 
-// The one world. Its size is a placeholder, small and hand-built at first: the places go in places/.
+// The one world, small and hand-built at first: the places in places/ sit side by side in its clay,
+// nothing joining them yet.
 world: {
-	cols:      64
-	rows:      64
+	cols:      70
+	rows:      30
 	min_depth: 0
 	max_depth: 7
 	fill:      "terrain.packed_clay"

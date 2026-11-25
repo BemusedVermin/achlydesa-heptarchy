@@ -20,7 +20,6 @@ import (
 	combat:   #CombatConfig   @go(Combat)
 	timeline: #TimelineConfig @go(Timeline)
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
-	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
 	world: #WorldDef @go(World)
 
 	// Places are the hand-made pieces of the world ("place." IDs).
@@ -375,32 +374,8 @@ import (
 	material_claim: api.#ContentID @go(MaterialClaim)
 }
 
-// MapDef is a hand-made map: a few authored layers embedded in endless fill.
-#MapDef: {
-	// Name is a text ID.
-	name: api.#ContentID @go(Name)
-
-	// Fill is the terrain of every cell not authored, forever in every direction.
-	fill: api.#ContentID @go(Fill)
-
-	// Open is the terrain of a marked cell, usually air.
-	open: api.#ContentID @go(Open)
-	layers: [...#LayerDef] @go(Layers,[]LayerDef)
-
-	// Legend maps one character to a terrain ID.
-	legend: {[string]: api.#ContentID} @go(Legend,map[string]api.ContentID)
-
-	// Marks maps one character to a mark name, such as "@": "party_start".
-	marks: {[string]: string} @go(Marks,map[string]string)
-
-	// Spawns maps a mark character to a template ("template." ID): a body of it is spawned at each
-	// such character at the start, in row order, and the character may appear any number of times
-	// (at least once). Each character must also be one of Marks, so the layers may use it.
-	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
-}
-
-// LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per
-// cell; a space leaves the fill.
+// LayerDef is one depth of a place. Rows use odd-r offset layout, one character per cell; a space
+// leaves the world's fill.
 #LayerDef: {
 	depth: int @go(Depth)
 	rows: [...string] @go(Rows,[]string)
@@ -427,7 +402,6 @@ import (
 }
 
 // PlaceDef is a piece of hand-made world, such as a town or a set piece, set at a fixed position.
-// Legend, marks and spawns follow a map's rules; a mark name is unique within its place.
 #PlaceDef: {
 	// Name is a text ID.
 	name: api.#ContentID @go(Name)
@@ -435,8 +409,17 @@ import (
 	// At is the world cell of the place's column 0, row 0 and depth 0; layer depths are relative to it.
 	at: #PlaceAt @go(At)
 	layers: [...#LayerDef] @go(Layers,[]LayerDef)
+
+	// Legend maps one character to a terrain ID.
 	legend: {[string]: api.#ContentID} @go(Legend,map[string]api.ContentID)
+
+	// Marks maps one character to a mark name, such as "@": "party_start". A mark name is unique
+	// within its place, and a marked cell holds the world's Open terrain.
 	marks: {[string]: string} @go(Marks,map[string]string)
+
+	// Spawns maps a mark character to a template ("template." ID): a body of it is spawned at each
+	// such character at the start, and the character may appear any number of times (at least once).
+	// Each character must also be one of Marks, so the layers may use it.
 	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
 }
 
@@ -447,15 +430,15 @@ import (
 	depth: int @go(Depth)
 }
 
-// Start is the scenario a new game begins with: a party placed at a mark on a map.
+// Start is the scenario a new game begins with: a party placed at a mark of a place.
 #Start: {
-	map: api.#ContentID @go(Map)
+	place: api.#ContentID @go(Place)
+
+	// The party's leader stands on this mark of the place; the others nearest it.
+	mark: string @go(Mark)
 
 	// Party names the party template to spawn.
 	party: api.#ContentID @go(Party)
-
-	// PartyAtMark is a mark name of the map.
-	party_at_mark: string @go(PartyAtMark)
 }
 
 // TimelineConfig holds the numbers of the shared timeline.
@@ -495,7 +478,6 @@ import (
 	#CollectionText |
 	#CollectionTemplates |
 	#CollectionActions |
-	#CollectionMaps |
 	#CollectionPlaces |
 	#CollectionParts |
 	#CollectionClaims |
@@ -511,7 +493,6 @@ import (
 #CollectionText:      #Collection & "text"
 #CollectionTemplates: #Collection & "templates"
 #CollectionActions:   #Collection & "actions"
-#CollectionMaps:      #Collection & "maps"
 #CollectionPlaces:    #Collection & "places"
 #CollectionParts:     #Collection & "parts"
 #CollectionClaims:    #Collection & "claims"

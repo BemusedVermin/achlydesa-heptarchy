@@ -43,7 +43,7 @@ func newTriggerRig(t *testing.T, mutate func(*content.Bundle)) (*triggerRig, err
 	t.Helper()
 	reg := contenttest.Registry(t, triggerBundle(t, mutate))
 	r := &triggerRig{}
-	at := comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
+	at := comp.Pos{At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
 	_, err := game.New(game.Config{
 		Seed: 1, Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {

@@ -134,7 +134,7 @@ func TestByUIDAndDespawn(t *testing.T) {
 
 func TestSpawnPositionsEntity(t *testing.T) {
 	w := newSampleWorld(t, 1)
-	at := comp.Pos{Map: 1, At: api.Cell{}}
+	at := comp.Pos{At: api.Cell{}}
 	e, err := w.Spawn("template.person.salken", &at)
 	if err != nil {
 		t.Fatal(err)

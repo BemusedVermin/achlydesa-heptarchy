@@ -19,9 +19,6 @@ package api
 // ContentID is a namespaced content ID such as "material.clay".
 #ContentID: string
 
-// MapID identifies a map, hand-made or generated; 0 means none.
-#MapID: uint32
-
 // Hex is an axial hex coordinate, independent of the hex library.
 #Hex: {
 	q: int @go(Q)

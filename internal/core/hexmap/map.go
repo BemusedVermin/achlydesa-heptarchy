@@ -15,10 +15,8 @@ type Edit struct {
 	Terrain Terrain
 }
 
-// Map is one map: a chunk source, a topology, and an overlay of edits. It is not safe for concurrent use.
+// Map is the world's cells: a chunk source, a topology, and an overlay of edits. It is not safe for concurrent use.
 type Map struct {
-	id     api.MapID
-	name   string
 	src    Source
 	topo   Topology
 	chunks map[ChunkKey]*Chunk
@@ -32,19 +30,13 @@ type Map struct {
 }
 
 // NewMap returns a map that loads chunks from src on first use.
-func NewMap(id api.MapID, name string, src Source, topo Topology) *Map {
+func NewMap(src Source, topo Topology) *Map {
 	return &Map{
-		id: id, name: name, src: src, topo: topo,
+		src: src, topo: topo,
 		chunks: map[ChunkKey]*Chunk{},
 		edits:  map[api.Cell]Terrain{},
 	}
 }
-
-// ID is the map's ID.
-func (m *Map) ID() api.MapID { return m.id }
-
-// Name is the map's display name.
-func (m *Map) Name() string { return m.name }
 
 // ErrOutOfBounds is returned by [Map.Set] for a cell outside the map's bounds.
 var ErrOutOfBounds = errors.New("hexmap: cell outside the map's bounds")
@@ -71,10 +63,10 @@ func (m *Map) At(c api.Cell) (Terrain, error) {
 		var err error
 		chunk, err = m.src.Chunk(key)
 		if err != nil {
-			return Terrain{}, fmt.Errorf("hexmap: load chunk %v of map %d: %w", key, m.id, err)
+			return Terrain{}, fmt.Errorf("hexmap: load chunk %v: %w", key, err)
 		}
 		if chunk == nil {
-			return Terrain{}, fmt.Errorf("hexmap: source returned no chunk for %v of map %d", key, m.id)
+			return Terrain{}, fmt.Errorf("hexmap: source returned no chunk for %v", key)
 		}
 		m.chunks[key] = chunk
 	}
@@ -84,7 +76,7 @@ func (m *Map) At(c api.Cell) (Terrain, error) {
 // Set edits c. The edit lives in an overlay, so it can be saved and survives reloading the chunk.
 func (m *Map) Set(c api.Cell, t Terrain) error {
 	if m.bounded && !m.bounds.Contains(c) {
-		return fmt.Errorf("set %v of map %d: %w", c, m.id, ErrOutOfBounds)
+		return fmt.Errorf("set %v: %w", c, ErrOutOfBounds)
 	}
 	m.edits[c] = t
 	clear(m.sights)
@@ -123,19 +115,8 @@ func (m *Map) CellsIn(center api.Hex, radius, depthFrom, depthTo int) []api.Cell
 	return out
 }
 
-// local resolves a link to a cell of this map; ok is false when it leads to another map.
-func (m *Map) local(l Link) (api.Cell, bool) {
-	return l.Cell, l.Map == 0 || l.Map == m.id
-}
-
-// solid reports whether a link leads to a solid cell of this map. A link to another map counts as solid, which
-// keeps bodies from standing on or passing through cells this map can't see.
 func (m *Map) solid(l Link) (bool, error) {
-	cell, ok := m.local(l)
-	if !ok {
-		return true, nil
-	}
-	t, err := m.At(cell)
+	t, err := m.At(l.Cell)
 	return t.Solid, err
 }
 

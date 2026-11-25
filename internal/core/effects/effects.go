@@ -129,7 +129,6 @@ type state struct {
 	// inlined, one source can compile to something else after the content changes.
 	programsFor string
 	hostile     func(w *sim.World, a, b ecs.Entity) bool
-	maps        func(id api.MapID) *hexmap.Map
 	triggers    *triggerIndex
 }
 
@@ -197,10 +196,6 @@ func SetHostile(w *sim.World, fn func(w *sim.World, a, b ecs.Entity) bool) { sta
 
 // Hostile reports whether a is hostile to b, as the world's hostility hook says.
 func Hostile(w *sim.World, a, b ecs.Entity) bool { return stateOf(w).hostile(w, a, b) }
-
-// SetMaps says where to find a map by ID, for working out what a body sees. Without it nobody sees
-// anybody; explore sets it to the world's maps.
-func SetMaps(w *sim.World, lookup func(id api.MapID) *hexmap.Map) { stateOf(w).maps = lookup }
 
 // Apply runs each effect in order and stops at the first error.
 func Apply(ctx *Context, refs []content.EffectRef) error {
@@ -435,10 +430,8 @@ func baseEnv(ctx *Context) content.EffectEnv {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	if w.Alive(ctx.Source) && w.Alive(ctx.Target) && positions.Has(ctx.Source) && positions.Has(ctx.Target) {
 		a, b := positions.Get(ctx.Source), positions.Get(ctx.Target)
-		if a.Map == b.Map {
-			env.Distance = hexmap.Distance(a.At.Hex, b.At.Hex)
-			env.Height = b.At.Depth - a.At.Depth
-		}
+		env.Distance = hexmap.Distance(a.At.Hex, b.At.Hex)
+		env.Height = b.At.Depth - a.At.Depth
 	}
 	return env
 }

@@ -8,8 +8,7 @@ import (
 
 // Pos is where an entity is.
 type Pos struct {
-	Map api.MapID `json:"map"`
-	At  api.Cell  `json:"at"`
+	At api.Cell `json:"at"`
 }
 
 // Identity is what makes an entity an individual.
@@ -108,18 +107,17 @@ type Landing struct {
 // RestPlace is the cell a party last rested at, on the party entity. A party that is wiped out wakes
 // there. Use the explore package's SetRestPlace rather than writing it.
 type RestPlace struct {
-	Map api.MapID `json:"map"`
-	At  api.Cell  `json:"at"`
+	At api.Cell `json:"at"`
 }
 
 // Controlled marks the party the player commands.
 type Controlled struct{}
 
-// Seen is what a party remembers of the maps: cells any member has seen. Each slice is sorted by
-// depth, then R, then Q, and has no repeats. Use the explore package's helpers rather than reading
-// the slices, because the representation will change.
+// Seen is what a party remembers of the world: cells any member has seen, sorted by depth, then R,
+// then Q, with no repeats. Use the explore package's helpers rather than reading the slice, because
+// the representation will change.
 type Seen struct {
-	ByMap map[api.MapID][]api.Cell `json:"by_map"`
+	Cells []api.Cell `json:"cells"`
 }
 
 // Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge

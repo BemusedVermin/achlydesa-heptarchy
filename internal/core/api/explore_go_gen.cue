@@ -55,10 +55,9 @@ package api
 
 // PartyWoke reports that a party that was wiped out got up again at its last rest place.
 #PartyWoke: {
-	party: #UID   @go(Party)
-	map:   #MapID @go(Map)
-	at:    #Cell  @go(At)
-	tick:  int64  @go(Tick)
+	party: #UID  @go(Party)
+	at:    #Cell @go(At)
+	tick:  int64 @go(Tick)
 }
 
 #MoveLevel: "level"
@@ -68,10 +67,9 @@ package api
 
 // Moved reports that a body stepped from one cell to another.
 #Moved: {
-	source: #UID   @go(Source)
-	map:    #MapID @go(Map)
-	from:   #Cell  @go(From)
-	to:     #Cell  @go(To)
+	source: #UID  @go(Source)
+	from:   #Cell @go(From)
+	to:     #Cell @go(To)
 
 	// One of MoveLevel, MoveUp, MoveDown, MoveDrop
 	kind: string @go(Kind)
@@ -83,12 +81,9 @@ package api
 	cells: int  @go(Cells)
 }
 
-// MapView is the plan view of the map the party is on: at most one drawn cell per hex, with no
+// MapView is the plan view of the world around the party: at most one drawn cell per hex, with no
 // layers in it. Frontends draw what is here and shade by Below; they never learn a depth.
 #MapView: {
-	map:  #MapID @go(Map)
-	name: string @go(Name)
-
 	// Sorted by R, then Q
 	cells: [...#CellView] @go(Cells,[]CellView)
 
@@ -122,8 +117,7 @@ package api
 
 // PartyView is the party the player commands.
 #PartyView: {
-	uid: #UID   @go(UID)
-	map: #MapID @go(Map)
+	uid: #UID @go(UID)
 
 	// Hex is where to center the map: the current actor if it is a member, else the leader. It is a
 	// hex, never a depth.

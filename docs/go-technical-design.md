@@ -132,7 +132,7 @@ achlydesa-heptarchy/
 │       ├── tui/            # Bubble Tea screens
 │       └── gui/            # Ebitengine, later
 ├── content/
-│   └── data/               # templates, materials, forms, maps, text...
+│   └── data/               # templates, materials, forms, places, text...
 ├── docs/                   # game design, this technical design, story system
 ├── tasks/                  # task specs for agents (start at tasks/README.md)
 ├── Taskfile.yml            # dev commands: go tool task check, run, schema...
@@ -152,12 +152,12 @@ Each package owns one part of the rules and leans on a library for everything el
 | `game` | The public API: `Apply(cmd) []Event`, `View() Snapshot`, new game, load, save. Routes each command to the handler its package registered, and assembles the view from each package's section | `sim` and everything below |
 | `api` | Plain-data commands, events and view types: the boundary that frontends, the harness and replay logs share | The standard library only |
 | `sim` | The Ark world, the event bus, the system scheduler (cadence plus run-after ordering), and the command, event and view registries | Ark |
-| `comp` | Plain component structs and relations: `Pos{Map, At}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
+| `comp` | Plain component structs and relations: `Pos{At}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
 | `anatomy` | Queries over bodies and parts: attached parts, functioning parts, grants, party members, and whether two bodies are hostile by their factions | `comp` |
 | `clock` | Ticks, day phases and the calendar read from content; per-phase and per-day systems as the timeline crosses boundaries; export scheduling | The `sim` scheduler |
 | `timeline` | The shared timeline: channels (a body and each of its parts) and when they're free, decisions, actions that land later, controllers (player, follow, behaviors), and playing time forward until the player is needed | Ark resources, `clock` |
 | `rng` | One named PCG stream per subsystem, seeded from the world seed (plus the export count for procgen) | `math/rand/v2` |
-| `hexmap` | Maps keyed by map ID: 3D hex cells in chunks (maps can be endless, or bounded with solid edges; a uniform chunk stores no cells), the topology, stepping rules, 3D sight and pathing. Sight is line based and symmetric, not shadowcasting, so it differs slightly from the prototype's field of view around pillars | gravitton/hexagon, fzipp/astar |
+| `hexmap` | The world's 3D hex cells in chunks (endless, or bounded with solid edges; a uniform chunk stores no cells), the topology, stepping rules, 3D sight and pathing. Sight is line based and symmetric, not shadowcasting, so it differs slightly from the prototype's field of view around pillars | gravitton/hexagon, fzipp/astar |
 | `knowledge` | Facts per knower: subject, claim, source, confidence. The journal is a view over the party's facts | Components only |
 | `inventory` | Inventories of item stacks: add, take, count | Components only |
 | `effects` | The effect core: the registry, selectors for parts and bodies, and the timing primitives (`lock`, `interrupt`, `delay`, `ready`); combat adds `damage`, `sever`, `add_status`, `attach_part`, `reveal` and more. Usable by any system, plus the trigger runner (on an event, if a condition holds, apply effects) | Expr for conditions |
@@ -219,7 +219,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 ### Saves and replays
 
-- **A save** is one JSON document: an ark-serde snapshot of the entities (resources are rebuilt by `Install`, and the timeline is exported by `timeline`), every RNG stream's state, the UID counter, map edits, the command history and the message log. ark-serde's output is canonicalized (entities sorted by ECS ID, keys sorted) so equal worlds give equal bytes, and `Game.Hash` is the SHA-256 of those bytes.
+- **A save** is one JSON document: an ark-serde snapshot of the entities (resources are rebuilt by `Install`, and the timeline is exported by `timeline`), every RNG stream's state, the UID counter, the world's edits, the command history and the message log. ark-serde's output is canonicalized (entities sorted by ECS ID, keys sorted) so equal worlds give equal bytes, and `Game.Hash` is the SHA-256 of those bytes.
 - **A replay** is the world seed plus the player's command log. The harness uses replays to reproduce any bug or odd emergent run.
 - **Versioned.** Every save header carries a save version and a content hash, and migration functions upgrade older saves one version at a time. Until v1.0.0, saves are disposable: a change bumps the save version without a migration, and older saves stop loading.
 

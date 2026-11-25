@@ -18,7 +18,7 @@ var update = flag.Bool("update", false, "rewrite the golden files")
 // huntField is the hall with a hunting moving clay, and a party that can fight.
 func huntField(t *testing.T, mutate func(*content.Bundle)) *field {
 	t.Helper()
-	return newField(t, "map.test.hall", func(b *content.Bundle) {
+	return newField(t, "place.test.hall", func(b *content.Bundle) {
 		movingClay := b.Templates["template.creature.moving_clay"]
 		movingClay.Actor = &content.ActorDef{Controller: "hunt"}
 		movingClay.Actions = []api.ContentID{"action.step", "action.strike"}
@@ -200,9 +200,9 @@ func TestThreatsListTheSwingUntilItLandsOrMisses(t *testing.T) {
 
 func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 	f := huntField(t, func(b *content.Bundle) {
-		hall := b.Maps["map.test.hall"]
+		hall := b.Places["place.test.hall"]
 		hall.Spawns = nil
-		b.Maps["map.test.hall"] = hall
+		b.Places["place.test.hall"] = hall
 		b.Factions["faction.a"] = content.Faction{Name: "text.faction.a", HostileTo: []api.ContentID{"faction.b"}}
 		b.Factions["faction.b"] = content.Faction{Name: "text.faction.b", HostileTo: []api.ContentID{"faction.a"}}
 		b.Text["text.faction.a"], b.Text["text.faction.b"] = "a", "b"
@@ -218,10 +218,9 @@ func TestHostileFactionsFightEachOtherOutOfSight(t *testing.T) {
 	})
 	member := f.members()[0]
 	origin := f.at(member)
-	mapID := ecs.NewMap[comp.Pos](f.w.ECS).Get(member).Map
 	var fighters []ecs.Entity
 	for i, side := range []string{"a", "b"} {
-		e, err := f.w.Spawn(api.ContentID("template.test.side_"+side), &comp.Pos{Map: mapID, At: east(origin, -8+i*3)})
+		e, err := f.w.Spawn(api.ContentID("template.test.side_"+side), &comp.Pos{At: east(origin, -8+i*3)})
 		if err != nil {
 			t.Fatal(err)
 		}

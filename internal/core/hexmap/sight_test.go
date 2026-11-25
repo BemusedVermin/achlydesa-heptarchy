@@ -21,7 +21,7 @@ func visibleSet(t *testing.T, m *Map, from api.Cell, radius, depthRange int) map
 }
 
 func TestVisibleOpenRoomAndWalls(t *testing.T) {
-	m := NewMap(1, "room", FuncSource(func(c api.Cell) Terrain {
+	m := NewMap(FuncSource(func(c api.Cell) Terrain {
 		if c.Depth != 0 || Distance(c.Hex, api.Hex{}) > 3 {
 			return rock
 		}
@@ -46,7 +46,7 @@ func TestVisibleOpenRoomAndWalls(t *testing.T) {
 }
 
 func TestVisibleShaftAndRock(t *testing.T) {
-	m := NewMap(1, "shaft", FuncSource(func(c api.Cell) Terrain {
+	m := NewMap(FuncSource(func(c api.Cell) Terrain {
 		if c.Depth < 1 {
 			return air
 		}
@@ -66,7 +66,7 @@ func TestVisibleShaftAndRock(t *testing.T) {
 }
 
 func TestVisibleRampDown(t *testing.T) {
-	m := NewMap(1, "ramp", FuncSource(func(c api.Cell) Terrain {
+	m := NewMap(FuncSource(func(c api.Cell) Terrain {
 		floor := 1 + max(0, c.Hex.Q)
 		if c.Depth >= floor {
 			return rock
@@ -111,7 +111,7 @@ func BenchmarkVisible(b *testing.B) {
 }
 
 func TestVisibleRemembersUntilAnEdit(t *testing.T) {
-	m := NewMap(1, "room", FuncSource(func(c api.Cell) Terrain {
+	m := NewMap(FuncSource(func(c api.Cell) Terrain {
 		if c.Depth != 0 {
 			return rock
 		}

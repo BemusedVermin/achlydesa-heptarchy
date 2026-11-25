@@ -26,14 +26,14 @@ func TestPrismsNeighbors(t *testing.T) {
 	var topo Prisms
 	for _, tt := range tests {
 		got := topo.Neighbor(origin, tt.dir)
-		if got.Map != 0 || got.Cell != tt.want {
+		if got.Cell != tt.want {
 			t.Errorf("Neighbor(%v) = %+v, want %v on the same map", tt.dir, got, tt.want)
 		}
 	}
-	if got := topo.Above(origin); got.Map != 0 || got.Cell != cell(2, 3, 4) {
+	if got := topo.Above(origin); got.Cell != cell(2, 3, 4) {
 		t.Errorf("Above = %+v", got)
 	}
-	if got := topo.Below(origin); got.Map != 0 || got.Cell != cell(2, 3, 6) {
+	if got := topo.Below(origin); got.Cell != cell(2, 3, 6) {
 		t.Errorf("Below = %+v", got)
 	}
 }

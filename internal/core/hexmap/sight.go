@@ -13,7 +13,7 @@ import (
 //
 // A cell is visible when the line crosses no opaque cell other than the target, so walls are visible and what is
 // behind them is not. Depth is interpolated linearly along the hex line; where it is fractional, the line is clear
-// if either the sequence of cells above or the sequence below is clear. Sight stays on this map.
+// if either the sequence of cells above or the sequence below is clear.
 func (m *Map) Visible(from api.Cell, radius, depthRange int) ([]api.Cell, error) {
 	key := sightKey{from: from, radius: radius, depthRange: depthRange}
 	if cells, ok := m.sights[key]; ok {

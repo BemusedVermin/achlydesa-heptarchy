@@ -16,7 +16,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
@@ -95,15 +94,9 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	r.g, r.w, _ = gametest.Start(t, game.Config{
 		Seed: 1, Content: reg,
 		Install: func(w *sim.World, _ *clock.Clock) error {
-			m := hexmap.NewMap(1, "room", hexmap.FuncSource(func(api.Cell) hexmap.Terrain {
+			w.Map = hexmap.NewMap(hexmap.FuncSource(func(api.Cell) hexmap.Terrain {
 				return hexmap.Terrain{ID: "terrain.air"}
 			}), hexmap.Prisms{})
-			effects.SetMaps(w, func(id api.MapID) *hexmap.Map {
-				if id == 1 {
-					return m
-				}
-				return nil
-			})
 			return nil
 		},
 		Spawn: func(w *sim.World, _ *clock.Clock) error {
@@ -112,7 +105,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 				if !ok {
 					continue
 				}
-				pos := &comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: q}}}
+				pos := &comp.Pos{At: api.Cell{Hex: api.Hex{Q: q}}}
 				body, err := w.Spawn(api.ContentID("template.test."+name), pos)
 				if err != nil {
 					return err

@@ -12,6 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
@@ -67,8 +68,8 @@ func TestADownedPartyWakesAtItsRestPlaceAfterTheWakeTime(t *testing.T) {
 				t.Errorf("part %q is not mended", p.Slot)
 			}
 		}
-		if at := ecs.NewMap[comp.Pos](world.ECS).Get(member); at.Map != place.Map {
-			t.Errorf("member on map %d, want %d", at.Map, place.Map)
+		if at := ecs.NewMap[comp.Pos](world.ECS).Get(member).At; hexmap.CellDistance(at, place.At) > 8 {
+			t.Errorf("member woke at %v, far from the rest place %v", at, place.At)
 		}
 	}
 	if g.Current() == 0 {

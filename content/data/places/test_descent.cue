@@ -1,8 +1,9 @@
 package data
 
 // A hall, a soop sloping down to a chamber, a ledge, and a soop that crosses under the hall.
-maps: "map.test.descent": _#TestMap & {
-	name: "text.map.test.descent"
+places: "place.test.descent": _#TestPlace & {
+	name: "text.place.test.descent"
+	at: {col: 30, row: 4, depth: 0}
 	marks: {"@": "party_start", "c": "creature"}
 	spawns: "c": "template.creature.moving_clay"
 	layers: [
@@ -80,5 +81,5 @@ maps: "map.test.descent": _#TestMap & {
 }
 
 text: {
-	"text.map.test.descent": "The test descent"
+	"text.place.test.descent": "The test descent"
 }

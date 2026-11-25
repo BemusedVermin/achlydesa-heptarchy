@@ -11,7 +11,7 @@ import (
 // Path finds a walking route using Step in six directions, so it climbs, descends and drops by the same rules as
 // the party. cost prices each step (nil prices every step at 1); the heuristic is hex distance plus depth
 // difference. It gives up after maxNodes expansions, so a search in an infinite map always ends. The route
-// includes both ends; ok is false when there is none. Routes stay on this map. The first error from loading a
+// includes both ends; ok is false when there is none. The first error from loading a
 // chunk is returned.
 func (m *Map) Path(
 	from, to api.Cell,
@@ -52,7 +52,7 @@ func (g *walkGraph) Neighbours(n api.Cell) iter.Seq[api.Cell] {
 			return
 		}
 		g.expanded++
-		for step, err := range g.m.localSteps(n, g.rules) {
+		for step, err := range g.m.legalSteps(n, g.rules) {
 			if err != nil {
 				g.err = err
 				return
@@ -67,7 +67,7 @@ func (g *walkGraph) Neighbours(n api.Cell) iter.Seq[api.Cell] {
 
 // Reachable finds every cell a body can walk to from the start, using Step in six directions like Path, within
 // maxSteps steps. It returns each cell with the fewest steps that reach it; the start is included at 0. allow, if
-// not nil, limits the search to cells it accepts (the start is always kept). Routes stay on this map. The first
+// not nil, limits the search to cells it accepts (the start is always kept). The first
 // error from loading a chunk is returned.
 func (m *Map) Reachable(
 	from api.Cell,
@@ -80,7 +80,7 @@ func (m *Map) Reachable(
 	for steps := 1; steps <= maxSteps && len(frontier) > 0; steps++ {
 		var next []api.Cell
 		for _, cell := range frontier {
-			for step, err := range m.localSteps(cell, rules) {
+			for step, err := range m.legalSteps(cell, rules) {
 				if err != nil {
 					return nil, err
 				}
@@ -97,9 +97,9 @@ func (m *Map) Reachable(
 	return reached, nil
 }
 
-// localSteps yields the legal steps from the cell that end on this map, in direction order. A loading error is
+// legalSteps yields the legal steps from the cell in direction order. A loading error is
 // yielded once, with a zero Step, and ends the sequence.
-func (m *Map) localSteps(from api.Cell, rules StepRules) iter.Seq2[Step, error] {
+func (m *Map) legalSteps(from api.Cell, rules StepRules) iter.Seq2[Step, error] {
 	return func(yield func(Step, error) bool) {
 		for dir := range api.Dir(api.DirCount) {
 			step, ok, err := m.Step(from, dir, rules)
@@ -110,9 +110,6 @@ func (m *Map) localSteps(from api.Cell, rules StepRules) iter.Seq2[Step, error] 
 			if !ok {
 				continue
 			}
-			if _, local := m.local(step.To); !local {
-				continue
-			}
 			if !yield(step, nil) {
 				return
 			}
@@ -120,7 +117,7 @@ func (m *Map) localSteps(from api.Cell, rules StepRules) iter.Seq2[Step, error] 
 	}
 }
 
-// DirTo finds the direction of the one legal step from a cell that ends in the target cell on this map.
+// DirTo finds the direction of the one legal step from a cell that ends in the target cell.
 func (m *Map) DirTo(from, to api.Cell, rules StepRules) (api.Dir, bool, error) {
 	for dir := range api.Dir(api.DirCount) {
 		step, ok, err := m.Step(from, dir, rules)
@@ -130,7 +127,7 @@ func (m *Map) DirTo(from, to api.Cell, rules StepRules) (api.Dir, bool, error) {
 		if !ok {
 			continue
 		}
-		if cell, local := m.local(step.To); local && cell == to {
+		if step.To.Cell == to {
 			return dir, true, nil
 		}
 	}

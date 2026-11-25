@@ -22,7 +22,7 @@ import (
 )
 
 // here is where the test bodies stand.
-var here = comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
+var here = comp.Pos{At: api.Cell{Hex: api.Hex{Q: 2, R: 1}, Depth: 3}}
 
 // rig is a game with the sample party, a crawler standing at here, and a piece in the inventory.
 type rig struct {

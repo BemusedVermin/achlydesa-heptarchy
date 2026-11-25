@@ -34,10 +34,7 @@ func (follower) Decide(w *sim.World, body ecs.Entity) error {
 		return nil
 	}
 	me, them := *positions.Get(body), *positions.Get(ahead)
-	if me.Map != them.Map {
-		return nil
-	}
-	m := w.Maps.Get(me.Map)
+	m := w.Map
 	if m == nil {
 		return nil
 	}
@@ -79,25 +76,22 @@ func memberAhead(w *sim.World, body ecs.Entity) (ecs.Entity, bool) {
 	return members[i-1], true
 }
 
-// dirTo finds the direction of the one step from a body's position that ends in the cell, on the
-// same map.
+// dirTo finds the direction of the one step from a body's position that ends in the cell.
 func dirTo(w *sim.World, from comp.Pos, cell api.Cell) (api.Dir, bool, error) {
-	m := w.Maps.Get(from.Map)
-	if m == nil {
+	if w.Map == nil {
 		return 0, false, nil
 	}
-	return m.DirTo(from.At, cell, stateOf(w).rules)
+	return w.Map.DirTo(from.At, cell, stateOf(w).rules)
 }
 
 // stepTo steps the body one step in a direction, unless somebody stands there or the step is not
 // allowed, in which case it does nothing.
 func stepTo(w *sim.World, body ecs.Entity, from comp.Pos, dir api.Dir) error {
-	m := w.Maps.Get(from.Map)
-	step, can, err := m.Step(from.At, dir, stateOf(w).rules)
+	step, can, err := w.Map.Step(from.At, dir, stateOf(w).rules)
 	if err != nil || !can {
 		return err
 	}
-	if _, occupied := bodyAt(w, from.Map, step.To.Cell, body); occupied {
+	if _, occupied := bodyAt(w, step.To.Cell, body); occupied {
 		return nil
 	}
 	in := actions.Intent{Actor: body, Action: w.Content.Party().FollowAction, Dir: &dir}

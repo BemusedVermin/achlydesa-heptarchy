@@ -22,8 +22,8 @@ type World struct {
 	Commands *Commands
 	Views    *Views
 	Codec    *api.Codec
-	// Maps holds every map of the world, by ID.
-	Maps *hexmap.Maps
+	// Map is the world's cells: nil until explore builds it from content.
+	Map *hexmap.Map
 	// Content is the loaded content; game.New sets it.
 	Content *content.Registry
 	// Now is the current tick; only clock writes it.
@@ -46,7 +46,6 @@ func NewWorld(seed uint64) *World {
 		Commands: NewCommands(),
 		Views:    NewViews(),
 		Codec:    api.NewCodec(),
-		Maps:     hexmap.NewMaps(),
 	}
 	w.nextUID.Store(1)
 	comp.Register(w.ECS)

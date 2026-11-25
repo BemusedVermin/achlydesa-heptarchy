@@ -1,9 +1,10 @@
 package data
 
 // A small room at depth 0 for the other two sample creatures, the flesh beast and the pre-entropy
-// remnant, so the hall keeps one creature. Tests start a game here by setting start.map.
-maps: "map.test.den": _#TestMap & {
-	name: "text.map.test.den"
+// remnant, so the hall keeps one creature. Tests start a game here by setting start.place.
+places: "place.test.den": _#TestPlace & {
+	name: "text.place.test.den"
+	at: {col: 56, row: 4, depth: 0}
 	marks: {"@": "party_start", "r": "remnant", "b": "beast"}
 	spawns: {
 		"r": "template.creature.remnant"
@@ -25,4 +26,4 @@ maps: "map.test.den": _#TestMap & {
 	]
 }
 
-text: "text.map.test.den": "The test den"
+text: "text.place.test.den": "The test den"

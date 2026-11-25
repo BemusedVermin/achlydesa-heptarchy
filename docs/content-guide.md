@@ -21,10 +21,9 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
-| `maps/` | `maps`: `maps.cue` holds the schema and `_#TestMap`, one file per map (`test_hall.cue`, `test_den.cue`, `test_descent.cue`) |
-| `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque) and the `open` terrain of a marked cell; and the schema of `places` |
-| `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each. A place has a map's `layers`, `legend`, `marks` and `spawns`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
-| `start.cue` | `start`: the map, party template and mark a new game begins with |
+| `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque) and the `open` terrain of a marked cell |
+| `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks` and `spawns`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
+| `start.cue` | `start`: the place and mark a new game begins at, and the party template |
 | `rules.cue` | `rules`: named formulas |
 | `choices.cue` | `choices`: what an action can ask the player to pick |
 | `vocabulary.cue` | `vocabulary`: which tags, grant kinds and list values are allowed |
@@ -47,7 +46,6 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `text` | `text.` | `text.material.clay` |
 | `templates` | `template.` | `template.creature.beast` |
 | `actions` | `action.` | `action.strike` |
-| `maps` | `map.` | `map.test.den` |
 | `places` | `place.` | `place.test.hall` |
 | `parts` | `part.` | `part.human_arm` |
 | `claims` | `claim.` | `claim.material` |
@@ -62,7 +60,7 @@ The day's phases in `calendar.cue` have IDs too (`phase.dawn`), and are named `t
 
 Records refer to each other by ID, never by nesting one inside another. References in records are checked when content loads, and references inside effect params (such as an `add_status` effect's `status`) when a game starts, so a typo is an error that names the field, not a crash in a fight. Renaming an ID needs no save migration: saves are disposable until v1.0.0.
 
-`test.` after the prefix (`template.test.dummy`, `part.test.crawler_maw`, `map.test.den`) marks a fixture that tests rely on. Change those only together with the tests that use them.
+`test.` after the prefix (`template.test.dummy`, `part.test.crawler_maw`, `place.test.den`) marks a fixture that tests rely on. Change those only together with the tests that use them.
 
 ## Text IDs
 
@@ -145,7 +143,7 @@ Params that pick bodies or parts are selectors:
 1. Copy a hunter, such as `template.creature.beast`: `_#Hunter & {...}` gives it a step, Strike, Cut, the `hunt` controller and `faction.wild`.
 2. Give it an ID under `template.creature.`, a `name` of `text.<its ID>`, an `appearance` (one glyph and a color) and a `body` (a `body.` ID from `bodies.cue`).
 3. Add its name to the `text:` block at the bottom of `templates.cue`.
-4. To meet it, put it on a map: a mark character in `marks` and the same character in `spawns` (see the map recipe).
+4. To meet it, put it in a place: a mark character in `marks` and the same character in `spawns` (see the place recipe).
 
 Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does.
 
@@ -169,15 +167,16 @@ The type choice offers it whenever the inventory holds its item. A type that nee
 
 Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawling part once severed, through a `spawn_from_part` trigger on its creature.
 
-### A map, like `maps/test_den.cue`
+### A place, like `places/test_den.cue`
 
-1. Copy `maps/test_den.cue` to a new file in `maps/`, with a `map.` ID and a `name` of `text.<its ID>`.
-2. `_#TestMap & {...}` fills everything outside the layers with packed clay, and gives `#` as clay and `.` as air in the `legend`.
-3. Draw one or more `layers`, each a `depth` and `rows`: one character per cell, in odd-r offset layout (odd rows are shifted half a hex right). A space leaves the fill.
-4. Name the special characters in `marks`; the mark that `start.party_at_mark` names, `party_start`, is where a new game puts the party (`"@": "party_start"`). Put a mark's character in `spawns` with a template ID to spawn a body of it at every such cell. A mark with no spawn must appear exactly once in the layers; a spawn's character must also be a mark, and may appear any number of times.
-5. Add the name to the file's `text:` block.
+1. Copy `places/test_den.cue` to a new file in `places/`, with a `place.` ID and a `name` of `text.<its ID>`.
+2. Set `at` to a free part of the world: the cell of the place's column 0, row 0 and depth 0, on an even row, with every authored cell inside `world.cue`'s bounds and none shared with another place. Grow the world if it does not fit.
+3. `_#TestPlace & {...}` gives `#` as clay and `.` as air in the `legend`. Everything the layers leave is the world's fill.
+4. Draw one or more `layers`, each a `depth` (relative to `at.depth`) and `rows`: one character per cell, in odd-r offset layout (odd rows are shifted half a hex right). A space leaves the fill.
+5. Name the special characters in `marks`; a mark name is unique within its place. Put a mark's character in `spawns` with a template ID to spawn a body of it at every such cell. A mark with no spawn must appear exactly once in the layers; a spawn's character must also be a mark, and may appear any number of times.
+6. Add the name to the file's `text:` block.
 
-To play it, point `start.map` in `start.cue` at it for the session, and put it back before you commit unless the change is meant.
+To play it, point `start.place` and `start.mark` in `start.cue` at it for the session, and put them back before you commit unless the change is meant. Nothing joins the places yet, so a party started in one stays there.
 
 ## Checking your work
 

@@ -31,17 +31,13 @@ type Step struct {
 // ErrBadDir is returned by [Map.Step] for a direction that is not one of the six.
 var ErrBadDir = errors.New("hexmap: invalid direction")
 
-// Step finds where a body at from ends up moving one hex in dir, if anywhere. Bodies are one cell tall. A step
-// through a link to another map is taken as given.
+// Step finds where a body at from ends up moving one hex in dir, if anywhere. Bodies are one cell tall.
 func (m *Map) Step(from api.Cell, dir api.Dir, rules StepRules) (Step, bool, error) {
 	if !dir.Valid() {
 		return Step{}, false, ErrBadDir
 	}
 	link := m.topo.Neighbor(from, dir)
-	n, local := m.local(link)
-	if !local {
-		return Step{To: link, Kind: StepLevel}, true, nil
-	}
+	n := link.Cell
 	t, err := m.At(n)
 	if err != nil {
 		return Step{}, false, err
@@ -64,13 +60,7 @@ func (m *Map) stepUp(from, n api.Cell, rules StepRules) (Step, bool, error) {
 	above, head := n, from
 	for k := 1; k <= rules.MaxStepUp; k++ {
 		aboveLink, headLink := m.topo.Above(above), m.topo.Above(head)
-		var ok bool
-		if above, ok = m.local(aboveLink); !ok {
-			return Step{}, false, nil
-		}
-		if head, ok = m.local(headLink); !ok {
-			return Step{}, false, nil
-		}
+		above, head = aboveLink.Cell, headLink.Cell
 		blocked, err := m.solid(headLink)
 		if err != nil || blocked {
 			// No headroom, and climbing higher needs even more
@@ -92,10 +82,7 @@ func (m *Map) stepDown(n api.Cell, rules StepRules) (Step, bool, error) {
 	cur := n
 	for fall := 1; fall <= rules.MaxDrop; fall++ {
 		link := m.topo.Below(cur)
-		var ok bool
-		if cur, ok = m.local(link); !ok {
-			return Step{}, false, nil
-		}
+		cur = link.Cell
 		standable, err := m.Standable(cur)
 		if err != nil {
 			return Step{}, false, err

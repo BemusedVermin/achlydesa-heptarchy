@@ -47,7 +47,7 @@ func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) 
 		}
 		for _, other := range candidates {
 			pos := positions.Get(other)
-			if pos.Map != from.Map || !visible[pos.At] || !Hostile(w, member, other) {
+			if !visible[pos.At] || !Hostile(w, member, other) {
 				continue
 			}
 			if first.IsZero() || w.UIDOf(other) < w.UIDOf(first) {

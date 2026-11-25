@@ -61,8 +61,7 @@ func TestDirTo(t *testing.T) {
 				return
 			}
 			step, stepped, err := m.Step(from, dir, rules)
-			landed, local := m.local(step.To)
-			if err != nil || !stepped || !local || landed != to {
+			if err != nil || !stepped || step.To.Cell != to {
 				t.Fatalf("Step(%v) = %+v, %v, %v; want a step to %v", dir, step, stepped, err, to)
 			}
 		})

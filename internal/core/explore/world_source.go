@@ -49,8 +49,7 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 	}
 	for _, id := range reg.PlaceIDs() {
 		def, _ := reg.Place(id)
-		layout := content.MapDef{Layers: def.Layers, Legend: def.Legend, Marks: def.Marks, Spawns: def.Spawns}
-		err := layOut(reg, layout, def.At, open, src.authored, func(name string, cell api.Cell) {
+		err := layOut(reg, def, open, src.authored, func(name string, cell api.Cell) {
 			src.marks[placeMark{place: id, name: name}] = cell
 		}, func(spawn Spawn) { src.spawns = append(src.spawns, spawn) })
 		if err != nil {

@@ -13,6 +13,7 @@ import (
 
 func TestWorldSourcePlacesEachPlaceInTheFill(t *testing.T) {
 	bundle := contenttest.SampleBundle(t)
+	contenttest.NoStart(&bundle)
 	bundle.World = content.WorldDef{
 		Cols: 32, Rows: 16, MinDepth: 0, MaxDepth: 5,
 		Fill: "terrain.air", Edge: "terrain.packed_clay", Open: "terrain.air",
@@ -42,7 +43,7 @@ func TestWorldSourcePlacesEachPlaceInTheFill(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	world := hexmap.NewMap(1, "world", src, hexmap.Prisms{})
+	world := hexmap.NewMap(src, hexmap.Prisms{})
 	world.SetBounds(src.Bounds(), src.Edge())
 
 	cell := func(col, row, depth int) api.Cell {

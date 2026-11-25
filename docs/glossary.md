@@ -24,7 +24,9 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **chosen**: in an action's formulas, the records the player picked (`chosen.<x>.id`).
 - **params**: a trigger event's numbers, such as `cells` (`api.Params`).
 - **form**: one of the seven combat actions, tagged `form` in `forms.cue`. Not a separate record.
-- **move**: movement across the map (`api.Moved`, `move_cost`); never form x type.
+- **world**: the one continuous, bounded space of cells everything stands in (`sim.World.Map`, `world.cue`). There is no **map** as a unit of the world: `hexmap.Map` is only the store of its cells, and the map the player sees is the plan view of it.
+- **place**: a hand-made piece of the world set at a fixed position, such as a town (`place.` IDs, `places/`).
+- **move**: movement across the world (`api.Moved`, `move_cost`); never form x type.
 - **type**: what a form carries into the part it lands on (`content.Type`). Not every type does damage.
 - **still**: the controller for a creature that keeps still (`still_ticks`). Not rest.
 - **inventory**: what a body carries, a list of item stacks (`comp.Inventory`, `inventory:`). The word "pack" is not used.

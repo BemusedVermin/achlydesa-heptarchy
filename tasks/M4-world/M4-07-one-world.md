@@ -1,7 +1,7 @@
 ---
 id: M4-07
 title: "One world: the maps become places"
-status: todo
+status: done
 milestone: M4
 kind: seam
 depends_on: [M4-06]
@@ -42,9 +42,9 @@ A game runs in one world built from M4-06's places. A position is a cell. Map ID
 
 ## Acceptance criteria
 
-- [ ] `git grep -w -E "MapID|ByMap|hexmap.Maps" -- internal content docs` finds nothing.
-- [ ] `go tool task run -- play --seed 1` opens in the hall place, and the plan view looks as it did.
-- [ ] `go tool task check` passes.
+- [x] `git grep -w -E "MapID|ByMap|hexmap.Maps" -- internal content docs` finds nothing.
+- [x] `go tool task run -- play --seed 1` opens in the hall place, and the plan view looks as it did.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -53,4 +53,14 @@ A game runs in one world built from M4-06's places. A position is a cell. Map ID
 
 ## Notes
 
-Filled in by the implementer.
+- **Interim, on purpose:** the three places sit side by side in the world's clay with nothing joining them; M5's procgen joins them. A party started in one place stays there.
+- **Layout:** world 70 by 30 hexes, depths 0 to 7. Hall at column 4, row 4; descent at column 30, row 4; den at column 56, row 4; all at depth 0, at least five hexes of clay apart and from the edge. Places keep their rows as they were. IDs are now `place.test.*`, names `text.place.test.*`.
+- **Plan view:** the TUI goldens did not change, and `play --seed 1` opens in the hall. The combat encounter goldens changed only by the hall's offset (every hex +2 q, +4 r) and the dropped `map` field; I checked that line by line.
+- **Names:** `api.MapView` keeps its name (it is the plan view); it loses `Map` and `Name`, which the frontend never showed. `Start` is `{place, mark, party}`, as M4-06 suggested. `save.MapEdit`/`MapEdits` became `save.Edit`/`Edits` (`"edits"`), and `CurrentVersion` is 3. `explore.LoadMaps` became `LoadWorld`. `hexmap.Map` loses its ID and name; `hexmap.Link` keeps only `Cell`, and the step test through a link to another map went.
+- **`effects.SetMaps` is gone:** effects reads `w.Map` directly, since `sim` is a foundation package. Content with no `world` leaves `w.Map` nil, as content with no maps left the registry empty.
+- **The world's edge is the world's bounds:** `explore` sets them on the one `hexmap.Map` from `WorldSource.Bounds` and `Edge`.
+- **Tests:** fixtures name a place instead of a map. `combat`'s field picks the moving clay nearest the party, since several places now hold one in the same world. The ledge fixture is a place at depth 3, so its negative layers stay in bounds. The actions fixture also drops the world, so its bodies stand nowhere, as before.
+- **Outside the Deliverables:** `internal/core/{actions,combat,effects,sim}` (map checks dropped), `internal/harness/run.go` (the CSV's `map` column is gone), `content/data/text/explore.cue` ("The world could not be read"), `ClimbCost` moved from the deleted `maps.go` to `registry.go`, and `docs/go-technical-design.md` (`comp`, `hexmap` rows, the save, the data folder).
+- **Docs:** `docs/content-guide.md`'s map recipe is now "A place"; `docs/glossary.md` gains **world** and **place**, saying there is no map as a unit of the world.
+- `go tool task check` and `go tool task check-ci BASE=origin/master` pass.
+- No follow-ups filed.

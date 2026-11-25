@@ -8,7 +8,7 @@ import (
 )
 
 func TestPathDownRamp(t *testing.T) {
-	m := NewMap(1, "ramp", FuncSource(func(c api.Cell) Terrain {
+	m := NewMap(FuncSource(func(c api.Cell) Terrain {
 		if c.Depth >= 1+max(0, c.Hex.Q) {
 			return rock
 		}
@@ -34,7 +34,7 @@ func TestPathLedgeAndDrop(t *testing.T) {
 		}
 		return air
 	})
-	m := NewMap(1, "ledge", high, Prisms{})
+	m := NewMap(high, Prisms{})
 	top, low := cell(1, 0, -3), cell(0, 0, 0)
 
 	if _, ok, err := m.Path(low, top, defaultStepRules(), nil, 2000); err != nil || ok {
@@ -57,14 +57,14 @@ func TestPathGivesUp(t *testing.T) {
 		t.Errorf("Path = %v, %v, %v; want no route", route, ok, err)
 	}
 
-	solid := NewMap(2, "solid", FuncSource(func(api.Cell) Terrain { return rock }), Prisms{})
+	solid := NewMap(FuncSource(func(api.Cell) Terrain { return rock }), Prisms{})
 	if _, ok, err := solid.Path(cell(0, 0, 0), cell(5, 0, 0), defaultStepRules(), nil, 100); err != nil || ok {
 		t.Errorf("all-solid map: ok=%v err=%v", ok, err)
 	}
 }
 
 func TestReachableWalksTheStepRulesWithinTheLimit(t *testing.T) {
-	m := NewMap(1, "ramp", FuncSource(func(c api.Cell) Terrain {
+	m := NewMap(FuncSource(func(c api.Cell) Terrain {
 		if c.Depth >= 1+max(0, c.Hex.Q) {
 			return rock
 		}

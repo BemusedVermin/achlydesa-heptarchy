@@ -15,9 +15,6 @@ type UID uint64
 // ContentID is a namespaced content ID such as "material.clay".
 type ContentID string
 
-// MapID identifies a map, hand-made or generated; 0 means none.
-type MapID uint32
-
 // Hex is an axial hex coordinate, independent of the hex library.
 type Hex struct {
 	Q int `json:"q"`

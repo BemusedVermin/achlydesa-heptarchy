@@ -148,24 +148,19 @@ func (ev *evaluator) sees(source, target ecs.Entity) (bool, error) {
 	return seen[target], nil
 }
 
-// distance is the hex distance between two bodies on the same map, or 0 when it has no meaning.
+// distance is the hex distance between two bodies, or 0 when either has no position.
 func (ev *evaluator) distance(a, b ecs.Entity) int {
 	if !ev.w.Alive(a) || !ev.w.Alive(b) || !ev.positions.Has(a) || !ev.positions.Has(b) {
 		return 0
 	}
 	pa, pb := ev.positions.Get(a), ev.positions.Get(b)
-	if pa.Map != pb.Map {
-		return 0
-	}
 	return hexmap.Distance(pa.At.Hex, pb.At.Hex)
 }
 
-// reach says whether the actor can reach the target body with the action: on the same map, within
-// range, and in sight when the action needs it. The empty Text means yes.
+// reach says whether the actor can reach the target body with the action: within range, and in sight when the action needs it. The empty Text means yes.
 func (ev *evaluator) reach(actor, target ecs.Entity, def content.ActionDef) (api.Text, error) {
 	w := ev.w
-	if !w.Alive(actor) || !w.Alive(target) || !ev.positions.Has(actor) || !ev.positions.Has(target) ||
-		ev.positions.Get(actor).Map != ev.positions.Get(target).Map {
+	if !w.Alive(actor) || !w.Alive(target) || !ev.positions.Has(actor) || !ev.positions.Has(target) {
 		return why("bad_target"), nil
 	}
 	if ev.distance(actor, target) > def.Range {

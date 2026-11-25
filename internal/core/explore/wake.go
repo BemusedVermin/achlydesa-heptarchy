@@ -1,6 +1,7 @@
 package explore
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -15,8 +16,8 @@ import (
 )
 
 // SetRestPlace records where the party wakes after a wipe.
-func SetRestPlace(w *sim.World, party ecs.Entity, id api.MapID, at api.Cell) {
-	sim.Put(w, party, comp.RestPlace{Map: id, At: at})
+func SetRestPlace(w *sim.World, party ecs.Entity, at api.Cell) {
+	sim.Put(w, party, comp.RestPlace{At: at})
 }
 
 // CanWake reports whether the controlled party has a rest place and a downed member to get up. A
@@ -40,9 +41,9 @@ func Wake(w *sim.World) error {
 	}
 	party, _ := anatomy.ControlledParty(w)
 	place := *ecs.NewMap[comp.RestPlace](w.ECS).Get(party)
-	m := w.Maps.Get(place.Map)
+	m := w.Map
 	if m == nil {
-		return fmt.Errorf("explore: wake: rest place is on unknown map %d", place.Map)
+		return errors.New("explore: wake: the world has no cells")
 	}
 	dead := ecs.NewMap[comp.Dead](w.ECS)
 	downed := ecs.NewMap[comp.Downed](w.ECS)
@@ -52,9 +53,8 @@ func Wake(w *sim.World) error {
 	taken := map[api.Cell]bool{}
 	occupied := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
 	for occupied.Next() {
-		if pos, _ := occupied.Get(); pos.Map == place.Map {
-			taken[pos.At] = true
-		}
+		pos, _ := occupied.Get()
+		taken[pos.At] = true
 	}
 	var woke []ecs.Entity
 	for _, member := range membersOf(w, party) {
@@ -66,7 +66,7 @@ func Wake(w *sim.World) error {
 			return fmt.Errorf("explore: wake: %w", err)
 		}
 		taken[at] = true
-		pos := comp.Pos{Map: place.Map, At: at}
+		pos := comp.Pos{At: at}
 		sim.Put(w, member, pos)
 		sim.Put(w, member, comp.Trail{Last: at})
 		if !downed.Has(member) {
@@ -91,7 +91,7 @@ func Wake(w *sim.World) error {
 	if err := markSeenByParty(w, party); err != nil {
 		return err
 	}
-	w.Bus.Publish(api.PartyWoke{Party: w.UIDOf(party), Map: place.Map, At: place.At, Tick: w.Now})
+	w.Bus.Publish(api.PartyWoke{Party: w.UIDOf(party), At: place.At, Tick: w.Now})
 	return nil
 }
 
@@ -116,8 +116,6 @@ func markSeenByParty(w *sim.World, party ecs.Entity) error {
 	if err != nil {
 		return err
 	}
-	for id, set := range sight {
-		markSeen(w, party, id, slices.Collect(maps.Keys(set)))
-	}
+	markSeen(w, party, slices.Collect(maps.Keys(sight)))
 	return nil
 }

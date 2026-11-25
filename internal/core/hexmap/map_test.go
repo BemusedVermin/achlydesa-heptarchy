@@ -45,7 +45,7 @@ func TestChunkKeyFloorsAcrossBoundaries(t *testing.T) {
 
 func TestSetAtRoundTrips(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		m := NewMap(1, "test", FuncSource(func(api.Cell) Terrain { return air }), Prisms{})
+		m := NewMap(FuncSource(func(api.Cell) Terrain { return air }), Prisms{})
 		coord := rapid.IntRange(-40, 40)
 		c := cell(coord.Draw(rt, "q"), coord.Draw(rt, "r"), coord.Draw(rt, "depth"))
 		if rapid.Bool().Draw(rt, "edge") {
@@ -68,7 +68,7 @@ func TestSetAtRoundTrips(t *testing.T) {
 
 func TestChunkLoadedOnceAndEditsSurvive(t *testing.T) {
 	src := &countingSource{inner: FuncSource(func(api.Cell) Terrain { return air }), calls: map[ChunkKey]int{}}
-	m := NewMap(1, "test", src, Prisms{})
+	m := NewMap(src, Prisms{})
 
 	edited := []api.Cell{cell(5, 5, 5), cell(-1, 0, 0), cell(5, 4, 5), cell(5, 5, 4)}
 	for _, c := range edited {
@@ -106,7 +106,7 @@ func TestChunkLoadedOnceAndEditsSurvive(t *testing.T) {
 }
 
 func TestCellsInSortedAndStable(t *testing.T) {
-	m := NewMap(1, "test", FuncSource(func(api.Cell) Terrain { return air }), Prisms{})
+	m := NewMap(FuncSource(func(api.Cell) Terrain { return air }), Prisms{})
 	center := api.Hex{Q: -3, R: 2}
 	first := m.CellsIn(center, 2, 0, 1)
 	if want := 2 * 19; len(first) != want {
