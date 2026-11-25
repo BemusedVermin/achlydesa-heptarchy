@@ -23,7 +23,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
 | `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque), the `open` terrain of a marked cell and the `geography` that generates the cells no place covers |
 | `geography.cue` | `geographies`: kinds of generated ground. A geography lists its `stages` in order, each a registered stage's name (`stage`) and its numbers (`params`). Procgen checks that every stage is registered and takes its params. Fixed cells always keep what their place authors |
-| `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks` and `spawns`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
+| `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks`, `spawns` and `openings`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
 | `start.cue` | `start`: the place and mark a new game begins at, and the party template |
 | `rules.cue` | `rules`: named formulas |
 | `choices.cue` | `choices`: what an action can ask the player to pick |
@@ -176,6 +176,7 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
 3. `_#TestPlace & {...}` gives `#` as clay and `.` as air in the `legend`. Everything the layers leave is the world's fill.
 4. Draw one or more `layers`, each a `depth` (relative to `at.depth`) and `rows`: one character per cell, in odd-r offset layout (odd rows are shifted half a hex right). A space leaves the fill.
 5. Name the special characters in `marks`; a mark name is unique within its place. Put a mark's character in `spawns` with a template ID to spawn a body of it at every such cell. A mark with no spawn must appear exactly once in the layers; a spawn's character must also be a mark, and may appear any number of times.
+   To open the place onto the generated deep, list a mark's character in `openings`: procgen carves a tunnel out of every such cell (the `join` stage in `geography.cue`). Like a spawn, it may appear any number of times, and it needs a neighbor outside the places. Nothing else makes a tunnel, so a place with no `openings` stays closed, and a wall-less edge is not an opening.
 6. Add the name to the file's `text:` block.
 
 To play it, point `start.place` and `start.mark` in `start.cue` at it for the session, and put them back before you commit unless the change is meant. Nothing joins the places yet, so a party started in one stays there.

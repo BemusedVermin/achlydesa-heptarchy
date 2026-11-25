@@ -21,6 +21,13 @@ geographies: "geography.deep": {
 			deep_rarity:         0.3
 		}
 	}, {
+		stage: "join"
+		params: {
+			width: 2
+			reach: 24
+			bias:  1.5
+		}
+	}, {
 		stage: "sinks"
 		params: {
 			spacing:      44

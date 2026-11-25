@@ -4,7 +4,8 @@ package data
 places: "place.test.descent": _#TestPlace & {
 	name: "text.place.test.descent"
 	at: {col: 30, row: 4, depth: 0}
-	marks: {"@": "party_start", "c": "creature"}
+	marks: {"@": "party_start", "c": "creature", "o": "way_out"}
+	openings: ["o"]
 	spawns: "c": "template.creature.moving_clay"
 	layers: [
 		{
@@ -49,7 +50,7 @@ places: "place.test.descent": _#TestPlace & {
 				"               ..",
 				"",
 				"",
-				"......c......",
+				"o.....c.....o",
 			]
 		},
 		{
@@ -74,7 +75,7 @@ places: "place.test.descent": _#TestPlace & {
 				"",
 				"              .....",
 				"                 ...",
-				"                 ..",
+				"                 .o",
 			]
 		},
 	]

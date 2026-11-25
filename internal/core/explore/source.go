@@ -2,6 +2,7 @@ package explore
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -22,6 +23,7 @@ func layOut(
 	authored map[hexmap.ChunkKey][]placed,
 	mark func(name string, cell api.Cell),
 	spawn func(Spawn),
+	opening func(api.Cell),
 ) error {
 	at := def.At
 	for _, layer := range def.Layers {
@@ -40,6 +42,8 @@ func layOut(
 				} else if name, ok := def.Marks[string(char)]; ok {
 					if template, spawns := def.Spawns[string(char)]; spawns {
 						spawn(Spawn{Cell: cell, Template: template})
+					} else if slices.Contains(def.Openings, string(char)) {
+						opening(cell)
 					} else {
 						mark(name, cell)
 					}

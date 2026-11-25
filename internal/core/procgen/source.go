@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"maps"
+	"slices"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -18,6 +19,16 @@ type Fixed interface {
 	hexmap.Source
 	// Covers reports whether a cell belongs to a place.
 	Covers(api.Cell) bool
+	// Places lists every fixed place's marked openings, in a fixed order.
+	Places() []hexmap.Footprint
+}
+
+// Opening is a cell its place's author marked as a way out to the generated ground.
+type Opening struct {
+	Place api.ContentID
+	Cell  api.Cell
+	// Exit is the first neighbor of Cell, in direction order, that lies in the bounds outside every place.
+	Exit api.Cell
 }
 
 // Config is what a [Source] generates from.
@@ -49,6 +60,11 @@ type Context struct {
 	Params map[string]float64
 	// Fixed must only be read.
 	Fixed Fixed
+	// Openings are the places' openings, in a fixed order. Must only be read.
+	Openings []Opening
+	// Siblings holds the params of every stage of the geography by name, the first of a name winning. Must
+	// only be read.
+	Siblings map[string]map[string]float64
 }
 
 type boundStage struct {
@@ -67,6 +83,8 @@ type Source struct {
 	exportCount uint64
 	bounds      hexmap.Bounds
 	fixed       Fixed
+	openings    []Opening
+	siblings    map[string]map[string]float64
 	stages      []boundStage
 }
 
@@ -75,6 +93,10 @@ func NewSource(cfg Config) (*Source, error) {
 	if cfg.Fixed == nil {
 		return nil, errors.New("procgen: source: no fixed layer")
 	}
+	openings, err := openingsOf(cfg.Fixed, cfg.Bounds)
+	if err != nil {
+		return nil, err
+	}
 	src := &Source{
 		seed:        cfg.Seed,
 		streams:     rng.New(cfg.Seed),
@@ -82,6 +104,8 @@ func NewSource(cfg Config) (*Source, error) {
 		exportCount: cfg.ExportCount,
 		bounds:      cfg.Bounds,
 		fixed:       cfg.Fixed,
+		openings:    openings,
+		siblings:    map[string]map[string]float64{},
 	}
 	if len(cfg.Geography.Stages) > 0 && cfg.Stages == nil {
 		return nil, errors.New("procgen: source: no stage registry")
@@ -90,6 +114,9 @@ func NewSource(cfg Config) (*Source, error) {
 		stage, err := cfg.Stages.lookup(def)
 		if err != nil {
 			return nil, fmt.Errorf("procgen: source: stages[%d]: %w", i, err)
+		}
+		if _, seen := src.siblings[def.Stage]; !seen {
+			src.siblings[def.Stage] = def.Params
 		}
 		src.stages = append(src.stages, boundStage{name: def.Stage, stage: stage, params: def.Params})
 	}
@@ -116,6 +143,8 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 			Rand:        s.streams.Derived("procgen", s.salt(key, i, bound.name)),
 			Params:      maps.Clone(bound.params),
 			Fixed:       s.fixed,
+			Openings:    s.openings,
+			Siblings:    s.siblings,
 		}
 		if err := bound.stage.Run(ctx, chunk); err != nil {
 			return nil, fmt.Errorf("procgen: stage %q on chunk %v: %w", bound.name, key, err)
@@ -129,6 +158,31 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 		}
 	})
 	return chunk, nil
+}
+
+// Openings lists where the fixed places meet the generated ground, places in the fixed layer's order.
+func (s *Source) Openings() []Opening { return slices.Clone(s.openings) }
+
+func openingsOf(fixed Fixed, bounds hexmap.Bounds) ([]Opening, error) {
+	var openings []Opening
+	for _, footprint := range fixed.Places() {
+		for _, cell := range footprint.Openings {
+			found := false
+			for dir := range api.Dir(api.DirCount) {
+				exit := hexmap.Prisms{}.Neighbor(cell, dir).Cell
+				if bounds.Contains(exit) && !fixed.Covers(exit) {
+					openings = append(openings, Opening{Place: footprint.Place, Cell: cell, Exit: exit})
+					found = true
+					break
+				}
+			}
+			if !found {
+				return nil, fmt.Errorf("procgen: source: opening %v of %q has no neighbor outside the places",
+					cell, footprint.Place)
+			}
+		}
+	}
+	return openings, nil
 }
 
 // salt gives each stage of each chunk its own stream under the export count's.

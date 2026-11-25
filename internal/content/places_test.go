@@ -65,3 +65,36 @@ func TestPlacesAreChecked(t *testing.T) {
 		})
 	}
 }
+
+func TestPlaceOpeningsAreChecked(t *testing.T) {
+	tests := []struct {
+		name     string
+		openings []string
+		spawns   map[string]api.ContentID
+		want     string
+	}{
+		{name: "not a mark", openings: []string{"x"}, want: "not one of the marks"},
+		{name: "in no layer", openings: []string{"o"}, want: "the character is in no layer"},
+		{
+			name:     "also a spawn",
+			openings: []string{"."},
+			spawns:   map[string]api.ContentID{".": "template.test.dummy"},
+			want:     "also a spawn",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			bundle := sampleBundle(t)
+			bundle.Start = Start{}
+			def := testPlace("place.a", PlaceAt{})
+			def.Marks = map[string]string{".": "floor", "o": "way_out"}
+			def.Legend = map[string]api.ContentID{"#": "terrain.packed_clay"}
+			def.Spawns = test.spawns
+			def.Openings = test.openings
+			bundle.Places = map[string]PlaceDef{"place.a": def}
+			bundle.Text[string(def.Name)] = "a place"
+			_, err := New(bundle)
+			requireErrContains(t, err, `places["place.a"].openings[`, test.want)
+		})
+	}
+}
