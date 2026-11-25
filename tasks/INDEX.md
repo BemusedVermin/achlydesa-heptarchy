@@ -130,13 +130,31 @@ Brief: [M4-world/README.md](M4-world/README.md)
 | [M4-07](M4-world/M4-07-one-world.md) | One world: the maps become places | done | seam | M | M4-06 |
 | [M4-15](M4-world/M4-15-delete-weak-tests.md) | Delete weak tests | done | debt | M | M4-01 |
 
+## M5 · Procgen
+
+Brief: [M5-procgen/README.md](M5-procgen/README.md)
+
+| ID | Title | Status | Kind | Size | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| [M5-01](M5-procgen/M5-01-procgen-source.md) | Geography content and the procgen chunk source | todo | seam | M | M4-07 |
+| [M5-09](M5-procgen/M5-09-export-schedule.md) | The export schedule and count | todo | feature | S | M4-07 |
+| [M5-02](M5-procgen/M5-02-cave-noise.md) | Cave noise stage | todo | feature | M | M5-01 |
+| [M5-03](M5-procgen/M5-03-sinks.md) | Sinks stage | todo | feature | M | M5-01 |
+| [M5-04](M5-procgen/M5-04-regions.md) | Regions as areas and the region graph | todo | seam | M | M5-01 |
+| [M5-08](M5-procgen/M5-08-unload-chunks.md) | Unload far chunks and keep Seen as bitsets | todo | seam | M | M5-01 |
+| [M5-05](M5-procgen/M5-05-join-places.md) | Join the generated deep to the fixed places | todo | feature | M | M5-02 |
+| [M5-06](M5-procgen/M5-06-the-large-world.md) | The large world: procgen in the game | todo | feature | M | M5-05 |
+| [M5-07](M5-procgen/M5-07-verify-guarantees.md) | Verify stage and the guarantees | todo | feature | M | M5-04, M5-05 |
+| [M5-10](M5-procgen/M5-10-regenerate-on-export.md) | Regenerate the deep on an export | todo | feature | M | M5-06, M5-07, M5-08, M5-09 |
+| [M5-11](M5-procgen/M5-11-populate.md) | Populate generated ground | todo | feature | M | M5-04, M5-06, M5-08 |
+| [M5-12](M5-procgen/M5-12-decay-spreads.md) | Decay spreads downward over exports | todo | feature | S | M5-04, M5-10 |
+
 ## Later milestones (outlines)
 
 Each becomes task files when the milestone before it is done: run `/plan-milestone`.
 
 | Milestone | Brief |
 | --- | --- |
-| M5 · Procgen | [M5-procgen/README.md](M5-procgen/README.md) |
 | M6 · Minds | [M6-minds/README.md](M6-minds/README.md) |
 | M7 · Seats | [M7-seats/README.md](M7-seats/README.md) |
 | M8 · Emergence | [M8-emergence/README.md](M8-emergence/README.md) |
