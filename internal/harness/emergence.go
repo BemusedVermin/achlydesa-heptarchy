@@ -20,6 +20,26 @@ const (
 type CampingConfig struct {
 	Share float64
 	Days  int
+	// Exempt says which families cannot camp. Nil means [ExemptSingleStartOrAlone].
+	Exempt Exemption
+}
+
+// FamilyHistory is what an [Exemption] knows about a family that is over the share in a town.
+type FamilyHistory struct {
+	// StartMaps is how many maps held living members at the first census.
+	StartMaps int
+	// Elsewhere is how many living members are outside the town.
+	Elsewhere int
+}
+
+// Exemption reports whether a family is excused from the camping check. It is the one place that
+// decides which concentrations are degenerate.
+type Exemption func(history FamilyHistory) bool
+
+// ExemptSingleStartOrAlone excuses a family that began on one map, and a family with no living
+// member outside the town, whose other members died or came to it.
+func ExemptSingleStartOrAlone(history FamilyHistory) bool {
+	return history.StartMaps <= 1 || history.Elsewhere == 0
 }
 
 // DefaultCamping returns the placeholder thresholds.
@@ -45,10 +65,16 @@ type camping struct {
 	cfg     CampingConfig
 	streaks map[campKey]int
 	found   map[campKey]Camp
+	start   map[api.ContentID]int
 }
 
 func newCamping(cfg CampingConfig) *camping {
-	return &camping{cfg: cfg, streaks: map[campKey]int{}, found: map[campKey]Camp{}}
+	if cfg.Exempt == nil {
+		cfg.Exempt = ExemptSingleStartOrAlone
+	}
+	return &camping{
+		cfg: cfg, streaks: map[campKey]int{}, found: map[campKey]Camp{}, start: map[api.ContentID]int{},
+	}
 }
 
 // observe takes the census on a day. A streak survives only while every sample of its days is over
@@ -58,9 +84,15 @@ func (c *camping) observe(day int, census []game.FamilyCount) {
 	for _, entry := range census {
 		totals[entry.Family] += entry.Count
 	}
+	if len(c.start) == 0 {
+		for _, entry := range census {
+			c.start[entry.Family]++
+		}
+	}
 	over := map[campKey]bool{}
 	for _, entry := range census {
-		if entry.Town && float64(entry.Count) > c.cfg.Share*float64(totals[entry.Family]) {
+		history := FamilyHistory{StartMaps: c.start[entry.Family], Elsewhere: totals[entry.Family] - entry.Count}
+		if entry.Town && float64(entry.Count) > c.cfg.Share*float64(totals[entry.Family]) && !c.cfg.Exempt(history) {
 			over[campKey{entry.Family, entry.Map}] = true
 		}
 	}
@@ -118,26 +150,6 @@ type EmergenceResult struct {
 	Camps        []Camp
 }
 
-// counts tallies a run's deaths, migrations and emptied towns from its events.
-type counts struct {
-	deaths, migrations, townsEmptied int
-}
-
-func (c *counts) observe(events []api.Event) {
-	for _, event := range events {
-		switch e := event.(type) {
-		case api.BodyDied:
-			c.deaths++
-		case api.PopulationDied:
-			c.deaths += e.Count
-		case api.Migrated:
-			c.migrations += e.Count
-		case api.TownEmptied:
-			c.townsEmptied++
-		}
-	}
-}
-
 // PlayDays plays one seeded game until the clock passes days or maxSteps commands have been sent,
 // and checks it for camping.
 func PlayDays(reg *content.Registry, seed uint64, policy Policy, days, maxSteps int, cfg CampingConfig) (EmergenceResult, error) {
@@ -148,7 +160,7 @@ func PlayDays(reg *content.Registry, seed uint64, policy Policy, days, maxSteps 
 	if binder, ok := policy.(Binder); ok {
 		binder.Bind(g)
 	}
-	var tally counts
+	track := newTracker()
 	watch := newCamping(cfg)
 	result := EmergenceResult{Seed: seed}
 	for result.Steps < maxSteps {
@@ -160,11 +172,11 @@ func PlayDays(reg *content.Registry, seed uint64, policy Policy, days, maxSteps 
 			break
 		}
 		result.Steps++
-		tally.observe(events)
 		view, err := g.View()
 		if err != nil {
 			return EmergenceResult{}, err
 		}
+		track.observe(events, view)
 		if view.Clock == nil {
 			continue
 		}
@@ -174,7 +186,7 @@ func PlayDays(reg *content.Registry, seed uint64, policy Policy, days, maxSteps 
 			break
 		}
 	}
-	result.Deaths, result.Migrations, result.TownsEmptied = tally.deaths, tally.migrations, tally.townsEmptied
+	result.Deaths, result.Migrations, result.TownsEmptied = track.deaths+track.offScreen, track.migrations, track.towns
 	result.Camps = watch.camps()
 	return result, nil
 }
