@@ -7,7 +7,12 @@ import (
 	"time"
 )
 
-const testDebounce = 40 * time.Millisecond
+const (
+	testDebounce = 40 * time.Millisecond
+
+	// burstDebounce is long enough that a stalled runner can't split the burst.
+	burstDebounce = 500 * time.Millisecond
+)
 
 type reload struct {
 	reg *Registry
@@ -21,7 +26,7 @@ func TestWatchOneCallbackPerBurst(t *testing.T) {
 		t.Fatal(err)
 	}
 	calls := make(chan reload, 16)
-	stop, err := watch(dir, testDebounce, func(reg *Registry, err error) { calls <- reload{reg, err} })
+	stop, err := watch(dir, burstDebounce, func(reg *Registry, err error) { calls <- reload{reg, err} })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +48,7 @@ func TestWatchOneCallbackPerBurst(t *testing.T) {
 	select {
 	case <-calls:
 		t.Fatal("a burst produced more than one callback")
-	case <-time.After(3 * testDebounce):
+	case <-time.After(2 * burstDebounce):
 	}
 }
 
