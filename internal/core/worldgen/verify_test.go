@@ -3,6 +3,7 @@ package worldgen_test
 import (
 	"flag"
 	"os"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -144,17 +145,17 @@ func TestVerifyIsOrderIndependent(t *testing.T) {
 			}
 			built[key] = chunk
 		}
-		for i := len(keys) - 1; i >= 0; i-- {
-			chunk, err := backward.Chunk(keys[i])
+		for _, key := range slices.Backward(keys) {
+			chunk, err := backward.Chunk(key)
 			if err != nil {
 				t.Fatal(err)
 			}
 			for slot := range hexmap.ChunkCells {
-				cell := keys[i].Cell(slot)
-				origin := keys[i].Origin()
+				cell := key.Cell(slot)
+				origin := key.Origin()
 				q, r, d := cell.Hex.Q-origin.Hex.Q, cell.Hex.R-origin.Hex.R, cell.Depth-origin.Depth
-				if chunk.Get(q, r, d) != built[keys[i]].Get(q, r, d) {
-					t.Fatalf("seed %d: chunk %v differs at %v", seed, keys[i], cell)
+				if chunk.Get(q, r, d) != built[key].Get(q, r, d) {
+					t.Fatalf("seed %d: chunk %v differs at %v", seed, key, cell)
 				}
 			}
 		}
