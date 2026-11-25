@@ -68,7 +68,8 @@ func rankedGate(w *sim.World, body ecs.Entity, from comp.Pos, gates []hexmap.Gat
 
 // crossGate moves the body through the gate. On the party's map it appears at the gate's mark, or
 // the nearest free cell; anywhere else it is counted into the destination region's population of
-// its family and removed, and [api.Migrated] says so.
+// its family and removed, and [api.Migrated] says so, followed by [api.TownEmptied] when it was the
+// last resident of the party's town.
 func crossGate(w *sim.World, body ecs.Entity, gate hexmap.Gate) error {
 	from := ecs.NewMap[comp.Pos](w.ECS).Get(body).Map
 	for _, pending := range timeline.PendingOf(w, w.UIDOf(body)) {
@@ -104,6 +105,7 @@ func crossGate(w *sim.World, body ecs.Entity, gate hexmap.Gate) error {
 	addToPopulation(populations.Get(region), family, 1)
 	w.Despawn(body)
 	w.Bus.Publish(api.Migrated{From: from, To: gate.To, Family: family, Count: 1})
+	publishIfEmptied(w, from, family)
 	return nil
 }
 
