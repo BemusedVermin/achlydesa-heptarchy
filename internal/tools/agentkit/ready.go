@@ -17,10 +17,6 @@ type taskFile struct {
 	status    string
 	kind      string
 	dependsOn []string
-	// renames are the old=new pairs a cleanup rename task makes.
-	renames []string
-	// allowedDifferences are the lines of the same-behavior report a cleanup task causes on purpose.
-	allowedDifferences []string
 	// path is slash-separated, relative to the repository root.
 	path string
 }
@@ -121,14 +117,12 @@ func loadTasks(root string) ([]taskFile, error) {
 			return err
 		}
 		tasks = append(tasks, taskFile{
-			id:                 fields["id"],
-			title:              fields["title"],
-			status:             fields["status"],
-			kind:               fields["kind"],
-			dependsOn:          parseList(fields["depends_on"]),
-			renames:            parseList(fields["renames"]),
-			path:               filepath.ToSlash(relative),
-			allowedDifferences: parseList(fields["allowed_differences"]),
+			id:        fields["id"],
+			title:     fields["title"],
+			status:    fields["status"],
+			kind:      fields["kind"],
+			dependsOn: parseList(fields["depends_on"]),
+			path:      filepath.ToSlash(relative),
 		})
 		return nil
 	})

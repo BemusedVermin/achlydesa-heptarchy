@@ -18,23 +18,7 @@ type T interface {
 
 // sample loads content/data once. The registry is never written to, which makes it the one shared
 // value tests may hold.
-var sample = sync.OnceValues(func() (*content.Registry, error) {
-	bundle, err := content.LoadBundle(Dir())
-	if err != nil {
-		return nil, err
-	}
-	pinStart(&bundle)
-	return content.New(bundle)
-})
-
-// testStartMap is the map the sample content starts on in tests; the shipped start is the playground.
-const testStartMap = "map.test.hall"
-
-func pinStart(bundle *content.Bundle) {
-	if bundle.Start.Map != "" {
-		bundle.Start.Map = testStartMap
-	}
-}
+var sample = sync.OnceValues(func() (*content.Registry, error) { return content.Load(Dir()) })
 
 // Dir is the path of the sample content directory, whatever package the test runs in.
 func Dir() string {
@@ -58,7 +42,6 @@ var sampleBundle = sync.OnceValues(func() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	pinStart(&bundle)
 	return json.Marshal(bundle)
 })
 
@@ -114,7 +97,7 @@ func StepOnlyParty(bundle *content.Bundle) {
 }
 
 // NoStart removes the start scenario, for tests that spawn their own party.
-func NoStart(bundle *content.Bundle) { bundle.Start, bundle.Starts = content.Start{}, nil }
+func NoStart(bundle *content.Bundle) { bundle.Start = content.Start{} }
 
 // Do builds an effect reference from the primitive's name and its parameters as name, value pairs.
 func Do(name string, params ...string) content.EffectRef {

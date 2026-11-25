@@ -5,14 +5,12 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 items: [string]: content.#Item & {bound: *false | bool}
 
 items: {
-	"item.ration": {name: "text.item.ration", tags: ["consumable"]}
 	"item.coal": {name: "text.item.coal", tags: ["consumable"]}
 	"item.salk_dust": {name: "text.item.salk_dust", tags: ["consumable"]}
 	"item.lake_water": {name: "text.item.lake_water", tags: ["consumable"]}
 	"item.daylight_jar": {name: "text.item.daylight_jar", tags: ["consumable"]}
 	"item.violet_blood": {name: "text.item.violet_blood", tags: ["consumable"]}
 	"item.lees": {name: "text.item.lees", tags: ["consumable"]}
-	"item.bone": {name: "text.item.bone", tags: ["consumable"]}
 	// A belonging of one candidate, burned by the keepsake type against that candidate.
 	"item.keepsake": {name: "text.item.keepsake", tags: ["keepsake"], bound: true}
 }
@@ -37,13 +35,11 @@ items: "item.serilmen_arm": {
 text: {
 	"text.item.serilmen_arm": "a piece of Serilmen"
 	"text.item.name":         "a name"
-	"text.item.ration":       "ration"
 	"text.item.coal":         "coal"
 	"text.item.salk_dust":    "salk dust"
 	"text.item.lake_water":   "lake water"
 	"text.item.daylight_jar": "daylight jar"
 	"text.item.violet_blood": "Violet blood"
 	"text.item.lees":         "lees"
-	"text.item.bone":         "bone"
 	"text.item.keepsake":     "keepsake"
 }

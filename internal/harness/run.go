@@ -82,7 +82,6 @@ func Play(g *game.Game, p Policy, steps int) error {
 var Header = []string{
 	"seed", "step", "tick", "day", "phase", "map", "q", "r", "depth", "events", "rejected",
 	"alert_ticks", "landings", "misses", "severed", "deaths", "outcome",
-	"migrations", "towns_emptied",
 }
 
 // RunConfig says what Run plays.

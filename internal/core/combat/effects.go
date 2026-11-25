@@ -110,29 +110,6 @@ func applyRaiseMaxIntegrity(ctx *effects.Context, p effects.Params) error {
 	return nil
 }
 
-// applyHeal raises each attached part's integrity toward its maximum. A severed part is not
-// attached, so it never comes back this way.
-func applyHeal(ctx *effects.Context, p effects.Params) error {
-	channels, err := p.Channels("parts")
-	if err != nil {
-		return err
-	}
-	w := ctx.World
-	parts := ecs.NewMap[comp.Part](w.ECS)
-	for _, c := range channels {
-		if bodyOf(w, c.Entity).IsZero() || !parts.Has(c.Entity) {
-			continue
-		}
-		amount, err := nonNegative(p.For(c), "amount")
-		if err != nil {
-			return err
-		}
-		part := parts.Get(c.Entity)
-		part.Integrity = min(part.Integrity+amount, part.MaxIntegrity)
-	}
-	return nil
-}
-
 func applySever(ctx *effects.Context, p effects.Params) error {
 	channels, err := p.Channels("parts")
 	if err != nil {
@@ -227,15 +204,6 @@ func expireStatuses(w *sim.World) error {
 
 func verifyAttach(raw map[string]string) error {
 	_, hasItem := raw["item"]
-	switch raw["to"] {
-	case "", attachToTarget:
-	case attachToSource:
-		if raw["from"] != api.AttachedFromSevered {
-			return errors.New("to source takes a severed part")
-		}
-	default:
-		return fmt.Errorf("to must be %q or %q, got %q", attachToTarget, attachToSource, raw["to"])
-	}
 	if effects.IsFormula(raw["from"]) {
 		return nil
 	}
@@ -281,35 +249,8 @@ func severedNear(w *sim.World, body ecs.Entity) ecs.Entity {
 	return slices.MinFunc(found, w.CompareUID)
 }
 
-// Who receives the part of an attach_part effect: the effect's target, or its source, which then
-// takes the severed part the event is about.
-const (
-	attachToTarget = "target"
-	attachToSource = "source"
-)
-
-// takenPart is the event's part when it lies severed where its body fell, or zero.
-func takenPart(ctx *effects.Context) ecs.Entity {
-	w := ctx.World
-	part := ctx.TargetPart
-	if part.IsZero() || !w.ECS.Alive(part) || ctx.Source == ctx.Target {
-		return ecs.Entity{}
-	}
-	if !ecs.NewMap[comp.Part](w.ECS).Has(part) || ecs.NewMap[comp.PartOf](w.ECS).Has(part) ||
-		!ecs.NewMap[comp.Pos](w.ECS).Has(part) {
-		return ecs.Entity{}
-	}
-	return part
-}
-
 func checkAttach(ctx *effects.Context, p effects.Params) (bool, api.Text) {
 	w := ctx.World
-	if to, _ := p.String("to"); to == attachToSource {
-		if !w.ECS.Alive(ctx.Source) || takenPart(ctx).IsZero() {
-			return false, api.Text{ID: nothingToAttach}
-		}
-		return true, api.Text{}
-	}
 	if !w.ECS.Alive(ctx.Target) {
 		return false, api.Text{ID: nothingToAttach}
 	}
@@ -335,13 +276,7 @@ func applyAttach(ctx *effects.Context, p effects.Params) error {
 	}
 	body := ctx.Target
 	var part ecs.Entity
-	if to, _ := p.String("to"); to == attachToSource {
-		body, part = ctx.Source, takenPart(ctx)
-		ecs.NewMap[comp.Pos](w.ECS).Remove(part)
-		if grafts := ecs.NewMap[comp.Graft](w.ECS); !grafts.Has(part) {
-			grafts.Add(part, &comp.Graft{})
-		}
-	} else if from == api.AttachedFromSevered {
+	if from == api.AttachedFromSevered {
 		part = severedNear(w, body)
 		ecs.NewMap[comp.Pos](w.ECS).Remove(part)
 	} else {

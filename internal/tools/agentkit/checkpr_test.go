@@ -4,7 +4,6 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 )
@@ -55,15 +54,6 @@ func task(id, status, kind, extra, criteria string) string {
 		"---\n\n# " + id + "\n\n## Acceptance criteria\n\n" + criteria + "\n## Notes\n\n- [ ] not a criterion\n"
 }
 
-// renameLine declares the rename C1-02 makes.
-const renameLine = "renames: [map.clay_plain=map.clay_flat]\n"
-
-// allowRemovedGolden lets a cleanup task remove testdata/hunt.golden.
-const allowRemovedGolden = "allowed_differences: [\"testdata/hunt.golden: golden file removed\"]\n"
-
-// removedGoldenReport is what samebehavior prints when testdata/hunt.golden is gone.
-const removedGoldenReport = "Behavior differs from base:\n- testdata/hunt.golden: golden file removed\n"
-
 const indexHeader = "| ID | Title | Status |\n| --- | --- | --- |\n"
 
 // markDone sets the status of the index row that starts with row to done.
@@ -85,7 +75,7 @@ func TestCheckPR(t *testing.T) {
 			"| [C1-02](C1/C1-02.md) | b | todo |\n" +
 			"| [C1-03](C1/C1-03.md) | c | todo |\n",
 		"tasks/M3/M3-01.md":           task("M3-01", "todo", "feature", "", "- [ ] one\n"),
-		"tasks/C1/C1-02.md":           task("C1-02", "todo", "debt", renameLine, "- [ ] one\n"),
+		"tasks/C1/C1-02.md":           task("C1-02", "todo", "debt", "", "- [ ] one\n"),
 		"tasks/C1/C1-03.md":           task("C1-03", "todo", "test", "", "- [ ] one\n"),
 		"internal/core/rules.go":      "package core\n",
 		"internal/core/rules_test.go": "package core\n",
@@ -103,15 +93,12 @@ func TestCheckPR(t *testing.T) {
 	}
 
 	tests := []struct {
-		name         string
-		branch       string
-		changes      map[string]string
-		sameBehavior bool
-		report       string
-		problems     []string
-		warnings     []string
-		comments     []string
-		wantRenames  []string
+		name     string
+		branch   string
+		changes  map[string]string
+		problems []string
+		warnings []string
+		comments []string
 	}{
 		{
 			name:   "a finished feature task",
@@ -148,53 +135,12 @@ func TestCheckPR(t *testing.T) {
 			problems: []string{"names no task"},
 		},
 		{
-			name:         "a rename that keeps behavior",
-			branch:       "task/C1-02-rename",
-			changes:      done("C1-02", "debt", renameLine, "- [x] one\n"),
-			sameBehavior: true,
-			wantRenames:  []string{"map.clay_plain=map.clay_flat"},
-		},
-		{
-			name:        "a cleanup that changes behavior",
-			branch:      "task/C1-02-rename",
-			changes:     done("C1-02", "debt", renameLine, "- [x] one\n"),
-			problems:    []string{"C1-02 changed behavior"},
-			wantRenames: []string{"map.clay_plain=map.clay_flat"},
-		},
-		{
-			name:        "a cleanup whose differences are all allowed",
-			branch:      "task/C1-02-rename",
-			changes:     done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
-			report:      removedGoldenReport,
-			wantRenames: []string{},
-		},
-		{
-			name:    "a cleanup with a difference it doesn't allow",
-			branch:  "task/C1-02-rename",
-			changes: done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
-			report:  removedGoldenReport + "- testdata/fight.golden: line 3 is \"b\", was \"a\"\n",
-			problems: []string{
-				"C1-02 changed behavior beyond its allowed_differences:\n- testdata/fight.golden: line 3",
-			},
-			wantRenames: []string{},
-		},
-		{
-			name:         "an allowed difference that doesn't happen",
-			branch:       "task/C1-02-rename",
-			changes:      done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
-			sameBehavior: true,
-			warnings: []string{
-				`C1-02 allows the difference "testdata/hunt.golden: golden file removed", but it didn't happen`,
-			},
-			wantRenames: []string{},
-		},
-		{
-			name:        "a same-behavior run that fails without listing differences",
-			branch:      "task/C1-02-rename",
-			changes:     done("C1-02", "debt", allowRemovedGolden, "- [x] one\n"),
-			report:      "samebehavior: exit status 1\n",
-			problems:    []string{"C1-02 changed behavior:\nsamebehavior: exit status 1"},
-			wantRenames: []string{},
+			name:   "a cleanup task that isn't a tests task",
+			branch: "task/C1-02-rename",
+			changes: with(
+				done("C1-02", "debt", "", "- [x] one\n"),
+				map[string]string{"internal/core/rules.go": "package core\n\n// x\n"},
+			),
 		},
 		{
 			name:   "a tests task that changes only tests",
@@ -234,16 +180,7 @@ func TestCheckPR(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			root := taskRepo(t, base, test.changes, test.branch)
-			var gotRenames []string
-			ran := false
-			checker := func(_, _ string, renames []string) (string, bool) {
-				ran, gotRenames = true, renames
-				if test.report != "" {
-					return test.report, test.sameBehavior
-				}
-				return "same-behavior report", test.sameBehavior
-			}
-			result, err := checkPR(root, test.branch, "base", checker)
+			result, err := checkPR(root, test.branch, "base")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -265,10 +202,6 @@ func TestCheckPR(t *testing.T) {
 				comments = append(comments, comment.String())
 			}
 			matches("comments", comments, test.comments)
-			if ran != (test.wantRenames != nil) || !slices.Equal(gotRenames, test.wantRenames) {
-				t.Errorf("same-behavior ran = %v with renames %q; want ran = %v with %q",
-					ran, gotRenames, test.wantRenames != nil, test.wantRenames)
-			}
 		})
 	}
 }

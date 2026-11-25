@@ -12,7 +12,6 @@ const (
 	ControlChangedKind = "explore.control_changed"
 	LeaderChangedKind  = "explore.leader_changed"
 	PartyWokeKind      = "explore.party_woke"
-	PartyCrossedKind   = "explore.party_crossed"
 )
 
 // The modes of party control, and who may have set one.
@@ -90,19 +89,6 @@ func (PartyWoke) EventKind() string { return PartyWokeKind }
 
 // LogText implements [Loggable].
 func (PartyWoke) LogText() Text { return Text{ID: "text.explore.party_woke"} }
-
-// PartyCrossed reports that a party went through a gate to another map.
-type PartyCrossed struct {
-	Party UID   `json:"party"`
-	From  MapID `json:"from"`
-	To    MapID `json:"to"`
-}
-
-// EventKind implements [Event].
-func (PartyCrossed) EventKind() string { return PartyCrossedKind }
-
-// LogText implements [Loggable].
-func (PartyCrossed) LogText() Text { return Text{ID: "text.explore.party_crossed"} }
 
 // The kinds of a [Moved] event.
 const (
@@ -203,6 +189,4 @@ type MemberView struct {
 	Color   string `json:"color,omitempty"`
 	Leader  bool   `json:"leader"`
 	Current bool   `json:"current"`
-	// Needs is one rendered line per need the member carries, in need ID order.
-	Needs []string `json:"needs,omitempty"`
 }

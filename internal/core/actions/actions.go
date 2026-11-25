@@ -67,11 +67,9 @@ type plan struct {
 	env      content.ActionEnv
 	windup   int64
 	recovery int64
-	elapsed  int64
 	onStart  []content.EffectRef
 	onLand   []content.EffectRef
-	// refusal is why the action's allowed formula, or a chosen record's requires formula, says the plan
-	// may not start, or empty.
+	// refusal is why a chosen record's requires formula says the plan may not start, or empty.
 	refusal api.Text
 }
 
@@ -85,7 +83,7 @@ func (p *plan) intent() Intent {
 func (p *plan) context(w *sim.World) *effects.Context {
 	return &effects.Context{
 		World: w, Source: p.actor, Used: p.channels, Target: p.target, TargetPart: p.part, Dir: p.dir,
-		Choices: p.choices, Elapsed: p.elapsed,
+		Choices: p.choices,
 	}
 }
 
@@ -98,7 +96,6 @@ type evaluator struct {
 	identities *ecs.Map[comp.Identity]
 	positions  *ecs.Map[comp.Pos]
 	actors     *ecs.Map[comp.Actor]
-	dead       *ecs.Map[comp.Dead]
 	sight      map[ecs.Entity]map[ecs.Entity]bool
 	// Each actor's whole inventory, for choice offers.
 	inventory map[ecs.Entity]map[string]int
@@ -114,7 +111,6 @@ func newEvaluator(w *sim.World) *evaluator {
 		identities: ecs.NewMap[comp.Identity](w.ECS),
 		positions:  ecs.NewMap[comp.Pos](w.ECS),
 		actors:     ecs.NewMap[comp.Actor](w.ECS),
-		dead:       ecs.NewMap[comp.Dead](w.ECS),
 		sight:      map[ecs.Entity]map[ecs.Entity]bool{},
 	}
 }
@@ -220,8 +216,7 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 		dir := *in.Dir
 		p.dir = &dir
 	case content.TargetBody, content.TargetAlly, content.TargetPart:
-		corpse := slices.Contains(def.Tags, ev.w.Content.Combat().CorpseTag)
-		if in.Target == in.Actor || in.Dir != nil || !ev.isBody(in.Target, corpse) {
+		if in.Target == in.Actor || in.Dir != nil || !ev.isBody(in.Target) {
 			return bad()
 		}
 		if def.Target == content.TargetPart {
@@ -246,10 +241,9 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 	return p, api.Text{}, nil
 }
 
-// isBody reports whether e is a body: an entity on the timeline, or a corpse when corpse is set. A
-// corpse is never listed as a target, but an intent that names one is valid.
-func (ev *evaluator) isBody(e ecs.Entity, corpse bool) bool {
-	return ev.w.Alive(e) && (ev.actors.Has(e) || (corpse && ev.dead.Has(e)))
+// isBody reports whether e is a body: a living entity on the timeline.
+func (ev *evaluator) isBody(e ecs.Entity) bool {
+	return ev.w.Alive(e) && ev.actors.Has(e)
 }
 
 // checkChoices checks that the intent made exactly the choices the action asks for, each one offered.
@@ -286,7 +280,6 @@ func (ev *evaluator) env(p *plan) (content.ActionEnv, error) {
 	}
 	source := effects.BodyEnvOf(ev.w, p.actor, timeline.FirstPart(p.channels))
 	return content.ActionEnv{
-		Now: ev.w.Now, DayTicks: ev.w.Content.Calendar().DayTicks(),
 		Speed: speed, StepTicks: stepTicks,
 		Distance: ev.distance(p.actor, p.target), Used: len(p.channels),
 		Source: source, Target: effects.BodyEnvOf(ev.w, p.target, p.part),
@@ -366,13 +359,6 @@ func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, err
 	}
 	if p.recovery, err = w.Content.ActionRecovery(in.Action, p.env); err != nil {
 		return nil, api.Text{}, err
-	}
-	allowed, refusal, err := w.Content.ActionAllowed(in.Action, p.env)
-	if err != nil {
-		return nil, api.Text{}, err
-	}
-	if !allowed {
-		p.refusal = api.Text{ID: refusal}
 	}
 	if err := ev.modify(&p); err != nil {
 		return nil, api.Text{}, err
@@ -559,7 +545,7 @@ func (ev *evaluator) landingPlan(pending ecs.Entity) (*plan, api.Text, error) {
 	if !ok || !actorOK {
 		return nil, why("channel_gone"), nil
 	}
-	p := &plan{id: landing.Action, def: def, actor: actor, choices: landing.Choices, elapsed: w.Now - pend.Started}
+	p := &plan{id: landing.Action, def: def, actor: actor, choices: landing.Choices}
 	p.target, _ = w.ByUID(pend.Target)
 	p.part, _ = w.ByUID(landing.TargetPart)
 	if landing.HasDir {

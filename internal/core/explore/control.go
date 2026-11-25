@@ -141,10 +141,7 @@ func applyControllers(w *sim.World, party ecs.Entity) {
 			continue
 		}
 		want := timeline.PlayerController
-		switch {
-		case ecs.NewMap[comp.Fleeing](w.ECS).Has(member):
-			want = ecs.NewMap[comp.Fleeing](w.ECS).Get(member).Controller
-		case state.Control == api.ControlFollow && w.UIDOf(member) != state.Leader:
+		if state.Control == api.ControlFollow && w.UIDOf(member) != state.Leader {
 			want = followController
 		}
 		actor := actors.Get(member)

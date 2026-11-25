@@ -4,8 +4,6 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
@@ -43,7 +41,6 @@ func primitives() []effects.Primitive {
 	parts := map[string]effects.Kind{"parts": effects.KindChannels}
 	return []effects.Primitive{
 		{Name: "damage", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyDamage},
-		{Name: "heal", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyHeal},
 		{Name: "sever", Params: []string{"parts"}, Optional: []string{"when"}, Kinds: parts, Apply: applySever},
 		{
 			Name: "add_status", Params: []string{"bodies", "status", "ticks"},
@@ -51,10 +48,8 @@ func primitives() []effects.Primitive {
 			VerifyContent: verifyKnownIDs, Apply: applyAddStatus,
 		},
 		{
-			Name: "attach_part", Params: []string{"from"}, Optional: []string{"item", "to"},
-			Kinds: map[string]effects.Kind{
-				"from": effects.KindText, "item": effects.KindText, "to": effects.KindText,
-			},
+			Name: "attach_part", Params: []string{"from"}, Optional: []string{"item"},
+			Kinds:  map[string]effects.Kind{"from": effects.KindText, "item": effects.KindText},
 			Verify: verifyAttach, VerifyContent: verifyAttachContent, Apply: applyAttach, Check: checkAttach,
 		},
 		{Name: "raise_max_integrity", Params: []string{"parts", "amount"}, Kinds: parts, Apply: applyRaiseMaxIntegrity},
@@ -108,13 +103,13 @@ func installSides(w *sim.World) error {
 	if err := timeline.RegisterController(w, huntController, hunter{}); err != nil {
 		return err
 	}
-	if err := actions.RegisterChooser(w, actions.DefaultChooser, ScoreChooser{}); err != nil {
+	if err := RegisterChooser(w, scoreChooser, ScoreChooser{}); err != nil {
 		return err
 	}
 	if err := w.Views.Register(sim.ViewBuilder{Name: bodiesView, Build: buildBodies}); err != nil {
 		return err
 	}
-	effects.SetHostile(w, anatomy.Hostile)
+	effects.SetHostile(w, Hostile)
 	timeline.SetHalt(w, PartyWiped)
 	sim.Subscribe(w.Bus, "combat.death", onPartDamaged)
 	sim.Subscribe(w.Bus, "combat.death_severed", onPartSevered)
