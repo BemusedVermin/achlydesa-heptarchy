@@ -82,6 +82,18 @@ actions: {
 		recovery: "40"
 		on_land: [{do: "satisfy", params: {need: "need.rest", amount: "0.3"}}]
 	}
+	// Moving clay laying hold of a body, which may be dead. Placeholder numbers.
+	"action.hold": {
+		name: "text.action.hold"
+		key:  "hold"
+		uses: [{tag: "body", count: 1}]
+		target:   "body"
+		range:    1
+		windup:   "2"
+		recovery: "20"
+		on_land: [{do: "satisfy", params: {need: "need.hold_dead", amount: "0.3"}}]
+		tags: ["corpse"]
+	}
 	// For tests: a bite at a body next to the source, which may be a corpse.
 	"action.gnaw": {
 		name: "text.action.gnaw"
@@ -97,6 +109,7 @@ actions: {
 
 text: {
 	"text.action.gnaw":  "Gnaw"
+	"text.action.hold":  "Hold"
 	"text.action.step":  "Step"
 	"text.action.eat":   "Eat"
 	"text.action.drink": "Drink"

@@ -7,6 +7,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -158,4 +159,14 @@ func partyMap(w *sim.World) (api.MapID, bool) {
 		}
 	}
 	return 0, false
+}
+
+// regionRecord is the record of the map's region, or the empty record when the map has none.
+func regionRecord(w *sim.World, id api.MapID) content.Record {
+	region, ok := RegionOf(w, id)
+	if !ok {
+		return content.EmptyRecord()
+	}
+	record, _ := w.Content.Record(ecs.NewMap[comp.Region](w.ECS).Get(region).Def)
+	return record
 }

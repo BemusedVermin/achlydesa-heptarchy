@@ -48,6 +48,12 @@ materials: {
 		lists: weak_to: ["type.light"]
 		tags: ["eye"]
 	}
+	// What a soul-feeder is made of: the dregs of the thrukk undo it.
+	"material.soul_husk": {
+		name: "text.material.soul_husk"
+		lists: weak_to: ["type.lees"]
+		tags: ["husk"]
+	}
 	"material.rift_flesh": {
 		name: "text.material.rift_flesh"
 		lists: weak_to: ["type.violet"]
@@ -61,5 +67,6 @@ text: {
 	"text.material.eye":        "eye"
 	"text.material.rift_flesh": "rift flesh"
 	"text.material.clay":       "clay"
+	"text.material.soul_husk":  "soul husk"
 	"text.material.flesh":      "flesh"
 }

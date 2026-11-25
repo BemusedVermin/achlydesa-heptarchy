@@ -80,6 +80,42 @@ behaviors: {
 	}
 }
 
+// What monsters do. Placeholder numbers, for tuning: a creature fights a hostile it is within
+// sight of unless its own want is stronger.
+behaviors: {
+	"behavior.monster.engage": {
+		name: "text.behavior.monster.engage"
+		do:   "engage"
+		consider: ["distance <= 8 ? 0.7 : 0"]
+		target: {kind: "body", hostile: true, dead: false}
+	}
+	"behavior.clay.hold": {
+		name: "text.behavior.clay.hold"
+		do:   "consume"
+		params: action: "action.hold"
+		consider: ["0.2 + 0.6 * source.needs.hold_dead"]
+		target: {kind: "body", dead: true}
+	}
+	"behavior.remnant.leave": {
+		name: "text.behavior.remnant.leave"
+		do:   "leave"
+		consider: ["region.props.decay > 0.3 ? source.needs.undecayed : 0"]
+	}
+	"behavior.feeder.hunt": {
+		name: "text.behavior.feeder.hunt"
+		do:   "engage"
+		consider: ["distance <= 8 ? 0.6 + 0.4 * source.needs.soul : 0"]
+		target: {kind: "body", hostile: true, dead: false}
+	}
+	"behavior.archon.guard": {
+		name: "text.behavior.archon.guard"
+		do:   "guard"
+		params: radius: "3"
+		consider: ["0.8"]
+		target: {kind: "body", tags: ["believer"]}
+	}
+}
+
 // What people do in a town. Roles are the lists in templates.cue and schedules are the phase
 // considerations here. Placeholder numbers, for tuning.
 behaviors: {
@@ -130,6 +166,11 @@ behaviors: {
 }
 
 text: {
+	"text.behavior.monster.engage":      "fighting"
+	"text.behavior.clay.hold":           "holding the dead"
+	"text.behavior.remnant.leave":       "leaving decayed ground"
+	"text.behavior.feeder.hunt":         "hunting the living"
+	"text.behavior.archon.guard":        "guarding the believers"
 	"text.behavior.resident.drink":      "drinking"
 	"text.behavior.resident.eat":        "eating"
 	"text.behavior.resident.sleep":      "sleeping"

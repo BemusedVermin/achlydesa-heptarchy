@@ -1,7 +1,7 @@
 ---
 id: M3-18
 title: Monster families as content
-status: todo
+status: done
 milestone: M3
 kind: content
 depends_on: [M3-05, M3-10]
@@ -40,11 +40,11 @@ The design's monster sketches live on their needs: moving clay gathers at bodies
 
 ## Acceptance criteria
 
-- [ ] Exit criterion: a test kills a creature near moving clay; the clay walks to the corpse.
-- [ ] A remnant in a decayed region moves toward its less-decayed neighbour, on screen and off.
-- [ ] An archon's creature attacks a party member who comes near a believer and leaves the believer alone.
-- [ ] In the playground, each family's room shows its behavior.
-- [ ] `go tool task check` passes.
+- [x] Exit criterion: a test kills a creature near moving clay; the clay walks to the corpse.
+- [x] A remnant in a decayed region moves toward its less-decayed neighbour, on screen and off.
+- [x] An archon's creature attacks a party member who comes near a believer and leaves the believer alone.
+- [x] In the playground, each family's room shows its behavior.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -52,5 +52,14 @@ The design's monster sketches live on their needs: moving clay gathers at bodies
 - Grudges (M6).
 
 ## Notes
+
+- Content: `need.hold_dead`, `need.undecayed`, `need.soul`; `action.hold`; behaviors `behavior.clay.hold`, `behavior.remnant.leave`, `behavior.feeder.hunt`, `behavior.archon.guard`, `behavior.monster.engage`; templates for clay, remnant (both moved from `hunt` to `agents`), a soul-feeder (`body.soul_feeder`, `material.soul_husk` weak to Lees), an archon's warden and a believer; `faction.archon` (hostile to the party, which now lists it back) and `faction.believers`; families `family.moving_clay`, `family.remnant`, `family.soul_feeder`, `family.archon_wardens`, `family.believers` with drift. All numbers are placeholders.
+- Playground: new rooms `map.play.feeders` and `map.play.shrine`, gates 5 and 6 on the hub (now 15 wide). Decay is region data: den 0.8, hub 0.2. The hall is the clay room, the den the remnant room.
+- Deviation, one Go seam: `region` (the region's record, so `region.props.decay`) is now visible to `consider` and to need `rise` and `urge`. Without it a remnant on screen cannot read decay. Documented in `docs/content-guide.md`. No new component, so no save bump.
+- Creatures wait unless a hostile is within 8 hexes (`behavior.monster.engage`), so clay holds a corpse while the party is farther off and fights when it is near. Clay and soul-feeders do not wander: wandering agents flood every golden with moves.
+- Goldens updated (combat encounters, tui menus): UIDs and map IDs shifted by the two new rooms, and the den remnant now leaves for the hub after a phase, which adds a move or two to encounters that run past one. No creature's fight changed. Lethality targets still hold.
+- Tests that needed edits: `residents_test.go` (clear the den spawn so a leaving remnant does not kill the party; ignore remnant migration), `regions_test.go` and `offscreen_test.go` (hub has two more neighbours), `explore/playground_test.go` (peaceful factions, remnant need frozen, two new rooms).
+- Soul-feeders' `need.soul` rises but is never met, and `leave` takes the nearest gate, not the less-decayed one: follow-ups M3-18.F2 and M3-18.F1.
+- The believer has no behaviors (it stands); an archon's warden guards the nearest believer within 3 hexes.
 
 

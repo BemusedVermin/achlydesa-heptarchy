@@ -74,6 +74,10 @@ func TestThePlaygroundGatesReachEveryCreature(t *testing.T) {
 	}
 	bundle := contenttest.SampleBundle(t)
 	contenttest.StepOnlyParty(&bundle)
+	contenttest.Edit(bundle.Needs, "need.undecayed", func(n *content.NeedDef) { n.Rise = "0" })
+	for _, id := range []string{"faction.party", "faction.wild", "faction.archon"} {
+		contenttest.Edit(bundle.Factions, id, func(f *content.Faction) { f.HostileTo = nil })
+	}
 	bundle.Start.Map = shipped.Start.Map
 	fx := &fixture{t: t}
 	fx.g, fx.w, _ = gametest.Start(t, game.Config{Seed: 1, Content: contenttest.Registry(t, bundle)})
@@ -89,6 +93,8 @@ func TestThePlaygroundGatesReachEveryCreature(t *testing.T) {
 		{"map.play.den", []api.ContentID{"template.creature.remnant", "template.creature.beast"}},
 		{"map.play.descent", []api.ContentID{"template.creature.moving_clay"}},
 		{"map.test.town", []api.ContentID{"template.town.well"}},
+		{"map.play.feeders", []api.ContentID{"template.creature.soul_feeder"}},
+		{"map.play.shrine", []api.ContentID{"template.resident.believer", "template.creature.archon_warden"}},
 	}
 	for _, route := range routes {
 		t.Run(route.to, func(t *testing.T) {

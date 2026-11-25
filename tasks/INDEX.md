@@ -111,7 +111,7 @@ Brief: [M3-agents/README.md](M3-agents/README.md)
 | [M3-10](M3-agents/M3-10-off-screen-tick.md) | The off-screen tick: drift, stocks and migration | done | feature | M | M3-09 |
 | [M3-11](M3-agents/M3-11-residents.md) | Residents: needs, roles and schedules in town | done | feature | M | M3-04, M3-08 |
 | [M3-12](M3-agents/M3-12-generic-npcs.md) | Generic NPCs and replacement timers | done | feature | S | M3-11 |
-| [M3-18](M3-agents/M3-18-monster-families.md) | Monster families as content | todo | content | M | M3-05, M3-10 |
+| [M3-18](M3-agents/M3-18-monster-families.md) | Monster families as content | done | content | M | M3-05, M3-10 |
 | [M3-15](M3-agents/M3-15-hiring-recruits.md) | Hiring recruits | todo | feature | M | M3-12 |
 | [M3-16](M3-agents/M3-16-upkeep-desertion.md) | Upkeep, grumbling, desertion and flight | todo | feature | M | M3-04, M3-15 |
 | [M3-19](M3-agents/M3-19-sample-world.md) | The sample world: two towns and the deep between them | todo | content | M | M3-10, M3-11, M3-14, M3-18 |
@@ -143,6 +143,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M3-18.F2](followups/M3-18.F2-satisfy-from-source.md) | Let a trigger satisfy a need of the acting body | proposed | seam | M3 | M3-18 |
+| [M3-18.F1](followups/M3-18.F1-leave-by-decay.md) | Let leave pick the gate to the less-decayed neighbour | proposed | seam | M3 | M3-18 |
 | [M3-11.F1.F1](followups/M3-11.F1.F1-on-screen-town-emptied.md) | Decide whether a town the party is in emits TownEmptied when its last resident leaves | proposed | question | M3 | M3-11.F1 |
 | [M3-11.F1](followups/M3-11.F1-leave-emit-migrated.md) | Emit Migrated when a resident leaves to an off-screen map | done | seam | M3 | M3-11 |
 | [M3-08.F1](followups/M3-08.F1-draw-region-panel.md) | Draw the region section in the terminal frontend | done | feature | M3 | M3-08 |

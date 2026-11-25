@@ -38,6 +38,24 @@ needs: {
 		rise: "phase == \"phase.night\" ? 0 : 0.0625"
 		urge: "level"
 	}
+	// Moving clay wants to hold the dead, and the want builds.
+	"need.hold_dead": {
+		name: "text.need.hold_dead"
+		rise: "0.1"
+		urge: "level"
+	}
+	// A remnant's want builds where the ground is decayed and eases where it is not.
+	"need.undecayed": {
+		name: "text.need.undecayed"
+		rise: "region.props.decay - 0.3"
+		urge: "level"
+	}
+	// A soul-feeder's hunger; nothing feeds it yet.
+	"need.soul": {
+		name: "text.need.soul"
+		rise: "0.0625"
+		urge: "level"
+	}
 	"need.safety": _#Slow & {name: "text.need.safety"}
 	"need.belonging": _#Slow & {name: "text.need.belonging"}
 	"need.faith": _#Slow & {name: "text.need.faith"}
@@ -49,6 +67,9 @@ text: {
 	"text.need.water":     "water"
 	"text.need.food":      "food"
 	"text.need.rest":      "rest"
+	"text.need.hold_dead": "to hold the dead"
+	"text.need.undecayed": "undecayed ground"
+	"text.need.soul":      "soul"
 	"text.need.safety":    "safety"
 	"text.need.belonging": "belonging"
 	"text.need.faith":     "faith"

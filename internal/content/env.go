@@ -64,6 +64,8 @@ type NeedEnv struct {
 	Phase string `expr:"phase"`
 	// Source is the body carrying the need.
 	Source BodyEnv `expr:"source"`
+	// Region is the record of the region the body stands in, such as its decay as region.props.decay.
+	Region Record `expr:"region"`
 }
 
 // ConsiderEnv is what a behavior's considerations see.
@@ -84,6 +86,8 @@ type ConsiderEnv struct {
 	Threatened int64 `expr:"threatened"`
 	// Stock counts, per item ID, what the stock of the agent's town holds; empty off a town's map.
 	Stock map[string]int `expr:"stock"`
+	// Region is the record of the region the agent stands in, such as its decay as region.props.decay.
+	Region Record `expr:"region"`
 }
 
 // EffectEnv is everything an effect formula can see.

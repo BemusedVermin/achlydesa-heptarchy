@@ -75,6 +75,10 @@ func tickNeed(w *sim.World, body ecs.Entity, id api.ContentID, phase string) err
 		Level:  needs.Get(body).Levels[at].Level,
 		Phase:  phase,
 		Source: effects.BodyEnvOf(w, body, ecs.Entity{}),
+		Region: content.EmptyRecord(),
+	}
+	if pos := ecs.NewMap[comp.Pos](w.ECS); pos.Has(body) {
+		env.Region = regionRecord(w, pos.Get(body).Map)
 	}
 	rise, err := w.Content.NeedRise(id, env)
 	if err != nil {

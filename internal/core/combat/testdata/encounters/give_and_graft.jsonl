@@ -1,4 +1,4 @@
-{"kind":"actions.started","data":{"source":40,"action":"action.graft","target":52,"tick":0,"lands":6}}
-{"kind":"combat.part_attached","data":{"body":52,"part":58,"from":"inventory","source":40,"tick":6}}
-{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":40,"target":52,"tick":6}}
-{"kind":"effects.channels_readied","data":{"channels":[46],"tick":14}}
+{"kind":"actions.started","data":{"source":55,"action":"action.graft","target":67,"tick":0,"lands":6}}
+{"kind":"combat.part_attached","data":{"body":67,"part":73,"from":"inventory","source":55,"tick":6}}
+{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":55,"target":67,"tick":6}}
+{"kind":"effects.channels_readied","data":{"channels":[61],"tick":14}}
