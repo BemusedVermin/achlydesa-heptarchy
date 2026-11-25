@@ -124,14 +124,15 @@ Each becomes task files when the milestone before it is done: run `/plan-milesto
 
 | Milestone | Brief |
 | --- | --- |
-| M4 · Seats | [M4-seats/README.md](M4-seats/README.md) |
+| M4 · One world | [M4-world/README.md](M4-world/README.md) |
 | M5 · Procgen | [M5-procgen/README.md](M5-procgen/README.md) |
-| M6 · Emergence | [M6-emergence/README.md](M6-emergence/README.md) |
-| M7 · Tuning | [M7-tuning/README.md](M7-tuning/README.md) |
+| M6 · Seats | [M6-seats/README.md](M6-seats/README.md) |
+| M7 · Emergence | [M7-emergence/README.md](M7-emergence/README.md) |
+| M8 · Tuning | [M8-tuning/README.md](M8-tuning/README.md) |
 
 ## Post-MVP milestones
 
-Milestones for after the MVP (M1 to M7). None starts before the MVP is done, and nothing in the MVP depends on them. See [post-mvp/README.md](post-mvp/README.md).
+Milestones for after the MVP (M1 to M8). None starts before the MVP is done, and nothing in the MVP depends on them. See [post-mvp/README.md](post-mvp/README.md).
 
 | Milestone | Brief | Design |
 | --- | --- | --- |
