@@ -64,7 +64,7 @@ Say what you started. Wait for every report.
    - **Content guide.** If `docs/content-guide.md` doesn't exist, one task to write it. If it exists and the content auditor found gaps, one task to update it. It depends on the last rename and on the content area's comments task, so it describes names and content that have settled. Its Spec takes the content-guide lens's description of what the guide covers. It changes only `docs/`, so its criteria are: every file, ID and command it names exists, its terms match the glossary, and `go tool task content` passes.
    - **Lock-in.** Last, depending on every other task. Its Spec says to run `/audit lock-in` in the owner's session, because it changes files agents can't touch.
 5. **Every cleanup task's acceptance criteria** include:
-   - `go tool task check-pr` passes. On a cleanup task's branch it runs the same-behavior check, with the renames from the task's front matter. For a `kind: test` task, it checks instead that only `_test.go` files, `testdata/` and `tasks/` changed, since deleting a golden test removes its golden files. CI runs it on the pull request too.
+   - `go tool task check-pr` passes. For a `kind: test` task, it checks that only `_test.go` files, `testdata/` and `tasks/` changed, since deleting a golden test removes its golden files. CI runs it on the pull request too.
    - `go tool task check` passes.
    - The task's findings, one per line, each resolved.
 
