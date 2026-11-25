@@ -2,6 +2,7 @@ package agents_test
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
@@ -234,7 +235,9 @@ func TestRemnantsDriftTowardLessDecayedGroundOffScreen(t *testing.T) {
 	}
 	total := 0
 	for _, id := range f.w.Maps.IDs() {
-		total += f.population(id, remnantFam)
+		if strings.HasPrefix(f.w.Maps.Get(id).Name(), "map.play.") {
+			total += f.population(id, remnantFam)
+		}
 	}
 	if total != 8 {
 		t.Errorf("%d remnants counted in all, want 8", total)

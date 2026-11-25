@@ -55,7 +55,7 @@ func use(tag string, count int) []content.Requirement {
 func testBundle(t *testing.T, o opts) content.Bundle {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	bundle.Maps, bundle.Start = nil, content.Start{}
+	bundle.Maps, bundle.Start, bundle.Starts = nil, content.Start{}, nil
 	if !o.contentChoices {
 		delete(bundle.Choices, "type")
 	}

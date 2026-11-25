@@ -52,3 +52,5 @@ A small world that exercises every M3 system together: two towns with residents,
 - The smoke test lives in `internal/core/agents/sample_world_test.go` (waits 40 phases, fails on any rejection).
 
 
+- The four new regions and a well shift entity UIDs, so the combat and tui golden files were regenerated (UIDs only). Tests that counted all remnants or all wells now look at playground maps only; `contenttest.NoStart` clears `Starts` too.
+- golangci-lint could not run in my environment (go.mod targets Go 1.27.4, above any available build); everything else in `check` passed. CI will lint.
