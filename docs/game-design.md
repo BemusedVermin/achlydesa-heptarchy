@@ -183,7 +183,7 @@ What falls out of it:
 
 **A party wipe is not game over.** When every member of the party is dead or downed, the deuteragonists wake at the town they last rested in, with some time consumed. The party mends and wakes after `party.wake_ticks`, where it last rested (the opening cell until towns exist); the dead stay dead, and a party with nobody downed stays lost. What the enemies did meanwhile, and any other cost, are still open.
 
-Generic NPCs keep towns working without much simulation cost. An abandoned town stops replacing them, so emptied towns stay empty.
+Generic NPCs keep towns working without much simulation cost. An abandoned town stops replacing them, so emptied towns stay empty. A town counts as emptied when its last resident leaves or dies, wherever the party is, including while the party stands in it.
 
 ### Grudges and memory
 
