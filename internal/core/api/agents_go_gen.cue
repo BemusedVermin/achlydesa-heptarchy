@@ -30,15 +30,15 @@ package api
 	families: [...#FamilyCount] @go(Families,[]FamilyCount)
 }
 
-// Migrated reports that a town's residents left it for a neighbouring town because a stock ran
-// short.
+// Migrated reports that residents left a map for a neighbouring one: off screen because a stock
+// ran short, or a body crossing a gate to a map the party is not on.
 #Migrated: {
 	from:   #MapID     @go(From)
 	to:     #MapID     @go(To)
 	family: #ContentID @go(Family)
 	count:  int        @go(Count)
 
-	// Short is the item that ran short.
+	// Short is the item that ran short; empty for a body that crossed a gate.
 	short: #ContentID @go(Short)
 }
 

@@ -143,7 +143,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M3-11.F1](followups/M3-11.F1-leave-emit-migrated.md) | Emit Migrated when a resident leaves to an off-screen map | todo | seam | M3 | M3-11 |
+| [M3-11.F1.F1](followups/M3-11.F1.F1-on-screen-town-emptied.md) | Decide whether a town the party is in emits TownEmptied when its last resident leaves | proposed | question | M3 | M3-11.F1 |
+| [M3-11.F1](followups/M3-11.F1-leave-emit-migrated.md) | Emit Migrated when a resident leaves to an off-screen map | in-progress | seam | M3 | M3-11 |
 | [M3-08.F1](followups/M3-08.F1-draw-region-panel.md) | Draw the region section in the terminal frontend | done | feature | M3 | M3-08 |
 | [M3-04.F2.F1](followups/M3-04.F2.F1-action-target-tags.md) | Say what an action may target with a tag, not a new ActionDef field | done | debt | M3 | M3-04.F2 |
 | [M3-04.F1](followups/M3-04.F1-path-around-bodies.md) | Path around standing bodies in the behavior primitives | done | bug | M3 | M3-04 |
