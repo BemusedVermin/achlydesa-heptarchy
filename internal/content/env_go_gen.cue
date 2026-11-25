@@ -69,6 +69,9 @@ package content
 	// Needs maps each need the body carries, by its ID after "need.", to its level: source.needs.water.
 	Needs: {[string]: float64} @go(,map[string]float64)
 
+	// MapTags are the tags of the map the body stands on.
+	MapTags: [...string] @go(,[]string)
+
 	// Dying means a vital part is at or below agents.dying_below of its integrity.
 	Dying: bool
 }
@@ -138,11 +141,19 @@ package content
 
 	// Cells is the cells a fall dropped, or 0.
 	Cells: int
+
+	// Elapsed is the ticks the action wound up before landing, or 0.
+	Elapsed: int64
 }
 
 // ActionEnv is what an action's formulas see.
 #ActionEnv: {
-	Speed: int
+	// Now is the current tick.
+	Now: int64
+
+	// DayTicks is the length of a day in ticks; a day starts at dawn, the first phase.
+	DayTicks: int64
+	Speed:    int
 
 	// StepTicks is the base ticks a step takes at this speed (timeline.step_ticks).
 	StepTicks: int64
