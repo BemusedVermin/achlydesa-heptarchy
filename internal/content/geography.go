@@ -16,7 +16,7 @@ func (r *Registry) Geography(id api.ContentID) (GeographyDef, bool) {
 func (r *Registry) GeographyIDs() []api.ContentID { return sortedIDs(r.bundle.Geographies) }
 
 // checkGeographies checks that every stage is named and that the world's geography exists. Whether a
-// stage is registered and takes its params is for procgen to check: only it knows the stages.
+// stage is registered and takes its params is for worldgen to check: only it knows the stages.
 func (r *Registry) checkGeographies() []error {
 	p := r.problems()
 	for _, key := range sortedKeys(r.bundle.Geographies) {

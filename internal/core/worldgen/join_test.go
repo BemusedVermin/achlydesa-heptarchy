@@ -1,4 +1,4 @@
-package procgen_test
+package worldgen_test
 
 import (
 	"slices"
@@ -10,14 +10,14 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/procgen"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
 const joinReach = 24
 
 type joinWorld struct {
 	fixed *explore.WorldSource
-	src   *procgen.Source
+	src   *worldgen.Source
 	m     *hexmap.Map
 	caves *hexmap.Map
 }
@@ -37,25 +37,25 @@ func newJoinWorld(tb testing.TB, seed, exportCount uint64) joinWorld {
 	if err != nil {
 		tb.Fatal(err)
 	}
-	stages := procgen.NewStages()
-	if err := procgen.RegisterCaves(stages); err != nil {
+	stages := worldgen.NewStages()
+	if err := worldgen.RegisterCaves(stages); err != nil {
 		tb.Fatal(err)
 	}
-	if err := procgen.RegisterJoin(stages); err != nil {
+	if err := worldgen.RegisterJoin(stages); err != nil {
 		tb.Fatal(err)
 	}
 	geography, _ := reg.Geography(reg.World().Geography)
 	geography.Stages = geography.Stages[:2]
-	cfg := procgen.Config{
+	cfg := worldgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
 		Geography: geography, Stages: stages, Fixed: fixed, Open: open,
 	}
-	src, err := procgen.NewSource(cfg)
+	src, err := worldgen.NewSource(cfg)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	cfg.Geography.Stages = geography.Stages[:1]
-	cavesOnly, err := procgen.NewSource(cfg)
+	cavesOnly, err := worldgen.NewSource(cfg)
 	if err != nil {
 		tb.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func (w joinWorld) at(tb testing.TB, m *hexmap.Map, cell api.Cell) hexmap.Terrai
 }
 
 // walkOut returns the cells reachable from the opening by real steps outside the places, within reach.
-func (w joinWorld) walkOut(tb testing.TB, opening procgen.Opening) []api.Cell {
+func (w joinWorld) walkOut(tb testing.TB, opening worldgen.Opening) []api.Cell {
 	tb.Helper()
 	seen := map[api.Cell]bool{opening.Cell: true}
 	frontier := []api.Cell{opening.Cell}
