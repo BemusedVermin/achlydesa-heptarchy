@@ -136,7 +136,7 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| [M5-01](M5-procgen/M5-01-procgen-source.md) | Geography content and the procgen chunk source | todo | seam | M | M4-07 |
+| [M5-01](M5-procgen/M5-01-procgen-source.md) | Geography content and the procgen chunk source | in-progress | seam | M | M4-07 |
 | [M5-09](M5-procgen/M5-09-export-schedule.md) | The export schedule and count | todo | feature | S | M4-07 |
 | [M5-02](M5-procgen/M5-02-cave-noise.md) | Cave noise stage | todo | feature | M | M5-01 |
 | [M5-03](M5-procgen/M5-03-sinks.md) | Sinks stage | todo | feature | M | M5-01 |
