@@ -15,7 +15,7 @@ import (
 const Format = "heptarchy-save"
 
 // CurrentVersion is the version Write produces. Raise it together with a migration from the old one.
-const CurrentVersion = 2
+const CurrentVersion = 3
 
 // Header says what the file is and what it was made from.
 type Header struct {
@@ -26,9 +26,9 @@ type Header struct {
 	Tick        int64  `json:"tick"`
 }
 
-// MapEdit is one cell of a map changed from what its source supplied. The terrain is named by content
-// ID, which is resolved against content on load.
-type MapEdit struct {
+// Edit is one cell of the world changed from what its source supplied. The terrain is named by
+// content ID, which is resolved against content on load.
+type Edit struct {
 	At      api.Cell      `json:"at"`
 	Terrain api.ContentID `json:"terrain"`
 }
@@ -43,8 +43,9 @@ type Snapshot struct {
 	NextUID api.UID           `json:"next_uid"`
 	// Timeline is the queued entries and the deciding body, which live outside the ECS components.
 	Timeline timeline.Saved `json:"timeline"`
-	// MapEdits lists each map's edits. Maps themselves are rebuilt from content on load.
-	MapEdits map[api.MapID][]MapEdit `json:"map_edits"`
+	// Edits lists the world's edits, sorted by depth, R, Q. The world itself is rebuilt from content
+	// on load.
+	Edits []Edit `json:"edits"`
 	// History is every command applied so far, in the codec's envelope form.
 	History []json.RawMessage `json:"history"`
 	// Log is the message log the view shows.

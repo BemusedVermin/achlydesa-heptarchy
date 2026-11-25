@@ -1,7 +1,7 @@
 ---
 id: M4-07
 title: "One world: the maps become places"
-status: todo
+status: in-progress
 milestone: M4
 kind: seam
 depends_on: [M4-06]

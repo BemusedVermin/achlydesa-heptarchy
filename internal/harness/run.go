@@ -80,7 +80,7 @@ func Play(g *game.Game, p Policy, steps int) error {
 
 // Header is the first CSV row.
 var Header = []string{
-	"seed", "step", "tick", "day", "phase", "map", "q", "r", "depth", "events", "rejected",
+	"seed", "step", "tick", "day", "phase", "q", "r", "depth", "events", "rejected",
 	"alert_ticks", "landings", "misses", "severed", "deaths", "outcome",
 }
 
@@ -161,13 +161,12 @@ func stepRow(g *game.Game, seed uint64, step int, events []api.Event, track *tra
 		return nil, err
 	}
 	track.observe(events, view)
-	var day, phase, mapID, q, r, depth string
+	var day, phase, q, r, depth string
 	if view.Clock != nil {
 		day, phase = strconv.Itoa(view.Clock.Day), view.Clock.Phase
 	}
 	if view.Party != nil && len(view.Party.Members) > 0 {
 		if pos, ok := g.PositionOf(view.Party.Members[0].UID); ok {
-			mapID = strconv.FormatUint(uint64(pos.Map), 10)
 			q, r = strconv.Itoa(pos.At.Hex.Q), strconv.Itoa(pos.At.Hex.R)
 			depth = strconv.Itoa(pos.At.Depth)
 		}
@@ -180,7 +179,7 @@ func stepRow(g *game.Game, seed uint64, step int, events []api.Event, track *tra
 	}
 	row := []string{
 		strconv.FormatUint(seed, 10), strconv.Itoa(step), strconv.FormatInt(view.Tick, 10),
-		day, phase, mapID, q, r, depth, strconv.Itoa(len(events)), strconv.Itoa(rejected),
+		day, phase, q, r, depth, strconv.Itoa(len(events)), strconv.Itoa(rejected),
 	}
 	return append(row, track.columns()...), nil
 }

@@ -168,7 +168,7 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 	// In UID order, so the first of equals wins.
 	for _, other := range hostileCandidates(w) {
 		pos := positions.Get(other)
-		if pos.Map != from.Map || !seen[pos.At] || !Hostile(w, body, other) {
+		if !seen[pos.At] || !Hostile(w, body, other) {
 			continue
 		}
 		distance := hexmap.CellDistance(from.At, pos.At)
@@ -184,8 +184,8 @@ func stepToward(w *sim.World, body, prey ecs.Entity, startable []actions.Intent)
 	stepID := w.Content.Combat().StepAction
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	from, to := *positions.Get(body), *positions.Get(prey)
-	m := w.Maps.Get(from.Map)
-	if m == nil || from.Map != to.Map {
+	m := w.Map
+	if m == nil {
 		return nil
 	}
 	rules := actions.StepRules(w)

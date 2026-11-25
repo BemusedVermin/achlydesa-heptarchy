@@ -52,7 +52,7 @@ func buildParty(w *sim.World, v *api.View) error {
 	view := &api.PartyView{UID: w.UIDOf(party), Control: state.Control, Alert: state.Alert}
 	if positions.Has(focus) {
 		pos := positions.Get(focus)
-		view.Map, view.Hex = pos.Map, pos.At.Hex
+		view.Hex = pos.At.Hex
 	}
 	for _, member := range members {
 		item := api.MemberView{
@@ -107,7 +107,7 @@ func buildMap(w *sim.World, v *api.View) error {
 		return nil
 	}
 	here := *positions.Get(focus)
-	m := w.Maps.Get(here.Map)
+	m := w.Map
 	if m == nil {
 		return nil
 	}
@@ -115,14 +115,14 @@ func buildMap(w *sim.World, v *api.View) error {
 	if err != nil {
 		return err
 	}
-	visible := sight[here.Map]
+	visible := sight
 	visibleColumns, seenColumns := column{}, column{}
 	known := make(map[api.Cell]bool, len(visible))
 	for cell := range visible {
 		visibleColumns.add(cell)
 		known[cell] = true
 	}
-	for _, cell := range seenIn(w, party, here.Map) {
+	for _, cell := range seenIn(w, party) {
 		seenColumns.add(cell)
 		known[cell] = true
 	}
@@ -146,10 +146,7 @@ func buildMap(w *sim.World, v *api.View) error {
 	}
 	slices.SortFunc(hexes, func(a, b api.Hex) int { return cmp.Or(cmp.Compare(a.R, b.R), cmp.Compare(a.Q, b.Q)) })
 
-	view := &api.MapView{Map: here.Map, Name: w.Content.Render(api.Text{ID: stateOf(w).names[here.Map]})}
-	if def, found := w.Content.Map(stateOf(w).names[here.Map]); found {
-		view.Name = w.Content.Render(api.Text{ID: def.Name})
-	}
+	view := &api.MapView{}
 	for _, h := range hexes {
 		best, found, err := nearest(w, m, h, reachColumns[h], here.At.Depth)
 		isVisible := found && visible[api.Cell{Hex: h, Depth: best.depth}]
@@ -207,9 +204,6 @@ func classify(w *sim.World, m *hexmap.Map, cell api.Cell) (drawn, bool, error) {
 	if terrain.Solid {
 		for dir := range api.Dir(api.DirCount) {
 			link := m.Topology().Neighbor(cell, dir)
-			if link.Map != 0 && link.Map != m.ID() {
-				continue
-			}
 			beside, err := m.At(link.Cell)
 			if err != nil {
 				return drawn{}, false, err
@@ -242,14 +236,14 @@ func glyphOr(glyph string) string {
 	return glyph
 }
 
-// entitiesIn lists the entities standing in visible cells of the map, by UID.
+// entitiesIn lists the entities standing in visible cells, by UID.
 func entitiesIn(w *sim.World, here comp.Pos, visible map[api.Cell]bool) []api.EntityView {
 	identities := ecs.NewMap[comp.Identity](w.ECS)
 	query := ecs.NewFilter2[comp.Pos, comp.Appearance](w.ECS).Query()
 	var out []api.EntityView
 	for query.Next() {
 		pos, look := query.Get()
-		if pos.Map != here.Map || !visible[pos.At] || !identities.Has(query.Entity()) {
+		if !visible[pos.At] || !identities.Has(query.Entity()) {
 			continue
 		}
 		out = append(out, api.EntityView{

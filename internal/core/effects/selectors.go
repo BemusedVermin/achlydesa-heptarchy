@@ -207,16 +207,12 @@ func livingOnly(w *sim.World, e ecs.Entity) []ecs.Entity {
 // radius, and as many depths up and down, until content says otherwise.
 func bodiesInSight(ctx *Context) ([]ecs.Entity, error) {
 	w := ctx.World
-	st := stateOf(w)
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if !w.Alive(ctx.Source) || !positions.Has(ctx.Source) || st.maps == nil {
+	m := w.Map
+	if !w.Alive(ctx.Source) || !positions.Has(ctx.Source) || m == nil {
 		return nil, nil
 	}
 	from := positions.Get(ctx.Source)
-	m := st.maps(from.Map)
-	if m == nil {
-		return nil, nil
-	}
 	radius := w.Content.Party().SightRadius
 	cells, err := m.Visible(from.At, radius, w.Content.Party().SightDepth)
 	if err != nil {
@@ -230,7 +226,7 @@ func bodiesInSight(ctx *Context) ([]ecs.Entity, error) {
 	query := ecs.NewFilter2[comp.Pos, comp.Actor](w.ECS).Query()
 	for query.Next() {
 		pos, _ := query.Get()
-		if pos.Map == from.Map && seen[pos.At] {
+		if seen[pos.At] {
 			out = append(out, query.Entity())
 		}
 	}

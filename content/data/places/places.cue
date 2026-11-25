@@ -2,11 +2,9 @@ package data
 
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
-maps: [string]: content.#MapDef
+places: [string]: content.#PlaceDef
 
-_#TestMap: {
-	fill: "terrain.packed_clay"
-	open: "terrain.air"
+_#TestPlace: {
 	legend: {
 		"#": "terrain.packed_clay"
 		".": "terrain.air"

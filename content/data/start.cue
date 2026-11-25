@@ -6,7 +6,7 @@ start: content.#Start
 
 // The prototype's room, with the main party at its center.
 start: {
-	map:           "map.test.hall"
-	party:         "template.party.main"
-	party_at_mark: "party_start"
+	place: "place.test.hall"
+	mark:  "party_start"
+	party: "template.party.main"
 }

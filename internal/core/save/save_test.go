@@ -180,10 +180,10 @@ func TestSavingTwiceGivesTheSameBytes(t *testing.T) {
 	}
 }
 
-func TestAMapEditSurvivesSaveAndLoad(t *testing.T) {
+func TestAnEditSurvivesSaveAndLoad(t *testing.T) {
 	r := newRig(t, newBundle(t))
 	at := api.Cell{Hex: api.Hex{Q: 2, R: 2}, Depth: 1}
-	m := r.w.Maps.Get(1)
+	m := r.w.Map
 	before, err := m.At(at)
 	if err != nil {
 		t.Fatal(err)
@@ -199,7 +199,7 @@ func TestAMapEditSurvivesSaveAndLoad(t *testing.T) {
 		t.Fatal("the edit is not in the hash")
 	}
 	loaded, _ := reload(t, r.cfg, r.g)
-	got, err := loaded.w.Maps.Get(1).At(at)
+	got, err := loaded.w.Map.At(at)
 	if err != nil || got != want {
 		t.Errorf("cell = %+v, %v; want %+v", got, err, want)
 	}
@@ -379,6 +379,7 @@ func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	noMigration := func(map[string]json.RawMessage) error { return nil }
 	renameSeed := func(doc map[string]json.RawMessage) error {
 		editHeader(t, doc, func(header map[string]json.RawMessage) {
 			header["seed"] = header["old_seed"]
@@ -389,7 +390,7 @@ func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
 	got, err := save.ReadWith(
 		bytes.NewReader(old),
 		save.CurrentVersion,
-		map[int]save.Migration{0: renameSeed, 1: func(map[string]json.RawMessage) error { return nil }},
+		map[int]save.Migration{0: renameSeed, 1: noMigration, 2: noMigration},
 	)
 	if err != nil {
 		t.Fatal(err)

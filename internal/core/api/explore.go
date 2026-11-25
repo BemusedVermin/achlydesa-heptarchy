@@ -79,7 +79,6 @@ func (l LeaderChanged) LogText() Text {
 // PartyWoke reports that a party that was wiped out got up again at its last rest place.
 type PartyWoke struct {
 	Party UID   `json:"party"`
-	Map   MapID `json:"map"`
 	At    Cell  `json:"at"`
 	Tick  int64 `json:"tick"`
 }
@@ -100,10 +99,9 @@ const (
 
 // Moved reports that a body stepped from one cell to another.
 type Moved struct {
-	Source UID   `json:"source"`
-	Map    MapID `json:"map"`
-	From   Cell  `json:"from"`
-	To     Cell  `json:"to"`
+	Source UID  `json:"source"`
+	From   Cell `json:"from"`
+	To     Cell `json:"to"`
 	// One of MoveLevel, MoveUp, MoveDown, MoveDrop
 	Kind string `json:"kind"`
 }
@@ -131,11 +129,9 @@ func (f Fell) LogText() Text {
 	return Text{ID: "text.explore.fell", Args: map[string]string{"cells": strconv.Itoa(f.Cells)}}
 }
 
-// MapView is the plan view of the map the party is on: at most one drawn cell per hex, with no
+// MapView is the plan view of the world around the party: at most one drawn cell per hex, with no
 // layers in it. Frontends draw what is here and shade by Below; they never learn a depth.
 type MapView struct {
-	Map  MapID  `json:"map"`
-	Name string `json:"name"`
 	// Sorted by R, then Q
 	Cells []CellView `json:"cells"`
 	// Sorted by UID
@@ -165,8 +161,7 @@ type EntityView struct {
 
 // PartyView is the party the player commands.
 type PartyView struct {
-	UID UID   `json:"uid"`
-	Map MapID `json:"map"`
+	UID UID `json:"uid"`
 	// Hex is where to center the map: the current actor if it is a member, else the leader. It is a
 	// hex, never a depth.
 	Hex Hex `json:"hex"`

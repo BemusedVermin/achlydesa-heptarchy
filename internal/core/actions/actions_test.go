@@ -55,7 +55,7 @@ func use(tag string, count int) []content.Requirement {
 func testBundle(t *testing.T, o opts) content.Bundle {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
-	bundle.Maps, bundle.Start = nil, content.Start{}
+	bundle.World, bundle.Places, bundle.Start = content.WorldDef{}, nil, content.Start{}
 	if !o.contentChoices {
 		delete(bundle.Choices, "type")
 	}
@@ -114,7 +114,7 @@ func newFixture(t *testing.T, seed uint64, o opts) *fixture {
 	fx := &fixture{t: t}
 	fx.cfg = game.Config{Seed: seed, Content: reg, Spawn: func(w *sim.World, _ *clock.Clock) error {
 		fx.arms = nil
-		at := func(q int) *comp.Pos { return &comp.Pos{Map: 1, At: api.Cell{Hex: api.Hex{Q: q}}} }
+		at := func(q int) *comp.Pos { return &comp.Pos{At: api.Cell{Hex: api.Hex{Q: q}}} }
 		var err error
 		if fx.fighter, err = w.Spawn("template.test.fighter", at(0)); err != nil {
 			return err

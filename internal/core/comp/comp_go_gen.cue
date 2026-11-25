@@ -8,8 +8,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 // Pos is where an entity is.
 #Pos: {
-	map: api.#MapID @go(Map)
-	at:  api.#Cell  @go(At)
+	at: api.#Cell @go(At)
 }
 
 // Identity is what makes an entity an individual.
@@ -119,12 +118,18 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // RestPlace is the cell a party last rested at, on the party entity. A party that is wiped out wakes
 // there. Use the explore package's SetRestPlace rather than writing it.
 #RestPlace: {
-	map: api.#MapID @go(Map)
-	at:  api.#Cell  @go(At)
+	at: api.#Cell @go(At)
 }
 
 // Controlled marks the party the player commands.
 #Controlled: {}
+
+// Seen is what a party remembers of the world: cells any member has seen, sorted by depth, then R,
+// then Q, with no repeats. Use the explore package's helpers rather than reading the slice, because
+// the representation will change.
+#Seen: {
+	cells: [...api.#Cell] @go(Cells,[]api.Cell)
+}
 
 // Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge
 // package's Learn, About and Best rather than changing the slice.

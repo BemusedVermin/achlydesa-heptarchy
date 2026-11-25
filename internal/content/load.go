@@ -64,7 +64,7 @@ func loadBundle(dir string) (Bundle, error) {
 }
 
 // cueFiles lists every .cue file under dir, as paths relative to it in a stable order, so that
-// subfolders such as maps/ are part of the same data package.
+// subfolders such as places/ are part of the same data package.
 func cueFiles(dir string) ([]string, error) {
 	var files []string
 	err := filepath.WalkDir(dir, func(path string, entry fs.DirEntry, err error) error {
@@ -116,7 +116,6 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkTriggers()...)
 	problems = append(problems, registry.checkParty()...)
-	problems = append(problems, registry.checkMaps()...)
 	problems = append(problems, registry.checkWorld()...)
 	problems = append(problems, registry.checkStart()...)
 	problems = append(problems, registry.checkCombat()...)

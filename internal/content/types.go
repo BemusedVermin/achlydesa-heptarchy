@@ -16,7 +16,6 @@ type Bundle struct {
 	Combat    CombatConfig         `json:"combat"`
 	Timeline  TimelineConfig       `json:"timeline"`
 	Actions   map[string]ActionDef `json:"actions"`
-	Maps      map[string]MapDef    `json:"maps"`
 	World     WorldDef             `json:"world"`
 	// Places are the hand-made pieces of the world ("place." IDs).
 	Places  map[string]PlaceDef `json:"places"`
@@ -310,27 +309,8 @@ type CombatConfig struct {
 	MaterialClaim api.ContentID `json:"material_claim"`
 }
 
-// MapDef is a hand-made map: a few authored layers embedded in endless fill.
-type MapDef struct {
-	// Name is a text ID.
-	Name api.ContentID `json:"name"`
-	// Fill is the terrain of every cell not authored, forever in every direction.
-	Fill api.ContentID `json:"fill"`
-	// Open is the terrain of a marked cell, usually air.
-	Open   api.ContentID `json:"open"`
-	Layers []LayerDef    `json:"layers"`
-	// Legend maps one character to a terrain ID.
-	Legend map[string]api.ContentID `json:"legend"`
-	// Marks maps one character to a mark name, such as "@": "party_start".
-	Marks map[string]string `json:"marks"`
-	// Spawns maps a mark character to a template ("template." ID): a body of it is spawned at each
-	// such character at the start, in row order, and the character may appear any number of times
-	// (at least once). Each character must also be one of Marks, so the layers may use it.
-	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
-}
-
-// LayerDef is one depth of a hand-made map. Rows use odd-r offset layout, one character per
-// cell; a space leaves the fill.
+// LayerDef is one depth of a place. Rows use odd-r offset layout, one character per cell; a space
+// leaves the world's fill.
 type LayerDef struct {
 	Depth int      `json:"depth"`
 	Rows  []string `json:"rows"`
@@ -353,15 +333,20 @@ type WorldDef struct {
 }
 
 // PlaceDef is a piece of hand-made world, such as a town or a set piece, set at a fixed position.
-// Legend, marks and spawns follow a map's rules; a mark name is unique within its place.
 type PlaceDef struct {
 	// Name is a text ID.
 	Name api.ContentID `json:"name"`
 	// At is the world cell of the place's column 0, row 0 and depth 0; layer depths are relative to it.
-	At     PlaceAt                  `json:"at"`
-	Layers []LayerDef               `json:"layers"`
+	At     PlaceAt    `json:"at"`
+	Layers []LayerDef `json:"layers"`
+	// Legend maps one character to a terrain ID.
 	Legend map[string]api.ContentID `json:"legend"`
-	Marks  map[string]string        `json:"marks"`
+	// Marks maps one character to a mark name, such as "@": "party_start". A mark name is unique
+	// within its place, and a marked cell holds the world's Open terrain.
+	Marks map[string]string `json:"marks"`
+	// Spawns maps a mark character to a template ("template." ID): a body of it is spawned at each
+	// such character at the start, and the character may appear any number of times (at least once).
+	// Each character must also be one of Marks, so the layers may use it.
 	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
 }
 
@@ -372,13 +357,13 @@ type PlaceAt struct {
 	Depth int `json:"depth"`
 }
 
-// Start is the scenario a new game begins with: a party placed at a mark on a map.
+// Start is the scenario a new game begins with: a party placed at a mark of a place.
 type Start struct {
-	Map api.ContentID `json:"map"`
+	Place api.ContentID `json:"place"`
+	// Mark is a mark name of the place, where the party's leader stands.
+	Mark string `json:"mark"`
 	// Party names the party template to spawn.
 	Party api.ContentID `json:"party"`
-	// PartyAtMark is a mark name of the map.
-	PartyAtMark string `json:"party_at_mark"`
 }
 
 // TimelineConfig holds the numbers of the shared timeline.
@@ -416,7 +401,6 @@ const (
 	CollectionText      Collection = "text"
 	CollectionTemplates Collection = "templates"
 	CollectionActions   Collection = "actions"
-	CollectionMaps      Collection = "maps"
 	CollectionPlaces    Collection = "places"
 	CollectionParts     Collection = "parts"
 	CollectionClaims    Collection = "claims"

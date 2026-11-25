@@ -101,7 +101,7 @@ func (fx *fixture) standingApart() {
 }
 
 func TestDownTheDescentTheFollowerTrailsSingleFileNeverSharingACell(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	members := fx.members()
 	leader, follower := members[0], members[1]
 	for range 10 {
@@ -156,7 +156,7 @@ func TestSteppingIntoAnotherBodyIsRefused(t *testing.T) {
 	leader := fx.members()[0]
 	at := fx.pos(leader).At
 	at.Hex.Q++
-	if _, err := fx.w.Spawn("template.person.reaper", &comp.Pos{Map: fx.pos(leader).Map, At: at}); err != nil {
+	if _, err := fx.w.Spawn("template.person.reaper", &comp.Pos{At: at}); err != nil {
 		t.Fatal(err)
 	}
 	o := fx.option("step/e")
@@ -370,7 +370,7 @@ func TestLeadChangesTheLeaderTheOrderAndTheControllersInEitherMode(t *testing.T)
 }
 
 func TestReplayingSixtyRandomOptionsGivesTheSameHash(t *testing.T) {
-	fx := newFixture(t, "map.test.descent", nil)
+	fx := newFixture(t, "place.test.descent", nil)
 	rnd := rng.New(11).Get("test.options")
 	moved := 0
 	for range 60 {

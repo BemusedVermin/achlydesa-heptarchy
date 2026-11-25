@@ -1,8 +1,9 @@
 package data
 
 // The prototype's room at depth 0: air inside a ring of packed clay with three pillars.
-maps: "map.test.hall": _#TestMap & {
-	name: "text.map.test.hall"
+places: "place.test.hall": _#TestPlace & {
+	name: "text.place.test.hall"
+	at: {col: 4, row: 4, depth: 0}
 	marks: {"@": "party_start", "c": "creature"}
 	spawns: "c": "template.creature.moving_clay"
 	layers: [
@@ -36,5 +37,5 @@ maps: "map.test.hall": _#TestMap & {
 }
 
 text: {
-	"text.map.test.hall": "The test hall"
+	"text.place.test.hall": "The test hall"
 }

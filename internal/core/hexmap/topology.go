@@ -2,9 +2,8 @@ package hexmap
 
 import "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 
-// Link is where a move leads. Map 0 means the same map.
+// Link is where a move leads.
 type Link struct {
-	Map  api.MapID
 	Cell api.Cell
 }
 

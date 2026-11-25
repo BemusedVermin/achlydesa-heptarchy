@@ -8,7 +8,7 @@ import (
 
 // floorWorld is open air above depth 1 and rock from depth 1 down, so a body at depth 0 stands on solid ground.
 func floorWorld() *Map {
-	return NewMap(1, "floor", FuncSource(func(c api.Cell) Terrain {
+	return NewMap(FuncSource(func(c api.Cell) Terrain {
 		if c.Depth >= 1 {
 			return rock
 		}
@@ -132,31 +132,12 @@ func TestStepRejectsBadDirection(t *testing.T) {
 	}
 }
 
-func TestStepFollowsLinksToOtherMaps(t *testing.T) {
-	m := NewMap(1, "linked", FuncSource(func(api.Cell) Terrain { return rock }), portalTopology{})
-	got, ok, err := m.Step(cell(0, 0, 0), api.DirE, defaultStepRules())
-	want := Step{To: Link{Map: 7, Cell: cell(40, 0, 0)}, Kind: StepLevel}
-	if err != nil || !ok || got != want {
-		t.Errorf("Step = %+v, %v, %v; want %+v", got, ok, err, want)
-	}
-}
-
-// portalTopology sends every eastward step to map 7.
-type portalTopology struct{ Prisms }
-
-func (p portalTopology) Neighbor(at api.Cell, dir api.Dir) Link {
-	if dir == api.DirE {
-		return Link{Map: 7, Cell: cell(40, 0, 0)}
-	}
-	return p.Prisms.Neighbor(at, dir)
-}
-
 // TestStepKeepsOverlappingTunnelsApart crosses two tunnels over the same hexes at depths 0 and 4.
 func TestStepKeepsOverlappingTunnelsApart(t *testing.T) {
 	inTunnel := func(c api.Cell) bool {
 		return c.Hex.R == 0 && c.Hex.Q >= 0 && c.Hex.Q <= 5 && (c.Depth == 0 || c.Depth == 4)
 	}
-	m := NewMap(1, "tunnels", FuncSource(func(c api.Cell) Terrain {
+	m := NewMap(FuncSource(func(c api.Cell) Terrain {
 		if inTunnel(c) {
 			return air
 		}

@@ -16,7 +16,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-// Install registers stepping, the maps, party control and their views. It must run after effects
+// Install registers stepping, party control and their views. It must run after effects
 // and timeline.
 func Install(w *sim.World) error {
 	if w.Content == nil {
@@ -38,7 +38,6 @@ func Install(w *sim.World) error {
 	if err != nil {
 		return err
 	}
-	effects.SetMaps(w, w.Maps.Get)
 	timeline.SetVisible(w, visibleBody)
 	if err := installControl(w); err != nil {
 		return err
@@ -51,23 +50,21 @@ func Install(w *sim.World) error {
 	})
 }
 
-// onMap returns the body's position and map. Bodies that are not on a map (test fixtures, or bodies
-// in transit) report false and step in place.
-func onMap(w *sim.World, body ecs.Entity) (*comp.Pos, *hexmap.Map, bool) {
+// positioned returns the body's position and the world's cells. A body with no position, or a world with
+// no cells (test fixtures), reports false and steps in place.
+func positioned(w *sim.World, body ecs.Entity) (*comp.Pos, *hexmap.Map, bool) {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if !w.Alive(body) || !positions.Has(body) {
+	if w.Map == nil || !w.Alive(body) || !positions.Has(body) {
 		return nil, nil, false
 	}
-	pos := positions.Get(body)
-	m := w.Maps.Get(pos.Map)
-	return pos, m, m != nil
+	return positions.Get(body), w.Map, true
 }
 
 func bump() api.Text { return api.Text{ID: "text.explore.bump"} }
 
 // checkStep fails with text.explore.bump when the hexmap rules offer no step that way.
 func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
-	pos, m, ok := onMap(ctx.World, ctx.Source)
+	pos, m, ok := positioned(ctx.World, ctx.Source)
 	if !ok {
 		return true, api.Text{}
 	}
@@ -81,32 +78,26 @@ func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
 	if !can {
 		return false, bump()
 	}
-	if _, occupied, swappable := occupant(ctx.World, ctx.Source, pos, step); occupied && !swappable {
+	if _, occupied, swappable := occupant(ctx.World, ctx.Source, step); occupied && !swappable {
 		return false, api.Text{ID: "text.explore.occupied"}
 	}
 	return true, api.Text{}
 }
 
 // occupant finds the body in the cell a step leads to. A step onto another member of the same party
-// swaps the two, unless it is a drop or leaves the map, which cannot be reversed; a step onto anyone
-// else is refused.
+// swaps the two, unless it is a drop, which cannot be reversed; a step onto anyone else is refused.
 func occupant(
 	w *sim.World,
 	source ecs.Entity,
-	pos *comp.Pos,
 	step hexmap.Step,
 ) (other ecs.Entity, occupied, swappable bool) {
-	dest := pos.Map
-	if step.To.Map != 0 {
-		dest = step.To.Map
-	}
-	other, occupied = bodyAt(w, dest, step.To.Cell, source)
+	other, occupied = bodyAt(w, step.To.Cell, source)
 	if !occupied {
 		return ecs.Entity{}, false, false
 	}
 	party, member := anatomy.PartyOf(w, source)
 	otherParty, otherMember := anatomy.PartyOf(w, other)
-	swappable = member && otherMember && party == otherParty && step.Kind != hexmap.StepDrop && dest == pos.Map
+	swappable = member && otherMember && party == otherParty && step.Kind != hexmap.StepDrop
 	return other, true, swappable
 }
 
@@ -134,13 +125,13 @@ func swapWith(w *sim.World, other ecs.Entity, from, dest api.Cell, kind string) 
 	pos := positions.Get(other)
 	pos.At = from
 	setTrail(w, other, dest)
-	w.Bus.Publish(api.Moved{Source: w.UIDOf(other), Map: pos.Map, From: dest, To: from, Kind: reverse(kind)})
+	w.Bus.Publish(api.Moved{Source: w.UIDOf(other), From: dest, To: from, Kind: reverse(kind)})
 	party, _ := anatomy.PartyOf(w, other)
 	cells, err := sightOf(w, *pos)
 	if err != nil {
 		return err
 	}
-	markSeen(w, party, pos.Map, cells)
+	markSeen(w, party, cells)
 	return nil
 }
 
@@ -156,7 +147,7 @@ var moveKinds = map[hexmap.StepKind]string{
 // paying after lets a body step out of reach of a swing that has not landed yet.
 func applyStep(ctx *effects.Context, _ effects.Params) error {
 	w := ctx.World
-	pos, m, ok := onMap(w, ctx.Source)
+	pos, m, ok := positioned(w, ctx.Source)
 	if !ok {
 		return nil
 	}
@@ -170,21 +161,15 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 	case !can:
 		return errors.New("explore: step is blocked")
 	}
-	other, occupied, swappable := occupant(w, ctx.Source, pos, step)
+	other, occupied, swappable := occupant(w, ctx.Source, step)
 	if occupied && !swappable {
 		return errors.New("explore: step is blocked by a body")
 	}
 	from := pos.At
-	if step.To.Map != 0 {
-		pos.Map = step.To.Map
-		if m = w.Maps.Get(pos.Map); m == nil {
-			return fmt.Errorf("explore: step leads to unknown map %d", pos.Map)
-		}
-	}
 	pos.At = step.To.Cell
 	setTrail(w, ctx.Source, from)
 	actor := w.UIDOf(ctx.Source)
-	w.Bus.Publish(api.Moved{Source: actor, Map: pos.Map, From: from, To: pos.At, Kind: moveKinds[step.Kind]})
+	w.Bus.Publish(api.Moved{Source: actor, From: from, To: pos.At, Kind: moveKinds[step.Kind]})
 	if occupied {
 		if err := swapWith(w, other, from, pos.At, moveKinds[step.Kind]); err != nil {
 			return err
@@ -198,7 +183,7 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 		if err != nil {
 			return err
 		}
-		markSeen(w, party, pos.Map, cells)
+		markSeen(w, party, cells)
 	}
 	cost, err := stepCost(w, ctx.Source, m, pos.At, step.Kind)
 	if err != nil {
@@ -260,5 +245,5 @@ func visibleBody(w *sim.World, body ecs.Entity) bool {
 		return false
 	}
 	pos := positions.Get(body)
-	return sight[pos.Map][pos.At]
+	return sight[pos.At]
 }

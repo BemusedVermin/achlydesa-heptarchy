@@ -2,7 +2,7 @@ package data
 
 text: {
 	"text.explore.bump":                       "Packed clay. No way through."
-	"text.explore.broken":                     "The map could not be read: {{.error}}"
+	"text.explore.broken":                     "The world could not be read: {{.error}}"
 	"text.explore.fell":                       "A fall of {{.cells}} cells."
 	"text.explore.occupied":                   "Someone is in the way."
 	"text.explore.bad_party":                  "That is not the party you command."

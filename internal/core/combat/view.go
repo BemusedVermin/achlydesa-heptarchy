@@ -25,7 +25,7 @@ const unknownMaterial = "?"
 // seenCells is the set of cells a body at a position sees, by the alert's sight.
 func seenCells(w *sim.World, from comp.Pos) (map[api.Cell]bool, error) {
 	cfg := w.Content.Combat()
-	m := w.Maps.Get(from.Map)
+	m := w.Map
 	if m == nil {
 		return nil, nil
 	}
@@ -59,7 +59,7 @@ func visibleBodies(w *sim.World, party ecs.Entity) ([]ecs.Entity, error) {
 			return nil, err
 		}
 		for _, other := range candidates {
-			if pos := positions.Get(other); pos.Map == from.Map && seen[pos.At] {
+			if seen[positions.Get(other).At] {
 				chosen[other] = true
 			}
 		}

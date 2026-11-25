@@ -2,6 +2,9 @@ package content
 
 import (
 	"fmt"
+	"maps"
+	"slices"
+	"unicode/utf8"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
@@ -18,9 +21,8 @@ func (r *Registry) Place(id api.ContentID) (PlaceDef, bool) {
 // PlaceIDs lists every place ID in sorted order.
 func (r *Registry) PlaceIDs() []api.ContentID { return sortedIDs(r.bundle.Places) }
 
-func (d PlaceDef) layout() MapDef {
-	return MapDef{Name: d.Name, Layers: d.Layers, Legend: d.Legend, Marks: d.Marks, Spawns: d.Spawns}
-}
+// Start returns the start scenario. Its Place is empty when the content has none.
+func (r *Registry) Start() Start { return r.bundle.Start }
 
 type worldCell struct{ col, row, depth int }
 
@@ -33,7 +35,7 @@ func (w WorldDef) contains(c worldCell) bool {
 		c.depth >= w.MinDepth && c.depth <= w.MaxDepth
 }
 
-// checkWorld validates the world and its places: each place's layout follows a map's rules, sits on
+// checkWorld validates the world and its places: each place's layout is sound, it sits on
 // an even row, lies inside the world's bounds and shares no cell with another place.
 func (r *Registry) checkWorld() []error {
 	world := r.bundle.World
@@ -60,7 +62,7 @@ func (r *Registry) checkWorld() []error {
 		if def.At.Row%2 != 0 {
 			p.addf("%s.at.row: %d is odd; a place must start on an even row", path, def.At.Row)
 		}
-		r.checkLayout(p, path, def.layout())
+		r.checkLayout(p, path, def)
 		outside := false
 		overlaps := map[string]bool{}
 		for _, layer := range def.Layers {
@@ -88,6 +90,95 @@ func (r *Registry) checkWorld() []error {
 				}
 			}
 		}
+	}
+	return p.errs
+}
+
+// checkLayout checks the layers, legend, marks and spawns of a place.
+func (r *Registry) checkLayout(p *problems, path string, def PlaceDef) {
+	checkTerrain := func(field string, id api.ContentID) {
+		ref(p, r.bundle.Terrains, path+"."+field, "terrain", id)
+	}
+	for _, char := range sortedKeys(def.Legend) {
+		checkTerrain(fmt.Sprintf("legend[%q]", char), def.Legend[char])
+		if utf8.RuneCountInString(char) != 1 {
+			p.addf("%s.legend[%q]: a key is exactly one character", path, char)
+		}
+		if _, clash := def.Marks[char]; clash {
+			p.addf("%s: character %q is both a legend entry and a mark", path, char)
+		}
+	}
+	names := map[string]string{}
+	for _, char := range sortedKeys(def.Marks) {
+		if utf8.RuneCountInString(char) != 1 {
+			p.addf("%s.marks[%q]: a key is exactly one character", path, char)
+		}
+		if other, taken := names[def.Marks[char]]; taken {
+			p.addf("%s.marks[%q]: mark %q is also named by %q", path, char, def.Marks[char], other)
+		}
+		names[def.Marks[char]] = char
+	}
+	found := map[string]int{}
+	depths := map[int]bool{}
+	for i, layer := range def.Layers {
+		at := fmt.Sprintf("%s.layers[%d]", path, i)
+		if depths[layer.Depth] {
+			p.addf("%s.depth: depth %d is authored twice", at, layer.Depth)
+		}
+		depths[layer.Depth] = true
+		for row, text := range layer.Rows {
+			for col, char := range []rune(text) {
+				_, inLegend := def.Legend[string(char)]
+				_, isMark := def.Marks[string(char)]
+				switch {
+				case char == ' ' || inLegend:
+				case isMark:
+					found[string(char)]++
+				default:
+					p.addf(
+						"%s.rows[%d]: character %q at column %d is not in the legend or the marks",
+						at,
+						row,
+						char,
+						col,
+					)
+				}
+			}
+		}
+	}
+	for _, char := range sortedKeys(def.Spawns) {
+		template := def.Spawns[char]
+		if _, ok := def.Marks[char]; !ok {
+			p.addf("%s.spawns[%q]: not one of the marks", path, char)
+		}
+		ref(p, r.bundle.Templates, fmt.Sprintf("%s.spawns[%q]", path, char), "template", template)
+		if found[char] < 1 {
+			p.addf("%s.spawns[%q]: the character is in no layer", path, char)
+		}
+	}
+	for _, char := range sortedKeys(def.Marks) {
+		if _, spawns := def.Spawns[char]; spawns {
+			continue
+		}
+		if n := found[char]; n != 1 {
+			p.addf("%s.marks[%q]: mark %q must appear exactly once, found %d", path, char, def.Marks[char], n)
+		}
+	}
+}
+
+// checkStart validates the start scenario when the content has one.
+func (r *Registry) checkStart() []error {
+	start := r.bundle.Start
+	if start == (Start{}) {
+		return nil
+	}
+	p := r.problems()
+	def, ok := ref(p, r.bundle.Places, "start.place", "place", start.Place)
+	if template, found := r.bundle.Templates[string(start.Party)]; !found || template.Party == nil {
+		p.addf("start.party: %q is not a party template", start.Party)
+	}
+	if ok && !slices.Contains(slices.Collect(maps.Values(def.Marks)), start.Mark) {
+		p.addf("start.mark: place %q has no mark %q", start.Place, start.Mark)
 	}
 	return p.errs
 }

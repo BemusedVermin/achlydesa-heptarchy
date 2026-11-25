@@ -133,6 +133,14 @@ func (r *Registry) Body(id api.ContentID) (BodyPlan, bool) {
 // Party returns the numbers every party shares.
 func (r *Registry) Party() PartyConfig { return r.bundle.Party }
 
+// ClimbCost is the extra ticks a step up costs a body of the given speed.
+func (r *Registry) ClimbCost(env SpeedEnv) (int64, error) {
+	if r.climbCost == nil {
+		return 0, nil
+	}
+	return run[int64](r.climbCost, env, "party.climb_cost")
+}
+
 // Combat returns the numbers of alert and death.
 func (r *Registry) Combat() CombatConfig { return r.bundle.Combat }
 

@@ -62,7 +62,7 @@ func propertyContent(t *testing.T) *content.Registry {
 	party := bundle.Templates["template.party.main"]
 	party.Inventory = append(slices.Clone(party.Inventory), content.StackDef{Item: "item.serilmen_arm", Count: 1})
 	bundle.Templates["template.party.main"] = party
-	hall := bundle.Maps["map.test.hall"]
+	hall := bundle.Places["place.test.hall"]
 	rows := slices.Clone(hall.Layers[0].Rows)
 	for i, row := range rows {
 		if strings.Contains(row, "@") {
@@ -70,7 +70,7 @@ func propertyContent(t *testing.T) *content.Registry {
 		}
 	}
 	hall.Layers = []content.LayerDef{{Depth: hall.Layers[0].Depth, Rows: rows}}
-	bundle.Maps["map.test.hall"] = hall
+	bundle.Places["place.test.hall"] = hall
 	return contenttest.Registry(t, bundle)
 }
 

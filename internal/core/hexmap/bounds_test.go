@@ -67,7 +67,7 @@ func TestBoundedAtMatchesSourceInsideAndEdgeOutside(t *testing.T) {
 			MinRow: minRow, MaxRow: minRow + rapid.IntRange(0, 40).Draw(rt, "height"),
 			MinDepth: minDepth, MaxDepth: minDepth + rapid.IntRange(0, 20).Draw(rt, "depths"),
 		}
-		m := NewMap(1, "bounded", FuncSource(checkerSource), Prisms{})
+		m := NewMap(FuncSource(checkerSource), Prisms{})
 		m.SetBounds(b, edgeRock)
 		coord := rapid.IntRange(-70, 70)
 		c := offsetCell(coord.Draw(rt, "col"), coord.Draw(rt, "row"), coord.Draw(rt, "depth"))
@@ -155,7 +155,7 @@ func TestSteppingOffTheEdgeIsRefused(t *testing.T) {
 
 func TestLargeUniformWorldStaysSmall(t *testing.T) {
 	const cols, rows, depths, limit = 400, 400, 60, 5 << 20
-	m := NewMap(1, "large", FuncSource(func(api.Cell) Terrain { return rock }), Prisms{})
+	m := NewMap(FuncSource(func(api.Cell) Terrain { return rock }), Prisms{})
 	m.SetBounds(Bounds{MaxCol: cols - 1, MaxRow: rows - 1, MaxDepth: depths - 1}, edgeRock)
 
 	var before, after runtime.MemStats

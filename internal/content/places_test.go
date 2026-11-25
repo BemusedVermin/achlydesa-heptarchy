@@ -30,8 +30,8 @@ func TestPlacesAreChecked(t *testing.T) {
 		},
 		{
 			name:          "out of bounds",
-			places:        map[string]PlaceAt{"place.a": {Col: 62, Row: 0}},
-			wantFragments: []string{`places["place.a"]`, "column 64, row 0, depth 0 is outside the world"},
+			places:        map[string]PlaceAt{"place.a": {Col: 68, Row: 0}},
+			wantFragments: []string{`places["place.a"]`, "column 70, row 0, depth 0 is outside the world"},
 		},
 		{
 			name:          "too deep",
@@ -52,6 +52,7 @@ func TestPlacesAreChecked(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			bundle := sampleBundle(t)
+			bundle.Start = Start{}
 			bundle.Places = map[string]PlaceDef{}
 			for id, at := range test.places {
 				def := testPlace(id, at)

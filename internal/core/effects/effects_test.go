@@ -19,8 +19,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
-const mapID api.MapID = 1
-
 // fixture is a world with a small open map, a source S at the origin and bodies around it:
 //
 //	B (-2,0) hostile to S, S (0,0), A (2,0) with two arms and a leg, a wall at (3,0),
@@ -54,15 +52,9 @@ func newFixture(t *testing.T) *fixture {
 	}
 	timeline.SetVisible(fx.w, func(*sim.World, ecs.Entity) bool { return true })
 	timeline.SetChannels(fx.w, fx.channelsOf)
-	m := hexmap.NewMap(mapID, "room", hexmap.FuncSource(func(c api.Cell) hexmap.Terrain {
+	fx.w.Map = hexmap.NewMap(hexmap.FuncSource(func(c api.Cell) hexmap.Terrain {
 		return hexmap.Terrain{ID: "terrain.air", Opaque: c.Hex == api.Hex{Q: 3, R: 0} && c.Depth == 0}
 	}), hexmap.Prisms{})
-	effects.SetMaps(fx.w, func(id api.MapID) *hexmap.Map {
-		if id == mapID {
-			return m
-		}
-		return nil
-	})
 	fx.s = fx.spawn(t, "idle", 0)
 	fx.a = fx.spawn(t, timeline.PlayerController, 2)
 	fx.b = fx.spawn(t, "idle", -2)
@@ -87,7 +79,7 @@ func newFixture(t *testing.T) *fixture {
 
 func (fx *fixture) spawn(t *testing.T, controller string, q int) ecs.Entity {
 	t.Helper()
-	e, err := fx.w.Spawn("template.person.reaper", &comp.Pos{Map: mapID, At: api.Cell{Hex: api.Hex{Q: q}}})
+	e, err := fx.w.Spawn("template.person.reaper", &comp.Pos{At: api.Cell{Hex: api.Hex{Q: q}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -209,15 +201,15 @@ func TestSightHidesWallsAndDistance(t *testing.T) {
 	}
 }
 
-func TestSelectorsWithNoSourceOrMaps(t *testing.T) {
+func TestSelectorsWithNoSourceOrMap(t *testing.T) {
 	fx := newFixture(t)
 	sel, _ := effects.ParseBodies("others")
 	if got, err := sel.Resolve(&effects.Context{World: fx.w}); err != nil || len(got) != 0 {
 		t.Errorf("others with no source = %v, %v; want none", got, err)
 	}
-	effects.SetMaps(fx.w, nil)
+	fx.w.Map = nil
 	if got, err := sel.Resolve(fx.ctx()); err != nil || len(got) != 0 {
-		t.Errorf("others with no maps = %v, %v; want none", got, err)
+		t.Errorf("others with no map = %v, %v; want none", got, err)
 	}
 }
 
