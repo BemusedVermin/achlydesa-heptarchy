@@ -199,7 +199,7 @@ func TestARecruitWhoSeesAnAllyMaimedFleesUntilTheTerrorEases(t *testing.T) {
 	leader := f.guardLeader()
 	arm := anatomy.Parts(f.w, leader)[0]
 	f.w.Bus.Publish(api.PartSevered{
-		Body: f.w.UIDOf(leader), Part: f.w.UIDOf(arm), Cause: api.SeveredCut, Source: f.w.UIDOf(leader), Tick: f.w.Now,
+		Body: f.w.UIDOf(leader), Part: f.w.UIDOf(arm), Cause: api.SeveredWorn, Tick: f.w.Now,
 	})
 	if _, err := f.w.Bus.Drain(f.w); err != nil {
 		t.Fatal(err)

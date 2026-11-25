@@ -490,7 +490,7 @@ Recruits take one of the four fight slots; a fifth slot is something to playtest
 
 **Price:** there is no fixed wage or currency. Each NPC names their own price, in what they want, scaled by what they bring. Merchants work the same way.
 
-**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list; every day it goes unpaid raises their discontent, which turns into grumbling and then desertion.
+**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list; every day it goes unpaid raises their discontent, which turns into grumbling and then desertion. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M6), one individual at a time.
 
 ### Exotic recruits
 

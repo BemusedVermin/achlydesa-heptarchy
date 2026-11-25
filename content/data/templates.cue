@@ -12,20 +12,20 @@ _fallInjury: {
 	do: [{do: "damage", params: {parts: "target:legs", amount: "cells - 1"}}]
 }
 
-// Terror for every body with need.terror in sight of the one who struck, or of the one who died.
-// A severed arm or a death on a body that carries these shakes the recruits who see it.
+// A severed arm or a death on a body that carries these shakes the recruits who see it, whoever
+// did it.
 // Placeholder numbers, for tuning.
 _severedTerror: {
 	on:   "combat.part_severed"
 	role: "target"
 	if:   "true"
-	do: [{do: "satisfy", params: {need: "need.terror", amount: "-0.75", bodies: "everyone"}}]
+	do: [{do: "satisfy", params: {need: "need.terror", amount: "-0.75", bodies: "witnesses"}}]
 }
 _deathTerror: {
 	on:   "combat.body_died"
 	role: "target"
 	if:   "true"
-	do: [{do: "satisfy", params: {need: "need.terror", amount: "-0.25", bodies: "everyone"}}]
+	do: [{do: "satisfy", params: {need: "need.terror", amount: "-0.25", bodies: "witnesses"}}]
 }
 
 // What a person knows: the seven forms (tagged form in forms.cue), a step, and the types innate to a

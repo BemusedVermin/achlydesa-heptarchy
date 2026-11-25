@@ -55,10 +55,10 @@ Recruits stay only while paid and unafraid. Each day they take their upkeep from
 - Config lives in a new `recruits` block (`content.RecruitsConfig`: `grumble_at`, `desert_at`, `flee_at`, `terror_need`, `flee_behavior`, `deserters_faction`), checked only when a template is hirable. Added `comp.Discontent` and `comp.Fleeing`; save version 8.
 - Flight is a marker, `comp.Fleeing{Controller}`. `explore.applyControllers` reads it before the party's mode, which is why `explore/control.go` is touched. The agents controller runs only `recruits.flee_behavior` for a body with the marker. The `agents.flight` per-entry system sets and clears it.
 - Upkeep is a per-day system. A recruit who is the party leader never deserts.
-- Terror triggers sit on `_#Person` and `_#Generic` and satisfy `bodies: "everyone"`, which looks from the striker. `BodyDied.Subjects()` now names the dead body as source and target so the death trigger can see. A limb worn away with no source terrifies no one: M3-16.F1. Terror eases 0.125 a phase; a severed limb adds 0.75, a death 0.25.
+- Terror triggers sit on `_#Person` and `_#Generic` and satisfy `bodies: "witnesses"`, a new selector for the bodies in sight of the target (M3-16.F1), so a limb worn away with no source still counts. `BodyDied` gained `Subjects()` (the dead body as target). Terror eases 0.125 a phase; a severed limb adds 0.75, a death 0.25.
 - `need.terror` was added to `_#Generic` starting needs.
 - The exit-criterion test hires and lets days pass unpaid, without a fight; the recruit's upkeep is coal in the tests so the unpaid recruit is not also starved. Grafts are checked by a `comp.Graft` on one of its parts.
-- `faction.deserters` is hostile to no one (M3-16.F2). The design docs are unchanged except `docs/content-guide.md`.
-- Follow-ups filed: M3-16.F1, M3-16.F2.
+- `faction.deserters` is hostile to no one, as the owner chose (M3-16.F2). `docs/game-design.md` "Paying them" and `docs/content-guide.md` are updated.
+- Follow-ups filed and done in this PR: M3-16.F1, M3-16.F2.
 
 

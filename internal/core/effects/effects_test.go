@@ -193,6 +193,24 @@ func TestBodySelectors(t *testing.T) {
 	}
 }
 
+func TestWitnessesAreSeenFromTheTargetWhateverTheSource(t *testing.T) {
+	fx := newFixture(t)
+	sel, err := effects.ParseBodies("witnesses")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := sel.Resolve(&effects.Context{World: fx.w, Target: fx.a})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Contains(got, fx.a) {
+		t.Errorf("witnesses = %v, want the target among them", fx.uids(got...))
+	}
+	if len(got) < 2 {
+		t.Errorf("witnesses = %v, want bodies in sight of the target with no source", fx.uids(got...))
+	}
+}
+
 func TestSightHidesWallsAndDistance(t *testing.T) {
 	fx := newFixture(t)
 	sel, _ := effects.ParseBodies("everyone")
