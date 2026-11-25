@@ -35,6 +35,7 @@ func newTownField(t *testing.T, seed uint64, start api.ContentID, mutate func(*c
 	t.Helper()
 	g, w, _ := gametest.New(t, seed, func(bundle *content.Bundle) {
 		bundle.Start.Map = start
+		contenttest.Edit(bundle.Maps, denMap, func(den *content.MapDef) { den.Spawns = nil })
 		if mutate != nil {
 			mutate(bundle)
 		}
@@ -171,7 +172,7 @@ func TestResidentsLeaveThroughTheGateWhenWaterRunsOut(t *testing.T) {
 			break
 		}
 		for _, e := range f.wait() {
-			if m, ok := e.(api.Migrated); ok {
+			if m, ok := e.(api.Migrated); ok && m.Family != "family.remnant" {
 				migrated = append(migrated, m)
 			}
 		}

@@ -35,7 +35,9 @@ type Registry struct {
 	// families has a nil program for a formula the family leaves empty.
 	families map[api.ContentID]compiledFamily
 	// behaviors holds each behavior's considerations, in order.
-	behaviors   map[api.ContentID][]*vm.Program
+	behaviors map[api.ContentID][]*vm.Program
+	// ranks holds the rank formula of each behavior that has one.
+	ranks       map[api.ContentID]*vm.Program
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

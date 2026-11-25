@@ -127,6 +127,28 @@ parts: {
 		integrity: 5
 		grants: [{kind: "speed", value: 2}]
 	}
+	// A soul-feeder: a maw that bites and sees, legs and a husk of a core. Placeholder numbers.
+	"part.soul_feeder_maw": {
+		name:      "text.part.maw"
+		slot:      "head"
+		material:  "material.soul_husk"
+		integrity: 5
+		grants: [{kind: "targeting", value: 1}, {kind: "action", value: 1}]
+	}
+	"part.soul_feeder_legs": {
+		name:      "text.part.legs"
+		slot:      "legs"
+		material:  "material.soul_husk"
+		integrity: 6
+		grants: [{kind: "speed", value: 2}]
+	}
+	"part.soul_feeder_core": {
+		name:      "text.part.core"
+		slot:      "torso"
+		material:  "material.soul_husk"
+		integrity: 8
+		vital:     true
+	}
 	"part.beast_torso": {
 		name:      "text.part.torso"
 		slot:      "torso"
@@ -142,6 +164,11 @@ bodies: {
 		{part: "part.moving_clay_maw"},
 		{part: "part.moving_clay_legs"},
 		{part: "part.moving_clay_core"},
+	]
+	"body.soul_feeder": parts: [
+		{part: "part.soul_feeder_maw"},
+		{part: "part.soul_feeder_legs"},
+		{part: "part.soul_feeder_core"},
 	]
 	"body.beast": parts: [
 		{part: "part.beast_skull"},

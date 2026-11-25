@@ -85,6 +85,9 @@ package content
 
 	// Source is the body carrying the need.
 	Source: #BodyEnv
+
+	// Region is the record of the region the body stands in, such as its decay as region.props.decay.
+	Region: #Record
 }
 
 // ConsiderEnv is what a behavior's considerations see.
@@ -111,6 +114,21 @@ package content
 
 	// Stock counts, per item ID, what the stock of the agent's town holds; empty off a town's map.
 	Stock: {[string]: int} @go(,map[string]int)
+
+	// Region is the record of the region the agent stands in, such as its decay as region.props.decay.
+	Region: #Record
+}
+
+// RankEnv is what a behavior's rank formula sees of one option, such as a gate to cross.
+#RankEnv: {
+	// Source is the agent choosing.
+	Source: #BodyEnv
+
+	// Region is the record of the region the option leads to.
+	Region: #Record
+
+	// Distance is hexes from the agent to the option.
+	Distance: int
 }
 
 // EffectEnv is everything an effect formula can see.

@@ -4,6 +4,7 @@ package data
 maps: "map.play.den": _#TestMap & {
 	name: "text.map.play.den"
 	marks: {"a": "from_hub", "g": "gate_to_hub", "r": "remnant", "b": "beast"}
+	region: props: decay: 0.8
 	gates: "g": {to: "map.play.hub", mark: "from_den"}
 	spawns: {
 		"r": "template.creature.remnant"

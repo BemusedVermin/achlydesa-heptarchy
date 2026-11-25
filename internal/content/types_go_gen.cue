@@ -304,6 +304,10 @@ import (
 	// Consider are Expr floats over ConsiderEnv. The score is their product, 1 when there are none.
 	consider?: [...string] @go(Consider,[]string)
 
+	// Rank is an Expr float over RankEnv. A primitive that picks among options, such as the gates
+	// of a map, takes the option that ranks highest.
+	rank?: string @go(Rank)
+
 	// Target is what the behavior goes for: the nearest match on the agent's map. Nil means nothing.
 	target?: null | #TargetDef @go(Target,*TargetDef)
 }

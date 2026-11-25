@@ -41,6 +41,14 @@ _#Hunter: {
 	...
 }
 
+// A creature that acts on its needs. It brings its own actions and behaviors.
+_#Monster: {
+	actor: {controller: "agents", ...}
+	lists: types: ["type.cut"]
+	faction: *"faction.wild" | string
+	...
+}
+
 _residentBehaviors: [
 	"behavior.resident.drink", "behavior.resident.eat", "behavior.resident.sleep",
 	"behavior.resident.leave", "behavior.resident.wander",
@@ -81,24 +89,66 @@ templates: {
 		appearance: {glyph: "@", color: "cyan"}
 		actor: controller: "follow"
 	}
-	// A creature of the soop, all clay.
-	"template.creature.moving_clay": _#Hunter & {
+	// A creature of the soop, all clay. It holds the dead and fights what it sees.
+	"template.creature.moving_clay": _#Monster & {
 		name: "text.template.creature.moving_clay"
 		appearance: {glyph: "c", color: "yellow"}
 		body: "body.moving_clay"
+		actions: ["action.step", "action.strike", "action.hold"]
+		needs: {"need.hold_dead": 0.5}
+		behaviors: ["behavior.clay.hold", "behavior.monster.engage"]
 	}
-	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
-	// The 0.3 is a placeholder, for tuning.
-	"template.creature.remnant": _#Hunter & {
+	// A thing of the deep that has never died. It leaves decayed ground, and a part cut off it
+	// sometimes crawls away and fights. The 0.3 is a placeholder, for tuning.
+	"template.creature.remnant": _#Monster & {
 		name: "text.template.creature.remnant"
 		appearance: {glyph: "r", color: "magenta"}
 		body: "body.remnant"
+		actions: ["action.step", "action.strike"]
+		needs: {"need.undecayed": 0}
+		behaviors: ["behavior.remnant.leave", "behavior.monster.engage"]
 		triggers: [{
 			on:   "combat.part_severed"
 			role: "target"
 			if:   "roll < 0.3"
 			do: [{do: "spawn_from_part", params: {faction: "faction.crawling", controller: "hunt"}}]
 		}]
+	}
+	// A husk that hunts the living, and the slowly dying first.
+	"template.creature.soul_feeder": _#Monster & {
+		name: "text.template.creature.soul_feeder"
+		appearance: {glyph: "s", color: "red"}
+		actor: chooser: "agents"
+		body: "body.soul_feeder"
+		actions: ["action.step", "action.strike"]
+		needs: {"need.soul": 0.5}
+		behaviors: ["behavior.feeder.hunt"]
+		triggers: [{
+			on:   "combat.part_damaged"
+			role: "source"
+			if:   "true"
+			do: [{do: "satisfy", params: {need: "need.soul", amount: "0.15", bodies: "self"}}]
+		}]
+	}
+	// A creature of the archon: it guards the believers and attacks the party near them.
+	"template.creature.archon_warden": _#Monster & {
+		name: "text.template.creature.archon_warden"
+		appearance: {glyph: "w", color: "red"}
+		faction: "faction.archon"
+		body:    "body.beast"
+		actions: ["action.step", "action.strike"]
+		behaviors: ["behavior.archon.guard"]
+	}
+	// One of the archon's worshippers.
+	"template.resident.believer": {
+		name: "text.template.resident.believer"
+		appearance: {glyph: "b", color: "white"}
+		actor: controller: "agents"
+		body:    "body.human"
+		faction: "faction.believers"
+		actions: ["action.step"]
+		tags: ["believer"]
+		needs: {"need.faith": 0}
 	}
 	// A flesh creature with a skull and an eye: Press cracks the bone, Light blinds the eye.
 	"template.creature.beast": _#Hunter & {
@@ -264,28 +314,31 @@ templates: {
 }
 
 text: {
-	"text.template.creature.remnant":     "The remnant"
-	"text.template.creature.beast":       "The beast"
-	"text.template.crawling.remnant_arm": "A crawling arm"
-	"text.template.test.dummy":           "Dummy"
-	"text.template.creature.moving_clay": "Moving clay"
-	"text.template.test.crawler":         "Crawler"
-	"text.template.test.drinker":         "Drinker"
-	"text.template.test.eater":           "Eater"
-	"text.template.test.hauler":          "Hauler"
-	"text.template.test.well":            "Well"
-	"text.template.test.cistern":         "Cistern"
-	"text.template.test.runner":          "Runner"
-	"text.template.test.guard":           "Guard"
-	"text.template.test.engager":         "Fighter"
-	"text.template.test.predator":        "Predator"
-	"text.template.test.dodger":          "Dodger"
-	"text.template.person.reaper":        "The Reaper"
-	"text.template.person.salken":        "Salken"
-	"text.template.generic.guard":        "A guard"
-	"text.template.generic.field_hand":   "A field hand"
-	"text.template.resident.plain":       "A resident"
-	"text.template.resident.hauler":      "A water hauler"
-	"text.template.town.well":            "The well"
-	"text.template.unknown":              "Someone"
+	"text.template.creature.remnant":       "The remnant"
+	"text.template.creature.beast":         "The beast"
+	"text.template.crawling.remnant_arm":   "A crawling arm"
+	"text.template.test.dummy":             "Dummy"
+	"text.template.creature.moving_clay":   "Moving clay"
+	"text.template.creature.soul_feeder":   "The soul-feeder"
+	"text.template.creature.archon_warden": "The archon's warden"
+	"text.template.resident.believer":      "A believer"
+	"text.template.test.crawler":           "Crawler"
+	"text.template.test.drinker":           "Drinker"
+	"text.template.test.eater":             "Eater"
+	"text.template.test.hauler":            "Hauler"
+	"text.template.test.well":              "Well"
+	"text.template.test.cistern":           "Cistern"
+	"text.template.test.runner":            "Runner"
+	"text.template.test.guard":             "Guard"
+	"text.template.test.engager":           "Fighter"
+	"text.template.test.predator":          "Predator"
+	"text.template.test.dodger":            "Dodger"
+	"text.template.person.reaper":          "The Reaper"
+	"text.template.person.salken":          "Salken"
+	"text.template.generic.guard":          "A guard"
+	"text.template.generic.field_hand":     "A field hand"
+	"text.template.resident.plain":         "A resident"
+	"text.template.resident.hauler":        "A water hauler"
+	"text.template.town.well":              "The well"
+	"text.template.unknown":                "Someone"
 }
