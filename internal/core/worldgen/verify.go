@@ -24,7 +24,8 @@ const maxRepairRounds = 256
 // openings lead into one walkable whole, and no pocket of walkable ground smaller than min_pocket is left.
 // Ground is walkable by steps a body can make both ways, so a drop never joins two areas. A small pocket is
 // filled; a larger one that is cut off is joined to the rest by the shortest corridor that can be carved. A
-// repair never changes a place's cells. The stage must be the last of its geography, since it reads the
+// repair never changes a place's cells, and never opens the ground a walkable cell stands on. A place's
+// ground that no opening leads to is left alone. The stage must be the last of its geography, since it reads the
 // result of every stage before it. Every param is required:
 //
 //   - max_step_up, max_step_down: how far a body climbs or descends in one step, as in the party's rules.
@@ -134,16 +135,20 @@ func (r *repairer) settle() error {
 		if err != nil {
 			return err
 		}
-		anchored, err := r.anchorAreas(found)
+		anchored, opened, err := r.anchorAreas(found)
 		if err != nil {
 			return err
+		}
+		if opened {
+			continue
 		}
 		keep := make([]bool, len(found.areas))
 		changed := false
 		for i, members := range found.areas {
-			keep[i] = len(members) >= r.pocket || slices.Contains(anchored, i) ||
-				slices.ContainsFunc(members, r.ctx.Fixed.Covers)
-			if keep[i] {
+			inPlace := slices.ContainsFunc(members, r.ctx.Fixed.Covers)
+			anchor := slices.Contains(anchored, i)
+			keep[i] = anchor || !inPlace && len(members) >= r.pocket
+			if keep[i] || inPlace {
 				continue
 			}
 			for _, cell := range members {
@@ -195,28 +200,70 @@ func (r *repairer) mainArea(found *walkable, anchored []int) int {
 
 // anchorAreas lists the areas the places' openings lead into, in opening order. An opening leads to the
 // standable ground a body reaches by one step from the opening's cell or its exit, or stands on there.
-func (r *repairer) anchorAreas(found *walkable) ([]int, error) {
-	var areas []int
+//
+// An opening that leads nowhere gets its exit made standable instead, and opened reports it, so the caller
+// looks again.
+func (r *repairer) anchorAreas(found *walkable) (areas []int, opened bool, err error) {
 	add := func(cell api.Cell) {
 		if i, ok := found.areaOf[cell]; ok && !slices.Contains(areas, i) {
 			areas = append(areas, i)
 		}
 	}
 	for _, opening := range r.ctx.Openings {
+		reached := 0
 		for _, base := range []api.Cell{opening.Cell, opening.Exit} {
 			add(base)
 			for dir := range api.Dir(api.DirCount) {
 				step, ok, err := r.ground.Step(base, dir, r.rules)
 				if err != nil {
-					return nil, err
+					return nil, false, err
 				}
 				if ok {
 					add(step.To.Cell)
+					reached++
 				}
 			}
 		}
+		_, standsCell := found.areaOf[opening.Cell]
+		_, standsExit := found.areaOf[opening.Exit]
+		if reached == 0 && !standsCell && !standsExit {
+			if err := r.standOn(opening); err != nil {
+				return nil, false, err
+			}
+			return nil, true, nil
+		}
 	}
-	return areas, nil
+	return areas, false, nil
+}
+
+// standOn opens the exit of an opening and gives it a floor, so a body can stand there.
+func (r *repairer) standOn(opening Opening) error {
+	exit, err := r.ground.At(opening.Exit)
+	if err != nil {
+		return err
+	}
+	changed := false
+	if exit.Solid {
+		if err := r.ground.Set(opening.Exit, r.ctx.Open); err != nil {
+			return err
+		}
+		changed = true
+	}
+	floorCell := hexmap.Prisms{}.Below(opening.Exit).Cell
+	floor, err := r.ground.At(floorCell)
+	if err != nil {
+		return err
+	}
+	if !floor.Solid && !r.ctx.Fixed.Covers(floorCell) {
+		if err := r.ground.Set(floorCell, r.fillAt(floorCell)); err != nil {
+			return err
+		}
+		changed = true
+	}
+	if !changed {
+		return fmt.Errorf("verify: opening %v of %q leads to no walkable ground", opening.Cell, opening.Place)
+	}
+	return nil
 }
 
 // areasOfGround flood-fills the walkable cells in cell order, so area numbers never depend on map order.
@@ -303,95 +350,125 @@ func (r *repairer) fillAt(cell api.Cell) hexmap.Terrain {
 	return chunk.Get(cell.Hex.Q-origin.Hex.Q, cell.Hex.R-origin.Hex.R, cell.Depth-origin.Depth)
 }
 
-type bridgeStep struct {
-	from  api.Cell
-	carve []api.Cell
+// bridgeMove is one step of a corridor: the cell stood on after it, the solid cells it opens and the open
+// cells it fills to give the landing a floor.
+type bridgeMove struct {
+	to          api.Cell
+	from        api.Cell
+	carve, fill []api.Cell
 }
 
 // join carves the shortest corridor from the main area to any target area. It searches outward from every
 // cell of the main area in a fixed order, over the steps a tunnel can take.
 func (r *repairer) join(found *walkable, main int, targets map[int]bool) error {
+	for _, fill := range []bool{false, true} {
+		joined, err := r.bridge(found, main, targets, fill)
+		if err != nil || joined {
+			return err
+		}
+	}
+	return errors.New("verify: no corridor can join the walkable areas")
+}
+
+// bridge searches for a corridor and carves it, reporting whether it found one. With fill set, a step may
+// fill an open cell that is no walkable ground to give its landing a floor.
+func (r *repairer) bridge(found *walkable, main int, targets map[int]bool, fill bool) (bool, error) {
 	sources := found.areas[main]
-	parents := make(map[api.Cell]bridgeStep, len(sources))
+	parents := make(map[api.Cell]bridgeMove, len(sources))
 	for _, cell := range sources {
-		parents[cell] = bridgeStep{from: cell}
+		parents[cell] = bridgeMove{from: cell, to: cell}
 	}
 	queue := slices.Clone(sources)
 	for head := 0; head < len(queue); head++ {
 		from := queue[head]
 		for dir := range api.Dir(api.DirCount) {
 			for _, rise := range []int{0, -1, 1} {
-				to, carve, ok, err := r.tunnelStep(from, dir, rise)
+				move, ok, err := r.tunnelStep(found, from, dir, rise, fill)
 				if err != nil {
-					return err
+					return false, err
 				}
-				if _, seen := parents[to]; !ok || seen {
+				if _, seen := parents[move.to]; !ok || seen {
 					continue
 				}
-				parents[to] = bridgeStep{from: from, carve: carve}
-				if area, walks := found.areaOf[to]; walks && targets[area] {
-					return r.carvePath(parents, to)
+				parents[move.to] = move
+				if area, walks := found.areaOf[move.to]; walks && targets[area] {
+					return true, r.carvePath(parents, move.to)
 				}
-				queue = append(queue, to)
+				queue = append(queue, move.to)
 			}
 		}
 	}
-	return errors.New("verify: no corridor can join the walkable areas")
+	return false, nil
 }
 
-func (r *repairer) carvePath(parents map[api.Cell]bridgeStep, end api.Cell) error {
+func (r *repairer) carvePath(parents map[api.Cell]bridgeMove, end api.Cell) error {
 	for cell := end; ; {
-		step := parents[cell]
-		for _, carved := range step.carve {
+		move := parents[cell]
+		for _, carved := range move.carve {
 			if err := r.ground.Set(carved, r.ctx.Open); err != nil {
 				return err
 			}
 		}
-		if step.from == cell {
+		for _, filled := range move.fill {
+			if err := r.ground.Set(filled, r.fillAt(filled)); err != nil {
+				return err
+			}
+		}
+		if move.from == cell {
 			return nil
 		}
-		cell = step.from
+		cell = move.from
 	}
 }
 
-// tunnelStep is one step of a tunnel: a level step, a climb with headroom, or a step down. It reports the
-// cell stood on after it and the solid cells it must open, never a place's, and needs the ground under the
-// landing solid.
+// tunnelStep is one step of a tunnel: a level step, a climb with headroom, or a step down. It never changes
+// a place's cells, and fills the open cell under the landing when there is one.
 func (r *repairer) tunnelStep(
-	from api.Cell, dir api.Dir, rise int,
-) (to api.Cell, carve []api.Cell, ok bool, err error) {
+	found *walkable, from api.Cell, dir api.Dir, rise int, fill bool,
+) (bridgeMove, bool, error) {
 	topology := hexmap.Prisms{}
 	next := topology.Neighbor(from, dir).Cell
+	move := bridgeMove{from: from}
 	var needs []api.Cell
 	switch rise {
 	case 0:
-		to, needs = next, []api.Cell{next}
+		move.to, needs = next, []api.Cell{next}
 	case -1:
-		to = topology.Above(next).Cell
-		needs = []api.Cell{to, topology.Above(from).Cell}
+		move.to = topology.Above(next).Cell
+		needs = []api.Cell{move.to, topology.Above(from).Cell}
 		ground, err := r.ground.At(next)
 		if err != nil || !ground.Solid {
-			return to, nil, false, err
+			return move, false, err
 		}
 	default:
-		to = topology.Below(next).Cell
-		needs = []api.Cell{next, to}
+		move.to = topology.Below(next).Cell
+		needs = []api.Cell{next, move.to}
 	}
-	floor, err := r.ground.At(topology.Below(to).Cell)
-	if err != nil || !floor.Solid {
-		return to, nil, false, err
+	floorCell := topology.Below(move.to).Cell
+	floor, err := r.ground.At(floorCell)
+	if err != nil {
+		return move, false, err
+	}
+	if !floor.Solid {
+		if _, walkable := found.areaOf[floorCell]; !fill || walkable || r.ctx.Fixed.Covers(floorCell) {
+			return move, false, nil
+		}
+		move.fill = append(move.fill, floorCell)
 	}
 	for _, cell := range needs {
 		terrain, err := r.ground.At(cell)
 		if err != nil {
-			return to, nil, false, err
+			return move, false, err
 		}
 		if !r.ctx.Bounds.Contains(cell) || r.ctx.Fixed.Covers(cell) && terrain.Solid {
-			return to, nil, false, nil
+			return move, false, nil
 		}
 		if terrain.Solid {
-			carve = append(carve, cell)
+			if _, stoodOn := found.areaOf[topology.Above(cell).Cell]; stoodOn {
+				return move, false, nil
+			}
+			move.carve = append(move.carve, cell)
 		}
 	}
-	return to, carve, true, nil
+	return move, true, nil
 }
