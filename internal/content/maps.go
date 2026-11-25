@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -238,15 +239,15 @@ func (r *Registry) checkGenerics(p *problems, at string, town *TownDef) {
 		if generic.Ticks < 1 {
 			p.addf("%s.ticks: %d is not at least 1", path, generic.Ticks)
 		}
-		owners := 0
+		var owners []FamilyDef
 		for _, family := range r.bundle.Families {
-			if len(family.Templates) == 1 && family.Templates[0].Template == generic.Template {
-				owners++
+			if slices.ContainsFunc(family.Templates, func(t Weighted) bool { return t.Template == generic.Template }) {
+				owners = append(owners, family)
 			}
 		}
-		if owners != 1 {
-			p.addf("%s.template: %q must be the only template of exactly one family, found %d",
-				path, generic.Template, owners)
+		if len(owners) != 1 || len(owners[0].Templates) != 1 {
+			p.addf("%s.template: %q must be listed by exactly one family, as its only template, found %d families",
+				path, generic.Template, len(owners))
 		}
 	}
 }

@@ -1,6 +1,8 @@
 package agents
 
 import (
+	"cmp"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -29,7 +31,7 @@ func tickGenerics(w *sim.World) error {
 		region, _ := query.Get()
 		towns = append(towns, townEntry{entity: query.Entity(), region: *region})
 	}
-	slices.SortFunc(towns, func(a, b townEntry) int { return int(a.region.Map) - int(b.region.Map) })
+	slices.SortFunc(towns, func(a, b townEntry) int { return cmp.Compare(a.region.Map, b.region.Map) })
 	for _, town := range towns {
 		def, ok := w.Content.Map(town.region.Def)
 		if !ok || def.Region == nil || def.Region.Town == nil || len(def.Region.Town.Generics) == 0 {
@@ -56,8 +58,12 @@ func tickTownGenerics(w *sim.World, entity ecs.Entity, id api.MapID, def *conten
 			waiting = append(waiting, replacement)
 			continue
 		}
-		if err := arrive(w, entity, id, replacement.Template); err != nil {
+		arrived, err := arrive(w, entity, id, replacement.Template)
+		if err != nil {
 			return err
+		}
+		if !arrived {
+			waiting = append(waiting, replacement)
 		}
 	}
 	state.Replacements = waiting
@@ -114,32 +120,35 @@ func genericsOn(w *sim.World, id api.MapID, template api.ContentID) int {
 	return n
 }
 
+// errCrowdedGate is returned by arrivalCell when no cell near the gate is free.
+var errCrowdedGate = errors.New("no free cell near the gate")
+
 // arrive brings a generic into the town: a body at the gate when the party is on the map, else one
-// more in the family's count.
-func arrive(w *sim.World, town ecs.Entity, id api.MapID, template api.ContentID) error {
+// more in the family's count. It reports false, leaving the town unchanged, when the gate is
+// crowded, so the caller can retry later.
+func arrive(w *sim.World, town ecs.Entity, id api.MapID, template api.ContentID) (bool, error) {
 	family, err := familyListing(w, template)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if at, onScreen := partyMap(w); !onScreen || at != id {
-		populations := ecs.NewMap[comp.Populations](w.ECS)
-		if !populations.Has(town) {
-			sim.Put(w, town, comp.Populations{})
-		}
-		addToPopulation(populations.Get(town), family, 1)
-		return nil
+		addToPopulation(ecs.NewMap[comp.Populations](w.ECS).Get(town), family, 1)
+		return true, nil
 	}
 	cell, err := arrivalCell(w, id)
+	if errors.Is(err, errCrowdedGate) {
+		return false, nil
+	}
 	if err != nil {
-		return err
+		return false, err
 	}
 	body, err := w.Spawn(template, &comp.Pos{Map: id, At: cell})
 	if err != nil {
-		return err
+		return false, err
 	}
 	sim.Put(w, body, comp.Family{ID: family})
 	sim.Put(w, body, comp.Generic{Town: id})
-	return nil
+	return true, nil
 }
 
 // arrivalCell picks, with the lod stream, one of the free cells nearest the map's first gate.
@@ -161,7 +170,7 @@ func arrivalCell(w *sim.World, id api.MapID) (api.Cell, error) {
 		return api.Cell{}, err
 	}
 	if len(free) == 0 {
-		return api.Cell{}, fmt.Errorf("no free cell near the gate at %v", gates[0].At)
+		return api.Cell{}, fmt.Errorf("%w at %v", errCrowdedGate, gates[0].At)
 	}
 	nearest := hexmap.CellDistance(gates[0].At, free[0])
 	ties := 0

@@ -87,7 +87,11 @@ func familyOf(w *sim.World, body ecs.Entity) (api.ContentID, error) {
 	if families := ecs.NewMap[comp.Family](w.ECS); families.Has(body) {
 		return families.Get(body).ID, nil
 	}
-	return familyListing(w, w.TemplateOf(body))
+	family, err := familyListing(w, w.TemplateOf(body))
+	if err != nil {
+		return "", fmt.Errorf("body %d: %w", w.UIDOf(body), err)
+	}
+	return family, nil
 }
 
 // familyListing is the first family, by ID, that lists the template.

@@ -54,7 +54,9 @@ Towns keep their generic people: guards, merchants and would-be recruits with ve
 - Replacements are not queued by hooking deaths and departures. A per-entry system (`agents.generics`) compares what each town holds (living generics on its map plus its family count) with the wanted count, and queues a timer for each generic missing and not already queued. A loss is noticed at the next timeline entry, so the timer starts then.
 - A generic's template must be the only template of exactly one family (content check); that family's count is the off-screen count. Generics need `residents` on the town. "Emptied" means the residents family has no living body on the map and no count; generics need not belong to that family. The pending queue is dropped once the town is emptied.
 - Arrival on screen is one of the free cells nearest the map's first gate, picked with the `lod` stream.
-- The test town gained generics (2 guards, 1 field hand) and `residents: family.people`. Save version raised to 7. No docs changed.
+- The test town gained generics (2 guards, 1 field hand) and `residents: family.people`. Save version raised to 7.
+- `docs/go-technical-design.md` changed in the `clock` row and in step 4 of the timeline: replacement timers live on `comp.Town` and are checked by an agents per-entry system, not by `clock` or the phase tick.
+- A crowded gate leaves a due replacement queued, retried at later entries.
 - Follow-ups filed: none.
 
 
