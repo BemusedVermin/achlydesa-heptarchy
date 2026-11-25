@@ -1,7 +1,7 @@
 ---
 id: M3-15
 title: Hiring recruits
-status: todo
+status: done
 milestone: M3
 kind: feature
 depends_on: [M3-12]
@@ -51,11 +51,11 @@ type Hired struct { Party, Recruit api.UID; Paid []api.ItemCount }
 
 ## Acceptance criteria
 
-- [ ] A test hires a guard: the inventory loses exactly the price, the guard is a party member, and the town's guard is replaced later.
-- [ ] Exit criterion, first half: the hired recruit fights in the next encounter, with options in the action menu like any member.
-- [ ] With a full party, or too few items, the hire option is disabled with its reason.
-- [ ] In the playground's town, a recruit can be hired from the action menu.
-- [ ] `go tool task check` passes.
+- [x] A test hires a guard: the inventory loses exactly the price, the guard is a party member, and the town's guard is replaced later.
+- [x] Exit criterion, first half: the hired recruit fights in the next encounter, with options in the action menu like any member.
+- [x] With a full party, or too few items, the hire option is disabled with its reason.
+- [x] In the playground's town, a recruit can be hired from the action menu.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -64,5 +64,11 @@ type Hired struct { Party, Recruit api.UID; Paid []api.ItemCount }
 - A bench of members beyond the four fighting slots.
 
 ## Notes
-
-
+- The Hire command and option live in `agents` (`recruits.go`); `RecruitDef` and `content.RecruitPrice` in `internal/content/recruits.go`. `Hired` also gets a log line. `api.ItemCount` and `api.HireOption` are new.
+- The follow controller is set by explore's `party_control` system on the next timeline entry (agents cannot import explore), not by the hire handler.
+- Hiring also removes the `Family` component, so the party moving never demotes the recruit into a population count. The faction is copied from the leader's allegiance.
+- The option is offered only while a player-controlled member is deciding; "next to" is cell distance at most 1 from the leader. A full party counts living members against `party.slots`; only unbound stacks pay.
+- `_#Generic` gains `action.strike` and `type.cut` so a hired recruit can fight. Guard and field hand wants and `worth: "1.0"` are placeholders.
+- Docs: `docs/content-guide.md` describes `recruit`.
+- golangci-lint could not run locally (toolchain mismatch); CI will. Tests, vet, gofmt and `task content` pass.
+- Follow-ups filed: none.

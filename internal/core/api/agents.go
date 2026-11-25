@@ -19,7 +19,9 @@ const (
 const OptionHirePrefix = "hire/"
 
 // HireOption is the ID of the option that hires the recruit with the UID.
-func HireOption(recruit UID) string { return OptionHirePrefix + strconv.FormatUint(uint64(recruit), 10) }
+func HireOption(recruit UID) string {
+	return OptionHirePrefix + strconv.FormatUint(uint64(recruit), 10)
+}
 
 // ItemCount is some of one kind of item.
 type ItemCount struct {
