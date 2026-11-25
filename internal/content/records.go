@@ -36,6 +36,9 @@ func collections() []collection {
 			nil, func(a ActionDef) (api.ContentID, bool) { return a.Name, true }),
 		described(CollectionPlaces, "place", func(b *Bundle) map[string]PlaceDef { return b.Places },
 			nil, func(p PlaceDef) (api.ContentID, bool) { return p.Name, true }),
+		// Not a Collection constant: a geography carries no data a choice could list.
+		described[GeographyDef]("geographies", "geography",
+			func(b *Bundle) map[string]GeographyDef { return b.Geographies }, nil, nil),
 		shared(described(
 			CollectionParts,
 			"part",

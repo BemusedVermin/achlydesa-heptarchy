@@ -24,6 +24,9 @@ import (
 
 	// Places are the hand-made pieces of the world ("place." IDs).
 	places: {[string]: #PlaceDef} @go(Places,map[string]PlaceDef)
+
+	// Geographies are the kinds of generated ground ("geography." IDs).
+	geographies?: {[string]: #GeographyDef} @go(Geographies,map[string]GeographyDef)
 	start: #Start @go(Start)
 	claims: {[string]: #Claim} @go(Claims,map[string]Claim)
 	origins: {[string]: #Origin} @go(Origins,map[string]Origin)
@@ -399,6 +402,22 @@ import (
 
 	// Open is the terrain of a marked cell.
 	open: api.#ContentID @go(Open)
+
+	// Geography builds the cells no place covers ("geography." ID). Empty leaves them all Fill.
+	geography?: api.#ContentID @go(Geography)
+}
+
+// GeographyDef lists the stages that build chunks of one kind of ground, in order.
+#GeographyDef: {
+	stages: [...#StageDef] @go(Stages,[]StageDef)
+}
+
+// StageDef names a registered procgen stage and its numbers. Whether the stage takes those params is the
+// stage's to check, against the stage registry.
+#StageDef: {
+	// Stage is the registered stage's name, such as "caves".
+	stage: string @go(Stage)
+	params?: {[string]: float64} @go(Params,map[string]float64)
 }
 
 // PlaceDef is a piece of hand-made world, such as a town or a set piece, set at a fixed position.
