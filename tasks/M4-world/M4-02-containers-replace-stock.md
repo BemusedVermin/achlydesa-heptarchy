@@ -54,7 +54,7 @@ Water and food are items in containers, things with a place and an inventory, th
 
 ## Out of scope
 
-- People going elsewhere for what a dry town lacks: M4-15 (until then, `leave` works through gates as M3 left it, and M4-07 deletes it).
+- People going elsewhere for what a dry town lacks: M6 (until then, `leave` works through gates as M3 left it, and M4-07 deletes it).
 - Placing containers in one world at human scale: M4-11.
 - Recruits and hiring: M4-03.
 

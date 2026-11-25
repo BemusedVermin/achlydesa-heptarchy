@@ -10,7 +10,7 @@ tasks/
 ├── TEMPLATE.md           # copy this for new tasks and follow-ups
 ├── M1-skeleton/          # README.md (milestone brief) + one file per task
 ├── M2-combat/
-├── M3-agents/ ... M8-tuning/   # briefs only until the milestone is broken down
+├── M3-agents/ ... M9-tuning/   # briefs only until the milestone is broken down
 ├── post-mvp/             # post-MVP milestones, one folder each
 └── followups/            # tasks agents filed while working; triaged by the owner
 ```
@@ -22,7 +22,7 @@ tasks/
 id: M1-03
 title: "sim: world, event bus and system scheduler"   # quote titles that contain a colon
 status: todo            # proposed | todo | in-progress | blocked | done | obsolete
-milestone: M1           # M1..M8, a cleanup milestone (C1, C2, ...), a post-MVP milestone (PM-STORY), or unplanned
+milestone: M1           # M1..M9, a cleanup milestone (C1, C2, ...), a post-MVP milestone (PM-STORY), or unplanned
 kind: feature           # feature | seam | bug | debt | test | content | question
 depends_on: [M1-01]
 discovered_by: null     # the task ID that filed it, for follow-ups

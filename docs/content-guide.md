@@ -233,7 +233,7 @@ Tests keep their own start maps: the sample content in `contenttest` starts on `
 
 ## The sample world
 
-`starts` in `start.cue` holds named scenarios beside the default `start`. `start.sample` begins in `maps/sample_world.cue`: four maps in a chain, joined by gates, with placeholder numbers for M8 to tune. Play it with `go run ./cmd/harness run --start start.sample --steps 40`; a test picks it with `bundle.Start = bundle.Starts["start.sample"]`.
+`starts` in `start.cue` holds named scenarios beside the default `start`. `start.sample` begins in `maps/sample_world.cue`: four maps in a chain, joined by gates, with placeholder numbers for M9 to tune. Play it with `go run ./cmd/harness run --start start.sample --steps 40`; a test picks it with `bundle.Start = bundle.Starts["start.sample"]`.
 
 | Map | Decay | What is there |
 | --- | --- | --- |

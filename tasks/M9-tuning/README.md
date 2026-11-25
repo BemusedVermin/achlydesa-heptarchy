@@ -1,6 +1,6 @@
-# M8 · Tuning
+# M9 · Tuning
 
-**Status:** outline. Break it into task files once M7 is done.
+**Status:** outline. Break it into task files once M8 is done.
 
 **Goal:** the clock numbers and content values come from data: hundreds of seeded headless runs, analyzed outside Go, with changes made in content rather than code.
 

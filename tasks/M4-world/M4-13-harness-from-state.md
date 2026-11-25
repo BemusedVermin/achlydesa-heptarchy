@@ -1,19 +1,19 @@
 ---
 id: M4-13
-title: The harness measures from state, within the time budget
+title: The harness measures from state
 status: todo
 milestone: M4
 kind: test
-depends_on: [M4-11, M4-15]
+depends_on: [M4-11]
 discovered_by: null
 size: M
 ---
 
-# M4-13 · The harness measures from state, within the time budget
+# M4-13 · The harness measures from state
 
 ## Goal
 
-The harness counts outcomes from the world's state, not from events announcing them, and a seeded year of the sample world runs within 60 s. Tests show the off-screen outcomes the milestone promises.
+The harness counts outcomes from the world's state, not from events announcing them. Tests show what agents do off screen in one world: they meet their needs where they live, and nothing refills, replaces or announces anything.
 
 ## Context
 
@@ -29,9 +29,8 @@ The harness counts outcomes from the world's state, not from events announcing t
 - Emergence tests on `start.sample`, off screen (the party far away, idle):
   - residents fetch water and food from containers;
   - monsters roam and hunt (a death among their prey within N days);
-  - with the shallow town's well and cisterns emptied, its people end up in the lake town and `people_<shallow>` reaches 0;
-  - a recruit left unpaid walks off.
-- A benchmark, `BenchmarkSampleYear`, and a test behind a flag (or `-short` skip) that fails when one seeded year takes over 60 s on the CI runner. If it does, tune `agents.near_chunks` and `agents.far_ticks` first, and file a follow-up for anything that needs code.
+  - with the shallow town's well and cisterns emptied, its people's thirst rises and nothing adds water. Going elsewhere for it is M6.
+- A benchmark, `BenchmarkSampleYear`, that reports how long one seeded year takes, with the time in Notes. It sets no limit: M6 owns the 60 s budget.
 - `docs/go-technical-design.md` → "The harness": the new columns.
 
 ## Spec
@@ -43,12 +42,12 @@ The harness counts outcomes from the world's state, not from events announcing t
 
 - [ ] `go run ./cmd/harness run --start start.sample --seeds 2 --days 30` writes the new columns.
 - [ ] Each emergence test above passes, and none reads an event to decide.
-- [ ] One seeded year of `start.sample` runs within 60 s; the time is in Notes.
+- [ ] The benchmark runs, and the time for one seeded year is in Notes.
 - [ ] `go tool task check-pr` and `go tool task check` pass.
 
 ## Out of scope
 
-- Tuning numbers for good outcomes: M8.
+- Tuning numbers for good outcomes: M9.
 
 ## Notes
 

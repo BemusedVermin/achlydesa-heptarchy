@@ -126,19 +126,15 @@ Brief: [M4-world/README.md](M4-world/README.md)
 | --- | --- | --- | --- | --- | --- |
 | [M4-01](M4-world/M4-01-delete-level-of-detail.md) | Everyone is an individual: delete level of detail and counts | todo | debt | M | none |
 | [M4-02](M4-world/M4-02-containers-replace-stock.md) | Containers replace the town stock; delete generics and emptying | todo | feature | M | M4-01 |
-| [M4-03](M4-world/M4-03-recruits-pay-need.md) | Recruits on a pay need | todo | feature | M | M4-02 |
+| [M4-03](M4-world/M4-03-delete-upkeep-flight.md) | Delete the upkeep and flight systems | todo | debt | S | M4-02 |
 | [M4-04](M4-world/M4-04-bounded-world-store.md) | hexmap: one bounded world store | todo | seam | S | none |
-| [M4-05](M4-world/M4-05-chunk-graph.md) | hexmap: the coarse chunk graph | todo | seam | M | M4-04 |
 | [M4-06](M4-world/M4-06-world-and-places.md) | Content: the world and its places | todo | seam | M | M4-04 |
 | [M4-07](M4-world/M4-07-one-world.md) | One world: delete maps and gates | todo | seam | M | M4-01, M4-02, M4-03, M4-06 |
 | [M4-08](M4-world/M4-08-regions-as-areas.md) | Regions drawn by hand as areas | todo | feature | M | M4-07 |
-| [M4-09](M4-world/M4-09-far-agents.md) | Far agents: two fidelities | todo | feature | M | M4-05, M4-07 |
-| [M4-10](M4-world/M4-10-knowing-where.md) | Knowing where things are | todo | feature | M | M4-08 |
 | [M4-11](M4-world/M4-11-sample-world.md) | The human-scale sample world | todo | content | M | M4-02, M4-03, M4-08 |
 | [M4-12](M4-world/M4-12-playground-and-guide.md) | Playground and test places at human scale; the content guide | todo | content | M | M4-07, M4-08 |
-| [M4-13](M4-world/M4-13-harness-from-state.md) | The harness measures from state, within the time budget | todo | test | M | M4-11, M4-15 |
+| [M4-13](M4-world/M4-13-harness-from-state.md) | The harness measures from state | todo | test | M | M4-11 |
 | [M4-14](M4-world/M4-14-exit-check.md) | Exit check: walk the world, and the vocabulary sweep | todo | test | S | M4-12, M4-13 |
-| [M4-15](M4-world/M4-15-needs-across-the-world.md) | Needs reach across the world | todo | feature | M | M4-09, M4-10 |
 
 ## Later milestones (outlines)
 
@@ -147,13 +143,14 @@ Each becomes task files when the milestone before it is done: run `/plan-milesto
 | Milestone | Brief |
 | --- | --- |
 | M5 · Procgen | [M5-procgen/README.md](M5-procgen/README.md) |
-| M6 · Seats | [M6-seats/README.md](M6-seats/README.md) |
-| M7 · Emergence | [M7-emergence/README.md](M7-emergence/README.md) |
-| M8 · Tuning | [M8-tuning/README.md](M8-tuning/README.md) |
+| M6 · Minds | [M6-minds/README.md](M6-minds/README.md) |
+| M7 · Seats | [M7-seats/README.md](M7-seats/README.md) |
+| M8 · Emergence | [M8-emergence/README.md](M8-emergence/README.md) |
+| M9 · Tuning | [M9-tuning/README.md](M9-tuning/README.md) |
 
 ## Post-MVP milestones
 
-Milestones for after the MVP (M1 to M8). None starts before the MVP is done, and nothing in the MVP depends on them. See [post-mvp/README.md](post-mvp/README.md).
+Milestones for after the MVP (M1 to M9). None starts before the MVP is done, and nothing in the MVP depends on them. See [post-mvp/README.md](post-mvp/README.md).
 
 | Milestone | Brief | Design |
 | --- | --- | --- |
@@ -165,7 +162,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M4-03.F1](followups/M4-03.F1-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | proposed | feature | M7 | M4-03 |
+| [M4-03.F1](followups/M4-03.F1-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | proposed | feature | M6 | M4-03 |
 | [M3-11.F1.F1.F1](followups/M3-11.F1.F1.F1-off-screen-bodies-emptied.md) | Report TownEmptied for a town off screen whose resident bodies leave or die | obsolete | seam | unplanned | M3-11.F1.F1 |
 | [M3-16.F2](followups/M3-16.F2-deserters-hostility.md) | Decide how deserters stand toward the party | done | question | M6 | M3-16 |
 | [M3-16.F1](followups/M3-16.F1-terror-witness-selector.md) | Raise terror in the bodies that witness an event, not those in the striker's sight | done | seam | M3 | M3-16 |

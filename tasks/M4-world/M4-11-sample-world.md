@@ -37,7 +37,7 @@ The sample world is one small, hand-built continuous world at 1.5 m a cell: a sh
 
 - **No cell stands for a structure.** A well is a shaft of open cells with water at the bottom and a container or water cells to draw from; a house is walls and a door. Firm.
 - Bodies stand in one cell, standing or crawling (headroom decision).
-- Placeholder numbers stay placeholders for M8.
+- Placeholder numbers stay placeholders for M9.
 - Authoring large places: a helper in CUE (a comprehension that draws a rectangle of walls with a door) is welcome if it keeps the files readable; it lives in `places/` as a hidden definition.
 
 ## Acceptance criteria

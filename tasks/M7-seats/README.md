@@ -1,6 +1,6 @@
-# M6 · Seats
+# M7 · Seats
 
-**Status:** outline. Break it into task files once M5 is done.
+**Status:** outline. Break it into task files once M6 is done.
 
 **Goal:** one seat works end to end: its stages, the piece's readings, investigation, killing and passing, and wound scoring choosing the next holder.
 

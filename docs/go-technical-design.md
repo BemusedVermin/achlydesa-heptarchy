@@ -165,7 +165,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `explore` | The world built from placed content, stepping, lead and follow, remembered cells and the plan-view projection | `hexmap` |
 | `procgen` | A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, reseeding on exports, keeping the party's pocket | opensimplex-go, gonum graph for the guarantees |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
-| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party | Expr for need curves, Ark relations for grudges and relationships |
+| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party; goals chosen from needs and desires, and planned with GOAP from what the agent believes (M6) | Expr for need curves, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
 | `rumor` | Facts carried between people and towns, drifting with each retelling | `knowledge`, `text/template` for the words |
@@ -292,9 +292,10 @@ Each step ends with something playable or measurable.
 3. **Agents:** needs scoring for creatures and people, behaviors, recruits.
 4. **One world:** the towns and the deep as one bounded, continuous world at human scale, with regions as areas of it, and one agent model in which everyone is an individual; M3's separate maps, gates and outcome systems deleted.
 5. **Procgen:** the generated deep between the fixed places, exports reseeding it, the pocket, the guarantees as property tests.
-6. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
-7. **Emergence:** births and arrivals, immigration and emigration points, new crawlspaces, rumors, grudges and memory, dreams.
-8. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
+6. **Minds:** desires and personality, goals by utility, GOAP planning from beliefs, travel for needs anywhere in the world, far agents, the time budget.
+7. **Seats:** one seat, the piece's readings, investigation, killing and passing, wound scoring.
+8. **Emergence:** births and arrivals, immigration and emigration points, new crawlspaces, rumors and hearsay, grudges and memory, dreams.
+9. **Tuning:** harness runs over hundreds of seeds; adjust content, not code.
 
 After the MVP: post-MVP milestones live under `tasks/post-mvp/`, each with its own design doc. The first is the story system (`docs/story.md`). Nothing in the MVP depends on them.
 
