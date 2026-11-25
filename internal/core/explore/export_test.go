@@ -126,12 +126,20 @@ func (ew *exportWorld) placeMembersInDeep() {
 		parties = append(parties, query2.Entity())
 	}
 	for _, party := range parties {
-		chunk := comp.SeenChunk{Q: ew.deep.Q, R: ew.deep.R, Depth: ew.deep.Depth, Bits: make([]uint64, hexmap.ChunkCells/64)}
+		chunk := comp.SeenChunk{
+			Q:     ew.deep.Q,
+			R:     ew.deep.R,
+			Depth: ew.deep.Depth,
+			Bits:  make([]uint64, hexmap.ChunkCells/64),
+		}
 		chunk.Bits[0] = 1
 		known := seen.Get(party)
 		known.Chunks = append(known.Chunks, chunk)
 		slices.SortFunc(known.Chunks, func(a, b comp.SeenChunk) int {
-			return hexmap.CompareKeys(hexmap.ChunkKey{Q: a.Q, R: a.R, Depth: a.Depth}, hexmap.ChunkKey{Q: b.Q, R: b.R, Depth: b.Depth})
+			return hexmap.CompareKeys(
+				hexmap.ChunkKey{Q: a.Q, R: a.R, Depth: a.Depth},
+				hexmap.ChunkKey{Q: b.Q, R: b.R, Depth: b.Depth},
+			)
 		})
 	}
 }
