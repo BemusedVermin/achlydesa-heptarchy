@@ -48,7 +48,7 @@ type Game struct {
 // player decision.
 func New(cfg Config) (*Game, error) {
 	g, err := build(cfg, func(w *sim.World) error {
-		if err := explore.Start(w); err != nil {
+		if err := explore.StartWith(w, generator(0)); err != nil {
 			return fmt.Errorf("game: start: %w", err)
 		}
 		return nil

@@ -3,7 +3,7 @@ package data
 // A hall, a soop sloping down to a chamber, a ledge, and a soop that crosses under the hall.
 places: "place.test.descent": _#TestPlace & {
 	name: "text.place.test.descent"
-	at: {col: 30, row: 4, depth: 0}
+	at: {col: 200, row: 200, depth: 10}
 	marks: {"@": "party_start", "c": "creature", "o": "way_out"}
 	openings: ["o"]
 	spawns: "c": "template.creature.moving_clay"

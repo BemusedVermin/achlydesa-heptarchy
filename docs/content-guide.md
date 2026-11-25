@@ -172,7 +172,7 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
 ### A place, like `places/test_den.cue`
 
 1. Copy `places/test_den.cue` to a new file in `places/`, with a `place.` ID and a `name` of `text.<its ID>`.
-2. Set `at` to a free part of the world: the cell of the place's column 0, row 0 and depth 0, on an even row, with every authored cell inside `world.cue`'s bounds and none shared with another place. Grow the world if it does not fit.
+2. Set `at` to a free part of the world: the cell of the place's column 0, row 0 and depth 0, on an even row, with every authored cell inside `world.cue`'s bounds and none shared with another place. Grow the world if it does not fit. Tests do not use these positions: `contenttest.Sample` puts the places side by side in a small world with no generated deep (`contenttest.Fixture`), and `contenttest.Full` loads the real world.
 3. `_#TestPlace & {...}` gives `#` as clay and `.` as air in the `legend`. Everything the layers leave is the world's fill.
 4. Draw one or more `layers`, each a `depth` (relative to `at.depth`) and `rows`: one character per cell, in odd-r offset layout (odd rows are shifted half a hex right). A space leaves the fill.
 5. Name the special characters in `marks`; a mark name is unique within its place. Put a mark's character in `spawns` with a template ID to spawn a body of it at every such cell. A mark with no spawn must appear exactly once in the layers; a spawn's character must also be a mark, and may appear any number of times.

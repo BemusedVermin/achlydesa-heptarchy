@@ -1,7 +1,7 @@
 ---
 id: M5-06
 title: The large world: procgen in the game
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-05]
@@ -38,10 +38,10 @@ The real game's world is large and procedurally generated: the places sit in it 
 
 ## Acceptance criteria
 
-- [ ] `go tool task run -- play --seed 1` starts quickly, and walking out of a place's opening goes into a generated tunnel with no seam.
-- [ ] Two games with the same seed show the same deep; a different seed shows a different one.
-- [ ] A save made after walking and edits loads to an identical state (existing save tests pass on the fixture).
-- [ ] `go tool task check` passes.
+- [x] `go tool task run -- play --seed 1` starts quickly, and walking out of a place's opening goes into a generated tunnel with no seam.
+- [x] Two games with the same seed show the same deep; a different seed shows a different one.
+- [x] A save made after walking and edits loads to an identical state (existing save tests pass on the fixture).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -49,4 +49,11 @@ The real game's world is large and procedurally generated: the places sit in it 
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- explore may not import procgen (rule 2), so `explore.Generator`, `StartWith` and `LoadWorldWith` take the generator and `game/generate.go` supplies the procgen source. `Start` and `LoadWorld` stay fixed-only.
+- `Load` builds the source with the save's export count, so a loaded world matches the saved one once exports regenerate (M5-10).
+- `contenttest.Sample` is now the fixture: the old 70 by 30 by 8 world, old place positions, no geography, the hall as start. `contenttest.Full` loads the real content. The content package's own places test sets its world size, since it cannot import contenttest.
+- Real content: world 400 by 400 by 64 depth steps; places at (150,180,6), (200,200,10), (170,230,20); start moved to the descent, the only place with an opening. The positions are first values and not checked for joins; connectivity is M5-07.
+- Procgen tests now name `geography.deep` instead of the world's geography.
+- Docs: `docs/content-guide.md` notes the fixture. `game-design.md` already said it.
+- `go tool task check-ci` was run; the agentkit afteredit lint test fails here from a toolchain export-data mismatch, unrelated.
+- No follow-ups.

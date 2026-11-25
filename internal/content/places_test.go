@@ -53,6 +53,7 @@ func TestPlacesAreChecked(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			bundle := sampleBundle(t)
 			bundle.Start = Start{}
+			bundle.World.Cols, bundle.World.Rows, bundle.World.MaxDepth = 70, 30, 7
 			bundle.Places = map[string]PlaceDef{}
 			for id, at := range test.places {
 				def := testPlace(id, at)

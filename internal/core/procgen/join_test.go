@@ -44,7 +44,7 @@ func newJoinWorld(tb testing.TB, seed, exportCount uint64) joinWorld {
 	if err := procgen.RegisterJoin(stages); err != nil {
 		tb.Fatal(err)
 	}
-	geography, _ := reg.Geography(reg.World().Geography)
+	geography, _ := reg.Geography("geography.deep")
 	geography.Stages = geography.Stages[:2]
 	cfg := procgen.Config{
 		Seed: seed, ExportCount: exportCount, Bounds: fixed.Bounds(),
