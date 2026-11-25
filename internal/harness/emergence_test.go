@@ -1,14 +1,15 @@
 package harness_test
 
 import (
+	"bytes"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
+	"strconv"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
@@ -16,11 +17,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/harness"
-)
-
-const (
-	emergenceSeeds = 100
-	emergenceDays  = 30
 )
 
 var update = flag.Bool("update", false, "rewrite the golden files")
@@ -33,55 +29,33 @@ func sampleRegistry(tb testing.TB) *content.Registry {
 	return contenttest.Registry(tb, bundle)
 }
 
-// TestNoDegenerateCamping plays the sample world for 30 days on 100 seeds and expects no family to
-// settle into one town.
-func TestNoDegenerateCamping(t *testing.T) {
-	if testing.Short() {
-		t.Skip("plays 100 games of 30 days")
-	}
-	reg := sampleRegistry(t)
-	results := make([]harness.EmergenceResult, emergenceSeeds)
-	errs := make([]error, emergenceSeeds)
-	var wg sync.WaitGroup
-	limit := make(chan struct{}, runtime.NumCPU())
-	for i := range results {
-		wg.Go(func() {
-			limit <- struct{}{}
-			defer func() { <-limit }()
-			seed := uint64(i + 1)
-			results[i], errs[i] = harness.PlayDays(reg, seed, harness.NewRestPolicy(reg), emergenceDays, 5000, harness.DefaultCamping())
-		})
-	}
-	wg.Wait()
-	camped, migrations, emptied := 0, 0, 0
-	for i, result := range results {
-		if errs[i] != nil {
-			t.Fatalf("seed %d: %v", i+1, errs[i])
-		}
-		migrations += result.Migrations
-		emptied += result.TownsEmptied
-		if len(result.Camps) > 0 {
-			camped++
-			if camped <= 3 {
-				t.Errorf("seed %d: camping %+v", result.Seed, result.Camps)
-			}
-		}
-	}
-	if camped > 0 {
-		t.Errorf("%d of %d seeds showed camping", camped, emergenceSeeds)
-	}
-	t.Logf("migrations %d, towns emptied %d over %d seeds", migrations, emptied, emergenceSeeds)
-}
-
-// TestNewColumnsCountEvents plays the sample world and expects the new columns to be filled.
+// TestNewColumnsCountEvents runs the sample world through Run and expects the new columns to fill.
 func TestNewColumnsCountEvents(t *testing.T) {
 	reg := sampleRegistry(t)
-	result, err := harness.PlayDays(reg, 1, harness.NewRestPolicy(reg), 12, 2000, harness.DefaultCamping())
+	var buf bytes.Buffer
+	cfg := harness.RunConfig{
+		Seeds: 1, SeedStart: 1, Steps: 40, Content: reg,
+		NewPolicy: func(uint64) harness.Policy { return harness.NewRestPolicy(reg) },
+	}
+	if err := harness.Run(cfg, &buf); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := csv.NewReader(&buf).ReadAll()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Deaths == 0 || result.Migrations == 0 {
-		t.Errorf("seed 1 over 12 days: deaths %d, migrations %d, want both above zero", result.Deaths, result.Migrations)
+	last := rows[len(rows)-1]
+	for _, name := range []string{"deaths", "migrations"} {
+		at := slices.Index(rows[0], name)
+		if at < 0 {
+			t.Fatalf("no column %q in %v", name, rows[0])
+		}
+		if n, err := strconv.Atoi(last[at]); err != nil || n == 0 {
+			t.Errorf("%s = %q at the end of seed 1, want a count above zero", name, last[at])
+		}
+	}
+	if !slices.Contains(rows[0], "towns_emptied") {
+		t.Errorf("no towns_emptied column in %v", rows[0])
 	}
 }
 

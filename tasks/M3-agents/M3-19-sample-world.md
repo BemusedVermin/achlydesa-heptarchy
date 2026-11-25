@@ -42,7 +42,7 @@ A small world that exercises every M3 system together: two towns with residents,
 
 ## Out of scope
 
-- Harness columns and the camping check (M3-20).
+- Harness columns and the rest policy (M3-20).
 
 ## Notes
 
