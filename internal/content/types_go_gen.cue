@@ -21,6 +21,10 @@ import (
 	timeline: #TimelineConfig @go(Timeline)
 	actions: {[string]: #ActionDef} @go(Actions,map[string]ActionDef)
 	maps: {[string]: #MapDef} @go(Maps,map[string]MapDef)
+	world: #WorldDef @go(World)
+
+	// Places are the hand-made pieces of the world ("place." IDs).
+	places: {[string]: #PlaceDef} @go(Places,map[string]PlaceDef)
 	start: #Start @go(Start)
 	claims: {[string]: #Claim} @go(Claims,map[string]Claim)
 	origins: {[string]: #Origin} @go(Origins,map[string]Origin)
@@ -402,6 +406,47 @@ import (
 	rows: [...string] @go(Rows,[]string)
 }
 
+// WorldDef is the size of the one world and what fills the cells no place covers.
+#WorldDef: {
+	// Cols and Rows are hexes across, in odd-r offset, from column 0 and row 0.
+	cols: int @go(Cols)
+	rows: int @go(Rows)
+
+	// MinDepth and MaxDepth are inclusive.
+	min_depth: int @go(MinDepth)
+	max_depth: int @go(MaxDepth)
+
+	// Fill is the terrain of every cell no place covers: solid clay until procgen generates the deep.
+	fill: api.#ContentID @go(Fill)
+
+	// Edge is the terrain beyond the bounds. It must be solid and opaque.
+	edge: api.#ContentID @go(Edge)
+
+	// Open is the terrain of a marked cell.
+	open: api.#ContentID @go(Open)
+}
+
+// PlaceDef is a piece of hand-made world, such as a town or a set piece, set at a fixed position.
+// Legend, marks and spawns follow a map's rules; a mark name is unique within its place.
+#PlaceDef: {
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// At is the world cell of the place's column 0, row 0 and depth 0; layer depths are relative to it.
+	at: #PlaceAt @go(At)
+	layers: [...#LayerDef] @go(Layers,[]LayerDef)
+	legend: {[string]: api.#ContentID} @go(Legend,map[string]api.ContentID)
+	marks: {[string]: string} @go(Marks,map[string]string)
+	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
+}
+
+// PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.
+#PlaceAt: {
+	col:   int @go(Col)
+	row:   int @go(Row)
+	depth: int @go(Depth)
+}
+
 // Start is the scenario a new game begins with: a party placed at a mark on a map.
 #Start: {
 	map: api.#ContentID @go(Map)
@@ -451,6 +496,7 @@ import (
 	#CollectionTemplates |
 	#CollectionActions |
 	#CollectionMaps |
+	#CollectionPlaces |
 	#CollectionParts |
 	#CollectionClaims |
 	#CollectionOrigins |
@@ -466,6 +512,7 @@ import (
 #CollectionTemplates: #Collection & "templates"
 #CollectionActions:   #Collection & "actions"
 #CollectionMaps:      #Collection & "maps"
+#CollectionPlaces:    #Collection & "places"
 #CollectionParts:     #Collection & "parts"
 #CollectionClaims:    #Collection & "claims"
 #CollectionOrigins:   #Collection & "origins"

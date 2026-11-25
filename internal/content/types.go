@@ -17,7 +17,10 @@ type Bundle struct {
 	Timeline  TimelineConfig       `json:"timeline"`
 	Actions   map[string]ActionDef `json:"actions"`
 	Maps      map[string]MapDef    `json:"maps"`
-	Start     Start                `json:"start"`
+	World     WorldDef             `json:"world"`
+	// Places are the hand-made pieces of the world ("place." IDs).
+	Places map[string]PlaceDef `json:"places"`
+	Start    Start                `json:"start"`
 	Claims    map[string]Claim     `json:"claims"`
 	Origins   map[string]Origin    `json:"origins"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
@@ -333,6 +336,42 @@ type LayerDef struct {
 	Rows  []string `json:"rows"`
 }
 
+// WorldDef is the size of the one world and what fills the cells no place covers.
+type WorldDef struct {
+	// Cols and Rows are hexes across, in odd-r offset, from column 0 and row 0.
+	Cols int `json:"cols"`
+	Rows int `json:"rows"`
+	// MinDepth and MaxDepth are inclusive.
+	MinDepth int `json:"min_depth"`
+	MaxDepth int `json:"max_depth"`
+	// Fill is the terrain of every cell no place covers: solid clay until procgen generates the deep.
+	Fill api.ContentID `json:"fill"`
+	// Edge is the terrain beyond the bounds. It must be solid and opaque.
+	Edge api.ContentID `json:"edge"`
+	// Open is the terrain of a marked cell.
+	Open api.ContentID `json:"open"`
+}
+
+// PlaceDef is a piece of hand-made world, such as a town or a set piece, set at a fixed position.
+// Legend, marks and spawns follow a map's rules; a mark name is unique within its place.
+type PlaceDef struct {
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// At is the world cell of the place's column 0, row 0 and depth 0; layer depths are relative to it.
+	At     PlaceAt                  `json:"at"`
+	Layers []LayerDef               `json:"layers"`
+	Legend map[string]api.ContentID `json:"legend"`
+	Marks  map[string]string        `json:"marks"`
+	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
+}
+
+// PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.
+type PlaceAt struct {
+	Col   int `json:"col"`
+	Row   int `json:"row"`
+	Depth int `json:"depth"`
+}
+
 // Start is the scenario a new game begins with: a party placed at a mark on a map.
 type Start struct {
 	Map api.ContentID `json:"map"`
@@ -378,6 +417,7 @@ const (
 	CollectionTemplates Collection = "templates"
 	CollectionActions   Collection = "actions"
 	CollectionMaps      Collection = "maps"
+	CollectionPlaces    Collection = "places"
 	CollectionParts     Collection = "parts"
 	CollectionClaims    Collection = "claims"
 	CollectionOrigins   Collection = "origins"
