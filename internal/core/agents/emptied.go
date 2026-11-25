@@ -9,8 +9,9 @@ import (
 )
 
 // publishIfEmptied publishes [api.TownEmptied] when the map is the controlled party's town, the
-// family is the town's residents and none of that family is left in it. It is called only as a
-// resident leaves or dies, so each emptying is reported once; off screen the tick reports it.
+// family is the town's residents and none of that family is left in it. Call it after a body of
+// the family leaves the map or dies: only that change can take the count to zero, so each emptying
+// is reported once. Off screen, the tick reports it.
 func publishIfEmptied(w *sim.World, id api.MapID, family api.ContentID) {
 	if at, onScreen := partyMap(w); !onScreen || at != id {
 		return

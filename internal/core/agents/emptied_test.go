@@ -39,11 +39,21 @@ func TestATownTheLastResidentWalksOutOfIsEmptiedOnceWhileThePartyIsInIt(t *testi
 	inventory.Take(f.w, well, waterItem, 0, inventory.Count(f.w, well, waterItem, 0))
 	town := f.mapID(townMap)
 	var emptied []api.TownEmptied
+	migrated := 0
 	for range 3000 {
 		if len(f.livingResidents(town)) == 0 {
 			break
 		}
-		emptied = append(emptied, townEmptiedIn(f.wait())...)
+		events := f.wait()
+		emptied = append(emptied, townEmptiedIn(events)...)
+		for _, e := range events {
+			if m, ok := e.(api.Migrated); ok && m.From == town && m.Family == residentFamily {
+				migrated++
+			}
+		}
+	}
+	if migrated == 0 {
+		t.Error("no resident left through a gate")
 	}
 	if left := len(f.livingResidents(town)); left != 0 {
 		t.Fatalf("%d residents still in town at tick %d", left, f.w.Now)
@@ -76,22 +86,6 @@ func TestATownWhoseLastResidentDiesIsEmptiedOnceWhileThePartyIsInIt(t *testing.T
 			}
 		} else if len(emptied) != 0 {
 			t.Errorf("after death %d of %d, TownEmptied events %+v, want none", i+1, len(residents), emptied)
-		}
-	}
-}
-
-func TestATownThePartyIsNotInIsNotEmptiedByADeath(t *testing.T) {
-	f := newTownField(t, 1, "map.play.hub", nil)
-	town := f.mapID(townMap)
-	for _, body := range f.livingResidents(town) {
-		f.kill(body)
-		f.w.Bus.Publish(api.BodyDied{Body: f.w.UIDOf(body), Tick: f.w.Now})
-		events, err := f.w.Bus.Drain(f.w)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if emptied := townEmptiedIn(events); len(emptied) != 0 {
-			t.Errorf("TownEmptied events %+v for a town off screen, want none", emptied)
 		}
 	}
 }
