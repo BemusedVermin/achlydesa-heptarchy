@@ -1,7 +1,7 @@
 ---
 id: M3-20
 title: Harness columns and the camping check
-status: todo
+status: blocked
 milestone: M3
 kind: test
 depends_on: [M3-16, M3-19]
@@ -48,4 +48,7 @@ The harness measures the living deep. Its CSV gains deaths, migrations and towns
 
 ## Notes
 
+- Blocked on [M3-20.F1](../followups/M3-20.F1-what-counts-as-camping.md): by the spec's definition every seed camps on the sample world (people in the lake town once the shallow town dies out, soul feeders in the lake town). Passing needs a design choice (rule 9), so nothing is ticked.
+- Built, not pushed: `Game.FamilyCensus` (living members per family per gate-linked map), `internal/harness/emergence.go` (`PlayDays`, `RestPolicy`, the camping check with placeholder share 0.9 and days 10), and `emergence_test.go` (100 seeds, skipped under `-short`).
+- Still to do once unblocked: the `migrations` and `towns_emptied` CSV columns (`deaths` already exists and counts `BodyDied`), the golden water scenario, the acceptance ticks, and the Notes on the test's run time.
 
