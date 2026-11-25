@@ -23,6 +23,16 @@ families: {
 		templates: [{template: "template.resident.hauler", weight: 1}]
 		marks: ["house"]
 	}
+	"family.people.guards": {
+		name: "text.family.people.guards"
+		templates: [{template: "template.generic.guard", weight: 1}]
+		marks: ["house"]
+	}
+	"family.people.field_hands": {
+		name: "text.family.people.field_hands"
+		templates: [{template: "template.generic.field_hand", weight: 1}]
+		marks: ["house"]
+	}
 	"family.test.mixed": {
 		name: "text.family.test.mixed"
 		templates: [
@@ -34,8 +44,10 @@ families: {
 }
 
 text: {
-	"text.family.people":         "People"
-	"text.family.people.haulers": "Water haulers"
-	"text.family.test.clay":      "Clay creatures"
-	"text.family.test.mixed":     "Mixed creatures"
+	"text.family.people":             "People"
+	"text.family.people.haulers":     "Water haulers"
+	"text.family.people.guards":      "Guards"
+	"text.family.people.field_hands": "Field hands"
+	"text.family.test.clay":          "Clay creatures"
+	"text.family.test.mixed":         "Mixed creatures"
 }

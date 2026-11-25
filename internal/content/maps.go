@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -215,5 +216,38 @@ func (r *Registry) checkTownStock(p *problems, at string, town *TownDef) {
 	}
 	if !levelInRange(town.Exodus) {
 		p.addf("%s.exodus: must be from 0 to 1, got %v", at, town.Exodus)
+	}
+	r.checkGenerics(p, at, town)
+}
+
+// checkGenerics validates a town's generics: known templates, each the only template of one family.
+func (r *Registry) checkGenerics(p *problems, at string, town *TownDef) {
+	if len(town.Generics) > 0 && town.Residents == "" {
+		p.addf("%s.generics: a town that keeps generics needs residents", at)
+	}
+	seen := map[api.ContentID]bool{}
+	for i, generic := range town.Generics {
+		path := fmt.Sprintf("%s.generics[%d]", at, i)
+		ref(p, r.bundle.Templates, path+".template", "template", generic.Template)
+		if seen[generic.Template] {
+			p.addf("%s.template: %q is listed twice", path, generic.Template)
+		}
+		seen[generic.Template] = true
+		if generic.Count < 1 {
+			p.addf("%s.count: %d is not at least 1", path, generic.Count)
+		}
+		if generic.Ticks < 1 {
+			p.addf("%s.ticks: %d is not at least 1", path, generic.Ticks)
+		}
+		var owners []FamilyDef
+		for _, family := range r.bundle.Families {
+			if slices.ContainsFunc(family.Templates, func(t Weighted) bool { return t.Template == generic.Template }) {
+				owners = append(owners, family)
+			}
+		}
+		if len(owners) != 1 || len(owners[0].Templates) != 1 {
+			p.addf("%s.template: %q must be listed by exactly one family, as its only template, found %d families",
+				path, generic.Template, len(owners))
+		}
 	}
 }

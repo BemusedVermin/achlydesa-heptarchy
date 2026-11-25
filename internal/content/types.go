@@ -482,6 +482,19 @@ type TownDef struct {
 	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
 	// to 1.
 	Exodus float64 `json:"exodus,omitempty"`
+	// Generics are the people the town keeps, replaced on a timer. It needs residents.
+	Generics []GenericDef `json:"generics,omitempty"`
+}
+
+// GenericDef is one kind of generic person a town keeps.
+type GenericDef struct {
+	// Template is the template ("template." ID) of the generic. Exactly one family lists it, as its
+	// only template, and that family's count is how many the town holds off screen.
+	Template api.ContentID `json:"template"`
+	// Count is how many of it the town keeps.
+	Count int `json:"count"`
+	// Ticks is how long after one is lost its replacement arrives.
+	Ticks int64 `json:"ticks"`
 }
 
 // GateDef is where a gate leads.

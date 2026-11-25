@@ -153,7 +153,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `sim` | The Ark world, the event bus, the system scheduler (cadence plus run-after ordering), and the command, event and view registries | Ark |
 | `comp` | Plain component structs and relations: `Pos{Map, At}`, `Identity` (UID), `Body`, `Part` and `PartOf`, `Needs`, `Memory`, `Relationships`, `Seat`, `Graft`, `Appearance`, `Triggers` | Ark stores and queries them |
 | `anatomy` | Queries over bodies and parts: attached parts, functioning parts, grants, party members, and whether two bodies are hostile by their factions | `comp` |
-| `clock` | Ticks, day phases and the calendar read from content; per-phase and per-day systems as the timeline crosses boundaries; timers for generic NPC replacement and export scheduling | The `sim` scheduler |
+| `clock` | Ticks, day phases and the calendar read from content; per-phase and per-day systems as the timeline crosses boundaries; export scheduling | The `sim` scheduler |
 | `timeline` | The shared timeline: channels (a body and each of its parts) and when they're free, decisions, actions that land later, controllers (player, follow, behaviors), and playing time forward until the player is needed | Ark resources, `clock` |
 | `rng` | One named PCG stream per subsystem, seeded from the world seed (plus the export count for procgen) | `math/rand/v2` |
 | `hexmap` | Maps keyed by map ID: 3D hex cells in chunks (maps can be infinite), the topology, stepping rules, 3D sight and pathing. Sight is line based and symmetric, not shadowcasting, so it differs slightly from the prototype's field of view around pillars | gravitton/hexagon, fzipp/astar |
@@ -199,7 +199,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 1. The earliest entry on the timeline happens next, and the clock jumps to its tick: an attack landing, or a body deciding. At the same tick, landings go first, then decisions by UID.
 2. A deciding body's controller picks actions: the player for party members (only the leader while no hostile is in sight), a follow controller for the rest of the party, and behaviors for everyone else. Each action occupies the channels it needs (a step the body, a swing one or more arms) for its wind-up and recovery; legs, terrain and climbing set how long a step takes.
 3. After every entry, per-entry systems run: statuses expire and the party's alert updates.
-4. At each day-phase boundary the clock crosses, the off-screen tick runs: region populations drift, town residents follow their routines, generic NPCs are replaced on their timers.
+4. At each day-phase boundary the clock crosses, the off-screen tick runs: region populations drift, town residents follow their routines. Generic NPCs are replaced on timers kept on the town (`comp.Town`) and checked after every timeline entry.
 5. Once a day: seats advance, the export schedule is checked, rumors move between towns.
 6. Ark events fire after each step (a death, a severed part, a passed seat), and subscribers update wounds, grudges and readings.
 

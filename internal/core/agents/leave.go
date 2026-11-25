@@ -89,16 +89,20 @@ func familyOf(w *sim.World, body ecs.Entity) (api.ContentID, error) {
 	if families := ecs.NewMap[comp.Family](w.ECS); families.Has(body) {
 		return families.Get(body).ID, nil
 	}
-	template := w.TemplateOf(body)
+	family, err := familyListing(w, w.TemplateOf(body))
+	if err != nil {
+		return "", fmt.Errorf("body %d: %w", w.UIDOf(body), err)
+	}
+	return family, nil
+}
+
+// familyListing is the first family, by ID, that lists the template.
+func familyListing(w *sim.World, template api.ContentID) (api.ContentID, error) {
 	for _, id := range w.Content.FamilyIDs() {
 		def, _ := w.Content.Family(id)
 		if slices.ContainsFunc(def.Templates, func(t content.Weighted) bool { return t.Template == template }) {
 			return id, nil
 		}
 	}
-	return "", fmt.Errorf(
-		"no family lists template %q, so body %d cannot be counted elsewhere",
-		template,
-		w.UIDOf(body),
-	)
+	return "", fmt.Errorf("no family lists template %q, so it cannot be counted", template)
 }
