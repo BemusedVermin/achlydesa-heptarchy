@@ -48,7 +48,7 @@ Agents far from the party decide less often and travel the coarse chunk graph; n
 
 ## Out of scope
 
-- Leaving for a ranked destination: M4-10.
+- Choosing targets anywhere in the world from what the agent knows: M4-15.
 - Tuning `near_chunks` and `far_ticks` to the time budget: M4-13 measures, M8 tunes.
 
 ## Notes

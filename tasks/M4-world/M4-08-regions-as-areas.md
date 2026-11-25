@@ -62,7 +62,7 @@ type RegionBox struct {
 
 ## Out of scope
 
-- Ranking destinations by region: M4-10.
+- Knowing regions and going for ground by its region's data: M4-10 and M4-15.
 - Counting people per crawlspace: M4-13.
 - Generating regions: M5.
 

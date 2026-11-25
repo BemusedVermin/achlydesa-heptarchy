@@ -11,11 +11,12 @@
 - **Births and growing up.** Children are born, grow, and take the test at ten, which sorts them into ibben or salken.
 - **Immigration and emigration points.** Places at the world's edges where people arrive from beyond it, and leave for beyond it, when that meets their needs. Nobody respawns.
 - **New crawlspaces.** People who can't meet their needs anywhere dig and settle a new crawlspace; one nobody needs is abandoned.
+- **Drives.** Fulfillment, wishes and ambitions as content: long-horizon wants that people work toward over days and years, through the same behaviors as any need.
 - **Needs that change.** Content rules add, remove and reweight an agent's needs as its circumstances change: losses, grudges, growing up, grafts, faith, where it lives.
 - **Knowing what happened.** The party learns outcomes from evidence and from people, as facts in the knowledge store, never as events shown to the player:
   - a crawlspace abandoned a while ago looks it (empty cisterns, belongings left behind, nobody answering);
   - people who knew someone who left remember it, and say where they went and roughly when.
-- **Rumors.** Facts carried between people and towns, drifting with each retelling (`text/template` for the words); drifted rumors as a source of false positives.
+- **Rumors.** Facts carried between people and towns, drifting with each retelling (`text/template` for the words). Hearsay adds to what agents know of where things are (M4-10), and drifted rumors are a source of false positives.
 - **Memory and grudges.** Survivors remember who maimed them; revenge becomes a need; bodies come back with replaced parts; deserters live on like anyone else.
 - **The deepest nemesis.** An abandoned recruit can take a passed seat, through the existing wound scoring.
 - **Dreams.** Sleeping in town picks one image by content conditions over world state; clue dreams write low-confidence facts; graft count deepens Serilmen's dreams.
@@ -32,5 +33,6 @@
 
 ## Questions to settle before breaking it down
 
+- What drives people beyond survival, how a drive becomes something an agent works toward, and whether a passed seat takes the wish its new holder already has.
 - How far rumors may drift before they stop being useful.
 - Whether the slave doctrine's challenge against a hibblejaunt appears in play (open in the game design).

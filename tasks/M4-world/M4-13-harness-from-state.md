@@ -4,7 +4,7 @@ title: The harness measures from state, within the time budget
 status: todo
 milestone: M4
 kind: test
-depends_on: [M4-10, M4-11]
+depends_on: [M4-11, M4-15]
 discovered_by: null
 size: M
 ---

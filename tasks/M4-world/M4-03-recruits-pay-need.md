@@ -13,7 +13,7 @@ size: M
 
 ## Goal
 
-A recruit stays, grumbles, flees or walks off because of its own needs, through the same behaviors as anyone else. The upkeep system, discontent, the flight system and the events that announced their decisions are deleted.
+A recruit stays, asks for its pay, flees or quits because of its own needs, through the same behaviors as anyone else. Quitting is an act, like hiring. The upkeep system, discontent, the flight system and the events that announced their decisions are deleted.
 
 ## Context
 
@@ -29,26 +29,26 @@ A recruit stays, grumbles, flees or walks off because of its own needs, through 
 - New behavior primitives in `internal/core/agents` (one file, such as `party.go`), registered like the others:
   - `follow_party`: step toward the party member ahead of this one in the party order, as the follow controller does. It scores through its considerations like any behavior.
   - `take_wage`: take the template's `recruit.upkeep` stacks from the party's inventory, if all are there, and `satisfy` `need.pay`. The amount is a param.
-  - `leave_party`: take the body out of its party. It keeps its body, grafts and inventory, joins `recruits.deserters_faction`, and from then on acts on the behaviors its template lists outside a party.
-- `internal/core/api`: `LeftParty{Party, Body UID}`, the one event: what an agent did. It has a log text.
-- `content/data/actions.cue`: `action.grumble`, an action with a log line (`text.actions.grumble` or similar) and no effect, which a `grumble` behavior uses through `consume`, or a primitive if `consume` can't run a self-targeted action. Say which in Notes.
-- `content/data/behaviors.cue` and `templates.cue`: each hirable template lists `follow_party`, `take_wage`, `grumble`, `leave_party` and `flee`, with considerations: pay at its threshold makes grumbling score, higher pay makes leaving beat following, and terror makes fleeing beat following. The numbers are placeholders for M8.
+  - `quit`: the act of ending the deal, as hiring is the act of making it. It takes the body out of its party. It keeps its body, grafts and inventory, joins `recruits.deserters_faction`, and from then on meets its needs like anyone else.
+- `internal/core/api`: `Quit{Party, Body UID}`, the one event: what an agent did. It has a log text.
+- `content/data/actions.cue` and `behaviors.cue`: `ask`, the general way any agent asks someone for what it needs. An action with a log line naming the need, aimed at a body that could meet it, used by an `ask` behavior. A recruit asks the party for its pay; later, residents ask the party for help with theirs, which is where quests come from. Run it through `consume` if that can aim a self-voiced action at another body, or through a small primitive; say which in Notes. Nothing in it is specific to recruits or pay.
+- `content/data/behaviors.cue` and `templates.cue`: each hirable template lists `follow_party`, `take_wage`, `ask`, `quit` and `flee`, with considerations: an unmet pay need makes asking score, a higher one makes quitting beat following, and terror makes fleeing beat following. The numbers are placeholders for M8.
 - `internal/core/explore`: a hired recruit runs under the agents controller while the party is in follow mode. When the player takes individual control, the player decides for it as for any member. A test for each.
 - `internal/core/save`: bump `CurrentVersion`.
 - `docs/content-guide.md`: rewrite the recruits paragraph of "Needs" and "Behaviors". `docs/glossary.md`: delete **discontent**; **recruit** is "kept by its pay need", not "kept by daily upkeep".
 
 ## Spec
 
-- **Personality is later.** Robbery, personality and loyalty are M4-03.F1. Here a recruit only grumbles, flees and walks off.
+- **Personality is later.** Robbery, personality and loyalty are M4-03.F1. Here a recruit only asks, flees and quits.
 - **No system decides.** Nothing counts unpaid days or compares a level to a threshold in Go. Every choice is a behavior's score. Firm.
-- **Who leads.** A recruit never becomes the party's leader by leaving; `leave_party` on the leader is refused (it scores 0 for the leader) rather than handled. Suggestion: give `leave_party` a consideration that reads whether the body leads, through an existing env field, or add one to `BehaviorEnv`.
+- **Who leads.** A recruit never becomes the party's leader by quitting; `quit` on the leader is refused (it scores 0 for the leader) rather than handled. Suggestion: give `quit` a consideration that reads whether the body leads, through an existing env field, or add one to `BehaviorEnv`.
 - `follow_party` replaces nothing in explore for the fixed roster: protagonists keep the follow controller.
 
 ## Acceptance criteria
 
 - [ ] `git grep -w -E "Grumbled|Deserted|Fled|Discontent|Fleeing|tickUpkeep|desert_at|grumble_at" -- internal content docs` finds nothing.
 - [ ] A test: a recruit whose party pays keeps following for days.
-- [ ] A test: an unpaid recruit grumbles (its action's log line appears), then leaves the party (`api.LeftParty`) and walks off as a body of the deserters' faction, keeping its grafts.
+- [ ] A test: an unpaid recruit asks the party for its pay (the action's log line appears), then quits (`api.Quit`) and goes about its needs as a body of the deserters' faction, keeping its grafts.
 - [ ] A test: terror raised by a severing makes a recruit flee in a fight, and it falls back in once terror falls.
 - [ ] Changed goldens are regenerated and named in Notes.
 - [ ] `go tool task check` passes.
@@ -56,7 +56,7 @@ A recruit stays, grumbles, flees or walks off because of its own needs, through 
 ## Out of scope
 
 - Robbery, personality and loyalty: M4-03.F1.
-- Where a deserter goes once it has left: M4-10.
+- Where a recruit goes once it has quit: its needs decide, through M4-15.
 
 ## Notes
 

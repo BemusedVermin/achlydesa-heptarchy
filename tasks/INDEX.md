@@ -133,11 +133,12 @@ Brief: [M4-world/README.md](M4-world/README.md)
 | [M4-07](M4-world/M4-07-one-world.md) | One world: delete maps and gates | todo | seam | M | M4-01, M4-02, M4-03, M4-06 |
 | [M4-08](M4-world/M4-08-regions-as-areas.md) | Regions drawn by hand as areas | todo | feature | M | M4-07 |
 | [M4-09](M4-world/M4-09-far-agents.md) | Far agents: two fidelities | todo | feature | M | M4-05, M4-07 |
-| [M4-10](M4-world/M4-10-leaving-is-a-behavior.md) | Leaving is a behavior | todo | feature | M | M4-08, M4-09 |
+| [M4-10](M4-world/M4-10-knowing-where.md) | Knowing where things are | todo | feature | M | M4-08 |
 | [M4-11](M4-world/M4-11-sample-world.md) | The human-scale sample world | todo | content | M | M4-02, M4-03, M4-08 |
 | [M4-12](M4-world/M4-12-playground-and-guide.md) | Playground and test places at human scale; the content guide | todo | content | M | M4-07, M4-08 |
-| [M4-13](M4-world/M4-13-harness-from-state.md) | The harness measures from state, within the time budget | todo | test | M | M4-10, M4-11 |
+| [M4-13](M4-world/M4-13-harness-from-state.md) | The harness measures from state, within the time budget | todo | test | M | M4-11, M4-15 |
 | [M4-14](M4-world/M4-14-exit-check.md) | Exit check: walk the world, and the vocabulary sweep | todo | test | S | M4-12, M4-13 |
+| [M4-15](M4-world/M4-15-needs-across-the-world.md) | Needs reach across the world | todo | feature | M | M4-09, M4-10 |
 
 ## Later milestones (outlines)
 

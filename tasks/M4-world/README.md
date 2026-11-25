@@ -33,13 +33,14 @@ M4 deletes all of that before procgen and seats build on it. What's left is one 
 | [M4-07](M4-07-one-world.md) | One world: delete maps and gates | M4-01, M4-02, M4-03, M4-06 |
 | [M4-08](M4-08-regions-as-areas.md) | Regions drawn by hand as areas | M4-07 |
 | [M4-09](M4-09-far-agents.md) | Far agents: two fidelities | M4-05, M4-07 |
-| [M4-10](M4-10-leaving-is-a-behavior.md) | Leaving is a behavior | M4-08, M4-09 |
+| [M4-10](M4-10-knowing-where.md) | Knowing where things are | M4-08 |
 | [M4-11](M4-11-sample-world.md) | The human-scale sample world | M4-02, M4-03, M4-08 |
 | [M4-12](M4-12-playground-and-guide.md) | Playground and test places at human scale; the content guide | M4-07, M4-08 |
-| [M4-13](M4-13-harness-from-state.md) | The harness measures from state, within the time budget | M4-10, M4-11 |
+| [M4-13](M4-13-harness-from-state.md) | The harness measures from state, within the time budget | M4-11, M4-15 |
 | [M4-14](M4-14-exit-check.md) | Exit check: walk the world, and the vocabulary sweep | M4-12, M4-13 |
+| [M4-15](M4-15-needs-across-the-world.md) | Needs reach across the world | M4-09, M4-10 |
 
-M4-01 and M4-04 start in parallel. Two lanes run side by side: the deletions (M4-01 → M4-02 → M4-03), which all touch `agents`, and the world foundation (M4-04 → M4-05 and M4-06). They meet at M4-07. After it, regions (M4-08) and far agents (M4-09) run side by side, then leave (M4-10); the content tasks (M4-11, M4-12) run beside them. M4-13 and M4-14 close the milestone.
+M4-01 and M4-04 start in parallel. Two lanes run side by side: the deletions (M4-01 → M4-02 → M4-03), which all touch `agents`, and the world foundation (M4-04 → M4-05 and M4-06). They meet at M4-07. After it, regions (M4-08) and far agents (M4-09) run side by side; knowing (M4-10) follows regions, and needs across the world (M4-15) follows both; the content tasks (M4-11, M4-12) run beside them. M4-13 and M4-14 close the milestone.
 
 ## Exit criteria
 
@@ -47,7 +48,7 @@ M4-01 and M4-04 start in parallel. Two lanes run side by side: the deletions (M4
 | --- | --- |
 | Walk from the shallow town down through the deep to the lake town and back: no gate, no load, no jump in the view. | M4-07 (no gates), M4-11 (the world), M4-14 (the walk test) |
 | Every creature and person in the sample world is an entity from the first tick to its death; nothing is ever a count. | M4-01, M4-11 |
-| Off screen, residents fetch water and food, monsters roam and hunt, people leave a crawlspace whose water fails, and a recruit walks off when unpaid. All of it comes from behaviors, with no system, timer or event dedicated to the outcome. | M4-02 (containers), M4-03 (pay), M4-09 (far agents), M4-10 (leave), M4-13 (tests) |
+| Off screen, residents fetch water and food, monsters roam and hunt, people leave a crawlspace whose water fails, and a recruit quits when unpaid. All of it comes from behaviors, with no system, timer or event dedicated to the outcome. | M4-02 (containers), M4-03 (pay), M4-09 (far agents), M4-10 (knowing), M4-15 (needs across the world), M4-13 (tests) |
 | No cell in the sample world stands for a whole structure: every house, well and cistern is built of cells at 1.5 m. | M4-11, M4-12 |
 | `git grep -i -w -E "gates?\|MapID\|ByMap\|TownEmptied\|Migrated\|PopulationDied\|Promoted\|Demoted\|Grumbled\|Deserted\|FamilyCount"` over `internal/`, `content/` and `docs/` finds nothing. | M4-01, M4-02, M4-03, M4-07, M4-14 |
 | A year of the sample world in the harness stays inside the time budget: at most 60 s per seeded year. | M4-09, M4-13 |
@@ -76,14 +77,14 @@ Every M4 task builds on this. Where the design docs are silent, the choice here 
 
 **Things in places** (M4-02). A container is a body with an inventory and no actor (a cistern, a larder); `carry` fills it and `consume` takes from it. Nothing refills a container and nothing replaces a dead person.
 
-**Recruits** (M4-03). A hired recruit carries `need.pay` and acts under the agents controller while the party follows, through `follow_party`, `take_wage`, `grumble`, `flee` and `leave_party`. The only event is `api.LeftParty`, which says what it did.
+**Recruits** (M4-03). A hired recruit carries `need.pay` and acts under the agents controller while the party follows, through `follow_party`, `take_wage`, `ask`, `flee` and `quit`. Quitting is an act, like hiring. The only event is `api.Quit`, which says what it did. `ask` is general: any agent asks someone for what it needs.
 
 **Regions** (M4-08). A region is a named area drawn as boxes, carrying `Data`. The smallest box containing a cell wins. Formulas read the region of the body's own cell. A crawlspace is a region tagged `crawlspace`.
 
 **Two fidelities** (M4-05, M4-09). Near agents act through the timeline cell by cell. Far agents decide every `far_ticks` and travel a coarse graph whose nodes are the connected standable cells of a chunk. A far agent that engages a hostile in its chunk becomes near until the fight ends (provisional).
 
-**Leaving** (M4-10). `leave` ranks regions by their records, never by counting what is in them, and walks or travels there. What an agent knows of a distant region is its data until rumors carry news (provisional, M7).
+**Needs across the world** (M4-10, M4-15). There is no `leave`. An agent goes for whatever meets its needs, anywhere it knows of: what it has seen, and what content says it starts knowing. Hearsay is M7. Knowing nothing, it sets off at random. A town empties because its people found what they need elsewhere, and an agent lives where it rests. No region record says what is in it (owner, 2026-11-25).
 
-**Interim** (M4-07 to M4-10). After M4-07 the old maps are places side by side in clay, unjoined, and nothing leaves; M4-10 and M4-11 restore both.
+**Interim** (M4-07 to M4-15). After M4-07 the old maps are places side by side in clay, unjoined, and nobody travels between them; M4-11 and M4-15 restore both.
 
-**Determinism.** Spawns run in place ID order, then layer order. Regions are ranked and listed in region ID order. Far decisions are timeline entries, ordered like any other. Every task that changes a component bumps the save version.
+**Determinism.** Spawns run in place ID order, then layer order. Regions are listed in region ID order. Far decisions are timeline entries, ordered like any other. Every task that changes a component bumps the save version.

@@ -171,7 +171,9 @@ What falls out of it:
 Residents run on the same needs engine as monsters, plus a social layer. One agent model serves both, so the code is shared.
 
 - **Needs:** water, food, rest, safety, belonging, faith and duty, and grief after a loss.
-- **Behaviors:** work (hauling water, mining coal, farming the fields, pressing the dead), trade, worship, attend town events, call the Reaper for the slowly dying, flee, migrate, dig and settle a new crawlspace, and go below.
+- **Drives:** people want more than to survive. Fulfillment, wishes and ambitions drive a life, and people pursue them the way they meet any need. They change with what happens to them (see Needs change), and a wish is where a seat finds its holder.
+- **Behaviors:** work (hauling water, mining coal, farming the fields, pressing the dead), trade, worship, attend town events, ask others for what they need, call the Reaper for the slowly dying, flee, dig and settle a new crawlspace, and go below. Nothing is a migrate or leave behavior: going elsewhere is just going for what they need.
+- **Knowing where:** an agent goes for what it knows of: what it has seen and what it has heard. Knowing of nothing, it sets off at random and learns as it goes, so what it knows can be out of date.
 - **Roles and customs act as constraints:** ibben and salken, jobs, the lunn, standing at attention, and the test at ten sorting children.
 
 What falls out of it:
@@ -496,7 +498,7 @@ The protagonists can hire generic people to fight beside the fixed roster. Recru
 
 - **Who:** each town offers different recruits by caste and trade: guards and miners in ibben towns, field hands in the salken village, exiles on the salk.
 - **Bodies:** the same part-based bodies as everyone else, so a lost arm is a lost action.
-- **Needs and wants:** basic ones such as pay, food, safety and faith. Unmet needs make them complain and eventually walk off; terror makes them flee mid-fight. Both are ordinary behaviors, not a desertion system.
+- **Needs and wants:** basic ones such as pay, food, safety and faith. Unmet needs make them ask for what they're owed and eventually quit, which is an act like hiring; terror makes them flee mid-fight. All of it is ordinary behaviors, not a desertion system.
 - **Caste friction (proposal):** ibben recruits may refuse to follow a salken, and some balk at sacrilege such as collecting Violet blood.
 - **Death is permanent,** with no plot armor. The hiring pool refills only as people are born, grow up and arrive.
 
@@ -504,7 +506,7 @@ Recruits take one of the four fight slots; a fifth slot is something to playtest
 
 **Price:** there is no fixed wage or currency. Each NPC names their own price, in what they want, scaled by what they bring. Merchants work the same way.
 
-**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list. Pay is one of their needs: as it goes unmet, complaining and then walking off score higher than staying, through the same behaviors as anyone else. Later, personality decides what a recruit does as pay goes unmet: grumble, then walk off or rob the party, and loyalty can keep one around; for now it grumbles, then walks off. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M7), one individual at a time.
+**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list. Pay is one of their needs: as it goes unmet, asking for it and then quitting score higher than staying, through the same behaviors as anyone else. Later, personality decides what a recruit does as pay goes unmet: ask, then quit or rob the party, and loyalty can keep one around; for now it asks, then quits. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M7), one individual at a time.
 
 ### Exotic recruits
 

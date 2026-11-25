@@ -38,7 +38,7 @@ A game runs in one world built from M4-06's places. A position is a cell. Map ID
 
 ## Spec
 
-- **Interim, on purpose.** The old maps sit side by side in clay with nothing joining them, and nothing leaves a place, until M4-10 and M4-11. That's expected; say so in the PR.
+- **Interim, on purpose.** The old maps sit side by side in clay with nothing joining them, and nobody travels between places, until M4-11 and M4-15. That's expected; say so in the PR.
 - The plan view is unchanged in behavior: it projects the world around the party, and `MapView` loses only its map ID and name (the region panel names where the party is, from M4-08).
 - Determinism: spawns run in place ID order, then the order each place's layers give. Firm.
 - Name each golden and harness output this task regenerates in Notes.
@@ -55,7 +55,7 @@ A game runs in one world built from M4-06's places. A position is a cell. Map ID
 ## Out of scope
 
 - Regions as areas, and the region panel: M4-08.
-- Leaving and travelling between places: M4-10.
+- Agents going anywhere in the world for their needs: M4-15.
 - Rebuilding places at human scale: M4-11, M4-12.
 
 ## Notes
