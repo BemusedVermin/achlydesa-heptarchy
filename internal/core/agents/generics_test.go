@@ -18,7 +18,6 @@ import (
 
 const (
 	guardTemplate = "template.generic.guard"
-	guardFamily   = "family.people.guards"
 	guardTicks    = 40
 	entrySlack    = 30
 )
@@ -36,16 +35,6 @@ func (f *townField) living(template api.ContentID) []ecs.Entity {
 
 func (f *townField) kill(body ecs.Entity) {
 	sim.Put(f.w, body, comp.Dead{Tick: f.w.Now})
-}
-
-func (f *townField) counted(family api.ContentID) int {
-	populations := ecs.NewMap[comp.Populations](f.w.ECS).Get(f.town(townMap))
-	for _, p := range populations.Of {
-		if p.Family == family {
-			return p.Count
-		}
-	}
-	return 0
 }
 
 func (f *townField) replacements() []comp.Replacement {
@@ -102,27 +91,6 @@ func TestAKilledGuardIsReplacedAtTheGateAfterTheContentTicks(t *testing.T) {
 	}
 }
 
-func TestAGuardLostWhileTheTownIsOffScreenIsReplacedInTheCount(t *testing.T) {
-	f := newTownField(t, 1, "map.play.hub", nil)
-	populations := ecs.NewMap[comp.Populations](f.w.ECS).Get(f.town(townMap))
-	for i := range populations.Of {
-		if populations.Of[i].Family == guardFamily {
-			populations.Of[i].Count--
-		}
-	}
-	lostAt := f.w.Now
-	for f.counted(guardFamily) < 2 && f.w.Now < lostAt+2000 {
-		f.wait()
-	}
-	if got := f.counted(guardFamily); got != 2 {
-		t.Fatalf("the town counts %d guards at tick %d, want 2", got, f.w.Now)
-	}
-	if f.w.Now < lostAt+guardTicks || f.w.Now > lostAt+guardTicks+entrySlack {
-		t.Errorf("the replacement came at tick %d, want from %d to %d",
-			f.w.Now, lostAt+guardTicks, lostAt+guardTicks+entrySlack)
-	}
-}
-
 func TestAnEmptiedTownReplacesNobody(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -139,10 +107,6 @@ func TestAnEmptiedTownReplacesNobody(t *testing.T) {
 				for _, body := range f.living(plainResident) {
 					f.kill(body)
 				}
-				ecs.NewMap[comp.Populations](f.w.ECS).Get(f.town(townMap)).Of = slices.DeleteFunc(
-					slices.Clone(ecs.NewMap[comp.Populations](f.w.ECS).Get(f.town(townMap)).Of),
-					func(p comp.Population) bool { return p.Family == "family.people" },
-				)
 			}
 			guards := f.living(guardTemplate)
 			if tt.emptyFirst {
@@ -195,7 +159,10 @@ func TestACrowdedGateKeepsTheReplacementQueued(t *testing.T) {
 }
 
 func TestGenericsAndTheirTimersSurviveSaveAndLoad(t *testing.T) {
-	g, w, cfg := gametest.New(t, 1, func(bundle *content.Bundle) { bundle.Start.Map = townMap })
+	g, w, cfg := gametest.New(t, 1, func(bundle *content.Bundle) {
+		bundle.Start.Map = townMap
+		isolateTown(bundle)
+	})
 	f := &townField{t: t, g: g, w: w}
 	f.kill(f.living(guardTemplate)[0])
 	f.runEntrySystems()
@@ -248,23 +215,12 @@ func TestGenericsAreChecked(t *testing.T) {
 			m.Region.Town.Generics[1].Template = m.Region.Town.Generics[0].Template
 		}, "listed twice"},
 		{"a count below one", func(m *content.MapDef) { m.Region.Town.Generics[0].Count = 0 }, "count"},
-		{"a template in a shared family", func(m *content.MapDef) {
-			m.Region.Town.Generics[0].Template = hauler
-		}, "exactly one family"},
-		{"a template in no family", func(m *content.MapDef) {
-			m.Region.Town.Generics[0].Template = "template.person.reaper"
-		}, "exactly one family"},
 		{"no ticks", func(m *content.MapDef) { m.Region.Town.Generics[0].Ticks = 0 }, "ticks"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bundle := contenttest.SampleBundle(t)
 			contenttest.Edit(bundle.Maps, townMap, tt.edit)
-			if tt.name == "a template in a shared family" {
-				contenttest.Edit(bundle.Families, "family.people.haulers", func(def *content.FamilyDef) {
-					def.Templates = append(def.Templates, content.Weighted{Template: plainResident, Weight: 1})
-				})
-			}
 			_, err := content.New(bundle)
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("error = %v, want one mentioning %q", err, tt.want)

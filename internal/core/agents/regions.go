@@ -2,7 +2,6 @@ package agents
 
 import (
 	"fmt"
-	"maps"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -18,10 +17,10 @@ import (
 // regionView is the view builder of the region section.
 const regionView = "agents.region"
 
-// SpawnRegions makes a region entity for every map, in map ID order, and fills each town's stock
-// from content. Call it once, after the maps are built and before anything reads a region.
+// SpawnRegions makes a region entity for every map, in map ID order, fills each town's stock from
+// content and marks the bodies a town keeps as its generics. Call it once, after the maps are built and before anything reads a region.
 func SpawnRegions(w *sim.World) error {
-	regions := ecs.NewMap2[comp.Region, comp.Populations](w.ECS)
+	regions := ecs.NewMap[comp.Region](w.ECS)
 	towns := ecs.NewMap[comp.Town](w.ECS)
 	for _, id := range w.Maps.IDs() {
 		name := api.ContentID(w.Maps.Get(id).Name())
@@ -29,17 +28,7 @@ func SpawnRegions(w *sim.World) error {
 		if !ok {
 			return fmt.Errorf("agents: region of map %d: unknown map %q", id, name)
 		}
-		populations := &comp.Populations{}
-		if def.Region != nil {
-			for _, family := range slices.Sorted(maps.Keys(def.Region.Populations)) {
-				count := def.Region.Populations[family]
-				if count == 0 {
-					continue
-				}
-				populations.Of = append(populations.Of, comp.Population{Family: api.ContentID(family), Count: count})
-			}
-		}
-		region := regions.NewEntity(&comp.Region{Map: id, Def: name}, populations)
+		region := regions.NewEntity(&comp.Region{Map: id, Def: name})
 		if def.Region == nil || def.Region.Town == nil {
 			continue
 		}
@@ -47,6 +36,7 @@ func SpawnRegions(w *sim.World) error {
 		for _, stack := range def.Region.Town.Stock {
 			inventory.Add(w, region, comp.ItemStack{Item: stack.Item, Count: stack.Count})
 		}
+		markGenerics(w, id, def.Region.Town)
 	}
 	return nil
 }

@@ -19,7 +19,7 @@ agents: {
 	// A body with a vital part at or below this fraction of its integrity is dying.
 	dying_below: 0.5
 	// How far from a mark or from the party a promoted body may stand, in hexes.
-	promote_radius: 8
+	arrival_radius: 8
 }
 
 // For tests: a body that wanders while it has water, and walks to the map's water mark once

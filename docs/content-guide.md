@@ -146,7 +146,7 @@ A body whose template has `actor: controller: "agents"` acts on the behaviors it
 
 A template with `recruit: {wants, worth, upkeep}` can be hired when it is a town's generic. `wants` are item stacks and `worth` is a formula over the body (`template`, `needs`, `integrity` and so on): the price is each want's count times `worth`, rounded up. `upkeep` is what the recruit wants each day after hiring.
 
-An exotic recruit is a generic with a strange want and an ability, and no `graftable` tag, so Graft is never offered onto it (`action.graft` requires the tag). The leashed soul-feeder in `templates.cue` wants rations and lees, and its trigger `_feederGrows` adds `status.feeding` when it hurts a body for which `dying` holds; `rule.hit` in `rules.cue` reads the status to hit harder. The tamed clay's trigger, a `witness` of `combat.part_severed` with `if: "hostile"`, does `attach_part` with `from: "severed"` and `to: "source"`, so it takes the severed part and gains its action. Keep it hirable by listing its template in a town's `generics`, with a family of its own.
+An exotic recruit is a generic with a strange want and an ability, and no `graftable` tag, so Graft is never offered onto it (`action.graft` requires the tag). The leashed soul-feeder in `templates.cue` wants rations and lees, and its trigger `_feederGrows` adds `status.feeding` when it hurts a body for which `dying` holds; `rule.hit` in `rules.cue` reads the status to hit harder. The tamed clay's trigger, a `witness` of `combat.part_severed` with `if: "hostile"`, does `attach_part` with `from: "severed"` and `to: "source"`, so it takes the severed part and gains its action. Keep it hirable by listing its template in a town's `generics`.
 
 `do` names the behavior primitive that carries it out, one step per decision: `idle` waits, `wander` steps to a random open neighbour, and `move_toward` walks to the target with `combat.step_action`, until it stands on the cell (or next to the body). `params` give the primitive's parameters; one that a primitive doesn't take fails when a game starts.
 
@@ -162,10 +162,6 @@ region: town: {
 	stock_marks: ["stock"]
 }
 ```
-
-## Families
-
-A family (`families.cue`, `family.*`) is a kind of creature a region counts while the party is away. When the party enters a map, each count in that region becomes bodies: each is one of the family's `templates`, picked by `weight`, standing beside one of its `marks` (map marks, in turn) or, with no marks on the map, at random around the party. Bodies stand out of the party's sight when a cell is free, within `agents.promote_radius` hexes. A region starts with `region: populations: {"family.test.clay": 3}`. On leaving, living bodies of a family without `Individual` are counted back; the dead stay on the map.
 
 ## Effects
 
@@ -237,12 +233,12 @@ Tests keep their own start maps: the sample content in `contenttest` starts on `
 
 | Map | Decay | What is there |
 | --- | --- | --- |
-| `map.sample.shallow` | 0.1 | A town with a well, a small stock, residents and generics. The party starts here. |
-| `map.sample.deep_a` | 0.5 | Moving clay and remnants. Gates to the shallow town and `deep_b`. |
-| `map.sample.deep_b` | 0.8 | Remnants, moving clay, soul-feeders and an archon warden. Gates to `deep_a` and the lake town. |
-| `map.sample.lake` | 0.1 | A town with water to spare, refilled each phase while the party is away. |
+| `map.sample.shallow` | 0.1 | A town with a well, a small stock, residents and generics, all bodies from the first tick. The party starts here. |
+| `map.sample.deep_a` | 0.5 | Three moving clay and two remnants, each a spawn cell. Gates to the shallow town and `deep_b`. |
+| `map.sample.deep_b` | 0.8 | Four remnants, two moving clay, two soul-feeders and an archon warden, each a spawn cell. Gates to `deep_a` and the lake town. |
+| `map.sample.lake` | 0.1 | A town with water to spare, three residents, a tamed clay and a leashed soul-feeder. |
 
-The two towns are generic test towns, not the design's crawlspaces. They are not neighbours, so no town migration happens between them; drift is of the monster families.
+The two towns are generic test towns, not the design's crawlspaces. Every body on every map acts from the first tick; content places each one with a spawn mark, one cell per body.
 
 ## Checking your work
 

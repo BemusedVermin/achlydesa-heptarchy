@@ -2,7 +2,6 @@ package content
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -215,32 +214,15 @@ func (r *Registry) WithStart(id string) (*Registry, error) {
 	return New(bundle)
 }
 
-// checkTownStock validates what a town's residents use, what refills the stock and how many leave.
+// checkTownStock validates a town's residents and generics.
 func (r *Registry) checkTownStock(p *problems, at string, town *TownDef) {
 	if town.Residents != "" {
-		ref(p, r.bundle.Families, at+".residents", "family", town.Residents)
-	}
-	for _, list := range []struct {
-		field  string
-		stacks []StackDef
-	}{{"use", town.Use}, {"refill", town.Refill}} {
-		for i, stack := range list.stacks {
-			ref(p, r.bundle.Items, fmt.Sprintf("%s.%s[%d].item", at, list.field, i), "item", stack.Item)
-			if stack.Count < 1 {
-				p.addf("%s.%s[%d].count: %d is not at least 1", at, list.field, i, stack.Count)
-			}
-		}
-	}
-	if len(town.Use) > 0 && town.Residents == "" {
-		p.addf("%s.use: a town that uses stock needs residents", at)
-	}
-	if !levelInRange(town.Exodus) {
-		p.addf("%s.exodus: must be from 0 to 1, got %v", at, town.Exodus)
+		ref(p, r.bundle.Templates, at+".residents", "template", town.Residents)
 	}
 	r.checkGenerics(p, at, town)
 }
 
-// checkGenerics validates a town's generics: known templates, each the only template of one family.
+// checkGenerics validates a town's generics: known templates, each listed once.
 func (r *Registry) checkGenerics(p *problems, at string, town *TownDef) {
 	if len(town.Generics) > 0 && town.Residents == "" {
 		p.addf("%s.generics: a town that keeps generics needs residents", at)
@@ -258,16 +240,6 @@ func (r *Registry) checkGenerics(p *problems, at string, town *TownDef) {
 		}
 		if generic.Ticks < 1 {
 			p.addf("%s.ticks: %d is not at least 1", path, generic.Ticks)
-		}
-		var owners []FamilyDef
-		for _, family := range r.bundle.Families {
-			if slices.ContainsFunc(family.Templates, func(t Weighted) bool { return t.Template == generic.Template }) {
-				owners = append(owners, family)
-			}
-		}
-		if len(owners) != 1 || len(owners[0].Templates) != 1 {
-			p.addf("%s.template: %q must be listed by exactly one family, as its only template, found %d families",
-				path, generic.Template, len(owners))
 		}
 	}
 }

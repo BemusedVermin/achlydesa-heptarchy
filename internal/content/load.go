@@ -97,7 +97,6 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		offers:      map[string]*vm.Program{},
 		mods:        map[api.ContentID]compiledMods{},
 		needs:       map[api.ContentID]compiledNeed{},
-		families:    map[api.ContentID]compiledFamily{},
 		behaviors:   map[api.ContentID][]*vm.Program{},
 		ranks:       map[api.ContentID]*vm.Program{},
 		worths:      map[api.ContentID]*vm.Program{},
@@ -120,7 +119,6 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkNeeds()...)
 	problems = append(problems, registry.checkBehaviors()...)
 	problems = append(problems, registry.checkRecruits()...)
-	problems = append(problems, registry.checkFamilies()...)
 	problems = append(problems, registry.checkChoices()...)
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkTriggers()...)

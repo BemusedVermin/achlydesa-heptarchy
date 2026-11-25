@@ -30,7 +30,6 @@ func Install(w *sim.World) error {
 	}
 	for _, system := range []sim.System{
 		{Name: needsSystem, Cadence: sim.PerPhase, Run: tickNeeds},
-		{Name: offscreenSystem, Cadence: sim.PerPhase, Run: tickOffscreen},
 		{Name: genericsSystem, Cadence: sim.PerEntry, Run: tickGenerics},
 		{Name: upkeepSystem, Cadence: sim.PerDay, Run: tickUpkeep},
 		{Name: flightSystem, Cadence: sim.PerEntry, Run: tickFlight},
@@ -48,17 +47,13 @@ func Install(w *sim.World) error {
 		return err
 	}
 	for _, register := range []func(*api.Codec) error{
-		api.RegisterEvent[api.Promoted],
-		api.RegisterEvent[api.Demoted],
 		api.RegisterEvent[api.Migrated],
 		api.RegisterEvent[api.TownEmptied],
-		api.RegisterEvent[api.PopulationDied],
 	} {
 		if err := register(w.Codec); err != nil {
 			return err
 		}
 	}
-	sim.Subscribe(w.Bus, "agents.lod", onPartyCrossed)
 	sim.Subscribe(w.Bus, "agents.emptied", onBodyDied)
 	if err := w.Views.Register(sim.ViewBuilder{Name: regionView, Build: buildRegion}); err != nil {
 		return err

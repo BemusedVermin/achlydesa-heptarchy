@@ -2,14 +2,12 @@ package agents_test
 
 import (
 	"slices"
-	"strings"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/agents"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -20,10 +18,10 @@ import (
 )
 
 const (
-	feedersMap = "map.play.feeders"
-	shrineMap  = "map.play.shrine"
-	remnantFam = "family.remnant"
-	wardenTmpl = "template.creature.archon_warden"
+	feedersMap  = "map.play.feeders"
+	shrineMap   = "map.play.shrine"
+	remnantTmpl = "template.creature.remnant"
+	wardenTmpl  = "template.creature.archon_warden"
 )
 
 // monsterField starts the party in one of the playground rooms, with the monster families as
@@ -108,11 +106,15 @@ func (f *monsterField) strikeTargets(source api.UID) []api.UID {
 	return targets
 }
 
-func (f *monsterField) migrated(family api.ContentID, from api.MapID) int {
+func (f *monsterField) migrated(template api.ContentID, from api.MapID) int {
 	count := 0
 	for _, e := range f.events {
-		if m, ok := e.(api.Migrated); ok && m.Family == family && m.From == from {
-			count += m.Count
+		m, ok := e.(api.Migrated)
+		if !ok || m.From != from {
+			continue
+		}
+		if body, found := f.w.ByUID(m.Body); found && f.w.TemplateOf(body) == template {
+			count++
 		}
 	}
 	return count
@@ -124,19 +126,6 @@ func (f *monsterField) members() []ecs.Entity {
 		f.t.Fatal("no controlled party")
 	}
 	return anatomy.Members(f.w, party)
-}
-
-func (f *monsterField) population(on api.MapID, family api.ContentID) int {
-	region, ok := agents.RegionOf(f.w, on)
-	if !ok {
-		f.t.Fatalf("map %d has no region", on)
-	}
-	for _, p := range ecs.NewMap[comp.Populations](f.w.ECS).Get(region).Of {
-		if p.Family == family {
-			return p.Count
-		}
-	}
-	return 0
 }
 
 func TestMovingClayWalksToACorpseTheFightLeft(t *testing.T) {
@@ -207,68 +196,14 @@ func TestARemnantLeavesDecayedGroundOnScreen(t *testing.T) {
 			for range 8 {
 				f.wait(api.WaitPhase)
 			}
-			left := f.migrated(remnantFam, den) > 0
+			left := f.migrated(remnantTmpl, den) > 0
 			if left != tt.want {
 				t.Errorf("remnant left the den = %v, want %v", left, tt.want)
 			}
-			if tt.want && len(f.bodiesOn(den, "template.creature.remnant")) != 0 {
+			if tt.want && len(f.bodiesOn(den, remnantTmpl)) != 0 {
 				t.Error("the remnant is still in the den")
 			}
 		})
-	}
-}
-
-func TestRemnantsDriftTowardLessDecayedGroundOffScreen(t *testing.T) {
-	f := newMonsterField(t, playHall, func(bundle *content.Bundle) {
-		contenttest.Edit(bundle.Maps, playHall, func(hall *content.MapDef) { hall.Region.Populations = nil })
-		contenttest.Edit(bundle.Maps, "map.play.den", func(den *content.MapDef) {
-			den.Spawns = nil
-			den.Region.Populations = map[string]int{remnantFam: 8}
-		})
-	})
-	den, hub := mapNamed(t, f.w, "map.play.den"), mapNamed(t, f.w, hubMap)
-	for range 3 {
-		f.wait(api.WaitPhase)
-	}
-	if got := f.population(den, remnantFam); got >= 8 {
-		t.Errorf("%d remnants still in the decayed den, want fewer than 8", got)
-	}
-	total := 0
-	for _, id := range f.w.Maps.IDs() {
-		if strings.HasPrefix(f.w.Maps.Get(id).Name(), "map.play.") {
-			total += f.population(id, remnantFam)
-		}
-	}
-	if total != 8 {
-		t.Errorf("%d remnants counted in all, want 8", total)
-	}
-	if f.population(hub, remnantFam) == 0 {
-		t.Error("no remnant reached the less decayed hub")
-	}
-}
-
-func TestMovingClayDriftsTowardTheDeadOffScreen(t *testing.T) {
-	f := newMonsterField(t, playHall, func(bundle *content.Bundle) {
-		contenttest.Edit(bundle.Maps, playHall, func(hall *content.MapDef) { hall.Region.Populations = nil })
-		contenttest.Edit(bundle.Maps, "map.play.den", func(den *content.MapDef) {
-			den.Spawns = nil
-			den.Region.Populations = map[string]int{"family.moving_clay": 8}
-		})
-	})
-	den, hub := mapNamed(t, f.w, "map.play.den"), mapNamed(t, f.w, hubMap)
-	corpse, err := f.w.Spawn("template.test.dummy", &comp.Pos{Map: hub, At: cellAt(2, 4)})
-	if err != nil {
-		t.Fatal(err)
-	}
-	f.kill(corpse)
-	for range 2 {
-		f.wait(api.WaitPhase)
-	}
-	if got := f.population(hub, "family.moving_clay"); got == 0 {
-		t.Error("no clay drifted to the hub, where the dead lie")
-	}
-	if got := f.population(den, "family.moving_clay"); got >= 8 {
-		t.Errorf("%d clay still in the den, want fewer than 8", got)
 	}
 }
 
@@ -404,7 +339,7 @@ func TestARemnantLeavesByTheGateToTheLeastDecayedGround(t *testing.T) {
 	}
 	var to []api.MapID
 	for _, e := range f.events {
-		if m, ok := e.(api.Migrated); ok && m.Family == remnantFam && m.From == den {
+		if m, ok := e.(api.Migrated); ok && m.From == den {
 			to = append(to, m.To)
 		}
 	}

@@ -2,7 +2,6 @@ package agents
 
 import (
 	"cmp"
-	"errors"
 	"fmt"
 	"slices"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
@@ -46,7 +44,7 @@ func tickGenerics(w *sim.World) error {
 
 func tickTownGenerics(w *sim.World, entity ecs.Entity, id api.MapID, def *content.TownDef) error {
 	state := ecs.NewMap[comp.Town](w.ECS).Get(entity)
-	if residentsOf(w, entity, id, def) == 0 {
+	if residentsOf(w, id, def) == 0 {
 		state.Replacements = nil
 		return nil
 	}
@@ -58,7 +56,7 @@ func tickTownGenerics(w *sim.World, entity ecs.Entity, id api.MapID, def *conten
 			waiting = append(waiting, replacement)
 			continue
 		}
-		arrived, err := arrive(w, entity, id, replacement.Template)
+		arrived, err := arrive(w, id, replacement.Template)
 		if err != nil {
 			return err
 		}
@@ -68,11 +66,7 @@ func tickTownGenerics(w *sim.World, entity ecs.Entity, id api.MapID, def *conten
 	}
 	state.Replacements = waiting
 	for _, generic := range def.Generics {
-		family, err := familyListing(w, generic.Template)
-		if err != nil {
-			return err
-		}
-		have := genericsOn(w, id, generic.Template) + populationOf(w, entity, family)
+		have := genericsOn(w, id, generic.Template)
 		for _, replacement := range state.Replacements {
 			if replacement.Template == generic.Template {
 				have++
@@ -86,25 +80,16 @@ func tickTownGenerics(w *sim.World, entity ecs.Entity, id api.MapID, def *conten
 	return nil
 }
 
-// residentsOf counts the town's residents: its family's bodies alive on the map, plus its count.
-func residentsOf(w *sim.World, town ecs.Entity, id api.MapID, def *content.TownDef) int {
-	total := populationOf(w, town, def.Residents)
-	query := ecs.NewFilter2[comp.Family, comp.Pos](w.ECS).Without(ecs.C[comp.Dead]()).Query()
+// residentsOf counts the living bodies of the town's residents template on the map.
+func residentsOf(w *sim.World, id api.MapID, def *content.TownDef) int {
+	total := 0
+	query := ecs.NewFilter1[comp.Pos](w.ECS).Without(ecs.C[comp.Dead]()).Query()
 	for query.Next() {
-		family, pos := query.Get()
-		if family.ID == def.Residents && pos.Map == id {
+		if query.Get().Map == id && w.TemplateOf(query.Entity()) == def.Residents {
 			total++
 		}
 	}
 	return total
-}
-
-func populationOf(w *sim.World, region ecs.Entity, family api.ContentID) int {
-	populations := ecs.NewMap[comp.Populations](w.ECS)
-	if !populations.Has(region) {
-		return 0
-	}
-	return countOf(populations.Get(region), family)
 }
 
 // genericsOn counts the living generics of the template that belong to the town and stand on its map.
@@ -120,80 +105,43 @@ func genericsOn(w *sim.World, id api.MapID, template api.ContentID) int {
 	return n
 }
 
-// errCrowdedGate is returned by arrivalCell when no cell near the gate is free.
-var errCrowdedGate = errors.New("no free cell near the gate")
-
-// arrive brings a generic into the town: a body at the gate when the party is on the map, else one
-// more in the family's count. It reports false, leaving the town unchanged, when the gate is
-// crowded, so the caller can retry later.
-func arrive(w *sim.World, town ecs.Entity, id api.MapID, template api.ContentID) (bool, error) {
-	family, err := familyListing(w, template)
-	if err != nil {
-		return false, err
+// arrive sets a generic down beside the map's first gate. It reports false, leaving the town
+// unchanged, when no cell there is free, so the caller can retry later.
+func arrive(w *sim.World, id api.MapID, template api.ContentID) (bool, error) {
+	m := w.Maps.Get(id)
+	if m == nil {
+		return false, fmt.Errorf("unknown map %d", id)
 	}
-	if at, onScreen := partyMap(w); !onScreen || at != id {
-		addToPopulation(ecs.NewMap[comp.Populations](w.ECS).Get(town), family, 1)
-		return true, nil
+	gates := m.Gates()
+	if len(gates) == 0 {
+		return false, fmt.Errorf("map %d has no gate for arrivals", id)
 	}
-	cell, err := arrivalCell(w, id)
-	if errors.Is(err, errCrowdedGate) {
-		return false, nil
-	}
-	if err != nil {
+	cell, free, err := freeCellNear(w, id, gates[0].At)
+	if err != nil || !free {
 		return false, err
 	}
 	body, err := w.Spawn(template, &comp.Pos{Map: id, At: cell})
 	if err != nil {
 		return false, err
 	}
-	sim.Put(w, body, comp.Family{ID: family})
 	sim.Put(w, body, comp.Generic{Town: id})
 	return true, nil
 }
 
-// arrivalCell picks, with the lod stream, one of the free cells nearest the map's first gate.
-func arrivalCell(w *sim.World, id api.MapID) (api.Cell, error) {
-	m := w.Maps.Get(id)
-	if m == nil {
-		return api.Cell{}, fmt.Errorf("unknown map %d", id)
+// markGenerics makes each living body on a town's map a generic when the town keeps its template.
+func markGenerics(w *sim.World, id api.MapID, def *content.TownDef) {
+	var bodies []ecs.Entity
+	query := ecs.NewFilter1[comp.Pos](w.ECS).Without(ecs.C[comp.Dead]()).Query()
+	for query.Next() {
+		if query.Get().Map != id {
+			continue
+		}
+		template := w.TemplateOf(query.Entity())
+		if slices.ContainsFunc(def.Generics, func(g content.GenericDef) bool { return g.Template == template }) {
+			bodies = append(bodies, query.Entity())
+		}
 	}
-	gates := m.Gates()
-	if len(gates) == 0 {
-		return api.Cell{}, fmt.Errorf("map %d has no gate for arrivals", id)
-	}
-	placer, err := newPlacer(w, id)
-	if err != nil {
-		return api.Cell{}, err
-	}
-	free, err := placer.free(gates[0].At)
-	if err != nil {
-		return api.Cell{}, err
-	}
-	if len(free) == 0 {
-		return api.Cell{}, fmt.Errorf("%w at %v", errCrowdedGate, gates[0].At)
-	}
-	nearest := hexmap.CellDistance(gates[0].At, free[0])
-	ties := 0
-	for ties < len(free) && hexmap.CellDistance(gates[0].At, free[ties]) == nearest {
-		ties++
-	}
-	return free[w.RNG.Get(lodStream).IntN(ties)], nil
-}
-
-// markGeneric makes a promoted body a generic when the town of its map keeps its template.
-func markGeneric(w *sim.World, body ecs.Entity, id api.MapID, template api.ContentID) {
-	town, ok := TownOf(w, id)
-	if !ok {
-		return
-	}
-	def, _ := w.Content.Map(ecs.NewMap[comp.Region](w.ECS).Get(town).Def)
-	if def.Region == nil || def.Region.Town == nil {
-		return
-	}
-	if slices.ContainsFunc(
-		def.Region.Town.Generics,
-		func(g content.GenericDef) bool { return g.Template == template },
-	) {
+	for _, body := range bodies {
 		sim.Put(w, body, comp.Generic{Town: id})
 	}
 }

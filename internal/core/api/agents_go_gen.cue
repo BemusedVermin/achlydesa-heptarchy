@@ -4,16 +4,13 @@
 
 package api
 
-#PromotedKind:       "agents.promoted"
-#DemotedKind:        "agents.demoted"
-#MigratedKind:       "agents.migrated"
-#TownEmptiedKind:    "agents.town_emptied"
-#PopulationDiedKind: "agents.population_died"
-#HireKind:           "agents.hire"
-#HiredKind:          "agents.hired"
-#GrumbledKind:       "agents.grumbled"
-#DesertedKind:       "agents.deserted"
-#FledKind:           "agents.fled"
+#MigratedKind:    "agents.migrated"
+#TownEmptiedKind: "agents.town_emptied"
+#HireKind:        "agents.hire"
+#HiredKind:       "agents.hired"
+#GrumbledKind:    "agents.grumbled"
+#DesertedKind:    "agents.deserted"
+#FledKind:        "agents.fled"
 
 // Grumbled reports that an unpaid recruit complained.
 #Grumbled: {
@@ -54,47 +51,15 @@ package api
 	paid: [...#ItemCount] @go(Paid,[]ItemCount)
 }
 
-// FamilyCount is how many members of a family changed form.
-#FamilyCount: {
-	family: #ContentID @go(Family)
-	count:  int        @go(Count)
-}
-
-// Promoted reports that a map's populations became bodies, with the counts per family in family ID
-// order.
-#Promoted: {
-	map: #MapID @go(Map)
-	families: [...#FamilyCount] @go(Families,[]FamilyCount)
-}
-
-// Demoted reports that a map's bodies were counted back into its region, with the counts per
-// family in family ID order.
-#Demoted: {
-	map: #MapID @go(Map)
-	families: [...#FamilyCount] @go(Families,[]FamilyCount)
-}
-
-// Migrated reports that residents left a map for a neighbouring one: off screen because a stock
-// ran short, or a body crossing a gate to a map the party is not on.
+// Migrated reports that a body crossed a gate to another map.
 #Migrated: {
-	from:   #MapID     @go(From)
-	to:     #MapID     @go(To)
-	family: #ContentID @go(Family)
-	count:  int        @go(Count)
-
-	// Short is the item that ran short; empty for a body that crossed a gate.
-	short: #ContentID @go(Short)
+	body: #UID   @go(Body)
+	from: #MapID @go(From)
+	to:   #MapID @go(To)
 }
 
 // TownEmptied reports that a town's last residents are gone.
 #TownEmptied: {
-	map:    #MapID     @go(Map)
-	family: #ContentID @go(Family)
-}
-
-// PopulationDied reports that members of a family died off screen.
-#PopulationDied: {
-	map:    #MapID     @go(Map)
-	family: #ContentID @go(Family)
-	count:  int        @go(Count)
+	map:      #MapID     @go(Map)
+	template: #ContentID @go(Template)
 }

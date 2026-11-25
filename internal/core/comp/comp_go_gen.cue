@@ -257,20 +257,6 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	town: api.#MapID @go(Town)
 }
 
-// Population is how many of one family a region holds off screen.
-#Population: {
-	family: api.#ContentID @go(Family)
-	count:  int            @go(Count)
-}
-
-// Populations is a region's off-screen populations, sorted by Family with none twice.
-#Populations: {
-	of: [...#Population] @go(Of,[]Population)
-}
-
-// Individual marks a body that is never demoted into a population count.
-#Individual: {}
-
 // Discontent counts the days a recruit has gone unpaid, less the days it was paid since.
 #Discontent: {
 	days: int @go(Days)
@@ -280,11 +266,6 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 // controller it runs under while it flees; the party's control mode does not apply to it.
 #Fleeing: {
 	controller: string @go(Controller)
-}
-
-// Family records the family a body was promoted from.
-#Family: {
-	id: api.#ContentID @go(ID)
 }
 
 // Dormant marks a body taken off the timeline, and keeps what putting it back needs.

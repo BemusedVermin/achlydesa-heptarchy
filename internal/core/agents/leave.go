@@ -66,69 +66,23 @@ func rankedGate(w *sim.World, body ecs.Entity, from comp.Pos, gates []hexmap.Gat
 	}), nil
 }
 
-// crossGate moves the body through the gate. On the party's map it appears at the gate's mark, or
-// the nearest free cell; anywhere else it is counted into the destination region's population of
-// its family and removed, and [api.Migrated] says so, followed by [api.TownEmptied] when it was the
-// last resident of the party's town.
+// crossGate sets the body down at the gate's mark on the destination map, or the nearest free
+// cell, and publishes [api.Migrated], followed by [api.TownEmptied] when it was the last resident
+// of the party's town.
 func crossGate(w *sim.World, body ecs.Entity, gate hexmap.Gate) error {
 	from := ecs.NewMap[comp.Pos](w.ECS).Get(body).Map
 	for _, pending := range timeline.PendingOf(w, w.UIDOf(body)) {
 		timeline.Cancel(w, pending, leftReason)
 	}
-	if at, onScreen := partyMap(w); onScreen && at == gate.To {
-		placer, err := newPlacer(w, gate.To)
-		if err != nil {
-			return err
-		}
-		free, err := placer.free(gate.ToCell)
-		if err != nil {
-			return err
-		}
-		if len(free) == 0 {
-			return fmt.Errorf("no free cell near gate destination %v", gate.ToCell)
-		}
-		sim.Put(w, body, comp.Pos{Map: gate.To, At: free[0]})
-		return nil
-	}
-	family, err := familyOf(w, body)
+	cell, free, err := freeCellNear(w, gate.To, gate.ToCell)
 	if err != nil {
 		return err
 	}
-	region, ok := RegionOf(w, gate.To)
-	if !ok {
-		return fmt.Errorf("map %d has no region", gate.To)
+	if !free {
+		return fmt.Errorf("no free cell near gate destination %v", gate.ToCell)
 	}
-	populations := ecs.NewMap[comp.Populations](w.ECS)
-	if !populations.Has(region) {
-		sim.Put(w, region, comp.Populations{})
-	}
-	addToPopulation(populations.Get(region), family, 1)
-	w.Despawn(body)
-	w.Bus.Publish(api.Migrated{From: from, To: gate.To, Family: family, Count: 1})
-	publishIfEmptied(w, from, family)
+	sim.Put(w, body, comp.Pos{Map: gate.To, At: cell})
+	w.Bus.Publish(api.Migrated{Body: w.UIDOf(body), From: from, To: gate.To})
+	publishIfEmptied(w, from, w.TemplateOf(body))
 	return nil
-}
-
-// familyOf is the family the body counts as: the one it was promoted as, or else the first family,
-// by ID, that lists its template.
-func familyOf(w *sim.World, body ecs.Entity) (api.ContentID, error) {
-	if families := ecs.NewMap[comp.Family](w.ECS); families.Has(body) {
-		return families.Get(body).ID, nil
-	}
-	family, err := familyListing(w, w.TemplateOf(body))
-	if err != nil {
-		return "", fmt.Errorf("body %d: %w", w.UIDOf(body), err)
-	}
-	return family, nil
-}
-
-// familyListing is the first family, by ID, that lists the template.
-func familyListing(w *sim.World, template api.ContentID) (api.ContentID, error) {
-	for _, id := range w.Content.FamilyIDs() {
-		def, _ := w.Content.Family(id)
-		if slices.ContainsFunc(def.Templates, func(t content.Weighted) bool { return t.Template == template }) {
-			return id, nil
-		}
-	}
-	return "", fmt.Errorf("no family lists template %q, so it cannot be counted", template)
 }

@@ -71,8 +71,6 @@ func collections() []collection {
 			nil, func(n NeedDef) (api.ContentID, bool) { return n.Name, true }),
 		described(CollectionBehaviors, "behavior", func(b *Bundle) map[string]BehaviorDef { return b.Behaviors },
 			nil, func(d BehaviorDef) (api.ContentID, bool) { return d.Name, true }),
-		described(CollectionFamilies, "family", func(b *Bundle) map[string]FamilyDef { return b.Families },
-			nil, func(f FamilyDef) (api.ContentID, bool) { return f.Name, true }),
 	}
 }
 

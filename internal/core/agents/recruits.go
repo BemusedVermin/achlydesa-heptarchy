@@ -150,13 +150,9 @@ func handleHire(w *sim.World, cmd api.Hire) (int64, error) {
 }
 
 // join makes the recruit the last member of the party. It stops being a generic, so the town's
-// replacement timer starts, and stops being counted in its family, so the party's moves never demote
-// it. The explore package gives it the follow controller on the next timeline entry.
+// replacement timer starts. The explore package gives it the follow controller on the next timeline entry.
 func join(w *sim.World, party, recruit ecs.Entity) {
 	ecs.NewMap[comp.Generic](w.ECS).Remove(recruit)
-	if families := ecs.NewMap[comp.Family](w.ECS); families.Has(recruit) {
-		families.Remove(recruit)
-	}
 	state := ecs.NewMap[comp.Party](w.ECS).Get(party)
 	if leader, ok := w.ByUID(state.Leader); ok {
 		if allegiances := ecs.NewMap[comp.Allegiance](w.ECS); allegiances.Has(leader) {

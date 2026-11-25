@@ -37,10 +37,8 @@ type Bundle struct {
 	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
 	// bodies weigh.
 	Behaviors map[string]BehaviorDef `json:"behaviors"`
-	// Families are the kinds of creature a region counts off screen ("family." IDs).
-	Families map[string]FamilyDef `json:"families"`
-	Agents   AgentsConfig         `json:"agents"`
-	Recruits RecruitsConfig       `json:"recruits"`
+	Agents    AgentsConfig           `json:"agents"`
+	Recruits  RecruitsConfig         `json:"recruits"`
 	// Rules are named formulas any formula may use as rule.<name>; the compiler inlines them.
 	Rules map[string]string `json:"rules,omitempty"`
 	// Choices are the choices actions may ask for, served from a collection of records.
@@ -341,26 +339,8 @@ type AgentsConfig struct {
 	// DyingBelow is the fraction of its integrity at or below which a vital part marks its body as
 	// dying, as target.dying reads in a formula.
 	DyingBelow float64 `json:"dying_below"`
-	// PromoteRadius is how far from a mark, or from the party, a promoted body may be placed, in
-	// hexes.
-	PromoteRadius int `json:"promote_radius"`
-}
-
-// FamilyDef is a kind of creature that a region holds as a count while the party is away, and as
-// bodies while it is there.
-type FamilyDef struct {
-	// Name is a text ID.
-	Name api.ContentID `json:"name"`
-	// Templates are the templates a promoted member may be, chosen by weight.
-	Templates []Weighted `json:"templates"`
-	// Marks are the names of map marks members appear at; empty means any open cell.
-	Marks []string `json:"marks,omitempty"`
-	// Drift is an Expr float over DriftEnv: the fraction of the family's count in a region that moves
-	// to one neighbour each phase while the party is elsewhere. Empty means none.
-	Drift string `json:"drift,omitempty"`
-	// Attrition is an Expr float over AttritionEnv: how many of the family in a region die each phase
-	// while the party is elsewhere. Empty means none.
-	Attrition string `json:"attrition,omitempty"`
+	// ArrivalRadius is how far from a gate's mark a body that crossed may be set down, in hexes.
+	ArrivalRadius int `json:"arrival_radius"`
 }
 
 // Weighted is a template and the weight it is chosen with.
@@ -512,8 +492,6 @@ type MapDef struct {
 type RegionDef struct {
 	Data
 	Town *TownDef `json:"town,omitempty"`
-	// Populations maps each family ("family." ID) to how many of it the region starts with.
-	Populations map[string]int `json:"populations,omitempty"`
 }
 
 // TownDef makes a region a town, whose stock the region entity holds as its inventory.
@@ -523,24 +501,16 @@ type TownDef struct {
 	// StockMarks are marks of the map where carried goods go into the stock. Each is a plain mark,
 	// not a spawn or a gate.
 	StockMarks []string `json:"stock_marks,omitempty"`
-	// Residents is the family ("family." ID) whose count in the region is the town's residents. It is
-	// required when the town uses stock.
+	// Residents is the template ("template." ID) whose living bodies on the map are the town's
+	// residents.
 	Residents api.ContentID `json:"residents,omitempty"`
-	// Use is what each resident spends from the stock every phase while the party is away.
-	Use []StackDef `json:"use,omitempty"`
-	// Refill is what the stock gains every phase while the party is away.
-	Refill []StackDef `json:"refill,omitempty"`
-	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
-	// to 1.
-	Exodus float64 `json:"exodus,omitempty"`
 	// Generics are the people the town keeps, replaced on a timer. It needs residents.
 	Generics []GenericDef `json:"generics,omitempty"`
 }
 
 // GenericDef is one kind of generic person a town keeps.
 type GenericDef struct {
-	// Template is the template ("template." ID) of the generic. Exactly one family lists it, as its
-	// only template, and that family's count is how many the town holds off screen.
+	// Template is the template ("template." ID) of the generic.
 	Template api.ContentID `json:"template"`
 	// Count is how many of it the town keeps.
 	Count int `json:"count"`
@@ -621,7 +591,6 @@ const (
 	CollectionStatuses  Collection = "statuses"
 	CollectionNeeds     Collection = "needs"
 	CollectionBehaviors Collection = "behaviors"
-	CollectionFamilies  Collection = "families"
 )
 
 // TargetKind is what an action targets.

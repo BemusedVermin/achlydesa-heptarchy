@@ -12,23 +12,29 @@ maps: "map.sample.shallow": _#TestMap & {
 		"h": "house"
 		"a": "from_deep_a"
 		"g": "gate_to_deep_a"
+		"p": "resident"
+		"H": "hauler"
+		"G": "guard"
+		"F": "field_hand"
 	}
 	gates: "g": {to: "map.sample.deep_a", mark: "from_shallow"}
-	spawns: "w": "template.town.well"
+	spawns: {
+		"w": "template.town.well"
+		"p": "template.resident.plain"
+		"H": "template.resident.hauler"
+		"G": "template.generic.guard"
+		"F": "template.generic.field_hand"
+	}
 	region: props: decay: 0.1
 	region: {
 		town: {
 			stock: [{item: "item.lake_water", count: 6}, {item: "item.ration", count: 10}]
 			stock_marks: ["cistern"]
-			residents: "family.people"
+			residents: "template.resident.plain"
 			generics: [
 				{template: "template.generic.guard", count: 2, ticks: 40},
 				{template: "template.generic.field_hand", count: 1, ticks: 60},
 			]
-		}
-		populations: {
-			"family.people":        2, "family.people.haulers":     1
-			"family.people.guards": 2, "family.people.field_hands": 1
 		}
 	}
 	layers: [
@@ -38,9 +44,9 @@ maps: "map.sample.shallow": _#TestMap & {
 				"###############",
 				"#.............#",
 				"#.w.....c.....#",
-				"#.............#",
+				"#....pp.......#",
 				"#.@..h........#",
-				"#.............#",
+				"#....HGG.F....#",
 				"#...........ag#",
 				"###############",
 			]
@@ -55,21 +61,26 @@ maps: "map.sample.deep_a": _#TestMap & {
 		"b": "from_deep_b"
 		"s": "gate_to_shallow"
 		"n": "gate_to_deep_b"
+		"m": "moving_clay"
+		"r": "remnant"
 	}
 	gates: {
 		"s": {to: "map.sample.shallow", mark: "from_deep_a"}
 		"n": {to: "map.sample.deep_b", mark: "from_deep_a"}
 	}
+	spawns: {
+		"m": "template.creature.moving_clay"
+		"r": "template.creature.remnant"
+	}
 	region: props: decay: 0.5
-	region: populations: {"family.moving_clay": 3, "family.remnant": 2}
 	layers: [
 		{
 			depth: 0
 			rows: [
 				"#############",
-				"#...........#",
+				"#.m...r...m.#",
 				"#.as......bn#",
-				"#...........#",
+				"#...m...r...#",
 				"#...........#",
 				"#############",
 			]
@@ -84,25 +95,31 @@ maps: "map.sample.deep_b": _#TestMap & {
 		"b": "from_lake"
 		"s": "gate_to_deep_a"
 		"n": "gate_to_lake"
+		"m": "moving_clay"
+		"r": "remnant"
+		"f": "soul_feeder"
+		"w": "archon_warden"
 	}
 	gates: {
 		"s": {to: "map.sample.deep_a", mark: "from_deep_b"}
 		"n": {to: "map.sample.lake", mark: "from_deep_b"}
 	}
-	region: props: decay: 0.8
-	region: populations: {
-		"family.remnant":     4, "family.moving_clay":    2
-		"family.soul_feeder": 2, "family.archon_wardens": 1
+	spawns: {
+		"m": "template.creature.moving_clay"
+		"r": "template.creature.remnant"
+		"f": "template.creature.soul_feeder"
+		"w": "template.creature.archon_warden"
 	}
+	region: props: decay: 0.8
 	layers: [
 		{
 			depth: 0
 			rows: [
 				"#############",
-				"#...........#",
+				"#.r...m...r.#",
 				"#.as......bn#",
-				"#...........#",
-				"#...........#",
+				"#..f..r..f..#",
+				"#.m.r..w....#",
 				"#############",
 			]
 		},
@@ -118,24 +135,26 @@ maps: "map.sample.lake": _#TestMap & {
 		"h": "house"
 		"a": "from_deep_b"
 		"g": "gate_to_deep_b"
+		"p": "resident"
+		"T": "tamed_clay"
+		"L": "leashed_feeder"
 	}
 	gates: "g": {to: "map.sample.deep_b", mark: "from_lake"}
+	spawns: {
+		"p": "template.resident.plain"
+		"T": "template.generic.tamed_clay"
+		"L": "template.generic.leashed_feeder"
+	}
 	region: props: decay: 0.1
 	region: {
 		town: {
 			stock: [{item: "item.lake_water", count: 40}, {item: "item.ration", count: 6}]
 			stock_marks: ["cistern"]
-			residents: "family.people"
-			refill: [{item: "item.lake_water", count: 4}]
+			residents: "template.resident.plain"
 			generics: [
 				{template: "template.generic.tamed_clay", count: 1, ticks: 80},
 				{template: "template.generic.leashed_feeder", count: 1, ticks: 80},
 			]
-		}
-		populations: {
-			"family.people":                 3
-			"family.people.tamed_clay":      1
-			"family.people.leashed_feeders": 1
 		}
 	}
 	layers: [
@@ -146,7 +165,7 @@ maps: "map.sample.lake": _#TestMap & {
 				"#.............#",
 				"#.....c.......#",
 				"#.@..h........#",
-				"#.............#",
+				"#....ppp..TL..#",
 				"#...........ag#",
 				"###############",
 			]

@@ -6,7 +6,6 @@ maps: "map.play.hall": _#TestMap & {
 	marks: {"r": "from_hub", "g": "gate_to_hub", "c": "creature"}
 	gates: "g": {to: "map.play.hub", mark: "from_hall"}
 	spawns: "c": "template.creature.moving_clay"
-	region: populations: "family.test.clay": 3
 	layers: [
 		{
 			depth: 0
@@ -20,12 +19,12 @@ maps: "map.play.hall": _#TestMap & {
 				"  #...............#",
 				" #................#",
 				" #.................#",
-				"#...........#......#",
+				"#...........#.c....#",
 				"#.......gr.......c.#",
-				"#..................#",
+				"#.............c....#",
 				" #..........#......#",
 				" #................#",
-				"  #.......#.......#",
+				"  #.......#...c...#",
 				"  #..............#",
 				"   #.............#",
 				"   #............#",

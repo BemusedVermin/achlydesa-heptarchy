@@ -51,7 +51,7 @@ func PlayDays(reg *content.Registry, seed uint64, policy Policy, days, maxSteps 
 			break
 		}
 	}
-	result.Deaths, result.Migrations, result.TownsEmptied = track.deaths+track.offScreen, track.migrations, track.towns
+	result.Deaths, result.Migrations, result.TownsEmptied = track.deaths, track.migrations, track.towns
 	return result, nil
 }
 

@@ -87,8 +87,8 @@ func TestWaterScenario(t *testing.T) {
 			case api.BodyDied:
 				lines = append(lines, fmt.Sprintf("day %02d: died: %s", day, e.Name))
 			case api.Migrated:
-				lines = append(lines, fmt.Sprintf("day %02d: migrated %d %s from map %d to map %d, short %q",
-					day, e.Count, e.Family, e.From, e.To, e.Short))
+				lines = append(lines, fmt.Sprintf("day %02d: migrated from map %d to map %d",
+					day, e.From, e.To))
 			}
 		}
 		view, err := g.View()

@@ -1,7 +1,7 @@
 package data
 
 // A small town: a well, a cistern (the stock mark), a house to sleep at and a gate to the
-// playground hub. Its residents are counted in the region and appear when the party arrives.
+// playground hub. Its residents are bodies from the first tick.
 maps: "map.test.town": _#TestMap & {
 	name: "text.map.test.town"
 	tags: ["town"]
@@ -12,22 +12,28 @@ maps: "map.test.town": _#TestMap & {
 		"h": "house"
 		"a": "from_hub"
 		"g": "gate_to_hub"
+		"p": "resident"
+		"H": "hauler"
+		"G": "guard"
+		"F": "field_hand"
 	}
 	gates: "g": {to: "map.play.hub", mark: "from_town"}
-	spawns: "w": "template.town.well"
+	spawns: {
+		"w": "template.town.well"
+		"p": "template.resident.plain"
+		"H": "template.resident.hauler"
+		"G": "template.generic.guard"
+		"F": "template.generic.field_hand"
+	}
 	region: {
 		town: {
 			stock: [{item: "item.lake_water", count: 6}, {item: "item.ration", count: 10}]
 			stock_marks: ["cistern"]
-			residents: "family.people"
+			residents: "template.resident.plain"
 			generics: [
 				{template: "template.generic.guard", count: 2, ticks: 40},
 				{template: "template.generic.field_hand", count: 1, ticks: 60},
 			]
-		}
-		populations: {
-			"family.people":        2, "family.people.haulers":     1
-			"family.people.guards": 2, "family.people.field_hands": 1
 		}
 	}
 	layers: [
@@ -37,9 +43,9 @@ maps: "map.test.town": _#TestMap & {
 				"###############",
 				"#.............#",
 				"#.w.....c.....#",
-				"#.............#",
+				"#....pp.......#",
 				"#.@..h........#",
-				"#.............#",
+				"#....HGG.F....#",
 				"#...........ag#",
 				"###############",
 			]

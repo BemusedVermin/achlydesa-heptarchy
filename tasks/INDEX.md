@@ -124,7 +124,7 @@ Brief: [M4-world/README.md](M4-world/README.md)
 
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| [M4-01](M4-world/M4-01-delete-level-of-detail.md) | Everyone is an individual: delete level of detail and counts | todo | debt | M | none |
+| [M4-01](M4-world/M4-01-delete-level-of-detail.md) | Everyone is an individual: delete level of detail and counts | done | debt | M | none |
 | [M4-02](M4-world/M4-02-containers-replace-stock.md) | Containers replace the town stock; delete generics and emptying | todo | feature | M | M4-01 |
 | [M4-03](M4-world/M4-03-recruits-pay-need.md) | Recruits on a pay need | todo | feature | M | M4-02 |
 | [M4-04](M4-world/M4-04-bounded-world-store.md) | hexmap: one bounded world store | todo | seam | S | none |

@@ -32,8 +32,6 @@ type Registry struct {
 	offers map[string]*vm.Program
 	mods   map[api.ContentID]compiledMods
 	needs  map[api.ContentID]compiledNeed
-	// families has a nil program for a formula the family leaves empty.
-	families map[api.ContentID]compiledFamily
 	// behaviors holds each behavior's considerations, in order.
 	behaviors map[api.ContentID][]*vm.Program
 	// ranks holds the rank formula of each behavior that has one.

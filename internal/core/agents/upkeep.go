@@ -108,9 +108,6 @@ func desert(w *sim.World, party, recruit ecs.Entity) {
 		fleeing.Remove(recruit)
 	}
 	sim.Put(w, recruit, comp.Allegiance{Faction: cfg.DesertersFaction})
-	if individual := ecs.NewMap[comp.Individual](w.ECS); !individual.Has(recruit) {
-		individual.Add(recruit, &comp.Individual{})
-	}
 	if actor := ecs.NewMap[comp.Actor](w.ECS); actor.Has(recruit) {
 		actor.Get(recruit).Controller = controllerName
 	}

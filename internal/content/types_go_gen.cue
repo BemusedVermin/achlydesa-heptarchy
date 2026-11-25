@@ -47,9 +47,6 @@ import (
 	// Behaviors are what agents choose between ("behavior." IDs); a template lists the ones its
 	// bodies weigh.
 	behaviors: {[string]: #BehaviorDef} @go(Behaviors,map[string]BehaviorDef)
-
-	// Families are the kinds of creature a region counts off screen ("family." IDs).
-	families: {[string]: #FamilyDef} @go(Families,map[string]FamilyDef)
 	agents:   #AgentsConfig   @go(Agents)
 	recruits: #RecruitsConfig @go(Recruits)
 
@@ -403,30 +400,8 @@ import (
 	// dying, as target.dying reads in a formula.
 	dying_below: float64 @go(DyingBelow)
 
-	// PromoteRadius is how far from a mark, or from the party, a promoted body may be placed, in
-	// hexes.
-	promote_radius: int @go(PromoteRadius)
-}
-
-// FamilyDef is a kind of creature that a region holds as a count while the party is away, and as
-// bodies while it is there.
-#FamilyDef: {
-	// Name is a text ID.
-	name: api.#ContentID @go(Name)
-
-	// Templates are the templates a promoted member may be, chosen by weight.
-	templates: [...#Weighted] @go(Templates,[]Weighted)
-
-	// Marks are the names of map marks members appear at; empty means any open cell.
-	marks?: [...string] @go(Marks,[]string)
-
-	// Drift is an Expr float over DriftEnv: the fraction of the family's count in a region that moves
-	// to one neighbour each phase while the party is elsewhere. Empty means none.
-	drift?: string @go(Drift)
-
-	// Attrition is an Expr float over AttritionEnv: how many of the family in a region die each phase
-	// while the party is elsewhere. Empty means none.
-	attrition?: string @go(Attrition)
+	// ArrivalRadius is how far from a gate's mark a body that crossed may be set down, in hexes.
+	arrival_radius: int @go(ArrivalRadius)
 }
 
 // Weighted is a template and the weight it is chosen with.
@@ -607,9 +582,6 @@ import (
 #RegionDef: {
 	#Data
 	town?: null | #TownDef @go(Town,*TownDef)
-
-	// Populations maps each family ("family." ID) to how many of it the region starts with.
-	populations?: {[string]: int} @go(Populations,map[string]int)
 }
 
 // TownDef makes a region a town, whose stock the region entity holds as its inventory.
@@ -621,19 +593,9 @@ import (
 	// not a spawn or a gate.
 	stock_marks?: [...string] @go(StockMarks,[]string)
 
-	// Residents is the family ("family." ID) whose count in the region is the town's residents. It is
-	// required when the town uses stock.
+	// Residents is the template ("template." ID) whose living bodies on the map are the town's
+	// residents.
 	residents?: api.#ContentID @go(Residents)
-
-	// Use is what each resident spends from the stock every phase while the party is away.
-	use?: [...#StackDef] @go(Use,[]StackDef)
-
-	// Refill is what the stock gains every phase while the party is away.
-	refill?: [...#StackDef] @go(Refill,[]StackDef)
-
-	// Exodus is the fraction of the residents that leaves each phase a used item runs short, from 0
-	// to 1.
-	exodus?: float64 @go(Exodus)
 
 	// Generics are the people the town keeps, replaced on a timer. It needs residents.
 	generics?: [...#GenericDef] @go(Generics,[]GenericDef)
@@ -641,8 +603,7 @@ import (
 
 // GenericDef is one kind of generic person a town keeps.
 #GenericDef: {
-	// Template is the template ("template." ID) of the generic. Exactly one family lists it, as its
-	// only template, and that family's count is how many the town holds off screen.
+	// Template is the template ("template." ID) of the generic.
 	template: api.#ContentID @go(Template)
 
 	// Count is how many of it the town keeps.
@@ -730,8 +691,7 @@ import (
 	#CollectionFactions |
 	#CollectionStatuses |
 	#CollectionNeeds |
-	#CollectionBehaviors |
-	#CollectionFamilies
+	#CollectionBehaviors
 
 #CollectionMaterials: #Collection & "materials"
 #CollectionTerrains:  #Collection & "terrains"
@@ -749,7 +709,6 @@ import (
 #CollectionStatuses:  #Collection & "statuses"
 #CollectionNeeds:     #Collection & "needs"
 #CollectionBehaviors: #Collection & "behaviors"
-#CollectionFamilies:  #Collection & "families"
 
 // TargetKind is what an action targets.
 #TargetKind: #enumTargetKind

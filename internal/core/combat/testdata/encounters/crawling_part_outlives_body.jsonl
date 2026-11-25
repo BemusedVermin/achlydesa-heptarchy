@@ -1,15 +1,15 @@
-{"kind":"combat.part_severed","data":{"body":69,"part":70,"cause":"cut","source":2,"tick":0}}
-{"kind":"combat.part_damaged","data":{"body":69,"part":72,"amount":8,"integrity":0,"source":2,"tick":0}}
-{"kind":"combat.part_severed","data":{"body":69,"part":72,"cause":"worn","source":2,"tick":0}}
-{"kind":"combat.body_died","data":{"body":69,"name":"The remnant","tick":0}}
-{"kind":"combat.part_damaged","data":{"body":63,"part":67,"amount":12,"integrity":0,"source":2,"tick":0}}
-{"kind":"combat.part_severed","data":{"body":63,"part":67,"cause":"worn","source":2,"tick":0}}
-{"kind":"combat.body_died","data":{"body":63,"name":"Moving clay","tick":0}}
-{"kind":"combat.alert_started","data":{"party":1,"hostile":73,"name":"A crawling arm","tick":0}}
+{"kind":"combat.part_severed","data":{"body":82,"part":83,"cause":"cut","source":2,"tick":0}}
+{"kind":"combat.part_damaged","data":{"body":82,"part":85,"amount":8,"integrity":0,"source":2,"tick":0}}
+{"kind":"combat.part_severed","data":{"body":82,"part":85,"cause":"worn","source":2,"tick":0}}
+{"kind":"combat.body_died","data":{"body":82,"name":"The remnant","tick":0}}
+{"kind":"combat.part_damaged","data":{"body":77,"part":81,"amount":12,"integrity":0,"source":2,"tick":0}}
+{"kind":"combat.part_severed","data":{"body":77,"part":81,"cause":"worn","source":2,"tick":0}}
+{"kind":"combat.body_died","data":{"body":77,"name":"Moving clay","tick":0}}
+{"kind":"combat.alert_started","data":{"party":1,"hostile":86,"name":"A crawling arm","tick":0}}
 {"kind":"explore.control_changed","data":{"party":1,"mode":"individual","by":"alert"}}
-{"kind":"combat.part_damaged","data":{"body":73,"part":70,"amount":4,"integrity":0,"source":2,"tick":3}}
-{"kind":"combat.part_severed","data":{"body":73,"part":70,"cause":"worn","source":2,"tick":3}}
-{"kind":"combat.body_died","data":{"body":73,"name":"A crawling arm","tick":3}}
+{"kind":"combat.part_damaged","data":{"body":86,"part":83,"amount":4,"integrity":0,"source":2,"tick":3}}
+{"kind":"combat.part_severed","data":{"body":86,"part":83,"cause":"worn","source":2,"tick":3}}
+{"kind":"combat.body_died","data":{"body":86,"name":"A crawling arm","tick":3}}
 {"kind":"explore.moved","data":{"source":14,"map":1,"from":{"hex":{"q":1,"r":2},"depth":0},"to":{"hex":{"q":0,"r":3},"depth":0},"kind":"level"}}
 {"kind":"combat.alert_ended","data":{"party":1,"tick":32}}
 {"kind":"explore.control_changed","data":{"party":1,"mode":"follow","by":"alert"}}

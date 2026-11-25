@@ -1,4 +1,4 @@
-{"kind":"actions.started","data":{"source":56,"action":"action.strike","target":62,"tick":0,"lands":3}}
-{"kind":"combat.part_damaged","data":{"body":62,"part":64,"amount":3,"integrity":0,"choices":{"type":"type.soak"},"source":56,"tick":3}}
-{"kind":"combat.part_severed","data":{"body":62,"part":64,"cause":"worn","source":56,"tick":3}}
-{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":56,"target":62,"tick":3}}
+{"kind":"actions.started","data":{"source":69,"action":"action.strike","target":75,"tick":0,"lands":3}}
+{"kind":"combat.part_damaged","data":{"body":75,"part":77,"amount":3,"integrity":0,"choices":{"type":"type.soak"},"source":69,"tick":3}}
+{"kind":"combat.part_severed","data":{"body":75,"part":77,"cause":"worn","source":69,"tick":3}}
+{"kind":"timeline.action_landed","data":{"kind":"actions.land","source":69,"target":75,"tick":3}}

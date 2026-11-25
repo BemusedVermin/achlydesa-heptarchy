@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
@@ -92,6 +93,20 @@ func Edit[V any](m map[string]V, key string, f func(*V)) {
 	v := m[key]
 	f(&v)
 	m[key] = v
+}
+
+// WithoutSpawns takes every spawn off the map: each spawn mark becomes plain floor in the layers.
+// The map must belong to a bundle the test owns, since the layers' rows are rewritten in place.
+func WithoutSpawns(def *content.MapDef) {
+	for char := range def.Spawns {
+		delete(def.Marks, char)
+		for i := range def.Layers {
+			for row, text := range def.Layers[i].Rows {
+				def.Layers[i].Rows[row] = strings.ReplaceAll(text, char, ".")
+			}
+		}
+	}
+	def.Spawns = nil
 }
 
 // StandingCrawler keeps the sample moving clay where it is, so random walkers aren't killed.

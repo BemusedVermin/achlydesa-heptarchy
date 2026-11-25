@@ -40,6 +40,7 @@ func newFieldInstalling(
 	bundle := contenttest.SampleBundle(t)
 	bundle.Start.Map = mapID
 	contenttest.StepOnlyParty(&bundle)
+	withoutTownAndDeepBodies(&bundle)
 	if mutate != nil {
 		mutate(&bundle)
 	}

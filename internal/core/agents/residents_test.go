@@ -35,13 +35,19 @@ func newTownField(t *testing.T, seed uint64, start api.ContentID, mutate func(*c
 	t.Helper()
 	g, w, _ := gametest.New(t, seed, func(bundle *content.Bundle) {
 		bundle.Start.Map = start
-		contenttest.Edit(bundle.Maps, denMap, func(den *content.MapDef) { den.Spawns = nil })
-		contenttest.Edit(bundle.Maps, "map.sample.shallow", func(town *content.MapDef) { town.Spawns = nil })
+		isolateTown(bundle)
 		if mutate != nil {
 			mutate(bundle)
 		}
 	})
 	return &townField{t: t, g: g, w: w}
+}
+
+func isolateTown(bundle *content.Bundle) {
+	contenttest.Edit(bundle.Maps, denMap, contenttest.WithoutSpawns)
+	for _, name := range []string{sampleShallow, sampleDeepA, sampleDeepB, sampleLake} {
+		contenttest.Edit(bundle.Maps, name, contenttest.WithoutSpawns)
+	}
 }
 
 func (f *townField) wait() []api.Event {
@@ -152,18 +158,17 @@ func TestResidentsLeaveThroughTheGateWhenWaterRunsOut(t *testing.T) {
 	f := newTownField(t, 1, townMap, thirstyQuickly)
 	well := f.one(wellTemplate)
 	inventory.Take(f.w, well, waterItem, 0, inventory.Count(f.w, well, waterItem, 0))
-	hub := f.town("map.play.hub")
-	populations := ecs.NewMap[comp.Populations](f.w.ECS)
-	countPeople := func() int {
-		total := 0
-		for _, p := range populations.Get(hub).Of {
-			if p.Family == "family.people" || p.Family == "family.people.haulers" {
-				total += p.Count
+	residents := func() int {
+		count := 0
+		for _, template := range []api.ContentID{hauler, plainResident} {
+			for _, body := range f.withTemplate(template) {
+				if ecs.NewMap[comp.Pos](f.w.ECS).Get(body).Map == f.mapID(townMap) {
+					count++
+				}
 			}
 		}
-		return total
+		return count
 	}
-	residents := func() int { return len(f.withTemplate(hauler)) + len(f.withTemplate(plainResident)) }
 	if residents() != 3 {
 		t.Fatalf("%d residents at the start, want 3", residents())
 	}
@@ -173,7 +178,7 @@ func TestResidentsLeaveThroughTheGateWhenWaterRunsOut(t *testing.T) {
 			break
 		}
 		for _, e := range f.wait() {
-			if m, ok := e.(api.Migrated); ok && m.Family != "family.remnant" {
+			if m, ok := e.(api.Migrated); ok && m.From == f.mapID(townMap) {
 				migrated = append(migrated, m)
 			}
 		}
@@ -181,15 +186,12 @@ func TestResidentsLeaveThroughTheGateWhenWaterRunsOut(t *testing.T) {
 	if residents() != 0 {
 		t.Fatalf("%d residents still in town at tick %d", residents(), f.w.Now)
 	}
-	if got := countPeople(); got != 3 {
-		t.Errorf("the hub counts %d people, want 3", got)
-	}
 	from, to := f.mapID(townMap), f.mapID("map.play.hub")
 	if len(migrated) != 3 {
 		t.Errorf("%d Migrated events, want 3", len(migrated))
 	}
 	for _, m := range migrated {
-		if m.From != from || m.To != to || m.Count != 1 || m.Short != "" {
+		if m.From != from || m.To != to {
 			t.Errorf("migrated %+v, want one resident from %d to %d", m, from, to)
 		}
 	}

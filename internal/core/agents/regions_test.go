@@ -168,13 +168,11 @@ func TestTheRegionViewNamesThePartysRegionAndShowsATownsStock(t *testing.T) {
 	}
 }
 
-func TestSavingKeepsRegionsPopulationsAndStocks(t *testing.T) {
+func TestSavingKeepsRegionsAndStocks(t *testing.T) {
 	g, w, cfg := gametest.New(t, 1, hallTown())
 	hall := mapNamed(t, w, hallMap)
 	town, _ := agents.TownOf(w, hall)
 	inventory.Add(w, town, comp.ItemStack{Item: "item.ration", Count: 4})
-	populations := []comp.Population{{Family: "family.a", Count: 3}, {Family: "family.b", Count: 1}}
-	sim.Put(w, town, comp.Populations{Of: populations})
 	loaded, world, _ := gametest.Reload(t, cfg, g)
 	before, err := g.Hash()
 	if err != nil {
@@ -190,9 +188,6 @@ func TestSavingKeepsRegionsPopulationsAndStocks(t *testing.T) {
 	again, ok := agents.TownOf(world, hall)
 	if !ok {
 		t.Fatal("the loaded hall is not a town")
-	}
-	if got := ecs.NewMap[comp.Populations](world.ECS).Get(again).Of; !slices.Equal(got, populations) {
-		t.Errorf("populations %v, want %v", got, populations)
 	}
 	if got := inventory.Count(world, again, "item.ration", 0); got != 4 {
 		t.Errorf("the loaded stock holds %d rations, want 4", got)

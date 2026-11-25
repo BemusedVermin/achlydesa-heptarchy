@@ -40,7 +40,7 @@ actions: "action.step": {
 	target: "direction", windup: "0", recovery: "step_ticks"
 }
 rules: agents_score: "1.0"
-agents: {score_rule: "agents_score", dying_below: 0.5, promote_radius: 8}
+agents: {score_rule: "agents_score", dying_below: 0.5, arrival_radius: 8}
 party: {slots: 4, sight_radius: 6, follow_action: "action.step"}
 combat: {ai_score: "1.0", aims: "true", attack_tag: "attack", corpse_tag: "corpse", step_action: "action.step"}
 timeline: {step_ticks: "speed >= 2 ? 10 : 20", speed: "grant.speed", default_speed: 2, window_ticks: 30}

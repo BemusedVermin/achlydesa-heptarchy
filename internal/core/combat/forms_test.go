@@ -54,6 +54,7 @@ func newRing(t *testing.T, at map[string]int) *ring {
 	t.Helper()
 	bundle := contenttest.SampleBundle(t)
 	contenttest.NoStart(&bundle)
+	withoutTownAndDeepBodies(&bundle)
 	armPart := api.ContentID("part.human_arm")
 	bundle.Items["item.test_arm"] = content.Item{
 		Name: "text.item.test_arm", Part: &armPart, Tags: []string{"piece"},
@@ -628,5 +629,13 @@ func TestInASoopOnlyTheFrontMemberReaches(t *testing.T) {
 	reach := actions.Startable(r.w, r.body("ally"))
 	if !slices.ContainsFunc(reach, func(in actions.Intent) bool { return in.Target == victim }) {
 		t.Error("the front member has no attack against the creature")
+	}
+}
+
+// withoutTownAndDeepBodies empties the sample world's maps and the test town, whose bodies act from
+// the first tick and would fill an encounter's events with moves.
+func withoutTownAndDeepBodies(bundle *content.Bundle) {
+	for _, name := range []string{"map.test.town", "map.sample.shallow", "map.sample.deep_a", "map.sample.deep_b", "map.sample.lake"} {
+		contenttest.Edit(bundle.Maps, name, contenttest.WithoutSpawns)
 	}
 }

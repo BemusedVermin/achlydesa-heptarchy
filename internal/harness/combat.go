@@ -46,7 +46,6 @@ type tracker struct {
 	misses       int
 	severed      int
 	deaths       int
-	offScreen    int
 	migrations   int
 	towns        int
 	hostiles     map[api.UID]bool
@@ -90,10 +89,8 @@ func (t *tracker) observe(events []api.Event, view api.View) {
 				t.hostileDeath++
 				t.end = e.Tick
 			}
-		case api.PopulationDied:
-			t.offScreen += e.Count
 		case api.Migrated:
-			t.migrations += e.Count
+			t.migrations++
 		case api.TownEmptied:
 			t.towns++
 		case api.PartyWiped:
@@ -115,7 +112,7 @@ func (t *tracker) observe(events []api.Event, view api.View) {
 func (t *tracker) columns() []string {
 	return []string{
 		strconv.FormatInt(t.alertTicks, 10), strconv.Itoa(t.landings), strconv.Itoa(t.misses),
-		strconv.Itoa(t.severed), strconv.Itoa(t.deaths + t.offScreen), t.outcome,
+		strconv.Itoa(t.severed), strconv.Itoa(t.deaths), t.outcome,
 		strconv.Itoa(t.migrations), strconv.Itoa(t.towns),
 	}
 }

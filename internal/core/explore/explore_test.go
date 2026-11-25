@@ -34,7 +34,7 @@ func newFixture(t *testing.T, mapID api.ContentID, mutate func(*content.Bundle))
 		bundle.Start.Map = mapID
 	}
 	for id, def := range bundle.Maps {
-		def.Spawns = nil
+		contenttest.WithoutSpawns(&def)
 		bundle.Maps[id] = def
 	}
 	if mutate != nil {

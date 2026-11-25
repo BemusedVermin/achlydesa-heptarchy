@@ -1,7 +1,7 @@
 ---
 id: M4-01
 title: "Everyone is an individual: delete level of detail and counts"
-status: todo
+status: done
 milestone: M4
 kind: debt
 depends_on: []
@@ -47,11 +47,11 @@ Every creature and person is an entity from the first tick to its death. Off-scr
 
 ## Acceptance criteria
 
-- [ ] `git grep -w -E "Populations|FamilyCount|Promoted|Demoted|PopulationDied|StartLevelOfDetail|family\.[a-z_]+" -- internal content docs` finds nothing (`tasks/` aside).
-- [ ] `go run ./cmd/harness run --start start.sample --steps 40` runs, and the sample world's bodies exist from tick 0: a test counts the bodies on each sample map at the start and finds the numbers the old populations held.
-- [ ] A test shows a body on a map the party is not on still takes decisions (its `Doing` changes, or its position does) as time passes.
-- [ ] Every golden and harness output that changes is regenerated and named in Notes.
-- [ ] `go tool task check` passes.
+- [x] `git grep -w -E "Populations|FamilyCount|Promoted|Demoted|PopulationDied|StartLevelOfDetail|family\.[a-z_]+" -- internal content docs` finds nothing (`tasks/` aside).
+- [x] `go run ./cmd/harness run --start start.sample --steps 40` runs, and the sample world's bodies exist from tick 0: a test counts the bodies on each sample map at the start and finds the numbers the old populations held.
+- [x] A test shows a body on a map the party is not on still takes decisions (its `Doing` changes, or its position does) as time passes.
+- [x] Every golden and harness output that changes is regenerated and named in Notes.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -62,4 +62,13 @@ Every creature and person is an entity from the first tick to its death. Off-scr
 
 ## Notes
 
-Filled in by the implementer.
+- Deleted: `lod.go`, `offscreen.go`, `families.go`, `families.cue` and their tests, with `FamilyDef`, `DriftEnv`, `AttritionEnv`, `RegionEnv`, `comp.Population(s)`, `Individual`, `Family`, `PromoteRadius`.
+- Deviation, `api.Migrated`: it is now `{Body, From, To}`. `Family` and `Count` meant nothing once a crossing body stays a body, so they went with `Short`. M4-07 deletes it.
+- Deviation, `api.TownEmptied.Family` is now `Template`, and `TownDef.Residents` is a template ID (its living bodies on the map are the residents) since families are gone. Still reported only while the party is in the town. M4-02 deletes it.
+- Beyond the list: `TownDef.Use`, `Refill`, `Exodus` went too (only the off-screen tick read them), so `map.sample.lake` no longer refills. `agents.promote_radius` became `agents.arrival_radius` (how far from a gate's mark a crossing or arriving body may be set down). Generics are marked from the bodies content spawns (`markGenerics` in `SpawnRegions`); `arrive` always sets a body down, never counts it.
+- Sample world bodies are spawn cells (marks `p`, `H`, `G`, `F`, `T`, `L`, `m`, `r`, `f`, `w`); `map.play.hall` has four `c` cells (the old one plus the three the count made). Counts match the old populations: shallow 2/1/2/1, deep_a 3 clay and 2 remnants, deep_b 4/2/2/1, lake 3/1/1.
+- `timeline.Suspend`, `Resume` and `comp.Dormant` have no user now; kept as the task says.
+- Test fixtures: `contenttest.WithoutSpawns` strips a map's spawn cells (spawn marks may repeat, so setting `Spawns = nil` no longer validates). The agents, explore and combat fixtures use it. Offscreen drift, attrition, stock and promotion tests were deleted; new tests: `TestTheSampleWorldsBodiesExistFromTickZero`, `TestABodyOnAMapThePartyIsNotOnStillDecides`.
+- Goldens regenerated: `internal/core/combat/testdata/encounters/*.jsonl` (all seven; UIDs shifted, and the outpaced migration line is the new shape), `internal/frontend/tui/testdata/{actor_sweep,actor_windup,look_after,look_before,menu_parts}.golden` (UIDs and ticks shifted by the extra bodies), `internal/harness/testdata/water_scenario.golden` (the whole sample world now acts, so moves and deaths rise). Save version is 9.
+- Could not run golangci-lint here (the installed binaries are built with an older Go than go.mod's 1.27.4); `go vet`, the tests and `go tool task content` pass. `TestAfterEditWithGolangciLint` in agentkit fails for the same reason.
+- Follow-ups filed: none.

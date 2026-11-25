@@ -133,14 +133,11 @@ func TestAnUnpaidRecruitGrumblesThenDesertsAndLivesOn(t *testing.T) {
 	if got := ecs.NewMap[comp.Actor](f.w.ECS).Get(guard).Controller; got != "agents" {
 		t.Errorf("controller = %q, want agents", got)
 	}
-	if !ecs.NewMap[comp.Individual](f.w.ECS).Has(guard) {
-		t.Error("the deserter is not an Individual")
-	}
 	if !ecs.NewMap[comp.Graft](f.w.ECS).Has(graftedPart) || !f.w.Alive(graftedPart) {
 		t.Error("the deserter lost its graft")
 	}
 	f.leaveTheMap()
-	if !f.w.Alive(guard) || !ecs.NewMap[comp.Individual](f.w.ECS).Has(guard) {
+	if !f.w.Alive(guard) {
 		t.Error("the deserter did not outlive the party's leaving the map")
 	}
 }

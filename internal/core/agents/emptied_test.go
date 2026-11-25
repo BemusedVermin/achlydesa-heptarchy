@@ -10,13 +10,13 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 )
 
-const residentFamily = "family.people"
+const residentTemplate = "template.resident.plain"
 
 func (f *townField) livingResidents(on api.MapID) []ecs.Entity {
 	var found []ecs.Entity
-	query := ecs.NewFilter2[comp.Family, comp.Pos](f.w.ECS).Without(ecs.C[comp.Dead]()).Query()
+	query := ecs.NewFilter1[comp.Pos](f.w.ECS).Without(ecs.C[comp.Dead]()).Query()
 	for query.Next() {
-		if family, pos := query.Get(); family.ID == residentFamily && pos.Map == on {
+		if pos := query.Get(); pos.Map == on && f.w.TemplateOf(query.Entity()) == residentTemplate {
 			found = append(found, query.Entity())
 		}
 	}
@@ -47,7 +47,7 @@ func TestATownTheLastResidentWalksOutOfIsEmptiedOnceWhileThePartyIsInIt(t *testi
 		events := f.wait()
 		emptied = append(emptied, townEmptiedIn(events)...)
 		for _, e := range events {
-			if m, ok := e.(api.Migrated); ok && m.From == town && m.Family == residentFamily {
+			if m, ok := e.(api.Migrated); ok && m.From == town {
 				migrated++
 			}
 		}
@@ -58,7 +58,7 @@ func TestATownTheLastResidentWalksOutOfIsEmptiedOnceWhileThePartyIsInIt(t *testi
 	if left := len(f.livingResidents(town)); left != 0 {
 		t.Fatalf("%d residents still in town at tick %d", left, f.w.Now)
 	}
-	want := []api.TownEmptied{{Map: town, Family: residentFamily}}
+	want := []api.TownEmptied{{Map: town, Template: residentTemplate}}
 	if len(emptied) != 1 || emptied[0] != want[0] {
 		t.Errorf("TownEmptied events %+v, want %+v", emptied, want)
 	}
@@ -80,7 +80,7 @@ func TestATownWhoseLastResidentDiesIsEmptiedOnceWhileThePartyIsInIt(t *testing.T
 		}
 		emptied := townEmptiedIn(events)
 		if last := i == len(residents)-1; last {
-			want := api.TownEmptied{Map: town, Family: residentFamily}
+			want := api.TownEmptied{Map: town, Template: residentTemplate}
 			if len(emptied) != 1 || emptied[0] != want {
 				t.Errorf("after the last death, TownEmptied events %+v, want [%+v]", emptied, want)
 			}

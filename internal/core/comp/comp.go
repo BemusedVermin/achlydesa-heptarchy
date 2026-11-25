@@ -248,20 +248,6 @@ type Generic struct {
 	Town api.MapID `json:"town"`
 }
 
-// Population is how many of one family a region holds off screen.
-type Population struct {
-	Family api.ContentID `json:"family"`
-	Count  int           `json:"count"`
-}
-
-// Populations is a region's off-screen populations, sorted by Family with none twice.
-type Populations struct {
-	Of []Population `json:"of"`
-}
-
-// Individual marks a body that is never demoted into a population count.
-type Individual struct{}
-
 // Discontent counts the days a recruit has gone unpaid, less the days it was paid since.
 type Discontent struct {
 	Days int `json:"days"`
@@ -271,11 +257,6 @@ type Discontent struct {
 // controller it runs under while it flees; the party's control mode does not apply to it.
 type Fleeing struct {
 	Controller string `json:"controller"`
-}
-
-// Family records the family a body was promoted from.
-type Family struct {
-	ID api.ContentID `json:"id"`
 }
 
 // Dormant marks a body taken off the timeline, and keeps what putting it back needs.
@@ -320,9 +301,6 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Region](world)
 	ecs.ComponentID[Town](world)
 	ecs.ComponentID[Generic](world)
-	ecs.ComponentID[Populations](world)
-	ecs.ComponentID[Individual](world)
-	ecs.ComponentID[Family](world)
 	ecs.ComponentID[Dormant](world)
 	ecs.ComponentID[Discontent](world)
 	ecs.ComponentID[Fleeing](world)
