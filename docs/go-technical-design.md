@@ -207,8 +207,8 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 ### Level of detail
 
 - **Everyone is an individual.** Every creature and person is a full Ark entity with a body, needs, an inventory and memory, all the time. Nothing is ever folded into a count.
-- **Detail is fidelity, not existence.** Near the party, agents act through the timeline and move cell by cell. Far from it, they decide less often and travel a coarse graph of the world (chunks and the openings between them), so pathfinding stays affordable. The radius, how often far agents decide, and how coarse the graph is are open.
-- **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. A region describes ground; it holds no population.
+- **Detail is fidelity, not existence.** Near the party, agents act through the timeline and move cell by cell. Far from it, they decide less often and travel a coarse graph of the world (chunks and the openings between them), so pathfinding stays affordable. All three numbers are content, first set and then tuned with the harness: an agent is near within a radius of chunks of any party member (first value 2 chunks, 32 hexes), far agents decide every `agents.far_ticks` (first value a tenth of a phase), and the graph is chunks and the openings between them.
+- **Regions are areas of one world.** Towns and regions of the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. A region describes ground; it holds no population. For now regions are drawn by hand in content; procgen generates them later.
 
 ### Determinism rules
 
@@ -265,7 +265,7 @@ The harness tunes the game with data, and the tests guard the invariants the des
 | Content checks | `cue vet` | Every data file against the generated schema |
 | Architecture | golangci-lint depguard | `internal/core` imports no UI package; feature packages import only foundation packages |
 | Shared sample content | `contenttest.Sample` | One cached, immutable registry per test binary; tests that mutate content take a deep copy |
-| Performance | `testing.B`, pprof | Off-screen ticks for a full deep stay fast enough to run 500 seeds overnight |
+| Performance | `testing.B`, pprof | A seeded year of the sample world runs in at most 60 s, so 500 seeds fit in a night |
 
 ## Custom code inventory and build order
 
@@ -304,7 +304,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 
 - [ ] CUE or YAML plus JSON Schema? CUE removes the most custom validation code, but it has a learning curve for content authoring.
 - [x] Hex library: decided, gravitton/hexagon (double-width layout, field of view and line drawing).
-- [ ] The world is bounded: how big is it, what's the chunk memory budget, and how often do far agents decide (see Level of detail)?
+- [x] The world is bounded: decided, small and hand-built at first, grown by procgen; how often far agents decide is in Level of detail. A seeded year of the sample world costs at most 60 s in the harness.
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
 - [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.
