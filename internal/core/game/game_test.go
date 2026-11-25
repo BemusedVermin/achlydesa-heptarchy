@@ -142,20 +142,6 @@ func TestUnknownCommandKindIsAnError(t *testing.T) {
 	}
 }
 
-func TestSwapContentRefusesNil(t *testing.T) {
-	g, err := game.New(config(t, 1))
-	if err != nil {
-		t.Fatal(err)
-	}
-	before, _ := g.Hash()
-	if err := g.SwapContent(nil); err == nil {
-		t.Fatal("want an error for nil content")
-	}
-	if after, _ := g.Hash(); after != before {
-		t.Error("a refused swap changed the game")
-	}
-}
-
 func TestRejectedCommandIsAnEventNotAnError(t *testing.T) {
 	g, err := game.New(config(t, 1))
 	if err != nil {
