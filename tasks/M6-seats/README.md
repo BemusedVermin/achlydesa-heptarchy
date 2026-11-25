@@ -1,6 +1,6 @@
-# M4 · Seats
+# M6 · Seats
 
-**Status:** outline. Break it into task files once M3 is done.
+**Status:** outline. Break it into task files once M5 is done.
 
 **Goal:** one seat works end to end: its stages, the piece's readings, investigation, killing and passing, and wound scoring choosing the next holder.
 
@@ -14,7 +14,7 @@
 - **Stage effects.** The ascending body changes through stages (parts added or swapped from content); archon prices as composed effects.
 - **The piece of Serilmen.** An item whose readings (region and progression, never who) form a view section, read slightly stronger near other pieces.
 - **Investigation.** Clues from people, places, bodies and dreams write facts; names and keepsakes become items; a journal screen as a view over the party's facts.
-- **Regions.** Hand-made regions until M5 generates them.
+- **Regions.** The fixed places M4 builds and the regions M5 generates; the piece reports them.
 
 ## Exit criteria
 
@@ -23,6 +23,5 @@
 
 ## Questions to settle before breaking it down
 
-- How regions are defined before procgen exists. Settled while planning M3: one hand-made map per region, joined by gates (`docs/go-technical-design.md`, "Level of detail").
 - What exactly the companion beat needs from the seat system.
 - Act I: is the first god the already-enshrined archon, or a second seat completing? (Open in the game design.)

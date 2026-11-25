@@ -51,6 +51,7 @@ Settled with the owner while planning:
 - **The party needs food and water.** Members are slowed first, then lose vital integrity; drinking uses lake water, the same item as Soak. Recorded in `docs/game-design.md` → "Party" → "Food and water". Used by M3-13.
 - **Recruit prices** are items: a bundle up front, scaled by what the recruit brings, then daily upkeep from the same wants; unpaid days raise discontent toward desertion. Recorded in `docs/game-design.md` → "Recruits" → "Paying them". Used by M3-15 and M3-16.
 - **Regions before procgen:** one hand-made map per region and per town, joined by gates; full agents on the party's map, aggregates everywhere else. Recorded in `docs/go-technical-design.md` → "Level of detail" (which also answers the level-of-detail radius question there) and in M4's brief. Used by M3-06 to M3-10.
+  - Superseded on 2026-11-25: the world is one continuous place with no gates. M4 converts regions, towns, level of detail and migration to areas of that world.
 
 Still open, and not needed by M3: what enemies did while a wiped party slept, and whether dead (not downed) members ever come back (M2-07.F1.F1's Notes).
 

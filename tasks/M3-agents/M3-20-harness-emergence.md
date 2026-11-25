@@ -44,7 +44,7 @@ The harness measures the living deep. Its CSV gains deaths, migrations and towns
 
 ## Out of scope
 
-- Tuning the numbers (M7).
+- Tuning the numbers (M8).
 
 ## Notes
 
