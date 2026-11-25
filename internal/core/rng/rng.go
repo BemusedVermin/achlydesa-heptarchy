@@ -6,9 +6,20 @@ import (
 	"math/rand/v2"
 )
 
-// Rand is a generator from this package, named so that the rest of the core, which may not import
-// math/rand, can hold one.
-type Rand = rand.Rand
+// Generator draws numbers from a sequence that [Streams.Derived] fixed by its inputs. It is not a stream: it is
+// not registered or saved, and its methods are the only draws the core may make from it.
+type Generator struct {
+	rand *rand.Rand
+}
+
+// Uint64 returns the next number in the sequence.
+func (g *Generator) Uint64() uint64 { return g.rand.Uint64() }
+
+// IntN returns a number in [0, n); n must be positive.
+func (g *Generator) IntN(n int) int { return g.rand.IntN(n) }
+
+// Float64 returns a number in [0, 1).
+func (g *Generator) Float64() float64 { return g.rand.Float64() }
 
 // stream pairs a generator with the PCG source behind it, so the source's
 // state can be saved and restored.
@@ -44,8 +55,8 @@ func (s *Streams) Get(name string) *rand.Rand {
 
 // Derived returns a fresh generator for (name, salt) that is not registered or
 // saved: callers recreate it from the same inputs. Procgen uses ("procgen", exportCount).
-func (s *Streams) Derived(name string, salt uint64) *rand.Rand {
-	return rand.New(rand.NewPCG(splitmix64(s.seed^salt), fnv64a(name)))
+func (s *Streams) Derived(name string, salt uint64) *Generator {
+	return &Generator{rand: rand.New(rand.NewPCG(splitmix64(s.seed^salt), fnv64a(name)))}
 }
 
 // State returns the serialized state of every stream created with Get, keyed by name.

@@ -36,7 +36,7 @@ type Context struct {
 	Bounds hexmap.Bounds
 	// Rand depends only on the world seed, the export count, the chunk key and the stage's place in the
 	// geography, so a chunk comes out the same whatever order chunks are built in.
-	Rand *rng.Rand
+	Rand *rng.Generator
 	// Params is the stage's own copy.
 	Params map[string]float64
 	// Fixed must only be read.
