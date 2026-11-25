@@ -1,7 +1,7 @@
 ---
 id: M4-04
 title: "hexmap: one bounded world store"
-status: in-progress
+status: done
 milestone: M4
 kind: seam
 depends_on: []
@@ -50,9 +50,9 @@ func (m *Map) SetBounds(b Bounds, edge Terrain)
 
 ## Acceptance criteria
 
-- [ ] A benchmark or test shows a 400×400×60 world of uniform fill, all chunks touched, holds under 5 MB of chunk memory.
-- [ ] Stepping off the edge of a bounded map is refused by `Standable` and by pathing.
-- [ ] `go tool task check` passes.
+- [x] A benchmark or test shows a 400×400×60 world of uniform fill, all chunks touched, holds under 5 MB of chunk memory.
+- [x] Stepping off the edge of a bounded map is refused by `Standable` and by pathing.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -62,4 +62,11 @@ func (m *Map) SetBounds(b Bounds, edge Terrain)
 
 ## Notes
 
-Filled in by the implementer.
+- `TestLargeUniformWorldStaysSmall` touches all 2600 chunks of a 400×400×60 bounded world and checks the bytes allocated (`TotalAlloc`, so garbage counts too) stay under 5 MB; it measured about 0.5 MB.
+- `TestSteppingOffTheEdgeIsRefused` covers `Standable`, `Step`, `Path` and `Reachable` at the edge; `TestBoundedAtMatchesSourceInsideAndEdgeOutside` is the rapid property, and also checks `Set` outside fails with `ErrOutOfBounds`.
+- `go tool task check-ci BASE=origin/master` passes (the CI form of `check`).
+- Added `ToOffsetOddR` in `offset.go`, the inverse of `FromOffsetOddR`, for `Bounds.Contains`. Not in the Deliverables list.
+- `SetBounds` takes the edge terrain as given and doesn't force `Solid`/`Opaque`; its doc says it should be both. Callers (M4-06/M4-07) choose it from content.
+- Edits made before `SetBounds` that fall outside the new bounds stay in `Edits()` though `At` no longer shows them. Bounds are meant to be set once at construction, so I left it.
+- Updated the `hexmap` row in `docs/go-technical-design.md` ("Core packages") to say maps can be bounded with solid edges.
+- No follow-ups filed.

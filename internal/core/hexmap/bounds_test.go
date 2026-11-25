@@ -113,7 +113,9 @@ func TestUniformChunkStoresNoSlots(t *testing.T) {
 	if got := chunk.Get(4, 4, 5); got != air {
 		t.Errorf("Get(4, 4, 5) = %v, want air", got)
 	}
-	if uniform, _ := FuncSource(func(api.Cell) Terrain { return rock }).Chunk(ChunkKey{1, -2, 3}); uniform.cells != nil {
+	if uniform, _ := FuncSource(
+		func(api.Cell) Terrain { return rock },
+	).Chunk(ChunkKey{1, -2, 3}); uniform.cells != nil {
 		t.Error("a uniform FuncSource chunk allocated slots")
 	}
 }
