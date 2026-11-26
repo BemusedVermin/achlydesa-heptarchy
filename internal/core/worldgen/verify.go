@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"maps"
 	"math"
+	"runtime"
 	"slices"
+	"sync"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
@@ -37,10 +39,14 @@ var corridorWidths = []int{1, 2, 4, 0}
 //
 //   - max_step_up, max_step_down: how far a body climbs or descends in one step, as in the party's rules.
 //   - min_pocket: walkable cells a pocket needs to be kept; smaller ones are filled.
-//   - max_chunks: chunks the check holds in memory at once; it reads the ground one chunk at a time and
-//     keeps only a summary of each.
+//   - max_chunks: chunks each reading goroutine holds in memory at once; it reads the ground one chunk at a
+//     time and keeps a summary of each, plus each chunk's cells packed as palette indexes.
 func RegisterVerify(stages *Stages) error {
 	return stages.Register(VerifyStage, verify{}, checkVerifyParams)
+}
+
+func registerVerifyWorkers(stages *Stages, workers int) error {
+	return stages.Register(VerifyStage, verify{workers: workers}, checkVerifyParams)
 }
 
 func checkVerifyParams(params map[string]float64) error {
@@ -62,12 +68,14 @@ func checkVerifyParams(params map[string]float64) error {
 	return nil
 }
 
-type verify struct{}
+// verify is the stage; workers is how many goroutines summarize chunks, or zero for one per CPU. The repair
+// is the same whatever the number.
+type verify struct{ workers int }
 
 // Run applies the chunk's part of the world's repair. The repair is worked out once from the ground before
 // this stage, a pure function of the seed, so every chunk agrees on it whatever order chunks load in.
-func (verify) Run(ctx *Context, chunk *hexmap.Chunk) error {
-	value, err := ctx.Shared(func() (any, error) { return repairWorld(ctx) })
+func (v verify) Run(ctx *Context, chunk *hexmap.Chunk) error {
+	value, err := ctx.Shared(func() (any, error) { return repairWorld(ctx, v.workers) })
 	if err != nil {
 		return err
 	}
@@ -101,6 +109,11 @@ type localArea struct {
 type crossing struct {
 	area int
 	to   api.Cell
+	// into is the summary of the chunk the step leads to, and into area the local area there, as last
+	// looked up; into is nil when not yet looked up or when the chunk is outside the bounds.
+	into     *chunkSummary
+	intoArea int
+	outside  bool
 }
 
 // chunkSummary is what the check keeps of a chunk once it has read it.
@@ -111,6 +124,8 @@ type chunkSummary struct {
 	border map[api.Cell]int
 	// node is the graph node of the chunk's first local area; the others follow it.
 	node int
+	// replaced is set once a newer summary of the chunk exists, so a crossing into this one looks again.
+	replaced bool
 }
 
 // node is a local area of one chunk.
@@ -126,31 +141,142 @@ type component struct {
 	inPlace bool
 }
 
-type repairer struct {
+// packedGround keeps the ground before verify, each chunk once and as a palette and one index per cell, so a
+// round that reads a chunk again never builds it through the earlier stages again. Safe for concurrent use.
+type packedGround struct {
+	before  hexmap.Source
+	mu      sync.Mutex
+	entries map[hexmap.ChunkKey]*packedChunk
+}
+
+type packedChunk struct {
+	once    sync.Once
+	palette []hexmap.Terrain
+	cells   []uint16
+	err     error
+}
+
+func newPackedGround(before hexmap.Source) *packedGround {
+	return &packedGround{before: before, entries: map[hexmap.ChunkKey]*packedChunk{}}
+}
+
+// chunk returns a fresh chunk the caller may keep.
+func (p *packedGround) chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
+	p.mu.Lock()
+	entry, ok := p.entries[key]
+	if !ok {
+		entry = &packedChunk{}
+		p.entries[key] = entry
+	}
+	p.mu.Unlock()
+	entry.once.Do(func() { entry.pack(p.before, key) })
+	if entry.err != nil {
+		return nil, entry.err
+	}
+	chunk := hexmap.NewChunk(entry.palette[0])
+	slot := 0
+	forEachCell(func(q, r, depth int) {
+		chunk.Set(q, r, depth, entry.palette[entry.cells[slot]])
+		slot++
+	})
+	return chunk, nil
+}
+
+func (e *packedChunk) pack(before hexmap.Source, key hexmap.ChunkKey) {
+	chunk, err := before.Chunk(key)
+	if err != nil {
+		e.err = err
+		return
+	}
+	e.cells = make([]uint16, 0, hexmap.ChunkCells)
+	forEachCell(func(q, r, depth int) {
+		terrain := chunk.Get(q, r, depth)
+		at := slices.Index(e.palette, terrain)
+		if at < 0 {
+			at = len(e.palette)
+			e.palette = append(e.palette, terrain)
+		}
+		e.cells = append(e.cells, uint16(at))
+	})
+}
+
+// reader reads the ground through its own map, one chunk at a time. The map drops the chunk loaded longest ago
+// once it holds budget chunks. Each goroutine that reads uses its own reader.
+type reader struct {
 	ctx    *Context
 	ground *hexmap.Map
 	rules  hexmap.StepRules
 	pocket int
 	budget int
+	packed *packedGround
 	// loaded is the chunks the ground holds, oldest first; peak is the most it held at once.
 	loaded []hexmap.ChunkKey
 	peak   int
-	keys   []hexmap.ChunkKey
+	// edits is every edit made so far by chunk, which the repairer adds to only while no reader is reading.
+	edits map[hexmap.ChunkKey][]hexmap.Edit
+	// held is the chunks the ground holds, so an edit made after a chunk loaded can reach it.
+	held map[hexmap.ChunkKey]*hexmap.Chunk
+	// applied is how many of the repairer's edits the held chunks have.
+	applied int
+}
+
+func newReader(ctx *Context, packed *packedGround, edits map[hexmap.ChunkKey][]hexmap.Edit) *reader {
+	r := &reader{
+		ctx: ctx,
+		rules: hexmap.StepRules{
+			MaxStepUp:   int(ctx.Params["max_step_up"]),
+			MaxStepDown: int(ctx.Params["max_step_down"]),
+			MaxDrop:     int(ctx.Params["max_step_down"]),
+		},
+		pocket: int(ctx.Params["min_pocket"]),
+		budget: int(ctx.Params["max_chunks"]),
+		packed: packed,
+		edits:  edits,
+		held:   map[hexmap.ChunkKey]*hexmap.Chunk{},
+	}
+	r.ground = hexmap.NewMap(boundedSource{r: r}, hexmap.Prisms{})
+	r.ground.SetBounds(ctx.Bounds, hexmap.Terrain{Solid: true, Opaque: true})
+	return r
+}
+
+// catchUp applies the edits the held chunks have not seen. A reader that scans takes its edits this way,
+// not through its ground's own edits, which cost a map lookup on every read.
+func (r *reader) catchUp(log []hexmap.Edit) {
+	for _, edit := range log[r.applied:] {
+		if chunk, ok := r.held[hexmap.KeyOf(edit.Cell)]; ok {
+			setLocal(chunk, edit)
+		}
+	}
+	r.applied = len(log)
+}
+
+func setLocal(chunk *hexmap.Chunk, edit hexmap.Edit) {
+	origin := hexmap.KeyOf(edit.Cell).Origin()
+	chunk.Set(edit.Cell.Hex.Q-origin.Hex.Q, edit.Cell.Hex.R-origin.Hex.R, edit.Cell.Depth-origin.Depth, edit.Terrain)
+}
+
+type repairer struct {
+	*reader
+	workers int
+	// log is every edit made so far, in order, for the workers' grounds.
+	log   []hexmap.Edit
+	extra []*reader
+	keys  []hexmap.ChunkKey
 	// sweep is keys column by column: a chunk's summary reads its neighbors, and a column's neighbors are
 	// read again soon after, while they are still held.
 	sweep      []hexmap.ChunkKey
 	summaries  map[hexmap.ChunkKey]*chunkSummary
 	dirty      map[hexmap.ChunkKey]bool
-	tables     map[hexmap.ChunkKey][]int32
+	tables     map[hexmap.ChunkKey][]int16
 	fixed      map[hexmap.ChunkKey]*hexmap.Chunk
 	components []component
 	// componentOf is indexed by node.
 	componentOf []int
 }
 
-// boundedSource loads chunks for the repairer's ground, first dropping the chunk loaded longest ago so that
+// boundedSource loads chunks for a reader's ground, first dropping the chunk loaded longest ago so that
 // the ground never holds more than its budget.
-type boundedSource struct{ r *repairer }
+type boundedSource struct{ r *reader }
 
 // Chunk implements [hexmap.Source]. The ground calls it from inside a read, so dropping another chunk here is
 // safe: a read holds no chunk past its return.
@@ -159,36 +285,34 @@ func (s boundedSource) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 	for len(r.loaded) >= r.budget {
 		oldest := r.loaded[0]
 		r.loaded = r.loaded[1:]
+		delete(r.held, oldest)
 		r.ground.Unload(func(other hexmap.ChunkKey) bool { return other != oldest })
 	}
-	chunk, err := r.ctx.Before.Chunk(key)
+	chunk, err := r.packed.chunk(key)
 	if err != nil {
 		return nil, err
 	}
+	for _, edit := range r.edits[key] {
+		setLocal(chunk, edit)
+	}
+	r.held[key] = chunk
 	r.loaded = append(r.loaded, key)
 	r.peak = max(r.peak, len(r.loaded))
 	return chunk, nil
 }
 
 // repairWorld builds the repair as the edits each chunk applies.
-func repairWorld(ctx *Context) (*repair, error) {
+func repairWorld(ctx *Context, workers int) (*repair, error) {
+	made := map[hexmap.ChunkKey][]hexmap.Edit{}
 	r := &repairer{
-		ctx: ctx,
-		rules: hexmap.StepRules{
-			MaxStepUp:   int(ctx.Params["max_step_up"]),
-			MaxStepDown: int(ctx.Params["max_step_down"]),
-			MaxDrop:     int(ctx.Params["max_step_down"]),
-		},
-		pocket:    int(ctx.Params["min_pocket"]),
-		budget:    int(ctx.Params["max_chunks"]),
+		reader:    newReader(ctx, newPackedGround(ctx.Before), made),
+		workers:   workers,
 		keys:      boundsChunks(ctx.Bounds),
 		summaries: map[hexmap.ChunkKey]*chunkSummary{},
 		dirty:     map[hexmap.ChunkKey]bool{},
-		tables:    map[hexmap.ChunkKey][]int32{},
+		tables:    map[hexmap.ChunkKey][]int16{},
 		fixed:     map[hexmap.ChunkKey]*hexmap.Chunk{},
 	}
-	r.ground = hexmap.NewMap(boundedSource{r: r}, hexmap.Prisms{})
-	r.ground.SetBounds(ctx.Bounds, hexmap.Terrain{Solid: true, Opaque: true})
 	r.sweep = slices.Clone(r.keys)
 	slices.SortFunc(r.sweep, func(a, b hexmap.ChunkKey) int {
 		return cmp.Or(cmp.Compare(a.R, b.R), cmp.Compare(a.Q, b.Q), cmp.Compare(a.Depth, b.Depth))
@@ -204,7 +328,11 @@ func repairWorld(ctx *Context) (*repair, error) {
 		key := hexmap.KeyOf(edit.Cell)
 		byChunk[key] = append(byChunk[key], edit)
 	}
-	return &repair{edits: byChunk, peakChunks: r.peak}, nil
+	peak := r.peak
+	for _, worker := range r.extra {
+		peak = max(peak, worker.peak)
+	}
+	return &repair{edits: byChunk, peakChunks: peak}, nil
 }
 
 // boundsChunks lists every chunk with a cell inside the bounds, in [hexmap.CompareKeys] order.
@@ -275,7 +403,7 @@ func (r *repairer) settle() error {
 		if len(targets) == 0 {
 			return nil
 		}
-		if err := r.join(main, targets); err != nil {
+		if err := r.joinAll(main, targets); err != nil {
 			return err
 		}
 	}
@@ -285,16 +413,22 @@ func (r *repairer) settle() error {
 // summarize reads every chunk changed since the last call and joins the summaries into components. Nodes and
 // components are numbered in chunk order, so the numbers never depend on map order.
 func (r *repairer) summarize() error {
+	var work []hexmap.ChunkKey
 	for _, key := range r.sweep {
-		if !r.dirty[key] {
-			continue
+		if r.dirty[key] {
+			work = append(work, key)
 		}
-		summary, table, err := r.scan(key)
-		if err != nil {
-			return err
+	}
+	scans, err := r.scanAll(work)
+	if err != nil {
+		return err
+	}
+	for i, key := range work {
+		if old, ok := r.summaries[key]; ok {
+			old.replaced = true
 		}
-		r.summaries[key] = summary
-		r.keepTable(key, table)
+		r.summaries[key] = scans[i].summary
+		r.keepTable(key, scans[i].table)
 	}
 	clear(r.dirty)
 	nodes := 0
@@ -315,27 +449,32 @@ func (r *repairer) summarize() error {
 	}
 	for _, key := range r.keys {
 		summary := r.summaries[key]
-		for _, cross := range summary.crossings {
-			other, ok, err := r.nodeOf(cross.to)
-			if err != nil {
-				return err
+		for i := range summary.crossings {
+			cross := &summary.crossings[i]
+			if cross.into == nil || cross.into.replaced {
+				if err := r.resolve(cross); err != nil {
+					return err
+				}
 			}
-			if !ok {
+			if cross.outside {
 				continue
 			}
-			a, b := root(summary.node+cross.area), root(other)
+			a, b := root(summary.node+cross.area), root(cross.into.node+cross.intoArea)
 			parent[max(a, b)] = min(a, b)
 		}
 	}
 	r.components = r.components[:0]
 	r.componentOf = make([]int, nodes)
-	index := map[int]int{}
+	index := make([]int, nodes)
+	for i := range index {
+		index[i] = -1
+	}
 	for _, key := range r.keys {
 		summary := r.summaries[key]
 		for area, local := range summary.areas {
 			top := root(summary.node + area)
-			i, seen := index[top]
-			if !seen {
+			i := index[top]
+			if i < 0 {
 				i = len(r.components)
 				index[top] = i
 				r.components = append(r.components, component{})
@@ -350,11 +489,50 @@ func (r *repairer) summarize() error {
 	return nil
 }
 
+type scanResult struct {
+	summary *chunkSummary
+	table   []int16
+}
+
+// scanAll scans the chunks on several goroutines, each taking one block of the list on its own reader. A scan
+// reads only the ground and its own reader, so the results are the same whatever the number of workers; they
+// come back in the order of keys.
+func (r *repairer) scanAll(keys []hexmap.ChunkKey) ([]scanResult, error) {
+	results := make([]scanResult, len(keys))
+	count := r.workers
+	if count <= 0 {
+		count = runtime.GOMAXPROCS(0)
+	}
+	count = min(count, len(keys))
+	for len(r.extra) < count {
+		r.extra = append(r.extra, newReader(r.ctx, r.packed, r.edits))
+	}
+	errs := make([]error, count)
+	var wg sync.WaitGroup
+	for i := range count {
+		from, to := i*len(keys)/count, (i+1)*len(keys)/count
+		worker := r.extra[i]
+		wg.Go(func() {
+			worker.catchUp(r.log)
+			for j, key := range keys[from:to] {
+				summary, table, err := worker.scan(key)
+				if err != nil {
+					errs[i] = err
+					return
+				}
+				results[from+j] = scanResult{summary: summary, table: table}
+			}
+		})
+	}
+	wg.Wait()
+	return results, errors.Join(errs...)
+}
+
 // scan flood-fills the walkable cells of one chunk in slot order, over crossings inside the chunk. The table
 // holds each slot's local area, or -1 for a cell no body stands in.
-func (r *repairer) scan(key hexmap.ChunkKey) (*chunkSummary, []int32, error) {
+func (r *reader) scan(key hexmap.ChunkKey) (*chunkSummary, []int16, error) {
 	summary := &chunkSummary{border: map[api.Cell]int{}}
-	table := make([]int32, hexmap.ChunkCells)
+	table := make([]int16, hexmap.ChunkCells)
 	for slot := range table {
 		table[slot] = -1
 	}
@@ -371,7 +549,7 @@ func (r *repairer) scan(key hexmap.ChunkKey) (*chunkSummary, []int32, error) {
 			continue
 		}
 		index := len(summary.areas)
-		table[slot] = int32(index)
+		table[slot] = int16(index)
 		members := []api.Cell{start}
 		inPlace := false
 		for head := 0; head < len(members); head++ {
@@ -388,7 +566,7 @@ func (r *repairer) scan(key hexmap.ChunkKey) (*chunkSummary, []int32, error) {
 					continue
 				}
 				if table[hexmap.SlotOf(to)] < 0 {
-					table[hexmap.SlotOf(to)] = int32(index)
+					table[hexmap.SlotOf(to)] = int16(index)
 					members = append(members, to)
 				}
 			}
@@ -400,6 +578,30 @@ func (r *repairer) scan(key hexmap.ChunkKey) (*chunkSummary, []int32, error) {
 		summary.areas = append(summary.areas, local)
 	}
 	return summary, table, nil
+}
+
+// resolve looks up the area a crossing leads into.
+func (r *repairer) resolve(cross *crossing) error {
+	into, ok := r.summaries[hexmap.KeyOf(cross.to)]
+	if !ok {
+		cross.outside = true
+		return nil
+	}
+	area, ok := into.border[cross.to]
+	if !ok {
+		table, err := r.table(hexmap.KeyOf(cross.to))
+		if err != nil {
+			return err
+		}
+		found := table[hexmap.SlotOf(cross.to)]
+		if found < 0 {
+			cross.outside = true
+			return nil
+		}
+		area = int(found)
+	}
+	cross.into, cross.intoArea, cross.outside = into, area, false
+	return nil
 }
 
 // nodeOf is the node a walkable cell belongs to.
@@ -439,7 +641,7 @@ func (r *repairer) componentAt(cell api.Cell) (int, bool, error) {
 }
 
 // table is a chunk's slots by local area, read again from the ground when it is not kept.
-func (r *repairer) table(key hexmap.ChunkKey) ([]int32, error) {
+func (r *repairer) table(key hexmap.ChunkKey) ([]int16, error) {
 	if table, ok := r.tables[key]; ok {
 		return table, nil
 	}
@@ -451,11 +653,9 @@ func (r *repairer) table(key hexmap.ChunkKey) ([]int32, error) {
 	return table, nil
 }
 
-// keepTable keeps a chunk's table until the chunk's ground changes, and at most as many tables as chunks.
-func (r *repairer) keepTable(key hexmap.ChunkKey, table []int32) {
-	if len(r.tables) >= r.budget {
-		clear(r.tables)
-	}
+// keepTable keeps a chunk's table until the chunk's ground changes. A table is two bytes a cell, so the
+// tables of a large world still fit in memory.
+func (r *repairer) keepTable(key hexmap.ChunkKey, table []int16) {
 	r.tables[key] = table
 }
 
@@ -496,12 +696,22 @@ func (r *repairer) set(cell api.Cell, terrain hexmap.Terrain) error {
 	if err := r.ground.Set(cell, terrain); err != nil {
 		return err
 	}
+	edit := hexmap.Edit{Cell: cell, Terrain: terrain}
+	r.log = append(r.log, edit)
+	key := hexmap.KeyOf(cell)
+	r.edits[key] = append(r.edits[key], edit)
 	reach := r.rules.MaxStepUp + max(r.rules.MaxStepDown, r.rules.MaxDrop) + 2
-	for _, near := range r.ground.CellsIn(cell.Hex, 2, cell.Depth-reach, cell.Depth+reach) {
-		key := hexmap.KeyOf(near)
-		if _, ok := r.summaries[key]; ok {
-			r.dirty[key] = true
-			delete(r.tables, key)
+	low := hexmap.KeyOf(api.Cell{Hex: api.Hex{Q: cell.Hex.Q - 2, R: cell.Hex.R - 2}, Depth: cell.Depth - reach})
+	high := hexmap.KeyOf(api.Cell{Hex: api.Hex{Q: cell.Hex.Q + 2, R: cell.Hex.R + 2}, Depth: cell.Depth + reach})
+	for depth := low.Depth; depth <= high.Depth; depth++ {
+		for row := low.R; row <= high.R; row++ {
+			for col := low.Q; col <= high.Q; col++ {
+				key := hexmap.ChunkKey{Q: col, R: row, Depth: depth}
+				if _, ok := r.summaries[key]; ok {
+					r.dirty[key] = true
+					delete(r.tables, key)
+				}
+			}
 		}
 	}
 	return nil
@@ -597,7 +807,7 @@ func (r *repairer) standOn(opening Opening) error {
 }
 
 // crossings lists the cells a body at from can step to and step back from.
-func (r *repairer) crossings(from api.Cell) ([]api.Cell, error) {
+func (r *reader) crossings(from api.Cell) ([]api.Cell, error) {
 	var reached []api.Cell
 	for dir := range api.Dir(api.DirCount) {
 		step, ok, err := r.ground.Step(from, dir, r.rules)
@@ -722,36 +932,95 @@ type bridgeMove struct {
 	carve, fill []api.Cell
 }
 
-// join carves a corridor from the main component to the nearest target component. It finds the shortest
-// chain of chunks between them, then searches cells only in the chunks near that chain, widening the search
-// when no corridor fits.
-func (r *repairer) join(main int, targets map[int]bool) error {
+// joinAll joins the targets to the main component one corridor at a time, nearest first, until a corridor
+// would need ground an earlier one of this round changed. The summaries are stale there, so the round ends
+// and the next one reads the changed chunks again.
+func (r *repairer) joinAll(main int, targets map[int]bool) error {
+	for first := true; len(targets) > 0; first = false {
+		var avoid map[hexmap.ChunkKey]bool
+		if !first {
+			avoid = r.changedReach()
+		}
+		target, joined, err := r.join(main, targets, avoid)
+		if err != nil || !joined {
+			return err
+		}
+		delete(targets, target)
+		for _, n := range r.components[target].nodes {
+			r.componentOf[r.summaries[n.key].node+n.area] = main
+		}
+		r.components[main].nodes = append(r.components[main].nodes, r.components[target].nodes...)
+	}
+	return nil
+}
+
+// changedReach is the chunks whose summaries are stale, and the two rings of chunks around them that a
+// corridor search reads.
+func (r *repairer) changedReach() map[hexmap.ChunkKey]bool {
+	reach := map[hexmap.ChunkKey]bool{}
+	frontier := slices.SortedFunc(maps.Keys(r.dirty), hexmap.CompareKeys)
+	for _, key := range frontier {
+		reach[key] = true
+	}
+	for range 2 {
+		var next []hexmap.ChunkKey
+		for _, key := range frontier {
+			for _, near := range chunkNeighbors(key) {
+				if !reach[near] {
+					reach[near] = true
+					next = append(next, near)
+				}
+			}
+		}
+		frontier = next
+	}
+	return reach
+}
+
+// join carves a corridor from the main component to the nearest target component and reports which target
+// it reached. It finds the shortest chain of chunks between them, then searches cells only in the chunks near
+// that chain, widening the search when no corridor fits. When the chunks it needs are in avoid, it carves
+// nothing and reports no join.
+func (r *repairer) join(
+	main int, targets map[int]bool, avoid map[hexmap.ChunkKey]bool,
+) (target int, joined bool, err error) {
 	path := r.chunkPath(main, targets)
 	if path == nil {
-		return errors.New("verify: no chain of chunks joins the walkable areas")
+		return 0, false, errors.New("verify: no chain of chunks joins the walkable areas")
 	}
 	for _, width := range corridorWidths {
 		within := r.widen(path, width)
 		inside := map[hexmap.ChunkKey]bool{}
 		for _, key := range within {
+			if avoid[key] {
+				return 0, false, nil
+			}
 			inside[key] = true
 		}
 		sources, err := r.cellsOf(func(i int) bool { return i == main }, within)
 		if err != nil {
-			return err
+			return 0, false, err
 		}
 		goals, err := r.cellsOf(func(i int) bool { return targets[i] }, within)
 		if err != nil {
-			return err
+			return 0, false, err
 		}
 		for _, fill := range []bool{false, true} {
-			joined, err := r.bridge(sources, goals, inside, fill)
-			if err != nil || joined {
-				return err
+			parents, end, found, err := r.bridge(sources, goals, inside, fill)
+			if err != nil {
+				return 0, false, err
 			}
+			if !found {
+				continue
+			}
+			target, _, err := r.componentAt(end)
+			if err != nil {
+				return 0, false, err
+			}
+			return target, true, r.carvePath(parents, end)
 		}
 	}
-	return errors.New("verify: no corridor can join the walkable areas")
+	return 0, false, errors.New("verify: no corridor can join the walkable areas")
 }
 
 // tunnelReach is the fewest tunnel steps between two cells: each step moves one hex and at most one depth.
@@ -805,11 +1074,13 @@ func (q *bridgeQueue) pop() bridgeEntry {
 	}
 }
 
-// bridge carves the shortest corridor inside the given chunks from a source cell to a goal cell, reporting
+// bridge finds the shortest corridor inside the given chunks from a source cell to a goal cell, and reports
 // whether one exists. It is an A* search over tunnel steps, ties broken by queue order so the corridor is a
 // pure function of the ground. With fill set, a step may fill an open cell that is no walkable ground to give
 // its landing a floor.
-func (r *repairer) bridge(sources, goals []api.Cell, inside map[hexmap.ChunkKey]bool, fill bool) (bool, error) {
+func (r *repairer) bridge(
+	sources, goals []api.Cell, inside map[hexmap.ChunkKey]bool, fill bool,
+) (map[api.Cell]bridgeMove, api.Cell, bool, error) {
 	isGoal := make(map[api.Cell]bool, len(goals))
 	for _, cell := range goals {
 		isGoal[cell] = true
@@ -836,13 +1107,13 @@ func (r *repairer) bridge(sources, goals []api.Cell, inside map[hexmap.ChunkKey]
 			continue
 		}
 		if isGoal[entry.cell] {
-			return true, r.carvePath(parents, entry.cell)
+			return parents, entry.cell, true, nil
 		}
 		for dir := range api.Dir(api.DirCount) {
 			for _, rise := range []int{0, -1, 1} {
 				move, ok, err := r.tunnelStep(entry.cell, dir, rise, fill)
 				if err != nil {
-					return false, err
+					return nil, api.Cell{}, false, err
 				}
 				if !ok || !inside[hexmap.KeyOf(move.to)] {
 					continue
@@ -860,7 +1131,7 @@ func (r *repairer) bridge(sources, goals []api.Cell, inside map[hexmap.ChunkKey]
 			}
 		}
 	}
-	return false, nil
+	return nil, api.Cell{}, false, nil
 }
 
 func (r *repairer) carvePath(parents map[api.Cell]bridgeMove, end api.Cell) error {
