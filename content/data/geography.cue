@@ -53,14 +53,16 @@ _#verify: {
 		max_step_up:   1
 		max_step_down: 1
 		min_pocket:    24
+		// Chunks the check holds at once; first value, for tuning.
+		max_chunks: 256
 	}
 }
 
-// The ground and the guarantees check, for the small worlds that fit a whole-ground pass.
+// The ground and the guarantees check.
 geographies: "geography.deep": stages: list.Concat([_#ground, [_#verify]])
 
-// The ground alone, for the large world: verify reads the whole ground at once, which a 400 by 400 world
-// can't afford yet.
+// The ground alone, for the large world: verify takes about a minute on a 400 by 400 world, too long for a
+// game to start.
 geographies: "geography.large": stages: _#ground
 
 // What starts on the generated ground: the soop's clay near the surface, remnants and beasts deeper. The
