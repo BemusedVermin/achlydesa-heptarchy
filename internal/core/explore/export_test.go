@@ -28,6 +28,7 @@ type exportWorld struct {
 	t        *testing.T
 	w        *sim.World
 	g        *game.Game
+	cfg      game.Config
 	src      *explore.WorldSource
 	cells    []api.Cell
 	home     hexmap.ChunkKey
@@ -48,12 +49,12 @@ func newExportWorld(t *testing.T, seed uint64) *exportWorld {
 	bundle.World.PocketExits = 4
 	bundle.World.PocketChunks = 0
 	reg := contenttest.Registry(t, bundle)
-	g, w, _ := gametest.Start(t, game.Config{Seed: seed, Content: reg})
+	g, w, cfg := gametest.Start(t, game.Config{Seed: seed, Content: reg})
 	src, err := explore.NewWorldSource(reg)
 	if err != nil {
 		t.Fatal(err)
 	}
-	ew := &exportWorld{t: t, w: w, g: g, src: src}
+	ew := &exportWorld{t: t, w: w, g: g, cfg: cfg, src: src}
 	bounds := src.Bounds()
 	for depth := bounds.MinDepth; depth <= bounds.MaxDepth; depth++ {
 		for row := 0; row <= bounds.MaxRow; row++ {
@@ -265,5 +266,32 @@ func TestExportRegeneratesTheDeepAroundThePocket(t *testing.T) {
 		if !slices.Equal(first.terrain, second.terrain) || !slices.Equal(first.positions, second.positions) {
 			t.Errorf("seed %d: two runs of the same export differ", seed)
 		}
+	}
+}
+
+// TestExportedWorldSurvivesSaveAndLoad checks that a save after an export loads with the same ground and hash.
+func TestExportedWorldSurvivesSaveAndLoad(t *testing.T) {
+	ew := newExportWorld(t, 1)
+	ew.w.ExportCount = 1
+	ew.w.Bus.Publish(api.ExportBegan{Day: 30, Count: 1})
+	if _, err := ew.w.Bus.Drain(ew.w); err != nil {
+		t.Fatal(err)
+	}
+	wantHash, err := ew.g.Hash()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := ew.terrain()
+	loaded, world, _ := gametest.Reload(t, ew.cfg, ew.g)
+	reloaded := &exportWorld{t: t, w: world, cells: ew.cells}
+	if got := reloaded.terrain(); !slices.Equal(got, want) {
+		t.Error("the map differs after a load")
+	}
+	gotHash, err := loaded.Hash()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotHash != wantHash {
+		t.Error("Game.Hash differs after a load")
 	}
 }

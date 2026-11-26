@@ -73,6 +73,7 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 		NextUID:   g.world.NextUID(),
 		Timeline:  timeline.Export(g.world),
 		Exports:   save.Exports{Count: g.world.ExportCount, NextDay: g.world.NextExportDay},
+		Pocket:    savedPocket(g.world),
 		Edits:     edits,
 		Populated: populated,
 		History:   history,
@@ -90,7 +91,10 @@ func Load(cfg Config, r io.Reader) (*Game, []string, error) {
 		return nil, nil, err
 	}
 	cfg.Seed = snapshot.Header.Seed
-	g, err := build(cfg, explore.LoadWorld, nil)
+	g, err := build(cfg, func(w *sim.World) error {
+		w.ExportCount = snapshot.Exports.Count
+		return explore.LoadWorld(w, loadedPocket(snapshot.Pocket))
+	}, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -135,6 +139,31 @@ func (g *Game) restore(snapshot save.Snapshot) error {
 	}
 	g.log = snapshot.Log
 	return nil
+}
+
+func savedPocket(w *sim.World) save.Pocket {
+	pocket := explore.SavedPocket(w)
+	out := save.Pocket{Openings: pocket.Openings}
+	for _, chunk := range pocket.Chunks {
+		saved := save.PocketChunk{Chunk: save.Chunk{Q: chunk.Key.Q, R: chunk.Key.R, Depth: chunk.Key.Depth}}
+		for _, run := range chunk.Runs {
+			saved.Runs = append(saved.Runs, save.Run{Terrain: run.Terrain, Count: run.Count})
+		}
+		out.Chunks = append(out.Chunks, saved)
+	}
+	return out
+}
+
+func loadedPocket(pocket save.Pocket) explore.Pocket {
+	out := explore.Pocket{Openings: pocket.Openings}
+	for _, chunk := range pocket.Chunks {
+		loaded := explore.PocketChunk{Key: hexmap.ChunkKey{Q: chunk.Chunk.Q, R: chunk.Chunk.R, Depth: chunk.Chunk.Depth}}
+		for _, run := range chunk.Runs {
+			loaded.Runs = append(loaded.Runs, explore.PocketRun{Terrain: run.Terrain, Count: run.Count})
+		}
+		out.Chunks = append(out.Chunks, loaded)
+	}
+	return out
 }
 
 // applyEdits reapplies saved edits to the world, resolving each terrain from content.

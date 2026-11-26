@@ -15,7 +15,7 @@ import (
 const Format = "heptarchy-save"
 
 // CurrentVersion is the version Write produces. Raise it together with a migration from the old one.
-const CurrentVersion = 6
+const CurrentVersion = 7
 
 // Header says what the file is and what it was made from.
 type Header struct {
@@ -46,6 +46,24 @@ type Chunk struct {
 	Depth int `json:"depth"`
 }
 
+// Run is Count consecutive chunk slots of one terrain.
+type Run struct {
+	Terrain api.ContentID `json:"terrain"`
+	Count   int           `json:"count"`
+}
+
+// PocketChunk is one chunk of the export pocket: its terrain in slot order, as runs.
+type PocketChunk struct {
+	Chunk Chunk `json:"chunk"`
+	Runs  []Run `json:"runs"`
+}
+
+// Pocket is the fixed ground the latest export kept, empty before the first export.
+type Pocket struct {
+	Chunks   []PocketChunk `json:"chunks"`
+	Openings []api.Cell    `json:"openings"`
+}
+
 // Snapshot is a whole game, as plain data.
 type Snapshot struct {
 	Header Header `json:"header"`
@@ -58,6 +76,8 @@ type Snapshot struct {
 	Timeline timeline.Saved `json:"timeline"`
 	// Exports is the export schedule's state.
 	Exports Exports `json:"exports"`
+	// Pocket is the ground the latest export kept, which the generated deep is built around.
+	Pocket Pocket `json:"pocket"`
 	// Edits lists the world's edits, sorted by depth, R, Q. The world itself is rebuilt from content
 	// on load.
 	Edits []Edit `json:"edits"`

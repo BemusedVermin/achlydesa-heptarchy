@@ -27,6 +27,8 @@ type state struct {
 	generated *worldgen.Source
 	// populated holds the chunks whose starting bodies have been spawned for generated's export count.
 	populated map[hexmap.ChunkKey]bool
+	// pocket is the fixed pocket of the latest export, nil before the first.
+	pocket *pocketFixed
 }
 
 func stateOf(w *sim.World) *state {
@@ -166,15 +168,16 @@ func templateName(w *sim.World, e ecs.Entity) api.Text {
 }
 
 // LoadWorld builds the world's cells from content, without starting a game. Loading a save calls
-// it instead of Start, then reapplies the saved edits.
-func LoadWorld(w *sim.World) error {
-	_, err := buildWorld(w)
+// it instead of Start, then reapplies the saved edits. w.ExportCount must already hold the saved count,
+// and pocket is the saved pocket, zero before the first export.
+func LoadWorld(w *sim.World, pocket Pocket) error {
+	_, err := buildWorld(w, pocket)
 	return err
 }
 
 // buildWorld sets w.Map to the cells of the content's world and places, bounded by the world's
 // size. Content with no world leaves w.Map nil.
-func buildWorld(w *sim.World) (*WorldSource, error) {
+func buildWorld(w *sim.World, saved Pocket) (*WorldSource, error) {
 	if w.Content == nil {
 		return nil, errors.New("explore: start: world has no content")
 	}
@@ -185,11 +188,20 @@ func buildWorld(w *sim.World) (*WorldSource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
-	cells, err := cellSource(w, src, src.Bounds())
+	var fixed worldgen.Fixed = src
+	st := stateOf(w)
+	st.pocket = nil
+	if len(saved.Chunks) > 0 {
+		pocket, err := saved.fixed(w, src)
+		if err != nil {
+			return nil, fmt.Errorf("explore: world: %w", err)
+		}
+		st.pocket, fixed = pocket, pocket
+	}
+	cells, err := cellSource(w, fixed, src.Bounds())
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}
-	st := stateOf(w)
 	st.world = src
 	st.generated, _ = cells.(*worldgen.Source)
 	clear(st.populated)
@@ -201,7 +213,7 @@ func buildWorld(w *sim.World) (*WorldSource, error) {
 // Start builds the world and, when the content has a start scenario, spawns the start party on its
 // mark, then every place's spawns. game.New calls it once, after Install.
 func Start(w *sim.World) error {
-	src, err := buildWorld(w)
+	src, err := buildWorld(w, Pocket{})
 	if err != nil || src == nil {
 		return err
 	}
