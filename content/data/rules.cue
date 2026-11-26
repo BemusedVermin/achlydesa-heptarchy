@@ -15,4 +15,7 @@ rules: {
 	hit: "rule.immune ? 0 : (rule.weak ? 6 : 3)"
 	// What a Sweep takes from each part it passes over.
 	graze: "rule.immune ? 0 : (rule.weak ? 2 : 1)"
+	// How decayed generated ground is: one level per export, less one for every 4 depths down, so the
+	// upper deep decays first and each export reaches a little deeper. First values, for tuning.
+	decay_level: "max(0, exports - int(depth / 4))"
 }

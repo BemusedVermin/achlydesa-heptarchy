@@ -121,3 +121,11 @@ type ScoreEnv struct {
 	// Height is the target's depth minus the actor's: positive when the actor is above.
 	Height int `expr:"height"`
 }
+
+// DecayEnv is everything a geography's decay level formula can see.
+type DecayEnv struct {
+	// Depth is the cell's depth.
+	Depth int `expr:"depth"`
+	// Exports is the export count.
+	Exports int `expr:"exports"`
+}

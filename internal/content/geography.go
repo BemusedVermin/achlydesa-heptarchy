@@ -3,6 +3,8 @@ package content
 import (
 	"fmt"
 
+	"github.com/expr-lang/expr"
+
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
 
@@ -27,6 +29,9 @@ func (r *Registry) checkGeographies() []error {
 		}
 	}
 	for _, key := range sortedKeys(r.bundle.Geographies) {
+		r.checkDecay(p, key, r.bundle.Geographies[key].Decay)
+	}
+	for _, key := range sortedKeys(r.bundle.Geographies) {
 		for i, spawn := range r.bundle.Geographies[key].Spawns {
 			path := fmt.Sprintf("geographies[%q].spawns[%d]", key, i)
 			ref(p, r.bundle.Templates, path+".template", "template", spawn.Template)
@@ -48,6 +53,31 @@ func (r *Registry) checkGeographies() []error {
 		}
 	}
 	return p.errs
+}
+
+func (r *Registry) checkDecay(p *problems, key string, decay *DecayDef) {
+	if decay == nil {
+		return
+	}
+	path := fmt.Sprintf("geographies[%q].decay", key)
+	if len(decay.Terrains) == 0 {
+		p.addf("%s.terrains: at least one terrain is required", path)
+	}
+	for i, id := range decay.Terrains {
+		terrain, ok := r.bundle.Terrains[string(id)]
+		switch {
+		case !ok:
+			p.addf("%s.terrains[%d]: unknown terrain %q", path, i, id)
+		case !terrain.Solid:
+			p.addf("%s.terrains[%d]: terrain %q must be solid", path, i, id)
+		}
+	}
+	program, err := r.Compile(decay.Level, DecayEnv{}, expr.AsInt64())
+	if err != nil {
+		p.addf("%s.level: %w", path, err)
+		return
+	}
+	r.decays[api.ContentID(key)] = program
 }
 
 // GeographyPath is where a geography's stage sits in content, for error messages.

@@ -155,3 +155,12 @@ package content
 	// Height is the target's depth minus the actor's: positive when the actor is above.
 	Height: int
 }
+
+// DecayEnv is everything a geography's decay level formula can see.
+#DecayEnv: {
+	// Depth is the cell's depth.
+	Depth: int
+
+	// Exports is the export count.
+	Exports: int
+}

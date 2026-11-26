@@ -442,6 +442,19 @@ import (
 	// Spawns is what lives on the generated ground: each entry can start a body of its template on any
 	// open cell with solid ground below, within its depth band.
 	spawns?: [...#GeographySpawn] @go(Spawns,[]GeographySpawn)
+
+	// Decay changes the solid ground the stages leave, by depth and export count. Empty leaves it as it is.
+	decay?: null | #DecayDef @go(Decay,*DecayDef)
+}
+
+// DecayDef says how decayed the generated ground is at a depth, and what decayed ground is made of.
+#DecayDef: {
+	// Level is a formula over DecayEnv giving a whole number: 0 leaves the ground as it is, and level n
+	// turns it into Terrains[n-1], or the last terrain once n passes the list.
+	level: string @go(Level)
+
+	// Terrains are solid terrain IDs, from the least decayed to the most.
+	terrains: [...api.#ContentID] @go(Terrains,[]api.ContentID)
 }
 
 // GeographySpawn is one kind of creature a geography starts with.
