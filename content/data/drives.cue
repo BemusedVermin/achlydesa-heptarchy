@@ -30,7 +30,7 @@ drives: {
 		urge: "min(level / 8, 1)"
 		thresholds: [{at: 24, do: [{do: "damage", params: {parts: "self:torso", amount: "1"}}]}]
 	}
-	// Time alone does not make anyone less safe: what threatens a body raises this.
+	// TODO(M6-03.F1): decide what raises safety; time alone does not, so it rises by nothing yet.
 	"drive.safety": {
 		name: "text.drive.safety"
 		kind: "need"
