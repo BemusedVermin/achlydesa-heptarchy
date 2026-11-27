@@ -23,8 +23,10 @@ func compareKey(a, b api.Fact) int {
 // current tick. A fact with the same (Subject, Claim, Source) is replaced, so each source keeps one
 // fact per claim. A knower outside the controlled party keeps at most the content's knowledge cap:
 // past it, the fact with the lowest confidence, then the oldest tick, is forgotten, which may be f
-// itself. A fact it keeps publishes [api.FactLearned], and [api.FactNoticed] when the knower is the
-// controlled party or one of its members.
+// itself. A fact it keeps publishes [api.FactLearned] unless the knower already held it with the same
+// value and confidence, so a sighting that only restamps a belief costs no event. A kept fact
+// publishes [api.FactNoticed] when the knower is the controlled party or one of its members, even
+// when it was already known, so that the player hears a repeated finding.
 func Learn(w *sim.World, knower ecs.Entity, f api.Fact) {
 	f.Tick = w.Now
 	known := ecs.NewMap[comp.Knowledge](w.ECS)
@@ -33,7 +35,10 @@ func Learn(w *sim.World, knower ecs.Entity, f api.Fact) {
 	}
 	facts := known.Get(knower)
 	at, found := slices.BinarySearchFunc(facts.Facts, f, compareKey)
+	alreadyHeld := false
 	if found {
+		held := facts.Facts[at]
+		alreadyHeld = held.Value == f.Value && held.Confidence == f.Confidence
 		facts.Facts[at] = f
 	} else {
 		facts.Facts = slices.Insert(facts.Facts, at, f)
@@ -49,7 +54,9 @@ func Learn(w *sim.World, knower ecs.Entity, f api.Fact) {
 			return
 		}
 	}
-	w.Bus.Publish(api.FactLearned{Knower: w.UIDOf(knower), Fact: f})
+	if !alreadyHeld {
+		w.Bus.Publish(api.FactLearned{Knower: w.UIDOf(knower), Fact: f})
+	}
 	if party {
 		noticed := api.FactNoticed{Fact: f}
 		if w.Content != nil {

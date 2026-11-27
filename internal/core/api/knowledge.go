@@ -21,7 +21,8 @@ type Fact struct {
 	Tick       int64   `json:"tick"`
 }
 
-// FactLearned reports that a knower learned a fact, or learned it again from the same source.
+// FactLearned reports that a knower learned a fact it did not hold, or a new value or confidence for
+// one it held from the same source.
 type FactLearned struct {
 	Knower UID  `json:"knower"`
 	Fact   Fact `json:"fact"`
@@ -30,8 +31,8 @@ type FactLearned struct {
 // EventKind implements [Event].
 func (FactLearned) EventKind() string { return FactLearnedKind }
 
-// FactNoticed is published beside [FactLearned] when the knower is the controlled party or one of
-// its members, so that only what the player's side learns reaches the message log.
+// FactNoticed is published when the controlled party or one of its members learns a fact, even one
+// it already held, so that only what the player's side learns reaches the message log.
 type FactNoticed struct {
 	Fact Fact `json:"fact"`
 	// Shown is the fact's value as player-facing text ("clay" for "material.clay"). Empty means
