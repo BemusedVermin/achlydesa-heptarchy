@@ -176,7 +176,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-15](M6-minds/M6-15-goap.md) | The GOAP planner for important individuals | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-16](M6-minds/M6-16-htn.md) | The HTN planner and recipes for everyone else | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-17](M6-minds/M6-17-far-agents.md) | Far agents: goals only, over the chunk graph | todo | feature | L | M6-06, M6-12, M6-14 |
-| [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | todo | feature | S | M6-04, M6-11 |
+| [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | done | feature | S | M6-04, M6-11 |
 | [M6-19](M6-minds/M6-19-flee-engage.md) | Flee, terror and engaging: handing a fight over and back | todo | feature | M | M6-01, M6-12, M6-14 |
 | [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | todo | feature | M | M6-03, M6-06, M6-14 |
 | [M6-21](M6-minds/M6-21-monster-families.md) | Monster families: moving clay, remnants and beasts as minds | todo | content | M | M6-05, M6-07, M6-15, M6-16, M6-19, M6-20 |
@@ -223,6 +223,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M6-18.F1](followups/M6-18.F1-shared-language.md) | Decide what a shared language is for telling | proposed | question | M6 | M6-18 |
 | [M1-11.F2](followups/M1-11.F2-height-glyphs-drop-prompt.md) | Plan view: ^ and v for height, red for out of reach, and ask before a drop | done | feature | M6 | M1-11 |
 | [M6-10.F1](followups/M6-10.F1-has-by-item-or-tag.md) | Decide whether a has fact names an item or an item tag | done | question | M6 | M6-10 |
 | [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | done | question | M6 | M6-07 |

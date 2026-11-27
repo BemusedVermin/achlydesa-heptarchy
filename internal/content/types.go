@@ -185,6 +185,14 @@ type AgentsConfig struct {
 	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
 	// when any goal exists.
 	ThinkTicks int `json:"think_ticks,omitempty"`
+	// ChatGoal is the goal ("goal." ID) an agent has while it tells a near agent what it knows, and
+	// ChatAction the action ("action." ID) it takes to do so. Empty means agents tell nothing.
+	ChatGoal   api.ContentID `json:"chat_goal,omitempty"`
+	ChatAction api.ContentID `json:"chat_action,omitempty"`
+	// ToldOrigin is the origin of a fact an agent was told, and ToldConfidence the share of its
+	// confidence the fact keeps when told, above 0 and at most 1.
+	ToldOrigin     api.ContentID `json:"told_origin,omitempty"`
+	ToldConfidence float64       `json:"told_confidence,omitempty"`
 }
 
 // Material is a substance things are made of.

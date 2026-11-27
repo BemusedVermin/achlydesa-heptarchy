@@ -1,7 +1,7 @@
 ---
 id: M6-18
 title: "Hearsay: agents tell each other what they know"
-status: todo
+status: done
 milestone: M6
 kind: feature
 depends_on: [M6-04, M6-11]
@@ -34,12 +34,18 @@ When two near agents meet, each may pass a fact to the other, so a newcomer can 
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
 - Drift, rumors, distortion: M8.
 
 ## Notes
+
+- Telling is a `tell` effect on a new `action.chat` (target a body within range 2 and sight, recovery one step), not an operator. The mind controller starts it when its goal is `agents.chat_goal`; `Choose` skips that goal unless a partner in reach has something to hear, so `goal.chat` (weight 0.08, above wandering) never idles an agent.
+- Content gained `agents.chat_goal`, `chat_action`, `told_origin` and `told_confidence` (0.6). A told fact keeps its subject, claim, value and cell; its confidence is the speaker's times the factor, so a retold fact weakens again.
+- The speaker picks by confidence, then recency, skipping facts about the hearer and any the hearer holds (`knowledge.Best`) at the told copy's confidence or more. A seen fact outranks a told one by `Best`.
+- No language exists in the design or code, so any two living agents with minds can tell each other. Filed M6-18.F1 (question).
+- No template lists `action.chat` yet; M6-20 gives minds their actions.
 

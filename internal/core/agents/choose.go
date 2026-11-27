@@ -50,6 +50,11 @@ func Choose(w *sim.World, body ecs.Entity) (api.ContentID, error) {
 	bestScore := 0.0
 	for _, id := range w.Content.GoalIDs() {
 		goal, _ := w.Content.Goal(id)
+		if id == w.Content.Agents().ChatGoal {
+			if _, can := chatPartner(w, body); !can {
+				continue
+			}
+		}
 		var goalEnv content.GoalEnv
 		if goal.Drive != "" {
 			if carried == nil {

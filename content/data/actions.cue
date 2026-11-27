@@ -16,8 +16,22 @@ actions: {
 		on_land: [{do: "step", params: {}}]
 		tags: ["movement"]
 	}
+	// Tell a near body one thing the speaker knows. The tell effect picks the fact when it lands.
+	"action.chat": {
+		name: "text.action.chat"
+		key:  "chat"
+		uses: [{tag: "body", count: 1}]
+		target:   "body"
+		range:    2
+		sight:    true
+		windup:   "0"
+		recovery: "step_ticks"
+		on_land: [{do: "tell", params: {}}]
+		tags: ["speech"]
+	}
 }
 
 text: {
 	"text.action.step": "Step"
+	"text.action.chat": "Chat"
 }
