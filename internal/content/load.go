@@ -199,6 +199,14 @@ func (r *Registry) checkKnowledge() []error {
 	if agents.AtClaim != "" || agents.DeadClaim != "" || agents.GroundClaim != "" {
 		ref(p, r.bundle.Origins, "agents.seen_origin", "origin", agents.SeenOrigin)
 	}
+	if agents.ChatGoal != "" || agents.ChatAction != "" {
+		ref(p, r.bundle.Goals, "agents.chat_goal", "goal", agents.ChatGoal)
+		ref(p, r.bundle.Actions, "agents.chat_action", "action", agents.ChatAction)
+		ref(p, r.bundle.Origins, "agents.told_origin", "origin", agents.ToldOrigin)
+		if agents.ToldConfidence <= 0 || agents.ToldConfidence > 1 {
+			p.addf("agents.told_confidence: must be above 0 and at most 1, got %v", agents.ToldConfidence)
+		}
+	}
 	return p.errs
 }
 

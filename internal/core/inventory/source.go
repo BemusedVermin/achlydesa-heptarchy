@@ -53,41 +53,90 @@ func refill(w *sim.World) error {
 	return nil
 }
 
+// Refusal is why a transfer cannot happen, or None.
+type Refusal int
+
+// Reasons a transfer is refused.
+const (
+	None Refusal = iota
+	// OutOfReach: the body is not next to the thing it takes from or puts into.
+	OutOfReach
+	// Short: the giver holds fewer than the count.
+	Short
+	// Full: a source would go over its Max, or is a source of another item.
+	Full
+)
+
 // Move carries count of the item, unbound, from one entity to another that stands next to it: on
 // the same cell or a neighboring one. A source of the item gives from and takes into its stock, up
 // to its Max; anything else uses the inventory. It returns false, and changes nothing, when either
 // has no position, they are not next to each other, from holds fewer than count, or a source would
 // go over its Max. Moving nothing (count <= 0) succeeds.
 func Move(w *sim.World, from, to ecs.Entity, item api.ContentID, count int) bool {
+	if from == to {
+		return count <= 0
+	}
+	return Transfer(w, from, to, to, item, count) == None
+}
+
+// Transfer is Move for a body that carries into or out of its own holder, such as a party's
+// inventory, which has no position: only an end that is not by's holder must be next to by. It
+// refuses with the reason, and changes nothing, for the reasons Move does.
+func Transfer(w *sim.World, from, to, by ecs.Entity, item api.ContentID, count int) Refusal {
+	if reason := CheckTransfer(w, from, to, by, item, count); reason != None {
+		return reason
+	}
 	if count <= 0 {
-		return true
-	}
-	positions := ecs.NewMap[comp.Pos](w.ECS)
-	if from == to || !w.Alive(from) || !w.Alive(to) || !positions.Has(from) || !positions.Has(to) {
-		return false
-	}
-	if hexmap.CellDistance(positions.Get(from).At, positions.Get(to).At) > reach {
-		return false
+		return None
 	}
 	sources := ecs.NewMap[comp.Source](w.ECS)
-	giver, receiver := sourceOf(sources, from, item), sourceOf(sources, to, item)
-	if receiver != nil && receiver.Stock+count > receiver.Max {
-		return false
-	}
-	switch {
-	case giver != nil && giver.Stock < count:
-		return false
-	case giver != nil:
+	if giver := sourceOf(sources, from, item); giver != nil {
 		giver.Stock -= count
-	case !Take(w, from, item, 0, count):
-		return false
+	} else {
+		Take(w, from, item, 0, count)
 	}
-	if receiver != nil {
+	if receiver := sourceOf(sources, to, item); receiver != nil {
 		receiver.Stock += count
-		return true
+	} else {
+		Add(w, to, comp.ItemStack{Item: item, Count: count})
 	}
-	Add(w, to, comp.ItemStack{Item: item, Count: count})
-	return true
+	return None
+}
+
+// CheckTransfer says whether Transfer would succeed, and why not, without changing anything.
+func CheckTransfer(w *sim.World, from, to, by ecs.Entity, item api.ContentID, count int) Refusal {
+	if count <= 0 {
+		return None
+	}
+	if from == to || !w.Alive(from) || !w.Alive(to) || !w.Alive(by) {
+		return OutOfReach
+	}
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	holder := HolderOf(w, by)
+	for _, end := range []ecs.Entity{from, to} {
+		if end == holder {
+			continue
+		}
+		if !positions.Has(end) || !positions.Has(by) ||
+			hexmap.CellDistance(positions.Get(by).At, positions.Get(end).At) > reach {
+			return OutOfReach
+		}
+	}
+	sources := ecs.NewMap[comp.Source](w.ECS)
+	if giver := sourceOf(sources, from, item); giver != nil {
+		if giver.Stock < count {
+			return Short
+		}
+	} else if Count(w, from, item, 0) < count {
+		return Short
+	}
+	if receiver := sourceOf(sources, to, item); receiver != nil && receiver.Stock+count > receiver.Max {
+		return Full
+	}
+	if sources.Has(to) && sourceOf(sources, to, item) == nil {
+		return Full
+	}
+	return None
 }
 
 // sourceOf is the entity's source when it is a source of the item, otherwise nil.

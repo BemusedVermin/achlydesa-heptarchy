@@ -31,7 +31,7 @@ var crowdParty = api.Cell{Hex: api.Hex{Q: 200, R: 200}}
 type crowdPlanner struct{ wells map[api.UID]agents.Target }
 
 func (p crowdPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
-	drink := agents.Step{Operator: drinkOp}
+	drink := agents.Step{Operator: farDrinkOp}
 	well, knows := p.wells[snapshot.Agent]
 	switch {
 	case goal != drinkGoal || !knows:

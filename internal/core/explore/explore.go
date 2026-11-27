@@ -25,8 +25,6 @@ type state struct {
 	world *WorldSource
 	// generated is the world's generated ground, nil when the world has none.
 	generated *worldgen.Source
-	// populated holds the chunks whose starting bodies have been spawned for generated's export count.
-	populated map[hexmap.ChunkKey]bool
 	// pocket is the fixed pocket of the latest export, nil before the first.
 	pocket *pocketFixed
 }
@@ -36,7 +34,7 @@ func stateOf(w *sim.World) *state {
 	if res.Has() {
 		return res.Get()
 	}
-	st := &state{populated: map[hexmap.ChunkKey]bool{}}
+	st := &state{}
 	if w.Content != nil {
 		st.rules = actions.StepRules(w)
 	}
@@ -204,7 +202,6 @@ func buildWorld(w *sim.World, saved Pocket) (*WorldSource, error) {
 	}
 	st.world = src
 	st.generated, _ = cells.(*worldgen.Source)
-	clear(st.populated)
 	w.Map = hexmap.NewMap(cells, hexmap.Prisms{})
 	w.Map.SetBounds(src.Bounds(), src.Edge())
 	setGraph(w, cells, src)
@@ -258,7 +255,7 @@ func Start(w *sim.World) error {
 			w.ECS,
 		).Add(mark, &comp.Affordance{Tags: slices.Sorted(slices.Values(landmark.Gives))})
 	}
-	return populateLoaded(w)
+	return populateWorld(w)
 }
 
 // spawnParty spawns the template's party. The leader stands on the mark; each other member stands

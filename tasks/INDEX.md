@@ -171,14 +171,14 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-10](M6-minds/M6-10-operators-beliefs.md) | Operators and beliefs: the state both planners plan over | done | seam | M | M6-03, M6-04, M6-07 |
 | [M6-11](M6-minds/M6-11-mind-controller.md) | The mind controller: run a plan, claim what it needs | done | seam | M | M6-01, M6-10 |
 | [M6-12](M6-minds/M6-12-movement-actions.md) | Movement actions: go to, and wander | done | feature | M | M6-11 |
-| [M6-13](M6-minds/M6-13-thing-actions.md) | Thing actions: take, put and consume | todo | feature | M | M6-02, M6-11 |
+| [M6-13](M6-minds/M6-13-thing-actions.md) | Thing actions: take, put and consume | done | feature | M | M6-02, M6-11 |
 | [M6-14](M6-minds/M6-14-goal-choice.md) | Goal choice: drives score into a goal | done | feature | M | M6-03, M6-11 |
 | [M6-15](M6-minds/M6-15-goap.md) | The GOAP planner for important individuals | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-16](M6-minds/M6-16-htn.md) | The HTN planner and recipes for everyone else | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-17](M6-minds/M6-17-far-agents.md) | Far agents: goals only, over the chunk graph | done | feature | L | M6-06, M6-12, M6-14 |
-| [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | todo | feature | S | M6-04, M6-11 |
+| [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | done | feature | S | M6-04, M6-11 |
 | [M6-19](M6-minds/M6-19-flee-engage.md) | Flee, terror and engaging: handing a fight over and back | todo | feature | M | M6-01, M6-12, M6-14 |
-| [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | todo | feature | M | M6-03, M6-06, M6-14 |
+| [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | done | feature | M | M6-03, M6-06, M6-14 |
 | [M6-21](M6-minds/M6-21-monster-families.md) | Monster families: moving clay, remnants and beasts as minds | todo | content | M | M6-05, M6-07, M6-15, M6-16, M6-19, M6-20 |
 | [M6-22](M6-minds/M6-22-settlements.md) | The three towns as settlements | todo | content | M | M6-09, M6-13, M6-20 |
 | [M6-23](M6-minds/M6-23-residents.md) | Residents: roles, jobs and a town that can run dry | todo | content | M | M6-15, M6-16, M6-18, M6-22 |
@@ -227,6 +227,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M6-17.F3](followups/M6-17.F3-far-route-start-area.md) | Start a far route from the agent's own local area | proposed | debt | unplanned | M6-17 |
 | [M6-17.F2](followups/M6-17.F2-alert-cost.md) | Make the party's alert check cheap with many bodies near | proposed | debt | M6 | M6-17 |
 | [M6-17.F1](followups/M6-17.F1-go-to-path-cost.md) | Stop the go_to picker searching a whole cell path at every step | proposed | debt | M6 | M6-17 |
+| [M6-18.F1](followups/M6-18.F1-shared-language.md) | Decide what a shared language is for telling | todo | question | M6 | M6-18 |
+| [M6-13.F1](followups/M6-13.F1-take-options-noise.md) | Hide take options for items the thing does not hold | proposed | seam | M6 | M6-13 |
 | [M1-11.F2](followups/M1-11.F2-height-glyphs-drop-prompt.md) | Plan view: ^ and v for height, red for out of reach, and ask before a drop | done | feature | M6 | M1-11 |
 | [M6-10.F1](followups/M6-10.F1-has-by-item-or-tag.md) | Decide whether a has fact names an item or an item tag | done | question | M6 | M6-10 |
 | [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | done | question | M6 | M6-07 |

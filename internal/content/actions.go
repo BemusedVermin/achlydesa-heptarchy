@@ -158,7 +158,7 @@ func (f TargetFilter) Allows(templateTags []string) bool {
 
 func checkTargetFilter(path string, def ActionDef) []error {
 	filter := def.Targets
-	if len(filter.Tags) == 0 && len(filter.Not) == 0 && !filter.Corpse {
+	if len(filter.Tags) == 0 && len(filter.Not) == 0 && !filter.Corpse && !filter.Thing {
 		return nil
 	}
 	if !slices.Contains([]TargetKind{TargetBody, TargetAlly, TargetPart}, def.Target) {
@@ -235,6 +235,9 @@ func (r *Registry) EffectSites() []EffectSite {
 	}
 	for _, id := range sortedKeys(r.bundle.Items) {
 		sites = append(sites, modSites(fmt.Sprintf("items[%q]", id), r.bundle.Items[id].Mods)...)
+		if consumed := r.bundle.Items[id].OnConsume; len(consumed) > 0 {
+			sites = append(sites, EffectSite{Path: fmt.Sprintf("items[%q].on_consume", id), Refs: consumed})
+		}
 	}
 	for _, site := range r.TriggerSites() {
 		if len(site.Trigger.Do) > 0 {

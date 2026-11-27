@@ -74,6 +74,12 @@ func (m *Map) At(c api.Cell) (Terrain, error) {
 	return chunk.Get(floorMod(c.Hex.Q), floorMod(c.Hex.R), floorMod(c.Depth)), nil
 }
 
+// IsLoaded reports whether the chunk is in memory.
+func (m *Map) IsLoaded(key ChunkKey) bool {
+	_, ok := m.chunks[key]
+	return ok
+}
+
 // Loaded lists the chunks in memory, sorted by Depth, R, Q.
 func (m *Map) Loaded() []ChunkKey {
 	keys := slices.Collect(maps.Keys(m.chunks))

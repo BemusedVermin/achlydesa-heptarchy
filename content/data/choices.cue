@@ -11,6 +11,16 @@ choices: {
 		from:  "types"
 		offer: "record.id in source.template.lists.types || (record.id == \"type.relic\" && source.grafts > 0) || any(record.lists.consumes, {inventory[#] > 0})"
 	}
+	// A thing to eat or drink, to take from a source or container.
+	ware: {
+		from:  "items"
+		offer: "\"drinkable\" in record.tags || \"edible\" in record.tags"
+	}
+	// A ware the body carries, to put away or consume.
+	carried: {
+		from:  "items"
+		offer: "(\"drinkable\" in record.tags || \"edible\" in record.tags) && inventory[record.id] > 0"
+	}
 	// The piece a graft fits: any piece in the inventory.
 	piece: {
 		from:  "items"

@@ -35,4 +35,9 @@ goals: {
 	"goal.wander": {
 		weight: "0.05"
 	}
+	// Tell a near agent what it does not know. Only applies when one is in reach with something to
+	// hear; weaker than any drive, stronger than wandering.
+	"goal.chat": {
+		weight: "0.08"
+	}
 }

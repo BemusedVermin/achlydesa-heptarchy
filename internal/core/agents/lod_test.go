@@ -21,12 +21,12 @@ import (
 )
 
 const (
-	farPlanner = "test.far"
-	farAgent   = api.ContentID("template.test.far")
-	drinkOp    = api.ContentID("operator.test.drink")
-	drinkNow   = api.ContentID("action.test.drink")
-	waterMark  = api.ContentID("affordance.water")
-	drinkGoal  = api.ContentID("goal.drink")
+	farPlanner     = "test.far"
+	farAgent       = api.ContentID("template.test.far")
+	farDrinkOp     = api.ContentID("operator.test.drink")
+	farDrinkAction = api.ContentID("action.test.drink")
+	waterMark      = api.ContentID("affordance.water")
+	drinkGoal      = api.ContentID("goal.drink")
 )
 
 var (
@@ -44,7 +44,7 @@ func (p drinkPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents
 	if goal != drinkGoal {
 		return agents.Plan{}, false
 	}
-	drink := agents.Step{Operator: drinkOp}
+	drink := agents.Step{Operator: farDrinkOp}
 	switch {
 	case slices.Contains(snapshot.Beliefs, agents.Fact{Kind: content.FactNear, Tag: waterMark}):
 		return agents.Plan{Steps: []agents.Step{drink}}, true
@@ -56,23 +56,23 @@ func (p drinkPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents
 }
 
 func farContent(b *content.Bundle) {
-	b.Actions[string(drinkNow)] = content.ActionDef{
+	b.Actions[string(farDrinkAction)] = content.ActionDef{
 		Name: "text.action.test.drink", Key: "drink", Uses: []content.Requirement{{Tag: "body", Count: 1}},
 		Target: content.TargetSelf, Windup: "0", Recovery: "1",
 		OnLand: []content.EffectRef{{Do: "satisfy", Params: map[string]string{
 			"bodies": "self", "drive": string(water), "amount": "100",
 		}}},
 	}
-	b.Operators[string(drinkOp)] = content.Operator{
+	b.Operators[string(farDrinkOp)] = content.Operator{
 		Pre:  []content.Condition{{Fact: content.FactNear, Tag: waterMark}},
 		Eff:  []content.Condition{{Fact: content.FactDriveMet, Tag: water}},
-		Cost: 1, Does: content.Does{Action: drinkNow, Target: agents.SelfPicker}, Kind: "test",
+		Cost: 1, Does: content.Does{Action: farDrinkAction, Target: agents.SelfPicker}, Kind: "test",
 	}
 	b.Templates[string(farAgent)] = content.Template{
 		Name:    new(api.ContentID("text.template.test.far")),
 		Actor:   &content.ActorDef{Controller: agents.MindController},
 		Mind:    &content.MindDef{Planner: farPlanner},
-		Actions: []api.ContentID{"action.step", drinkNow},
+		Actions: []api.ContentID{"action.step", farDrinkAction},
 		Faction: new(api.ContentID("faction.party")),
 		Drives:  map[string]float64{string(water): 1},
 	}

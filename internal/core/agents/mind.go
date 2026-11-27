@@ -126,6 +126,18 @@ func ValidateContent(w *sim.World) error {
 			errs = append(errs, fmt.Errorf("templates[%q].mind.planner: unknown planner %q", id, template.Mind.Planner))
 		}
 	}
+	for _, id := range w.Content.GeographyIDs() {
+		geography, _ := w.Content.Geography(id)
+		for i, spawn := range geography.Spawns {
+			if spawn.Mind == nil {
+				continue
+			}
+			if _, ok := st.planners[spawn.Mind.Planner]; !ok {
+				errs = append(errs, fmt.Errorf("geographies[%q].spawns[%d].mind.planner: unknown planner %q",
+					id, i, spawn.Mind.Planner))
+			}
+		}
+	}
 	for _, id := range w.Content.OperatorIDs() {
 		op, _ := w.Content.Operator(id)
 		if _, ok := st.pickers[op.Does.Target]; !ok {
@@ -175,6 +187,14 @@ func (mindController) Decide(w *sim.World, body ecs.Entity) error {
 		return nil
 	}
 	if err := think(w, body); err != nil {
+		return err
+	}
+	if chat := w.Content.Agents().ChatGoal; chat != "" && minds.Get(body).Goal == chat {
+		drop(w, body)
+		started, err := startChat(w, body)
+		if !started {
+			minds.Get(body).Goal = ""
+		}
 		return err
 	}
 	if mind := minds.Get(body); len(mind.Plan.Steps) > 0 && (mind.Step >= len(mind.Plan.Steps) || !planHolds(w, body)) {

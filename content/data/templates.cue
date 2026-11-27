@@ -25,7 +25,7 @@ _corpseGivesDead: {
 // innate to grafts: the type choice offers it to a body that carries one.
 _actions: [
 	"action.step", "action.strike", "action.sweep", "action.sever", "action.pin", "action.stand",
-	"action.give", "action.graft",
+	"action.give", "action.graft", "action.take", "action.put", "action.consume",
 ]
 _innateTypes: ["type.cut", "type.name", "type.press"]
 
@@ -119,16 +119,21 @@ templates: {
 		appearance: {glyph: "o", color: "blue"}
 		source: {item: "item.water", max: 20, refill: "2"}
 		affordances: ["affordance.water"]
+		tags: ["stock"]
 	}
 	"template.container.cistern": {
 		name: "text.template.container.cistern"
 		appearance: {glyph: "u", color: "blue"}
 		container: true
+		affordances: ["affordance.water", "affordance.store"]
+		tags: ["stock"]
 	}
 	"template.container.larder": {
 		name: "text.template.container.larder"
 		appearance: {glyph: "u", color: "yellow"}
 		container: true
+		affordances: ["affordance.food", "affordance.store"]
+		tags: ["stock"]
 		inventory: [{item: "item.ration", count: 5}]
 	}
 	"template.party.main": {

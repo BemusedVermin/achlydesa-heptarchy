@@ -188,6 +188,14 @@ type AgentsConfig struct {
 	// FarTicks is how many ticks pass between the decisions of an agent far from every party member,
 	// which world.near_chunks says. It must be at least 1 when any goal exists.
 	FarTicks int `json:"far_ticks,omitempty"`
+	// ChatGoal is the goal ("goal." ID) an agent has while it tells a near agent what it knows, and
+	// ChatAction the action ("action." ID) it takes to do so. Empty means agents tell nothing.
+	ChatGoal   api.ContentID `json:"chat_goal,omitempty"`
+	ChatAction api.ContentID `json:"chat_action,omitempty"`
+	// ToldOrigin is the origin of a fact an agent was told, and ToldConfidence the share of its
+	// confidence the fact keeps when told, above 0 and at most 1.
+	ToldOrigin     api.ContentID `json:"told_origin,omitempty"`
+	ToldConfidence float64       `json:"told_confidence,omitempty"`
 }
 
 // Material is a substance things are made of.
@@ -221,6 +229,8 @@ type Item struct {
 	Part *api.ContentID `json:"part,omitempty"`
 	// Triggers run for holders of the item.
 	Triggers []Trigger `json:"triggers,omitempty"`
+	// OnConsume are the effects of consuming one, on the body that consumes it.
+	OnConsume []EffectRef `json:"on_consume,omitempty"`
 }
 
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
@@ -498,6 +508,17 @@ type GeographySpawn struct {
 	// Density is in [0, 1]: how likely a cell the entry applies to is to start a body, before the entry's
 	// weight shares that chance with the other entries that apply there.
 	Density float64 `json:"density"`
+	// Mind, when set, gives some of the entry's individuals a planner of their own. The template must
+	// have a mind.
+	Mind *SpawnMind `json:"mind,omitempty"`
+}
+
+// SpawnMind picks which individuals of a spawn entry plan differently from their template.
+type SpawnMind struct {
+	// Planner names a registered planner.
+	Planner string `json:"planner"`
+	// Chance is in [0, 1]: how likely each individual is to get the planner.
+	Chance float64 `json:"chance"`
 }
 
 // StageDef names a registered worldgen stage and its numbers. Whether the stage takes those params is the
@@ -757,6 +778,8 @@ type TargetFilter struct {
 	Not []string `json:"not,omitempty"`
 	// Corpse allows a dead body as well as a living one.
 	Corpse bool `json:"corpse,omitempty"`
+	// Thing also allows a source or container, which has a cell and no body.
+	Thing bool `json:"thing,omitempty"`
 }
 
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.

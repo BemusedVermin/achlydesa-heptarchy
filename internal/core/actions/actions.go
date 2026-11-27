@@ -245,10 +245,17 @@ func (ev *evaluator) eligible(e ecs.Entity, filter content.TargetFilter) bool {
 	if !ev.w.Alive(e) {
 		return false
 	}
-	if !ev.actors.Has(e) && (!filter.Corpse || !ev.dead.Has(e)) {
+	isBody := ev.actors.Has(e) || (filter.Corpse && ev.dead.Has(e))
+	if !isBody && (!filter.Thing || !ev.isThing(e)) {
 		return false
 	}
 	return ev.passesTags(e, filter)
+}
+
+// isThing reports whether e is a source or container with a cell.
+func (ev *evaluator) isThing(e ecs.Entity) bool {
+	return ev.positions.Has(e) &&
+		(ecs.NewMap[comp.Source](ev.w.ECS).Has(e) || ecs.NewMap[comp.Inventory](ev.w.ECS).Has(e))
 }
 
 // passesTags reports whether e's template passes the filter's tag lists.
@@ -648,6 +655,7 @@ type targetKey struct {
 	rng    int
 	sight  bool
 	corpse bool
+	thing  bool
 }
 
 // valueKey names one choice's offered values for one actor.
