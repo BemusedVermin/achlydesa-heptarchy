@@ -132,6 +132,7 @@ func checkActionShape(path string, def ActionDef) []error {
 			)
 		}
 	}
+	problems = append(problems, checkTargetFilter(path+".targets", def)...)
 	seen := map[string]bool{}
 	for i, choice := range def.Choices {
 		switch {
@@ -141,6 +142,41 @@ func checkActionShape(path string, def ActionDef) []error {
 			problems = append(problems, fmt.Errorf("%s.choices[%d]: %q is listed twice", path, i, choice))
 		}
 		seen[choice] = true
+	}
+	return problems
+}
+
+// Allows reports whether a target whose template carries templateTags passes the tag lists.
+func (f TargetFilter) Allows(templateTags []string) bool {
+	for _, tag := range f.Tags {
+		if !slices.Contains(templateTags, tag) {
+			return false
+		}
+	}
+	return !slices.ContainsFunc(f.Not, func(tag string) bool { return slices.Contains(templateTags, tag) })
+}
+
+func checkTargetFilter(path string, def ActionDef) []error {
+	filter := def.Targets
+	if len(filter.Tags) == 0 && len(filter.Not) == 0 && !filter.Corpse {
+		return nil
+	}
+	if !slices.Contains([]TargetKind{TargetBody, TargetAlly, TargetPart}, def.Target) {
+		return []error{fmt.Errorf("%s: only a body, ally or part action takes a target filter", path)}
+	}
+	var problems []error
+	for i, tag := range filter.Tags {
+		if tag == "" {
+			problems = append(problems, fmt.Errorf("%s.tags[%d]: empty tag", path, i))
+		}
+	}
+	for i, tag := range filter.Not {
+		switch {
+		case tag == "":
+			problems = append(problems, fmt.Errorf("%s.not[%d]: empty tag", path, i))
+		case slices.Contains(filter.Tags, tag):
+			problems = append(problems, fmt.Errorf("%s.not[%d]: %q is also required, so nothing passes", path, i, tag))
+		}
 	}
 	return problems
 }

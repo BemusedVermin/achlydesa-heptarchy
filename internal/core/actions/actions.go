@@ -97,6 +97,7 @@ type evaluator struct {
 	identities *ecs.Map[comp.Identity]
 	positions  *ecs.Map[comp.Pos]
 	actors     *ecs.Map[comp.Actor]
+	dead       *ecs.Map[comp.Dead]
 	sight      map[ecs.Entity]map[ecs.Entity]bool
 	// Each actor's whole inventory, for choice offers.
 	inventory map[ecs.Entity]map[string]int
@@ -112,6 +113,7 @@ func newEvaluator(w *sim.World) *evaluator {
 		identities: ecs.NewMap[comp.Identity](w.ECS),
 		positions:  ecs.NewMap[comp.Pos](w.ECS),
 		actors:     ecs.NewMap[comp.Actor](w.ECS),
+		dead:       ecs.NewMap[comp.Dead](w.ECS),
 		sight:      map[ecs.Entity]map[ecs.Entity]bool{},
 	}
 }
@@ -212,7 +214,7 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 		dir := *in.Dir
 		p.dir = &dir
 	case content.TargetBody, content.TargetAlly, content.TargetPart:
-		if in.Target == in.Actor || in.Dir != nil || !ev.isBody(in.Target) {
+		if in.Target == in.Actor || in.Dir != nil || !ev.eligible(in.Target, def.Targets) {
 			return bad()
 		}
 		if def.Target == content.TargetPart {
@@ -237,9 +239,29 @@ func (ev *evaluator) checkTarget(in Intent, def content.ActionDef) (p plan, reas
 	return p, api.Text{}, nil
 }
 
-// isBody reports whether e is a body: a living entity on the timeline.
-func (ev *evaluator) isBody(e ecs.Entity) bool {
-	return ev.w.Alive(e) && ev.actors.Has(e)
+// eligible reports whether e is a body the filter lets an action aim at: a living body on the
+// timeline, or a dead one when the filter allows corpses, whose template passes the filter's tags.
+func (ev *evaluator) eligible(e ecs.Entity, filter content.TargetFilter) bool {
+	if !ev.w.Alive(e) {
+		return false
+	}
+	if !ev.actors.Has(e) && (!filter.Corpse || !ev.dead.Has(e)) {
+		return false
+	}
+	return ev.passesTags(e, filter)
+}
+
+// passesTags reports whether e's template passes the filter's tag lists.
+func (ev *evaluator) passesTags(e ecs.Entity, filter content.TargetFilter) bool {
+	if len(filter.Tags) == 0 && len(filter.Not) == 0 {
+		return true
+	}
+	var tags []string
+	if ev.identities.Has(e) {
+		record, _ := ev.w.Content.Record(ev.identities.Get(e).Template)
+		tags = record.Tags
+	}
+	return filter.Allows(tags)
 }
 
 // checkChoices checks that the intent made exactly the choices the action asks for, each one offered.
@@ -625,6 +647,7 @@ type targetKey struct {
 	target content.TargetKind
 	rng    int
 	sight  bool
+	corpse bool
 }
 
 // valueKey names one choice's offered values for one actor.

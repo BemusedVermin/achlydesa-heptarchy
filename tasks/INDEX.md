@@ -163,8 +163,8 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-02](M6-minds/M6-02-sources.md) | Sources and containers | done | seam | M | none |
 | [M6-03](M6-minds/M6-03-drives.md) | Drives: needs and desires with a weight per individual | done | seam | M | none |
 | [M6-04](M6-minds/M6-04-memory-sight.md) | A capped memory per agent, learned by sight | done | seam | M | none |
-| [M6-05](M6-minds/M6-05-target-tags.md) | What an action may target, by tag, with corpses opt-in | todo | seam | S | none |
-| [M6-06](M6-minds/M6-06-chunk-graph.md) | The chunk graph: the openings between chunks | done | seam | M | none |
+| [M6-05](M6-minds/M6-05-target-tags.md) | What an action may target, by tag, with corpses opt-in | done | seam | S | none |
+| [M6-06](M6-minds/M6-06-chunk-graph.md) | The chunk graph: the openings between chunks | todo | seam | M | none |
 | [M6-07](M6-minds/M6-07-landmarks.md) | Landmarks: things that advertise what they give | todo | seam | M | M6-02, M6-04 |
 | [M6-08](M6-minds/M6-08-pieces.md) | Pieces: building blocks a town is laid out from | todo | seam | M | M6-07 |
 | [M6-09](M6-minds/M6-09-settlement-stage.md) | The settlement stage: procgen lays out a town | todo | feature | M | M6-08 |
@@ -215,7 +215,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M6-06.F1](followups/M6-06.F1-graph-local-areas.md) | Split chunk graph nodes by the walkable areas inside each chunk | proposed | seam | M6 | M6-06 |
 | [M6-03.F1](followups/M6-03.F1-safety-rise.md) | Decide what raises drive.safety | todo | question | M6 | M6-03 |
 | [M6-04.F1](followups/M6-04.F1-sighting-event-volume.md) | Keep agents' sightings from flooding the event bus | todo | seam | M6 | M6-04 |
-| [M6-02.F1](followups/M6-02.F1-empty-container-template.md) | Let a template spawn an empty container | todo | seam | M6 | M6-02 |
+| [M6-02.F1](followups/M6-02.F1-empty-container-template.md) | Let a template spawn an empty container | done | seam | M6 | M6-02 |
 | [M5-07.F1.F1](followups/M5-07.F1.F1-verify-large-world-start.md) | Make verify fast enough to run on the large world at game start | done | debt | M5 | M5-07.F1 |
 | [M5-07.F1](followups/M5-07.F1-verify-chunk-summaries.md) | Verify from chunk summaries, not the whole ground | done | debt | M5 | M5-07 |
 | [M5-10.F2.F1](followups/M5-10.F2.F1-sealed-pocket-widening-fails.md) | Choose another way to open a sealed pocket | done | question | M5 | M5-10.F2 |

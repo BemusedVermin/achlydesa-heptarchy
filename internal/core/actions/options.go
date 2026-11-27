@@ -117,26 +117,37 @@ func (ev *evaluator) targets(actor ecs.Entity, def content.ActionDef) ([]Intent,
 }
 
 func (ev *evaluator) bodyTargets(actor ecs.Entity, def content.ActionDef) ([]Intent, error) {
-	key := targetKey{actor: actor, target: def.Target, rng: def.Range, sight: def.Sight}
-	if out, ok := ev.targetMemo[key]; ok {
+	key := targetKey{actor: actor, target: def.Target, rng: def.Range, sight: def.Sight, corpse: def.Targets.Corpse}
+	out, ok := ev.targetMemo[key]
+	if !ok {
+		var err error
+		if out, err = ev.findBodyTargets(actor, def); err != nil {
+			return nil, err
+		}
+		if ev.targetMemo == nil {
+			ev.targetMemo = map[targetKey][]Intent{}
+		}
+		ev.targetMemo[key] = out
+	}
+	if len(def.Targets.Tags) == 0 && len(def.Targets.Not) == 0 {
 		return out, nil
 	}
-	out, err := ev.findBodyTargets(actor, def)
-	if err != nil {
-		return nil, err
-	}
-	if ev.targetMemo == nil {
-		ev.targetMemo = map[targetKey][]Intent{}
-	}
-	ev.targetMemo[key] = out
-	return out, nil
+	return slices.DeleteFunc(slices.Clone(out), func(in Intent) bool {
+		return !ev.passesTags(in.Target, def.Targets)
+	}), nil
 }
 
 func (ev *evaluator) findBodyTargets(actor ecs.Entity, def content.ActionDef) ([]Intent, error) {
 	var bodies []ecs.Entity
-	query := ecs.NewFilter2[comp.Pos, comp.Actor](ev.w.ECS).Query()
-	for query.Next() {
-		bodies = append(bodies, query.Entity())
+	living := ecs.NewFilter2[comp.Pos, comp.Actor](ev.w.ECS).Query()
+	for living.Next() {
+		bodies = append(bodies, living.Entity())
+	}
+	if def.Targets.Corpse {
+		dead := ecs.NewFilter2[comp.Pos, comp.Dead](ev.w.ECS).Query()
+		for dead.Next() {
+			bodies = append(bodies, dead.Entity())
+		}
 	}
 	ev.w.SortByUID(bodies)
 	var out []Intent
