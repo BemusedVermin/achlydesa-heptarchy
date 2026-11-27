@@ -142,7 +142,7 @@ Exploring and fighting both happen on the hex grid, on the same clock; actions a
 
 - The party's current chamber is kept as a pocket; everything beyond it regenerates around them.
 - A route to at least one town is guaranteed, but not necessarily the one they came from.
-- A chamber with no walkable way out is widened: the pocket takes in more of the surrounding old ground until it reaches an edge, so the route is never sealed off.
+- A chamber with no walkable way out gets a tunnel cut from the party's ground to new ground, so the route is never sealed off.
 - Anyone standing in regenerated deep is moved to the nearest open ground outside the pocket. Nobody is lost.
 - What the party carried is all they have until they reach a town.
 

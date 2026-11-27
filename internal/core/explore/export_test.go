@@ -295,3 +295,40 @@ func TestExportedWorldSurvivesSaveAndLoad(t *testing.T) {
 		t.Error("Game.Hash differs after a load")
 	}
 }
+
+// TestExportOpensAClosedChamber seals the party's cells in solid ground and checks a route to a place remains.
+func TestExportOpensAClosedChamber(t *testing.T) {
+	for _, seed := range []uint64{1, 2, 3} {
+		ew := newExportWorld(t, seed)
+		var members []api.Cell
+		query := ecs.NewFilter2[comp.MemberOf, comp.Pos](ew.w.ECS).Query()
+		for query.Next() {
+			_, pos := query.Get()
+			members = append(members, pos.At)
+		}
+		floor, err := ew.w.Map.At(hexmap.Prisms{}.Below(members[0]).Cell)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, member := range members {
+			for _, cell := range ew.w.Map.CellsIn(member.Hex, 2, member.Depth-1, member.Depth) {
+				if !slices.Contains(members, cell) {
+					if err := ew.w.Map.Set(cell, floor); err != nil {
+						t.Fatal(err)
+					}
+				}
+			}
+		}
+		if ew.routeToPlace(members[0]) {
+			t.Fatalf("seed %d: the chamber is not closed", seed)
+		}
+		ew.w.ExportCount = 1
+		ew.w.Bus.Publish(api.ExportBegan{Day: 30, Count: 1})
+		if _, err := ew.w.Bus.Drain(ew.w); err != nil {
+			t.Fatal(err)
+		}
+		if !ew.routeToPlace(members[0]) {
+			t.Errorf("seed %d: no route from the closed chamber at %v to any place", seed, members[0])
+		}
+	}
+}
