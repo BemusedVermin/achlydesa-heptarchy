@@ -100,6 +100,35 @@ func TestPlaceOpeningsAreChecked(t *testing.T) {
 	}
 }
 
+func TestPieceDoorsAreChecked(t *testing.T) {
+	tests := []struct {
+		name  string
+		doors []string
+		want  string
+	}{
+		{name: "none", want: `pieces["piece.a"].doors: a piece needs at least one door`},
+		{name: "not a mark", doors: []string{"x"}, want: `pieces["piece.a"].doors["x"]: not one of the marks`},
+		{name: "in no layer", doors: []string{"+"}, want: `pieces["piece.a"].doors["+"]: the character is in no layer`},
+		{name: "also a spawn", doors: []string{"w"}, want: `pieces["piece.a"].doors["w"]: also a spawn`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			bundle := sampleBundle(t)
+			bundle.Pieces = map[string]PieceDef{"piece.a": {
+				Name:   "text.piece.a",
+				Layers: []LayerDef{{Depth: 0, Rows: []string{"#w#"}}},
+				Legend: map[string]api.ContentID{"#": "terrain.packed_clay"},
+				Marks:  map[string]string{"+": "door", "w": "well"},
+				Spawns: map[string]api.ContentID{"w": "template.source.well"},
+				Doors:  test.doors,
+			}}
+			bundle.Text["text.piece.a"] = "a piece"
+			_, err := New(bundle)
+			requireErrContains(t, err, test.want)
+		})
+	}
+}
+
 func TestLandmarkMarksAndAffordancesAreChecked(t *testing.T) {
 	tests := []struct {
 		name        string

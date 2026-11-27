@@ -26,6 +26,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque), the `open` terrain of a marked cell and the `geography` that generates the cells no place covers |
 | `geography.cue` | `geographies`: kinds of generated ground. A geography lists its `stages` in order, each a registered stage's name (`stage`) and its numbers (`params`). Worldgen checks that every stage is registered and takes its params. Fixed cells always keep what their place authors. Its `spawns` list what starts on the generated ground: each entry names a `template`, a `weight`, a depth band (`min_depth`, `max_depth`) and a `density`. A cell that is open with solid ground below, inside the band and outside every place, draws once: an entry takes the share weight x density / (sum of the applying weights), and the rest of the draw is no body. A chunk is populated once, the first time it loads for an export count |
 | `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks`, `spawns`, `openings` and `affordances`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
+| `pieces/` | `pieces`: the building blocks towns are laid out from (a house, a well, a street), with the schema and `_#Piece` in `pieces.cue`. A piece is drawn like a place but has no `at`; its `doors` are where it joins a street or another piece |
 | `start.cue` | `start`: the place and mark a new game begins at, and the party template |
 | `rules.cue` | `rules`: named formulas |
 | `choices.cue` | `choices`: what an action can ask the player to pick |
@@ -50,6 +51,7 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `templates` | `template.` | `template.creature.beast` |
 | `actions` | `action.` | `action.strike` |
 | `places` | `place.` | `place.test.hall` |
+| `pieces` | `piece.` | `piece.house` |
 | `geographies` | `geography.` | `geography.deep` |
 | `parts` | `part.` | `part.human_arm` |
 | `claims` | `claim.` | `claim.material` |
@@ -219,6 +221,12 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
 6. Add the name to the file's `text:` block.
 
 To play it, point `start.place` and `start.mark` in `start.cue` at it for the session, and put them back before you commit unless the change is meant. Nothing joins the places yet, so a party started in one stays there.
+
+### A piece, like `piece.house` in `pieces/pieces.cue`
+
+A piece is a small building block a town is laid out from (a house, a well, a length of street). It is drawn like a place, with `layers`, `legend`, `marks`, `spawns` and `affordances`, but has no `at`: it is stamped into the world at a cell and turned by one of the six directions, and may not cover a cell a place or another piece covers. Its column 0, row 0 and depth 0 land on that cell. Give it a `piece.` ID and a `name` of `text.<its ID>`.
+
+`doors` lists mark characters where the piece joins a street or another piece; a piece needs at least one. Like a spawn, a door may appear any number of times, and it must not also be a spawn or a landmark. `_#Piece` gives `#` as clay, `.` as air and `+` as the door.
 
 ## Checking your work
 

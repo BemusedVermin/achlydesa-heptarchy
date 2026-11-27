@@ -13,8 +13,8 @@ func (r *Registry) Affordance(id api.ContentID) (Affordance, bool) {
 	return def, ok
 }
 
-// checkAffordances checks that every affordance is named, and that templates and places give only
-// known affordances, each once.
+// checkAffordances checks that every affordance is named, and that templates, places and pieces give
+// only known affordances, each once.
 func (r *Registry) checkAffordances() []error {
 	p := r.problems()
 	for _, key := range sortedKeys(r.bundle.Affordances) {
@@ -23,15 +23,20 @@ func (r *Registry) checkAffordances() []error {
 	for _, key := range sortedKeys(r.bundle.Templates) {
 		r.checkGives(p, fmt.Sprintf("templates[%q].affordances", key), r.bundle.Templates[key].Affordances)
 	}
-	for _, key := range sortedKeys(r.bundle.Places) {
-		def := r.bundle.Places[key]
-		for _, char := range sortedKeys(def.Affordances) {
-			path := fmt.Sprintf("places[%q].affordances[%q]", key, char)
-			if len(def.Affordances[char]) == 0 {
-				p.addf("%s: at least one affordance is required", path)
+	marks := func(path string, affordances map[string][]api.ContentID) {
+		for _, char := range sortedKeys(affordances) {
+			at := fmt.Sprintf("%s.affordances[%q]", path, char)
+			if len(affordances[char]) == 0 {
+				p.addf("%s: at least one affordance is required", at)
 			}
-			r.checkGives(p, path, def.Affordances[char])
+			r.checkGives(p, at, affordances[char])
 		}
+	}
+	for _, key := range sortedKeys(r.bundle.Places) {
+		marks(fmt.Sprintf("places[%q]", key), r.bundle.Places[key].Affordances)
+	}
+	for _, key := range sortedKeys(r.bundle.Pieces) {
+		marks(fmt.Sprintf("pieces[%q]", key), r.bundle.Pieces[key].Affordances)
 	}
 	return p.errs
 }
