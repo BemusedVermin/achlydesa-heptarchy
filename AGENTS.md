@@ -17,6 +17,7 @@ Every development command is a task in `Taskfile.yml`, run through Go so nothing
 - Everything before you finish: `go tool task check` (format, vet, tests, lint, content)
 - One part: `go tool task test`, `go tool task lint`, `go tool task content`
 - Pass arguments after `--`: `go tool task test -- -run TestName ./internal/core/sim`
+- Benchmarks only, no tests: `go tool task bench BENCH=Step -- -count 6 ./internal/core/game`
 - Regenerate CUE schemas after changing content structs: `go tool task schema`
 - Check this branch's task bookkeeping, as CI does on every pull request: `go tool task check-pr`
 - Play: `go tool task run -- play --seed 1`

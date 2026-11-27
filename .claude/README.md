@@ -15,10 +15,12 @@ This folder sets up Claude Code so that agents can take tasks from `tasks/` and 
 | `skills/triage/` | `/triage`: marks the proposed follow-ups that no longer apply obsolete, asks you about the rest as multiple choice, and records it all in one PR. |
 | `skills/shared/` | Guidance the skills share, such as how to ask you questions. Not a skill itself. |
 | `skills/audit/` | `/audit`: between milestones, read-only auditors look for comment bloat, duplication, low-value tests, unclear names, library opportunities and convention slips, and file the cleanup as a `C<n>` milestone. `/audit lock-in` turns the decisions into lint rules. Its checklists are in `lenses/`. |
+| `skills/optimize/` | `/optimize [step] [procgen] [harness]`: runs the benchmarks with the profiler, one target at a time, has a `perf-auditor` per target rank the bottlenecks, and files the fixes as a `P<n>` speed milestone of proposed tasks. |
 | `skills/file-followup/` | How agents file follow-ups (used by do-task). |
 | `agents/task-implementer.md` | An agent that does one task in its own worktree: Sonnet, or Opus for `size: L` and `kind: seam` tasks when `/run-tasks` starts it. |
 | `agents/code-auditor.md` | A read-only Opus agent that audits one area against the lens checklists. Started by `/audit`. |
 | `agents/task-reviewer.md` | A read-only Opus agent that reviews a task's diff against its spec and `AGENTS.md`. |
+| `agents/perf-auditor.md` | A read-only Opus agent that reads one target's benchmark results and profiles and ranks its bottlenecks. Started by `/optimize`. |
 | `rules/` | Detail on top of `AGENTS.md` that loads only when Claude reads or edits matching files: `core.md` (`internal/core`), `content.md` (`content/`, `internal/content`), `frontend.md` (`internal/frontend`) and `tasks.md` (`tasks/`). |
 | `../internal/tools/agentkit/` | The hooks' code (Go, with tests), plus the `ready` and `clean-worktrees` helpers. |
 
@@ -111,6 +113,22 @@ Once a milestone's tasks are merged, and nothing else is running:
 5. `/audit lock-in`, in your session, turns what was decided into lint rules, AGENTS.md style and rule files, so the next audit finds less.
 
 The auditors run on Opus, seven at a time, so an audit uses a fair share of your plan.
+
+### Speed the game up
+
+Once the benchmarks exist (C2-03 adds them), type `/optimize` in an Opus session, or name targets: `/optimize step harness`. It:
+
+1. runs each target's benchmarks six times, then once more with the CPU and memory profilers, one target at a time so the timings don't skew each other;
+2. starts a `perf-auditor` per target, which reads the profiles and the code behind the hot spots and ranks the bottlenecks by expected gain;
+3. files the fixes as a `P<n>` milestone of proposed tasks, with the baseline numbers, in one PR.
+
+Then `/triage` and `/run-tasks` as usual. Each task proves its gain with `benchstat` before and after on the same machine, and changes no golden.
+
+Close anything heavy while it measures. To run benchmarks yourself:
+
+```powershell
+go tool task bench BENCH=Step -- -count 6 ./internal/core/game
+```
 
 ### Triage follow-ups
 

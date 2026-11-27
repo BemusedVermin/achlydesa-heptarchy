@@ -188,6 +188,17 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-27](M6-minds/M6-27-exotic-recruits.md) | Graftable and exotic recruits | todo | content | S | M6-21, M6-26 |
 | [M6-28](M6-minds/M6-28-golden-and-budget.md) | Golden scenarios for the exit criteria, and the step budget | todo | test | M | M6-17, M6-21, M6-23, M6-26 |
 
+## C2 · Cleanup
+
+Brief: [C2-cleanup/README.md](C2-cleanup/README.md). Runs after M6. C2-04 files the implementation tasks once the owner approves its proposal.
+
+| ID | Title | Status | Kind | Size | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| [C2-01](C2-cleanup/C2-01-test-content.md) | Test content apart from production content | todo | debt | L | M6-27, M6-28, M1-11.F2 |
+| [C2-02](C2-cleanup/C2-02-embed-content.md) | One binary: embed the production content | todo | feature | M | C2-01 |
+| [C2-03](C2-cleanup/C2-03-pin-behavior-and-benchmark.md) | Pin every behavior with a game-level test, and benchmark the slow paths | todo | debt | L | C2-02 |
+| [C2-04](C2-cleanup/C2-04-map-and-propose.md) | Map the core as it is, and propose its new shape | todo | debt | L | C2-02 |
+
 ## Later milestones (outlines)
 
 Each becomes task files when the milestone before it is done: run `/plan-milestone`.
