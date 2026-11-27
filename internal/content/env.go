@@ -129,3 +129,9 @@ type DecayEnv struct {
 	// Exports is the export count.
 	Exports int `expr:"exports"`
 }
+
+// RefillEnv is what a source's refill formula sees.
+type RefillEnv struct {
+	Stock int `expr:"stock"`
+	Max   int `expr:"max"`
+}

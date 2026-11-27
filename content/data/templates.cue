@@ -102,6 +102,23 @@ templates: {
 		body: "body.human"
 		tags: ["crawls"]
 	}
+	// A well refills on its own. A cistern and a larder are containers: what is in them is what
+	// someone carried there. The numbers are placeholders, for tuning.
+	"template.source.well": {
+		name: "text.template.source.well"
+		appearance: {glyph: "o", color: "blue"}
+		source: {item: "item.water", max: 20, refill: "2"}
+	}
+	"template.container.cistern": {
+		name: "text.template.container.cistern"
+		appearance: {glyph: "u", color: "blue"}
+		inventory: [{item: "item.water", count: 5}]
+	}
+	"template.container.larder": {
+		name: "text.template.container.larder"
+		appearance: {glyph: "u", color: "yellow"}
+		inventory: [{item: "item.ration", count: 5}]
+	}
 	"template.party.main": {
 		party: members: ["template.person.reaper", "template.person.salken"]
 		// A few of each consumable to start with.
@@ -126,4 +143,7 @@ text: {
 	"text.template.person.reaper":        "The Reaper"
 	"text.template.person.salken":        "Salken"
 	"text.template.unknown":              "Someone"
+	"text.template.source.well":          "A well"
+	"text.template.container.cistern":    "A cistern"
+	"text.template.container.larder":     "A larder"
 }

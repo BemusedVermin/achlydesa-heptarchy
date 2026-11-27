@@ -14,3 +14,13 @@ type ItemStack struct {
 type Inventory struct {
 	Stacks []ItemStack `json:"stacks"`
 }
+
+// Source is a stock of one item that refills each phase, such as a well. It is taken from like a
+// container's inventory, but its stock is kept here, apart from any Inventory the entity has.
+type Source struct {
+	Item  api.ContentID `json:"item"`
+	Stock int           `json:"stock"`
+	Max   int           `json:"max"`
+	// Refill is the template ("template." ID) whose source.refill formula sets the rate.
+	Refill api.ContentID `json:"refill"`
+}

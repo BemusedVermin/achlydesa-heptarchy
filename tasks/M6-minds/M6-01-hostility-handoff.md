@@ -50,7 +50,7 @@ size: S
 ## Notes
 
 - `combat.Hostile` is now `anatomy.Hostile`; its test moved to `anatomy_test.go`. `combat/hostility.go` is gone and its `nameOf` helper moved to `combat/view.go`.
-- `timeline.DelegateTo`, `timeline.Resume` and `timeline.ControllerOf`, with `comp.Delegate{Controller}` holding the delegate. The save version is now 10 (it was 9 on master when this merged); `save_test.go` gained the no-op migration step for 9, as earlier bumps did.
+- `timeline.DelegateTo`, `timeline.Resume` and `timeline.ControllerOf`, with `comp.Delegate{Controller}` holding the delegate. The save version is now 12 (master was at 11 when this merged); `save_test.go` gained the no-op migration step for 11, as earlier bumps did.
 - Decisions the spec left open, each the easier one to change later:
   - A controller that hands the body off (DelegateTo or Resume) without acting lets the next controller decide at once, in the same decision, so a hand-off never costs a wait. At most two hand-offs per decision (`maxHandOffs`), so two controllers handing back and forth end in a wait instead of a loop.
   - Only a registered controller can be a delegate; `player` cannot. A delegate overrides a player base too, so a player body with a delegate is decided by the delegate.
