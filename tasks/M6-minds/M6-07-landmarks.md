@@ -1,7 +1,7 @@
 ---
 id: M6-07
 title: "Landmarks: things that advertise what they give"
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: [M6-02, M6-04]
