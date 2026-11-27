@@ -77,6 +77,7 @@ func regenerateDeep(w *sim.World) error {
 		st.populated[key] = true
 	}
 	w.Map.Replace(cells, fixed.Covers)
+	setGraph(w, cells, base)
 	forgetSeen(w, slices.Concat(pocket, base.ChunkKeys()))
 	return relocate(w, fixed)
 }
