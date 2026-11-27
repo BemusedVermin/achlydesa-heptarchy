@@ -1,7 +1,7 @@
 ---
 id: M5-14
 title: A wipe screen that waits for the player before the party wakes
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-13]
@@ -45,13 +45,13 @@ When the party is wiped out, the game stops and says so on its own screen. The p
 
 ## Acceptance criteria
 
-- [ ] After a command that wipes the party, the party has not woken: the tick hasn't jumped by `party.wake_ticks`, and the view has `Wipe` with one wake option.
-- [ ] Applying the wake option's command wakes the party where it last rested, after `party.wake_ticks`, and play goes on.
-- [ ] A wiped party with nobody downed gets a `Wipe` view with no wake option.
-- [ ] A game saved while wiped loads with `Wipe` set, and the same seed and commands give the same `Game.Hash` (replay test).
-- [ ] In the TUI, the wipe screen opens after the fight's play-by-play, and choosing the wake option closes it (a TUI test).
-- [ ] `docs/game-design.md` says the party wakes when the player goes on.
-- [ ] `go tool task check` passes.
+- [x] After a command that wipes the party, the party has not woken: the tick hasn't jumped by `party.wake_ticks`, and the view has `Wipe` with one wake option.
+- [x] Applying the wake option's command wakes the party where it last rested, after `party.wake_ticks`, and play goes on.
+- [x] A wiped party with nobody downed gets a `Wipe` view with no wake option.
+- [x] A game saved while wiped loads with `Wipe` set, and the same seed and commands give the same `Game.Hash` (replay test).
+- [x] In the TUI, the wipe screen opens after the fight's play-by-play, and choosing the wake option closes it (a TUI test).
+- [x] `docs/game-design.md` says the party wakes when the player goes on.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -60,4 +60,8 @@ When the party is wiped out, the game stops and says so on its own screen. The p
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- `Wake` and the `game.wipe` view builder live in `internal/core/game/wipe.go`; the wipe view clears `Options` down to the wake option (none for a lost party).
+- A `Wake` sent when the party can't wake is rejected with `text.game.cannot_wake`; any other command while wiped is still `text.game.lost`.
+- The wipe screen sits under the play-by-play on the stack, so the blows show first. `App.Update` now deletes the popping screen by its own index, so a screen can pop while an overlay sits above it.
+- The TUI test starts from an already wiped game; the push-after-play-by-play order is by construction in `App.Choose`, not tested.
+- Existing wake tests now send the wake command. No follow-ups.
