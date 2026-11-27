@@ -1,6 +1,7 @@
 package content
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -116,7 +117,7 @@ func (r *Registry) DriveUrge(id api.ContentID, env DriveEnv) (float64, error) {
 // DriveWeight draws an individual's weight on a drive by agents.weight. A negative result is a content bug.
 func (r *Registry) DriveWeight(env WeightEnv) (float64, error) {
 	if r.weight == nil {
-		return 0, fmt.Errorf("content: agents.weight is empty")
+		return 0, errors.New("content: agents.weight is empty")
 	}
 	weight, err := run[float64](r.weight, env, "agents.weight")
 	if err != nil {
