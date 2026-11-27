@@ -329,6 +329,10 @@ import (
 	// Inventory is the inventory the entity starts with.
 	inventory?: [...#StackDef] @go(Inventory,[]StackDef)
 
+	// Container gives the entity an inventory from the moment it spawns, even an empty one, so it is
+	// a container before anyone puts something in it.
+	container?: bool @go(Container)
+
 	// Source makes the entity a source of one item, which it starts full of.
 	source?: null | #SourceDef @go(Source,*SourceDef)
 

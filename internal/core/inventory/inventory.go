@@ -31,6 +31,11 @@ func Install(w *sim.World) error {
 }
 
 func spawnInventory(w *sim.World, holder ecs.Entity, t content.Template) error {
+	if t.Container {
+		if inventories := ecs.NewMap[comp.Inventory](w.ECS); !inventories.Has(holder) {
+			inventories.Add(holder, &comp.Inventory{})
+		}
+	}
 	for i, def := range t.Inventory {
 		if _, ok := w.Content.Item(def.Item); !ok {
 			return fmt.Errorf("inventory %d: unknown item %q", i, def.Item)

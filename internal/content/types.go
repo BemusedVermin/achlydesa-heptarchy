@@ -273,6 +273,9 @@ type Template struct {
 	Protected bool `json:"protected,omitempty"`
 	// Inventory is the inventory the entity starts with.
 	Inventory []StackDef `json:"inventory,omitempty"`
+	// Container gives the entity an inventory from the moment it spawns, even an empty one, so it is
+	// a container before anyone puts something in it.
+	Container bool `json:"container,omitempty"`
 	// Source makes the entity a source of one item, which it starts full of.
 	Source *SourceDef `json:"source,omitempty"`
 	// Triggers react to events for the entities spawned from this template.
