@@ -212,7 +212,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M6-02.F1](followups/M6-02.F1-empty-container-template.md) | Let a template spawn an empty container | proposed | seam | M6 | M6-02 |
+| [M6-02.F1](followups/M6-02.F1-empty-container-template.md) | Let a template spawn an empty container | todo | seam | M6 | M6-02 |
 | [M5-07.F1.F1](followups/M5-07.F1.F1-verify-large-world-start.md) | Make verify fast enough to run on the large world at game start | done | debt | M5 | M5-07.F1 |
 | [M5-07.F1](followups/M5-07.F1-verify-chunk-summaries.md) | Verify from chunk summaries, not the whole ground | done | debt | M5 | M5-07 |
 | [M5-10.F2.F1](followups/M5-10.F2.F1-sealed-pocket-widening-fails.md) | Choose another way to open a sealed pocket | done | question | M5 | M5-10.F2 |
