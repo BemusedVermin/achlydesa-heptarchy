@@ -93,6 +93,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		bundle:      bundle,
 		moveCosts:   map[api.ContentID]*vm.Program{},
 		decays:      map[api.ContentID]*vm.Program{},
+		refills:     map[api.ContentID]*vm.Program{},
 		templates:   map[api.ContentID]*template.Template{},
 		actions:     map[api.ContentID]compiledAction{},
 		offers:      map[string]*vm.Program{},
@@ -111,6 +112,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkCalendar()...)
 	problems = append(problems, registry.checkTemplates()...)
 	problems = append(problems, registry.checkBodies()...)
+	problems = append(problems, registry.checkSources()...)
 	problems = append(problems, registry.checkActions()...)
 	problems = append(problems, registry.checkTypes()...)
 	problems = append(problems, registry.checkChoices()...)
@@ -177,7 +179,7 @@ func (r *Registry) checkCrawlsAs(path string, id api.ContentID) []error {
 	ignored := map[string]bool{
 		"body": def.Body != nil, "party": def.Party != nil, "actor": def.Actor != nil,
 		"faction": def.Faction != nil, "protected": def.Protected, "inventory": len(def.Inventory) > 0,
-		"triggers": len(def.Triggers) > 0,
+		"triggers": len(def.Triggers) > 0, "source": def.Source != nil,
 	}
 	for _, field := range sortedKeys(ignored) {
 		if ignored[field] {
@@ -351,6 +353,29 @@ func (r *Registry) checkTemplates() []error {
 				p.addf("%s[%d]: member %q is itself a party", path, i, member)
 			}
 		}
+	}
+	return p.errs
+}
+
+// checkSources checks each source's item and maximum, and compiles its refill formula.
+func (r *Registry) checkSources() []error {
+	p := r.problems()
+	for _, key := range sortedKeys(r.bundle.Templates) {
+		def := r.bundle.Templates[key].Source
+		if def == nil {
+			continue
+		}
+		path := fmt.Sprintf("templates[%q].source", key)
+		ref(p, r.bundle.Items, path+".item", "item", def.Item)
+		if def.Max < 1 {
+			p.addf("%s.max: must be at least 1, got %d", path, def.Max)
+		}
+		program, err := r.Compile(def.Refill, RefillEnv{}, expr.AsInt64())
+		if err != nil {
+			p.addf("%s.refill: %w", path, err)
+			continue
+		}
+		r.refills[api.ContentID(key)] = program
 	}
 	return p.errs
 }

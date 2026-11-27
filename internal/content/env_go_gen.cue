@@ -164,3 +164,9 @@ package content
 	// Exports is the export count.
 	Exports: int
 }
+
+// RefillEnv is what a source's refill formula sees.
+#RefillEnv: {
+	Stock: int
+	Max:   int
+}

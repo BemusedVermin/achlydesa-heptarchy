@@ -1,7 +1,7 @@
 ---
 id: M6-02
 title: Sources and containers
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: []
