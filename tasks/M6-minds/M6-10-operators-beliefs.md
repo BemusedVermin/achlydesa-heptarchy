@@ -1,7 +1,7 @@
 ---
 id: M6-10
 title: "Operators and beliefs: the state both planners plan over"
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: [M6-03, M6-04, M6-07]

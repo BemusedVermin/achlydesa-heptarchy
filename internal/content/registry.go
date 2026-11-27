@@ -36,7 +36,9 @@ type Registry struct {
 	mods   map[api.ContentID]compiledMods
 	drives map[api.ContentID]compiledDrive
 	// weight is nil when agents.weight is empty.
-	weight      *vm.Program
+	weight *vm.Program
+	// met is nil when agents.met is empty.
+	met         *vm.Program
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

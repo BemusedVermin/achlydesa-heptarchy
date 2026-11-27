@@ -60,6 +60,12 @@ import (
 
 	// Affordances are what a landmark can give ("affordance." IDs), such as water or the dead.
 	affordances?: {[string]: #Affordance} @go(Affordances,map[string]Affordance)
+
+	// Operators are the steps planners plan with ("operator." IDs), Goals the states agents work
+	// toward ("goal." IDs) and Recipes the written plans HTN follows ("recipe." IDs).
+	operators?: {[string]: #Operator} @go(Operators,map[string]Operator)
+	goals?: {[string]: #Goal} @go(Goals,map[string]Goal)
+	recipes?: {[string]: #Recipe} @go(Recipes,map[string]Recipe)
 }
 
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
@@ -198,6 +204,13 @@ import (
 	// world geography's decay level there: for the cell it stands in, and for the nearest open cell it
 	// sees at each other level. Empty records none.
 	ground_claim?: api.#ContentID @go(GroundClaim)
+
+	// NearRadius is how many cells away, at most, an agent believes a landmark is for it to be near.
+	near_radius?: int @go(NearRadius)
+
+	// Met is an Expr bool over DriveEnv: whether an agent believes a drive it carries is met. Required
+	// when an operator or goal names drive_met.
+	met?: string @go(Met)
 }
 
 // Material is a substance things are made of.

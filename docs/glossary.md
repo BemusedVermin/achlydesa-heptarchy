@@ -32,6 +32,8 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **goal**: what an agent chose to work toward at a decision, from its drives.
 - **plan**: the steps a planner found for a goal, each a timeline action.
 - **operator**: a content record a planner uses: preconditions and effects over beliefs, and the action that carries it out.
+- **recipe**: a plan written in content for HTN: a goal and its steps in order, each an operator or another recipe.
+- **state**: the small set of symbolic facts both planners plan over (`agents.State`), built from what an agent carries and believes.
 - **belief**: what an agent remembers of the world, from sight and from being told. Plans use beliefs, never the truth.
 - **landmark**: a thing that advertises what it gives (`comp.Affordance`), such as a well, a bed or a corpse.
 - **affordance**: what a landmark gives, an `affordance.` record such as water, rest, worship or the dead.

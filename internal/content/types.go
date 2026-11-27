@@ -46,6 +46,11 @@ type Bundle struct {
 	Drives map[string]Drive `json:"drives,omitempty"`
 	// Affordances are what a landmark can give ("affordance." IDs), such as water or the dead.
 	Affordances map[string]Affordance `json:"affordances,omitempty"`
+	// Operators are the steps planners plan with ("operator." IDs), Goals the states agents work
+	// toward ("goal." IDs) and Recipes the written plans HTN follows ("recipe." IDs).
+	Operators map[string]Operator `json:"operators,omitempty"`
+	Goals     map[string]Goal     `json:"goals,omitempty"`
+	Recipes   map[string]Recipe   `json:"recipes,omitempty"`
 }
 
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
@@ -165,6 +170,11 @@ type AgentsConfig struct {
 	// world geography's decay level there: for the cell it stands in, and for the nearest open cell it
 	// sees at each other level. Empty records none.
 	GroundClaim api.ContentID `json:"ground_claim,omitempty"`
+	// NearRadius is how many cells away, at most, an agent believes a landmark is for it to be near.
+	NearRadius int `json:"near_radius,omitempty"`
+	// Met is an Expr bool over DriveEnv: whether an agent believes a drive it carries is met. Required
+	// when an operator or goal names drive_met.
+	Met string `json:"met,omitempty"`
 }
 
 // Material is a substance things are made of.
