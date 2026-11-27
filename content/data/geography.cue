@@ -61,10 +61,6 @@ _#verify: {
 // The ground and the guarantees check.
 geographies: "geography.deep": stages: list.Concat([_#ground, [_#verify]])
 
-// The ground alone, for the large world: verify takes about a minute on a 400 by 400 world, too long for a
-// game to start.
-geographies: "geography.large": stages: _#ground
-
 // What starts on the generated ground: the soop's clay near the surface, remnants and beasts deeper. The
 // weights, bands and densities are first values, for tuning.
 _#spawns: [{
@@ -87,5 +83,4 @@ _#spawns: [{
 	density:   0.003
 }]
 
-geographies: "geography.deep": spawns:  _#spawns
-geographies: "geography.large": spawns: _#spawns
+geographies: "geography.deep": spawns: _#spawns

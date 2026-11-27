@@ -26,7 +26,7 @@ type dummy struct {
 // populatedRoad is the road world on cave ground that starts a dummy on one in fifty open cells.
 func populatedRoad(bundle *content.Bundle) {
 	roadWorld(bundle)
-	const id = "geography.large"
+	const id = "geography.deep"
 	bundle.World.Geography = id
 	geography := bundle.Geographies[id]
 	geography.Stages = geography.Stages[:1]

@@ -9,3 +9,8 @@ func PeakChunks(src *Source) int {
 	}
 	return -1
 }
+
+// RegisterVerifyWorkers adds the verify stage with a fixed number of summary workers.
+func RegisterVerifyWorkers(stages *Stages, workers int) error {
+	return registerVerifyWorkers(stages, workers)
+}
