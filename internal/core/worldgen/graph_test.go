@@ -55,7 +55,11 @@ func TestARouteFollowsTheTunnelBetweenChunks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := []hexmap.ChunkKey{links[0].To, links[1].To}; len(links) != 2 || !slices.Equal(got, []hexmap.ChunkKey{west, east}) {
+	var linked []hexmap.ChunkKey
+	for _, link := range links {
+		linked = append(linked, link.To)
+	}
+	if !slices.Equal(linked, []hexmap.ChunkKey{west, east}) {
 		t.Fatalf("middle chunk links %v, want the west and east chunks", links)
 	}
 	if _, ok, err := graph.Route(west, hexmap.ChunkKey{R: 1}); err != nil || ok {

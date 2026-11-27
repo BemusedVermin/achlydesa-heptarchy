@@ -3,6 +3,7 @@ package worldgen
 import (
 	"cmp"
 	"errors"
+	"fmt"
 	"iter"
 	"runtime"
 	"slices"
@@ -69,7 +70,7 @@ func Summarize(cfg GraphConfig, key hexmap.ChunkKey) (OpeningSummary, error) {
 		}
 		standable, err := ground.Standable(from)
 		if err != nil {
-			return OpeningSummary{}, err
+			return OpeningSummary{}, fmt.Errorf("worldgen: graph: chunk %v: %w", key, err)
 		}
 		if !standable {
 			continue
@@ -77,13 +78,16 @@ func Summarize(cfg GraphConfig, key hexmap.ChunkKey) (OpeningSummary, error) {
 		for dir := range api.Dir(api.DirCount) {
 			step, ok, err := ground.Step(from, dir, cfg.Rules)
 			if err != nil {
-				return OpeningSummary{}, err
+				return OpeningSummary{}, fmt.Errorf("worldgen: graph: chunk %v: %w", key, err)
 			}
 			to := step.To.Cell
 			if !ok || hexmap.KeyOf(to) == key || !cfg.Bounds.Contains(to) {
 				continue
 			}
-			summary.Openings = append(summary.Openings, ChunkOpening{From: from, To: to, Cost: hexmap.CellDistance(from, to)})
+			summary.Openings = append(
+				summary.Openings,
+				ChunkOpening{From: from, To: to, Cost: hexmap.CellDistance(from, to)},
+			)
 		}
 	}
 	slices.SortStableFunc(summary.Openings, func(a, b ChunkOpening) int {
@@ -133,8 +137,10 @@ func (g *Graph) Reset(source hexmap.Source, exportCount uint64) {
 // and kept in [hexmap.CompareKeys] order.
 func (g *Graph) Prepare(keys []hexmap.ChunkKey) error {
 	var missing []hexmap.ChunkKey
+	listed := map[hexmap.ChunkKey]bool{}
 	for _, key := range keys {
-		if _, ok := g.summaries[g.keyOf(key)]; !ok && !slices.Contains(missing, key) {
+		if _, ok := g.summaries[g.keyOf(key)]; !ok && !listed[key] {
+			listed[key] = true
 			missing = append(missing, key)
 		}
 	}

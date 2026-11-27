@@ -38,7 +38,10 @@ func (ew *exportWorld) loadedOpenings() map[hexmap.ChunkKey][]worldgen.ChunkOpen
 				ew.t.Fatal(err)
 			}
 			if to := step.To.Cell; ok && hexmap.KeyOf(to) != key && bounds.Contains(to) {
-				out[key] = append(out[key], worldgen.ChunkOpening{From: from, To: to, Cost: hexmap.CellDistance(from, to)})
+				out[key] = append(
+					out[key],
+					worldgen.ChunkOpening{From: from, To: to, Cost: hexmap.CellDistance(from, to)},
+				)
 			}
 		}
 	}
