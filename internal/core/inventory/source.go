@@ -63,7 +63,7 @@ const (
 	OutOfReach
 	// Short: the giver holds fewer than the count.
 	Short
-	// Full: a source would go over its Max.
+	// Full: a source would go over its Max, or is a source of another item.
 	Full
 )
 
@@ -131,6 +131,9 @@ func CheckTransfer(w *sim.World, from, to, by ecs.Entity, item api.ContentID, co
 		return Short
 	}
 	if receiver := sourceOf(sources, to, item); receiver != nil && receiver.Stock+count > receiver.Max {
+		return Full
+	}
+	if sources.Has(to) && sourceOf(sources, to, item) == nil {
 		return Full
 	}
 	return None

@@ -912,7 +912,7 @@ import (
 	// Corpse allows a dead body as well as a living one.
 	corpse?: bool @go(Corpse)
 
-	// Thing allows a source or container, which has a cell and no body, instead of any body.
+	// Thing also allows a source or container, which has a cell and no body.
 	thing?: bool @go(Thing)
 }
 

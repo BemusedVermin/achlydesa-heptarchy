@@ -65,6 +65,7 @@ func primitives() []effects.Primitive {
 		{
 			Name: "consume", Optional: []string{"item", "choice"},
 			Kinds:         map[string]effects.Kind{"item": effects.KindText, "choice": effects.KindText},
+			Verify:        verifyConsume,
 			VerifyContent: verifyKnownIDs, Apply: applyConsume, Check: checkConsume,
 		},
 		{Name: "act_alone", Apply: applyActAlone},

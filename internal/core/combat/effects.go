@@ -426,6 +426,15 @@ func consumedItem(ctx *effects.Context, p effects.Params) (string, error) {
 	return ctx.Choices[choice], nil
 }
 
+func verifyConsume(raw map[string]string) error {
+	_, item := raw["item"]
+	_, choice := raw["choice"]
+	if item == choice {
+		return errors.New("consume needs exactly one of item and choice")
+	}
+	return nil
+}
+
 func checkConsume(ctx *effects.Context, p effects.Params) (bool, api.Text) {
 	item, _ := consumedItem(ctx, p)
 	id := api.ContentID(item)

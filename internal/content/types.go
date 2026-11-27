@@ -764,7 +764,7 @@ type TargetFilter struct {
 	Not []string `json:"not,omitempty"`
 	// Corpse allows a dead body as well as a living one.
 	Corpse bool `json:"corpse,omitempty"`
-	// Thing allows a source or container, which has a cell and no body, instead of any body.
+	// Thing also allows a source or container, which has a cell and no body.
 	Thing bool `json:"thing,omitempty"`
 }
 

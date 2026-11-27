@@ -53,3 +53,4 @@ Agents and the party can take from a source or container, put into one, and cons
 - A container has no capacity, so "full" is a source at its max; the test puts into a full well.
 - Docs: `docs/content-guide.md` (`thing`, `on_consume`).
 - Follow-ups: M6-13.F1.
+- Review fixes: `consume` content must give exactly one of `item` and `choice`; a put into a source of another item is refused as no room.
