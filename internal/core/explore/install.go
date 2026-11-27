@@ -3,6 +3,7 @@ package explore
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -34,7 +35,10 @@ func Install(w *sim.World) error {
 			return err
 		}
 	}
-	err := effects.Register(w, effects.Primitive{Name: "step", Apply: applyStep, Check: checkStep})
+	err := effects.Register(
+		w,
+		effects.Primitive{Name: "step", Apply: applyStep, Check: checkStep, Confirm: confirmStep},
+	)
 	if err != nil {
 		return err
 	}
@@ -85,6 +89,19 @@ func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
 		return false, api.Text{ID: "text.explore.occupied"}
 	}
 	return true, api.Text{}
+}
+
+// confirmStep asks before a drop.
+func confirmStep(ctx *effects.Context, _ effects.Params) api.Text {
+	pos, m, ok := positioned(ctx.World, ctx.Source)
+	if !ok || ctx.Dir == nil {
+		return api.Text{}
+	}
+	step, can, err := m.Step(pos.At, *ctx.Dir, stateOf(ctx.World).rules)
+	if err != nil || !can || step.Kind != hexmap.StepDrop {
+		return api.Text{}
+	}
+	return api.Text{ID: "text.explore.confirm_drop", Args: map[string]string{"cells": strconv.Itoa(step.Fall)}}
 }
 
 // occupant finds the body in the cell a step leads to. A step onto another member of the same party

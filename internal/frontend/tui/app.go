@@ -69,8 +69,19 @@ func (a *App) fail(err error) tea.Cmd {
 }
 
 // Choose sends the command of the option with this ID, then re-reads the view. An option that is
-// absent does nothing; one that is disabled shows its reason and sends nothing.
+// absent does nothing; one that is disabled shows its reason and sends nothing. An option with a
+// question asks it first.
 func (a *App) Choose(id string) tea.Cmd {
+	option, ok := optionByID(a.State, id)
+	if ok && option.Enabled && option.Confirm != "" {
+		a.Status = ""
+		a.Push(&confirmPopup{id: id, question: option.Confirm})
+		return nil
+	}
+	return a.choose(id)
+}
+
+func (a *App) choose(id string) tea.Cmd {
 	option, ok := optionByID(a.State, id)
 	switch {
 	case !ok:

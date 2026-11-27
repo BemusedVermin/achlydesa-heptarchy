@@ -15,7 +15,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	#FactKnown |
 	#FactDriveMet
 
-// FactHas counts an item the agent carries: its tag is an "item." ID.
+// FactHas counts the carried items that have an item tag: its tag is one of vocabulary.tags.items.
 #FactHas: #FactKind & "has"
 
 // FactNear is a landmark the agent believes is within agents.near_radius: its tag is an

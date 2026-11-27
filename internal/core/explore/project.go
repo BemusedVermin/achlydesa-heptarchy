@@ -8,6 +8,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -147,6 +148,7 @@ func buildMap(w *sim.World, v *api.View) error {
 	}
 	slices.SortFunc(hexes, func(a, b api.Hex) int { return cmp.Or(cmp.Compare(a.R, b.R), cmp.Compare(a.Q, b.Q)) })
 
+	cfg := w.Content.Party()
 	view := &api.MapView{}
 	for _, h := range hexes {
 		best, found, err := nearest(w, m, h, reachColumns[h], here.At.Depth)
@@ -164,14 +166,20 @@ func buildMap(w *sim.World, v *api.View) error {
 		if !found {
 			continue
 		}
-		view.Cells = append(view.Cells, api.CellView{
+		cell := api.CellView{
 			Hex:     h,
 			Glyph:   best.glyph,
 			Color:   best.color,
 			Visible: isVisible,
 			Below:   best.depth - here.At.Depth,
 			Wall:    best.wall,
-		})
+		}
+		if !best.wall {
+			markHeight(&cell, cfg)
+			_, canReach := reached[api.Cell{Hex: h, Depth: best.depth}]
+			cell.Unreachable = isVisible && !canReach && hexmap.Distance(h, here.At.Hex) <= cfg.PlanRange
+		}
+		view.Cells = append(view.Cells, cell)
 	}
 	view.Entities = entitiesIn(w, here, visible)
 	if view.Moves, err = movesFrom(w, focus, here.At, m); err != nil {
@@ -182,6 +190,23 @@ func buildMap(w *sim.World, v *api.View) error {
 	})
 	v.Map = view
 	return nil
+}
+
+// markHeight gives an open cell the glyph and weight for how far it lies above or below the party.
+func markHeight(cell *api.CellView, cfg content.PartyConfig) {
+	switch {
+	case cell.Below > 0:
+		cell.Glyph = cfg.PlanGlyphs.Down
+	case cell.Below < 0:
+		cell.Glyph = cfg.PlanGlyphs.Up
+		rise := -cell.Below
+		switch {
+		case rise >= cfg.PlanRise.Bold:
+			cell.Weight = 1
+		case rise < cfg.PlanRise.Normal:
+			cell.Weight = -1
+		}
+	}
 }
 
 // nearest picks, among the candidate cells at these depths of one hex, the one nearest the focus

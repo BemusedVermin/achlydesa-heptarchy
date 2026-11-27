@@ -212,7 +212,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M1-11.F2](followups/M1-11.F2-height-glyphs-drop-prompt.md) | Plan view: ^ and v for height, red for out of reach, and ask before a drop | todo | feature | M6 | M1-11 |
+| [M1-11.F2](followups/M1-11.F2-height-glyphs-drop-prompt.md) | Plan view: ^ and v for height, red for out of reach, and ask before a drop | done | feature | M6 | M1-11 |
 | [M6-10.F1](followups/M6-10.F1-has-by-item-or-tag.md) | Decide whether a has fact names an item or an item tag | done | question | M6 | M6-10 |
 | [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | done | question | M6 | M6-07 |
 | [M6-06.F1](followups/M6-06.F1-graph-local-areas.md) | Split chunk graph nodes by the walkable areas inside each chunk | obsolete | seam | M6 | M6-06 |

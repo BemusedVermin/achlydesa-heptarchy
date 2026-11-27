@@ -3,6 +3,7 @@ package data
 text: {
 	"text.explore.bump":                       "Packed clay. No way through."
 	"text.explore.broken":                     "The world could not be read: {{.error}}"
+	"text.explore.confirm_drop":               "Jump down {{.cells}} cells?"
 	"text.explore.fell":                       "A fall of {{.cells}} cells."
 	"text.explore.occupied":                   "Someone is in the way."
 	"text.explore.too_high":                   "A ledge {{.cells}} up. Too high to climb (limit {{.limit}})."

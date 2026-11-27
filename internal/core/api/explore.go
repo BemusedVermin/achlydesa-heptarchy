@@ -170,6 +170,10 @@ type CellView struct {
 	Below int `json:"below"`
 	// Wall is true for a solid cell drawn with its wall glyph.
 	Wall bool `json:"wall,omitempty"`
+	// Weight is how strongly to draw the cell: -1 dim, 0 normal, 1 bold.
+	Weight int `json:"weight,omitempty"`
+	// Unreachable is true for a visible open cell within the plan range that the party cannot walk to.
+	Unreachable bool `json:"unreachable,omitempty"`
 }
 
 // EntityView is one visible entity on the map.

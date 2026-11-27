@@ -410,10 +410,21 @@ func buildOptions(w *sim.World, v *api.View) error {
 		}
 		if !option.Enabled {
 			option.Reason = w.Content.Render(reason)
+		} else if question := confirmation(w, p); question.ID != "" {
+			option.Confirm = w.Content.Render(question)
 		}
 		v.Options = append(v.Options, option)
 	}
 	return nil
+}
+
+// confirmation is the question the plan's effects ask before it starts, if any.
+func confirmation(w *sim.World, p *plan) api.Text {
+	ctx := p.context(w)
+	if question := effects.Confirm(ctx, p.onStart); question.ID != "" {
+		return question
+	}
+	return effects.Confirm(ctx, p.onLand)
 }
 
 // Windup is the ticks the intent would take to land, or 0 when it cannot be worked out. A chooser

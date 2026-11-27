@@ -10,7 +10,11 @@ party: {
 	sight_radius: 6
 	sight_depth:  6
 	// The plan view draws floor out to this many steps of walking from the party; walls show elsewhere.
-	plan_range:    12
+	plan_range: 12
+	// Open cells above and below the party draw these glyphs.
+	plan_glyphs: {up: "^", down: "v"}
+	// A rise of at least normal cells draws at normal weight, at least bold cells bold, and less dim.
+	plan_rise: {normal: 2, bold: 4}
 	max_step_up:   1
 	max_step_down: 1
 	max_drop:      8

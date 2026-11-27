@@ -25,7 +25,7 @@ The game will change once it's played, so every place the game design already ex
 | Seam | From day one | Leaves room for |
 | --- | --- | --- |
 | The world | One world, not maps: a position is a cell, a hex plus a depth step, each 1.5 m. The world is stored in chunks, its size bounded by content, and neighbors come from a topology. Towns and set pieces are places in it, never maps of their own | Soops crossing over and under each other, slopes and ledges, sinks, a larger world, impossible folds |
-| Plan view | The core projects the 3D world into one 2D hex view: for each hex, the visible cell nearest the party's depth, shaded only by how far above or below it lies. The view never holds a depth or a layer | A seamless deep in the terminal now, and the same view or a richer one for Ebitengine later |
+| Plan view | The core projects the 3D world into one 2D hex view: for each hex, the visible cell nearest the party's depth, marked by a glyph, tint and weight for how far above or below it lies, and flagged when the party cannot reach it. The view never holds a depth or a layer | A seamless deep in the terminal now, and the same view or a richer one for Ebitengine later |
 | Entity templates | Content defines templates as bags of optional components, not one Go type per kind; one spawn function builds any of them | A person who becomes a monster, a creature that trades, a recruit who becomes a candidate, with no new content types |
 | Parts as entities | Each part is its own entity, tied to its body by an Ark relation, `PartOf` | Severed parts that crawl off and fight, a hand that latches onto an ally, moving clay taking a part, grafting and reattaching |
 | System scheduler | Each system registers with a cadence (per entry, per phase, per day, or on an event) and the systems it runs after; the order is sorted once, deterministically | The flock, dreams and export effects slot in without touching the tick loop |
@@ -237,7 +237,7 @@ Frontends only draw the core's read-only view and send it commands, so a second 
 - **Bubbles components for the plumbing:** `list` for menus, `table` for the party and inventories, `viewport` for logs and the investigation journal, `textinput` for naming, `help` and `key` for bindings.
 - **No game text in Go.** The view carries every word the player reads, including channel state and menu group labels; only key help is written in the frontend. Hot reload reaches the frontend as an opaque function over the game, so the frontend imports only `game` and `api`.
 - **Lip Gloss for layout and color.** The map, combat panel and message log are panes joined with Lip Gloss.
-- **The hex map** is drawn from the hex library's double-width coordinates: one glyph every two columns, alternate rows offset by one. Depth shows only as shading relative to the party, never as a layer.
+- **The hex map** is drawn from the hex library's double-width coordinates: one glyph every two columns, alternate rows offset by one. Height shows as a glyph, a tint and a weight relative to the party, and red marks unreachable floor, never a layer.
 - **Combat** happens on the map screen: a side panel shows the deciding member's parts and what each is doing, a menu picks the action, type and target, and a look mode shows any visible body's parts. A timeline strip along the top shows upcoming ticks, an icon per tick with something on it and +N when several share one; selecting a tick lists who acts and what lands. There's no combat screen.
 
 ### The graphics frontend (later)
