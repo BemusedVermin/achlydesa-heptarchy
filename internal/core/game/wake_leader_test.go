@@ -42,7 +42,10 @@ func TestWakeWithADeadLeaderHandsTheLeadOverAndReordersTheParty(t *testing.T) {
 		t.Fatalf("party order = %v, want at least two members", state.Order)
 	}
 	deadLeader := state.Leader
-	events, err := g.Apply(downCommand{})
+	if _, err := g.Apply(downCommand{}); err != nil {
+		t.Fatal(err)
+	}
+	events, err := g.Apply(wakeCommand(t, g))
 	if err != nil {
 		t.Fatal(err)
 	}

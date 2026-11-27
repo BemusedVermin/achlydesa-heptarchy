@@ -2,6 +2,7 @@ package tui
 
 import (
 	"io"
+	"slices"
 
 	"charm.land/bubbles/v2/help"
 	tea "charm.land/bubbletea/v2"
@@ -42,6 +43,7 @@ func NewApp(g *game.Game) (*App, error) {
 		return nil, err
 	}
 	app.stack = []Screen{newMapScreen()}
+	app.openWipe()
 	return app, nil
 }
 
@@ -90,10 +92,23 @@ func (a *App) Choose(id string) tea.Cmd {
 	if err := a.refresh(); err != nil {
 		return a.fail(err)
 	}
+	a.openWipe()
 	if lines := newLines(a.State, before); hasPause(lines) {
 		a.Push(newPlayByPlay(lines))
 	}
 	return nil
+}
+
+// openWipe puts the wipe screen on the stack while the view has one, beneath any play-by-play
+// pushed after it.
+func (a *App) openWipe() {
+	if a.State.Wipe == nil {
+		return
+	}
+	if slices.ContainsFunc(a.stack, func(s Screen) bool { _, ok := s.(*wipeScreen); return ok }) {
+		return
+	}
+	a.Push(newWipeScreen())
 }
 
 func lastSeq(v api.View) int64 {
@@ -146,7 +161,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case a.err != nil:
 		return a, tea.Quit
 	case next == nil:
-		a.stack = a.stack[:top]
+		a.stack = slices.Delete(a.stack, top, top+1)
 		if len(a.stack) == 0 {
 			return a, tea.Quit
 		}

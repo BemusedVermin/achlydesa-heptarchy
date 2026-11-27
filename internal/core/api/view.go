@@ -10,6 +10,7 @@ type View struct {
 	Map      *MapView      `json:"map,omitempty"`
 	Party    *PartyView    `json:"party,omitempty"`
 	Bodies   *BodiesView   `json:"bodies,omitempty"`
+	Wipe     *WipeView     `json:"wipe,omitempty"`
 	Labels   LabelsView    `json:"labels"`
 }
 

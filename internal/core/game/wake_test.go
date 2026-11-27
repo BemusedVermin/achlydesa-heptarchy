@@ -43,7 +43,13 @@ func TestADownedPartyWakesAtItsRestPlaceAfterTheWakeTime(t *testing.T) {
 	party := controlledParty(world)
 	place := *ecs.NewMap[comp.RestPlace](world.ECS).Get(party)
 	start := world.Now
-	events, err := g.Apply(downCommand{})
+	if _, err := g.Apply(downCommand{}); err != nil {
+		t.Fatal(err)
+	}
+	if world.Now >= start+reg.Party().WakeTicks {
+		t.Errorf("clock = %d: the party woke without being told to", world.Now)
+	}
+	events, err := g.Apply(wakeCommand(t, g))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,6 +89,55 @@ func TestADownedPartyWakesAtItsRestPlaceAfterTheWakeTime(t *testing.T) {
 		if rej, ok := ev.(api.Rejected); ok {
 			t.Errorf("play did not continue: %v", rej.Reason)
 		}
+	}
+}
+
+// wakeCommand is the command of the only option a wiped party's view offers.
+func wakeCommand(tb testing.TB, g *game.Game) api.Command {
+	tb.Helper()
+	view, err := g.View()
+	if err != nil {
+		tb.Fatal(err)
+	}
+	if view.Wipe == nil || !view.Wipe.CanWake || len(view.Options) != 1 || view.Options[0].ID != api.OptionWake {
+		tb.Fatalf("wipe = %+v, options = %v, want the wake option alone", view.Wipe, view.Options)
+	}
+	return view.Options[0].Command
+}
+
+func TestAGameSavedWhileWipedLoadsOntoTheWipeScreenAndWakesTheSame(t *testing.T) {
+	g, _, cfg := gametest.Start(t, game.Config{
+		Seed:    1,
+		Content: contenttest.Sample(t),
+		Install: func(w *sim.World, _ *clock.Clock) error {
+			return sim.Handle(w, func(w *sim.World, _ downCommand) (int64, error) {
+				for _, member := range anatomy.Members(w, controlledParty(w)) {
+					ecs.NewMap[comp.Actor](w.ECS).Remove(member)
+					ecs.NewMap[comp.Downed](w.ECS).Add(member, &comp.Downed{})
+				}
+				return 0, nil
+			})
+		},
+	})
+	if _, err := g.Apply(downCommand{}); err != nil {
+		t.Fatal(err)
+	}
+	loaded, _, _ := gametest.Reload(t, cfg, g)
+	for _, played := range []*game.Game{g, loaded} {
+		if _, err := played.Apply(wakeCommand(t, played)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	want, err := g.Hash()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := loaded.Hash()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != want {
+		t.Error("the loaded game woke differently from the original")
 	}
 }
 

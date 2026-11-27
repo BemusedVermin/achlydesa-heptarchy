@@ -196,7 +196,7 @@ What falls out of it:
 | Named cast | The authored core cast and generated candidates | Full needs agents with relationships, rumors and wounds | Permanent; plot armor optional per character |
 | Generic | Guards, merchants, recruits and similar | Very basic needs and wants | Permanent; nobody respawns |
 
-**A party wipe is not game over.** When every member of the party is dead or downed, the deuteragonists wake at the town they last rested in, with some time consumed. The party mends and wakes after `party.wake_ticks`, where it last rested (the opening cell until towns exist); the dead stay dead, and a party with nobody downed stays lost. What the enemies did meanwhile, and any other cost, are still open.
+**A party wipe is not game over.** When every member of the party is dead or downed, the deuteragonists wake at the town they last rested in, with some time consumed. The game stops on a wipe screen, and the party wakes only when the player chooses to go on. It mends and wakes after `party.wake_ticks`, where it last rested (the opening cell until towns exist); the dead stay dead, and a party with nobody downed stays lost. What the enemies did meanwhile, and any other cost, are still open.
 
 **New people come from births and arrivals,** never timers. Children grow up and take the test at ten. People arrive from beyond the world, and leave for it, at its immigration and emigration points, when that meets their needs. An abandoned crawlspace stays empty until someone has a reason to live there.
 

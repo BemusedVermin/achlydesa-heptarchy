@@ -84,6 +84,9 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 	if err := installLabels(g.world); err != nil {
 		return nil, fmt.Errorf("game: %w", err)
 	}
+	if err := installWipe(g.world, g.clock); err != nil {
+		return nil, fmt.Errorf("game: %w", err)
+	}
 	if err := installAll(g.world, g.clock); err != nil {
 		return nil, fmt.Errorf("game: install: %w", err)
 	}
@@ -166,7 +169,7 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 		return nil, fmt.Errorf("game: unknown command kind %q", cmd.CommandKind())
 	}
 	g.events = nil
-	if combat.PartyWiped(g.world) {
+	if combat.PartyWiped(g.world) && cmd.CommandKind() != api.WakeKind {
 		g.world.Bus.Publish(api.Rejected{Command: cmd.CommandKind(), Reason: api.Text{ID: "text.game.lost"}})
 		if _, err := g.world.Bus.Drain(g.world); err != nil {
 			return nil, g.fail(err)
@@ -183,9 +186,6 @@ func (g *Game) Apply(cmd api.Command) ([]api.Event, error) {
 	if _, err := g.world.Bus.Drain(g.world); err != nil {
 		return nil, g.fail(err)
 	}
-	if err := g.wakeIfWiped(); err != nil {
-		return nil, g.fail(err)
-	}
 	return g.record(cmd), nil
 }
 
@@ -195,25 +195,6 @@ func (g *Game) record(cmd api.Command) []api.Event {
 	events := g.events
 	g.events = nil
 	return events
-}
-
-// wakeIfWiped gets a wiped-out party up at its last rest place after the configured time, then
-// plays on to the first decision. A party with nobody downed stays lost: nothing can wake it.
-func (g *Game) wakeIfWiped() error {
-	if !combat.PartyWiped(g.world) || !explore.CanWake(g.world) {
-		return nil
-	}
-	if err := g.clock.Advance(g.world, max(g.world.Content.Party().WakeTicks, 0)); err != nil {
-		return err
-	}
-	if err := explore.Wake(g.world); err != nil {
-		return err
-	}
-	if _, err := timeline.Run(g.world, g.clock); err != nil {
-		return err
-	}
-	_, err := g.world.Bus.Drain(g.world)
-	return err
 }
 
 func (g *Game) fail(err error) error {
