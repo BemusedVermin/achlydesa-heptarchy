@@ -76,13 +76,24 @@ func (a *App) Choose(id string) tea.Cmd {
 		return nil
 	}
 	a.Status = ""
+	before := lastSeq(a.State)
 	if _, err := a.Game.Apply(option.Command); err != nil {
 		return a.fail(err)
 	}
 	if err := a.refresh(); err != nil {
 		return a.fail(err)
 	}
+	if lines := newLines(a.State, before); hasPause(lines) {
+		a.Push(newPlayByPlay(lines))
+	}
 	return nil
+}
+
+func lastSeq(v api.View) int64 {
+	if len(v.Log) == 0 {
+		return 0
+	}
+	return v.Log[len(v.Log)-1].Seq
 }
 
 // ContentMsg carries a content reload in a dev build. The watcher sends it to the program, so Reload

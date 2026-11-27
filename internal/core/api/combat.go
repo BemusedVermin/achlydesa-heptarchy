@@ -42,10 +42,18 @@ type PartDamaged struct {
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`
+	// Line is the log text; empty when the party could not perceive the damage.
+	Line Text `json:"line,omitempty"`
 }
 
 // EventKind implements [Event].
 func (PartDamaged) EventKind() string { return PartDamagedKind }
+
+// LogText implements [Loggable].
+func (e PartDamaged) LogText() Text { return e.Line }
+
+// FightBeat implements [Pausing].
+func (PartDamaged) FightBeat() {}
 
 // PartSevered reports that a part came off its body. It stays in the world, where the body stands.
 type PartSevered struct {
@@ -56,10 +64,18 @@ type PartSevered struct {
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`
+	// Line is the log text; empty when the party could not perceive the sever.
+	Line Text `json:"line,omitempty"`
 }
 
 // EventKind implements [Event].
 func (PartSevered) EventKind() string { return PartSeveredKind }
+
+// LogText implements [Loggable].
+func (e PartSevered) LogText() Text { return e.Line }
+
+// FightBeat implements [Pausing].
+func (PartSevered) FightBeat() {}
 
 // PartAttached reports that a part was fitted onto a body, which gains its channel.
 type PartAttached struct {
@@ -84,10 +100,18 @@ type StatusAdded struct {
 	// Source is the body that acted, or zero when nothing did.
 	Source UID   `json:"source,omitempty"`
 	Tick   int64 `json:"tick"`
+	// Line is the log text; empty when the party could not perceive the status.
+	Line Text `json:"line,omitempty"`
 }
 
 // EventKind implements [Event].
 func (StatusAdded) EventKind() string { return StatusAddedKind }
+
+// LogText implements [Loggable].
+func (e StatusAdded) LogText() Text { return e.Line }
+
+// FightBeat implements [Pausing].
+func (StatusAdded) FightBeat() {}
 
 // Subjects implements [Subjected]: the body is the target, and the actor the source.
 func (e PartDamaged) Subjects() map[string]UID { return partSubjects(e.Body, e.Part, e.Source) }
@@ -163,6 +187,15 @@ func (BodyDowned) EventKind() string { return BodyDownedKind }
 func (b BodyDowned) LogText() Text {
 	return Text{ID: "text.combat.body_downed", Args: map[string]string{"name": b.Name}}
 }
+
+// FightBeat implements [Pausing].
+func (BodyDied) FightBeat() {}
+
+// FightBeat implements [Pausing].
+func (BodyDowned) FightBeat() {}
+
+// FightBeat implements [Pausing].
+func (PartyWiped) FightBeat() {}
 
 // PartyWiped reports that every member of the controlled party is dead or downed.
 type PartyWiped struct {

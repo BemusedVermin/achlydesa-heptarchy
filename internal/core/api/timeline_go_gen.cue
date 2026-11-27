@@ -86,4 +86,7 @@ package api
 	target: #UID   @go(Target)
 	tick:   int64  @go(Tick)
 	reason: #Text  @go(Reason)
+
+	// Line is the log text; empty when the party could not perceive the cancel.
+	line?: #Text @go(Line)
 }

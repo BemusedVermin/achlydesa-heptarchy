@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -50,9 +51,10 @@ func sever(w *sim.World, source, part ecs.Entity, cause string) {
 	if positions.Has(body) {
 		sim.Put(w, part, *positions.Get(body))
 	}
-	w.Bus.Publish(
-		api.PartSevered{Body: w.UIDOf(body), Part: w.UIDOf(part), Cause: cause, Source: w.UIDOf(source), Tick: w.Now},
-	)
+	w.Bus.Publish(api.PartSevered{
+		Body: w.UIDOf(body), Part: w.UIDOf(part), Cause: cause, Source: w.UIDOf(source), Tick: w.Now,
+		Line: partLine(w, "text.combat.part_severed", source, body, part, nil),
+	})
 	timeline.Reschedule(w, body)
 }
 
@@ -81,6 +83,7 @@ func applyDamage(ctx *effects.Context, p effects.Params) error {
 		w.Bus.Publish(api.PartDamaged{
 			Body: w.UIDOf(body), Part: w.UIDOf(c.Entity), Amount: lost, Integrity: part.Integrity,
 			Chosen: maps.Clone(ctx.Choices), Source: w.UIDOf(ctx.Source), Tick: w.Now,
+			Line: damageLine(ctx, body, c.Entity, lost, part.Integrity),
 		})
 		if part.Integrity == 0 {
 			sever(w, ctx.Source, c.Entity, api.SeveredWorn)
@@ -178,6 +181,7 @@ func applyAddStatus(ctx *effects.Context, p effects.Params) error {
 				Until:  entry.Until,
 				Source: w.UIDOf(ctx.Source),
 				Tick:   w.Now,
+				Line:   statusLine(w, body, entry),
 			},
 		)
 	}
@@ -534,4 +538,48 @@ func nonNegative(p effects.Params, name string) (int, error) {
 		return 0, fmt.Errorf("%s must not be negative, got %d", name, value)
 	}
 	return value, nil
+}
+
+// partLine is the log text about a part of a body, or empty when the party perceives neither the
+// body nor the source.
+func partLine(w *sim.World, id api.ContentID, source, body, part ecs.Entity, extra map[string]string) api.Text {
+	if !timeline.IsVisible(w, body) && !timeline.IsVisible(w, source) {
+		return api.Text{}
+	}
+	args := map[string]string{"target": nameOf(w, body), "part": partName(w, part)}
+	maps.Copy(args, extra)
+	return api.Text{ID: id, Args: args}
+}
+
+func partName(w *sim.World, part ecs.Entity) string {
+	template, ok := w.Content.Part(ecs.NewMap[comp.Part](w.ECS).Get(part).Template)
+	if !ok {
+		return ""
+	}
+	return w.Content.Render(api.Text{ID: template.Name})
+}
+
+// damageLine names who dealt the damage and with what when the context says so.
+func damageLine(ctx *effects.Context, body, part ecs.Entity, lost, left int) api.Text {
+	w := ctx.World
+	args := map[string]string{"amount": strconv.Itoa(lost), "left": strconv.Itoa(left)}
+	id := api.ContentID("text.combat.part_damaged_plain")
+	if !ctx.Source.IsZero() && ctx.Action != "" {
+		id = "text.combat.part_damaged"
+		args["actor"], args["action"] = nameOf(w, ctx.Source), w.ActionName(ctx.Action)
+	}
+	return partLine(w, id, ctx.Source, body, part, args)
+}
+
+func statusLine(w *sim.World, body ecs.Entity, entry comp.StatusEntry) api.Text {
+	if !timeline.IsVisible(w, body) {
+		return api.Text{}
+	}
+	var name string
+	if status, ok := w.Content.Status(entry.Status); ok {
+		name = w.Content.Render(api.Text{ID: status.Name})
+	}
+	return api.Text{ID: "text.combat.status_added", Args: map[string]string{
+		"target": nameOf(w, body), "status": name, "until": strconv.FormatInt(entry.Until, 10),
+	}}
 }

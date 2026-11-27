@@ -36,6 +36,8 @@ type KeyMap struct {
 	look      key.Binding
 	heights   key.Binding
 	quit      key.Binding
+	advance   key.Binding
+	skip      key.Binding
 }
 
 // DefaultKeyMap binds q e a d z c to the six steps, w and s to the zigzag, and . and , to waiting.
@@ -63,6 +65,8 @@ func DefaultKeyMap() KeyMap {
 		menu:      key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "actions")),
 		look:      key.NewBinding(key.WithKeys("l"), key.WithHelp("l", "look")),
 		heights:   key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "heights")),
+		advance:   key.NewBinding(key.WithKeys("enter"), key.WithHelp("any key", "continue")),
+		skip:      key.NewBinding(key.WithKeys("x", "esc"), key.WithHelp("x", "skip")),
 		quit:      key.NewBinding(key.WithKeys("esc", "ctrl+c"), key.WithHelp("esc", "quit")),
 	}
 }

@@ -78,3 +78,8 @@ func SetVisible(w *sim.World, fn func(w *sim.World, body ecs.Entity) bool) { sta
 // the zero entity and no error, because no decision is left to wait for. Combat sets it to the
 // party being wiped, so a landing that downs the last member ends the call. The default never halts.
 func SetHalt(w *sim.World, fn func(w *sim.World) bool) { stateOf(w).halt = fn }
+
+// IsVisible reports whether the player may see the body, by the hook SetVisible installed.
+func IsVisible(w *sim.World, body ecs.Entity) bool {
+	return w.Alive(body) && stateOf(w).visible(w, body)
+}

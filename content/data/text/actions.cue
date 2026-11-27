@@ -6,6 +6,8 @@ text: {
 	"text.actions.option":        "{{.name}} (lands in {{.lands}}, busy {{.busy}})"
 	"text.actions.option_with":   "{{.name}}: {{.detail}} (lands in {{.lands}}, busy {{.busy}})"
 	"text.actions.missed":        "{{.actor}}'s {{.action}} hits empty air."
+	"text.actions.started":       "{{.actor}} begins {{.action}} at {{.target}} (lands at tick {{.tick}})."
+	"text.actions.started_alone": "{{.actor}} begins {{.action}} (lands at tick {{.tick}})."
 	"text.actions.dir.e":         "east"
 	"text.actions.dir.ne":        "northeast"
 	"text.actions.dir.nw":        "northwest"

@@ -92,7 +92,15 @@ type ActionCanceled struct {
 	Target UID    `json:"target"`
 	Tick   int64  `json:"tick"`
 	Reason Text   `json:"reason"`
+	// Line is the log text; empty when the party could not perceive the cancel.
+	Line Text `json:"line,omitempty"`
 }
 
 // EventKind implements [Event].
 func (ActionCanceled) EventKind() string { return ActionCanceledKind }
+
+// LogText implements [Loggable].
+func (e ActionCanceled) LogText() Text { return e.Line }
+
+// FightBeat implements [Pausing].
+func (ActionCanceled) FightBeat() {}
