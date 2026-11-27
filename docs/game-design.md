@@ -69,7 +69,7 @@ The towns are fixed islands inside the deep, at different depths, with generated
 - Only the surface and the shallow soops are fixed. Every route between deeper towns is dungeon, and regenerates on export days.
 - Towns keep their layout but not their condition. As exports push decay downward, deep towns change: the still town starts to rot, and old matter retreats past the archon's crawlspace.
 - Towns are open to the deep. Nothing scripted keeps monsters out (see The living deep).
-- **Crawlspaces are authored and emergent.** The story's crawlspaces are hand-built places. People can also dig and settle new ones, and abandon old ones, when that meets their needs.
+- **Crawlspaces are generated and emergent.** Towns are built by procgen from content-defined pieces (houses, wells, larders, shrines, a graveyard), the way Minecraft builds a village, and are not drawn by hand. Content says where a town sits, how deep, how big and which pieces it may use; its layout comes from the world seed alone, so an export never rearranges it. Set pieces the story needs stay hand-built places. People can also dig and settle new crawlspaces, and abandon old ones, when that meets their needs.
 - **The world is bounded.** Its size is content. People arrive from beyond it and leave for beyond it at immigration and emigration points.
 - **Small in tests, large in the game.** Tests use small fixture worlds. The real game's world is large and generated: first values about 400 by 400 hexes and 64 depth steps, tuned later. Its size is content.
 
@@ -147,6 +147,19 @@ Exploring and fighting both happen on the hex grid, on the same clock; actions a
 - Anyone standing in regenerated deep is moved to the nearest open ground outside the pocket. Nobody is lost.
 - What the party carried is all they have until they reach a town.
 
+### How minds work
+
+Settled with the owner on 2026-11-27, for every creature and person, on screen or off. The party's members run on the same drives.
+
+- **Drives.** A drive is a content record, either a need (water, food, rest, safety: it rises with time and can kill) or a desire (pay, belonging, faith, duty, and later revenge, grief or a candidate's wish). Each individual has its own weight on every drive, drawn around its template's typical weights when it is born, so one recruit is loyal and the next is greedy. Personality is that set of weights; there is no separate personality system. A wish is one more drive with a large weight (M7 sets it).
+- **Goal, then plan.** At each decision the agent scores its drives into one goal, and keeps it unless another clearly beats it. A planner then finds the steps. Important individuals, chosen when they are generated, plan with GOAP: a search over content-defined actions with preconditions and effects. Everyone else follows HTN recipes written in content. Both plan over the same symbolic state of what the agent believes, and both end in ordinary timeline actions. Combat stays with the creature controller and its chooser: a mind hands a fight over, and takes the body back when it ends.
+- **Beliefs.** An agent plans from what it remembers, never from the truth. It remembers what it has seen and what it has been told by agents it met, in a capped memory that forgets the oldest and least certain first. With nothing known, it picks a path at random. Telling is passing a fact on at lower confidence; how a story drifts in the retelling is M8's rumors.
+- **Landmarks.** A thing placed in the world can advertise what it gives (water, rest, worship, work, the dead), the way The Sims' objects do. A well, a bed, a shrine, a graveyard and a corpse all do. An agent learns of them by sight or by being told, and goes to them when a goal needs them.
+- **Supplies are things in places.** A well, a lake or a field is a source that refills at a rate set in content, which is physics and not an outcome. People carry from sources into containers (a cistern, a larder), and a container is something with a place and an inventory. If the haulers die the cistern runs dry, and people go looking for water because they need it.
+- **Reservations.** An agent taking a job claims what it needs (an item, a source's stock, a place at the bench), so two agents do not both plan for the same thing. A claim ends when the plan does.
+- **Scale and distance.** The first target is about 1,000 individuals at once, tuned in M9. The whole bounded world is populated when a game starts, as individuals, never as counts. Near the party, agents decide as bodies on the timeline. Far from it they decide on a coarser cadence at the level of goals and travel a graph of chunks.
+- **Nobody is scripted.** There is no system, timer or event for a migration, a desertion or an emptied town. Each is agents choosing, and the harness counts it from state.
+
 ### Monsters with needs
 
 Every creature has needs and behaviors that meet them. Needs and behaviors are data, composed from engine primitives such as move toward, consume, carry, guard and flee. There is no incursion system.
@@ -176,7 +189,7 @@ What falls out of it:
 Residents run on the same needs engine as monsters, plus a social layer. One agent model serves both, so the code is shared.
 
 - **Needs:** water, food, rest, safety, belonging, faith and duty, and grief after a loss.
-- **Behaviors:** work (hauling water, mining coal, farming the fields, pressing the dead), trade, worship, attend town events, call the Reaper for the slowly dying, flee, migrate, dig and settle a new crawlspace, and go below.
+- **Behaviors:** work (hauling water, mining coal, farming the fields, pressing the dead), trade, worship, attend town events, call the Reaper for the slowly dying, flee, dig and settle a new crawlspace, and go below. There is no migrate behavior: going elsewhere is just going for what they need.
 - **Roles and customs act as constraints:** ibben and salken, jobs, the lunn, standing at attention, and the test at ten sorting children.
 
 What falls out of it:
@@ -509,7 +522,7 @@ Recruits take one of the four fight slots; a fifth slot is something to playtest
 
 **Price:** there is no fixed wage or currency. Each NPC names their own price, in what they want, scaled by what they bring. Merchants work the same way.
 
-**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list. Pay is one of their needs: as it goes unmet, complaining and then walking off score higher than staying, through the same behaviors as anyone else. Later, personality decides what a recruit does as pay goes unmet: grumble, then walk off or rob the party, and loyalty can keep one around; for now it grumbles, then walks off. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M8), one individual at a time.
+**Paying them.** What a recruit wants is a list of item kinds from content (food, lees, Violet blood and so on). Hiring takes a bundle of those items from the party's inventory, scaled by what the recruit brings. Each day after that they want upkeep from the same list. Nothing deducts it by itself: the player hands it over, or the recruit takes it, as an act. Pay is one of their drives: as it goes unmet, complaining and then walking off score higher than staying, through the same planner as anyone else. Personality, a weight per drive, decides what a recruit does as pay goes unmet: grumble, then walk off or rob the party, and loyalty keeps one around longer. Quitting is an act like hiring, and the act itself changes the recruit's allegiance. A deserter lives on as an individual and is neutral to the party: whether it holds a grudge is left to the grudges and memory system (M8), one individual at a time.
 
 ### Exotic recruits
 
