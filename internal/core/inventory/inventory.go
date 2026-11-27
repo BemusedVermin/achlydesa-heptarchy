@@ -15,12 +15,19 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// Install registers the spawner that gives templates their starting inventory.
+// Install registers the spawners that give templates their starting inventory and their source, and
+// the per-phase system that refills sources.
 func Install(w *sim.World) error {
 	if w.Content == nil {
 		return errors.New("inventory: install: world has no content")
 	}
-	return w.RegisterSpawner(sim.Spawner{Name: "inventory", Apply: spawnInventory})
+	if err := w.RegisterSpawner(sim.Spawner{Name: "inventory", Apply: spawnInventory}); err != nil {
+		return err
+	}
+	if err := w.RegisterSpawner(sim.Spawner{Name: "source", Apply: spawnSource}); err != nil {
+		return err
+	}
+	return w.Systems.Register(sim.System{Name: RefillSystem, Cadence: sim.PerPhase, Run: refill})
 }
 
 func spawnInventory(w *sim.World, holder ecs.Entity, t content.Template) error {

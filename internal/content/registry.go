@@ -18,7 +18,9 @@ type Registry struct {
 	// moveCosts is keyed by terrain ID.
 	moveCosts map[api.ContentID]*vm.Program
 	// decays is keyed by geography ID; a geography without decay has no entry.
-	decays    map[api.ContentID]*vm.Program
+	decays map[api.ContentID]*vm.Program
+	// refills is keyed by template ID; a template that is no source has no entry.
+	refills   map[api.ContentID]*vm.Program
 	stepTicks *vm.Program
 	// climbCost is nil when party.climb_cost is empty.
 	climbCost *vm.Program
@@ -116,6 +118,15 @@ func (r *Registry) DecayLevel(geography api.ContentID, env DecayEnv) (int64, err
 		return 0, nil
 	}
 	return run[int64](program, env, fmt.Sprintf("geography %q decay level", geography))
+}
+
+// Refill is the stock the template's source gets back at one phase boundary, by its refill formula.
+func (r *Registry) Refill(template api.ContentID, env RefillEnv) (int64, error) {
+	program, ok := r.refills[template]
+	if !ok {
+		return 0, fmt.Errorf("content: template %q is not a source", template)
+	}
+	return run[int64](program, env, fmt.Sprintf("template %q source.refill", template))
 }
 
 // Calendar returns the calendar. Phases is a copy.

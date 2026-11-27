@@ -159,6 +159,16 @@ templates: "template.party.x": party: members: []
 			wantFragments: []string{"at least one member"},
 		},
 		{
+			name: "bad source",
+			src: `
+templates: "template.source.x": source: {item: "item.nope", max: 0, refill: "depth"}
+`,
+			wantFragments: []string{
+				`templates["template.source.x"].source.item`, "item.nope",
+				`templates["template.source.x"].source.max`, `templates["template.source.x"].source.refill`,
+			},
+		},
+		{
 			name: "party numbers too small",
 			src: `
 party: {slots: 0, sight_radius: 0}
