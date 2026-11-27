@@ -54,6 +54,9 @@ import (
 
 	// Vocabulary closes the sets of tags, grant kinds and list values content may use.
 	vocabulary?: #Vocabulary @go(Vocabulary)
+
+	// Drives are the needs and desires bodies carry ("drive." IDs).
+	drives?: {[string]: #Drive} @go(Drives,map[string]Drive)
 }
 
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
@@ -156,8 +159,12 @@ import (
 	cap: int @go(Cap)
 }
 
-// AgentsConfig is the numbers and claims of agents' minds.
+// AgentsConfig is the numbers and claims of agents' minds, and the numbers every agent shares.
 #AgentsConfig: {
+	// Weight is an Expr over WeightEnv: an individual's weight on a drive, drawn once when it spawns
+	// around its template's typical weight. Required when any template lists drives.
+	weight?: string @go(Weight)
+
 	// SightRadius and SightDepth are how far an agent sees, in hexes and in depths.
 	sight_radius: int @go(SightRadius)
 	sight_depth:  int @go(SightDepth)
@@ -314,6 +321,10 @@ import (
 
 	// Faction is the side ("faction." ID) a body of this template fights for.
 	faction?: null | api.#ContentID @go(Faction,*api.ContentID)
+
+	// Drives maps each drive ID a body of this template carries to its typical weight, which each
+	// individual's own weight is drawn around.
+	drives?: {[string]: float64} @go(Drives,map[string]float64)
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.
@@ -598,7 +609,8 @@ import (
 	#CollectionTypes |
 	#CollectionItems |
 	#CollectionFactions |
-	#CollectionStatuses
+	#CollectionStatuses |
+	#CollectionDrives
 
 #CollectionMaterials: #Collection & "materials"
 #CollectionTerrains:  #Collection & "terrains"
@@ -614,6 +626,7 @@ import (
 #CollectionItems:     #Collection & "items"
 #CollectionFactions:  #Collection & "factions"
 #CollectionStatuses:  #Collection & "statuses"
+#CollectionDrives:    #Collection & "drives"
 
 // TargetKind is what an action targets.
 #TargetKind: #enumTargetKind

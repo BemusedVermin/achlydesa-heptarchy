@@ -27,7 +27,7 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **world**: the one continuous, bounded space of cells everything stands in (`sim.World.Map`, `world.cue`). There is no **map** as a unit of the world: `hexmap.Map` is only the store of its cells, and the map the player sees is the plan view of it.
 - **place**: a piece of the world set at a fixed position, either hand-made or built from pieces by the settlement stage, such as a town (`place.` IDs, `places/`).
 - **drive**: a need or a desire, a content record each agent weighs by its own weight. Personality is the set of weights.
-- **need**: a drive that rises with time and can kill (water, food, rest, safety).
+- **need**: a drive that can kill, rising with time (water, food, rest) or with what happens to the body (safety, raised by being hit or by a neighbour dying).
 - **desire**: a drive that does not kill (pay, belonging, faith, duty, a wish).
 - **goal**: what an agent chose to work toward at a decision, from its drives.
 - **plan**: the steps a planner found for a goal, each a timeline action.

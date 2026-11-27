@@ -57,3 +57,5 @@ An agent remembers what it has seen, up to a cap, forgetting the oldest and leas
 - **Save:** no component changed shape, so the save version is not bumped.
 - **Follow-ups:** M6-04.F1 (each re-sighting publishes `FactLearned`, so many agents sensing before one drain pass the bus's 10,000-event cascade limit).
 
+
+- Merged with M6-03: both defined `AgentsConfig` and the `agents` content block, so they are one now (`Weight` from drives beside the sight fields), declared in `internal/content/types.go`.
