@@ -156,7 +156,7 @@ func checkID(collection, key, kind string) error {
 }
 
 // checkKnowledge checks that claims and origins name existing text, and that every claim has the
-// text that reports it in the log.
+// text that reports it in the log, then the numbers and claims of memory and sight.
 func (r *Registry) checkKnowledge() []error {
 	p := r.problems()
 	for _, key := range sortedKeys(r.bundle.Claims) {
@@ -165,6 +165,26 @@ func (r *Registry) checkKnowledge() []error {
 	}
 	for _, key := range sortedKeys(r.bundle.Origins) {
 		p.text(fmt.Sprintf("origins[%q].name", key), r.bundle.Origins[key].Name)
+	}
+	if r.bundle.Knowledge.Cap < 1 {
+		p.addf("knowledge.cap: must be at least 1, got %d", r.bundle.Knowledge.Cap)
+	}
+	agents := r.bundle.Agents
+	if agents.SightRadius < 0 || agents.SightDepth < 0 {
+		p.addf("agents: sight_radius and sight_depth must not be negative, got %d and %d",
+			agents.SightRadius, agents.SightDepth)
+	}
+	if agents.SeenConfidence < 0 || agents.SeenConfidence > 1 {
+		p.addf("agents.seen_confidence: must be from 0 to 1, got %v", agents.SeenConfidence)
+	}
+	if agents.AtClaim != "" {
+		ref(p, r.bundle.Claims, "agents.at_claim", "claim", agents.AtClaim)
+	}
+	if agents.DeadClaim != "" {
+		ref(p, r.bundle.Claims, "agents.dead_claim", "claim", agents.DeadClaim)
+	}
+	if agents.AtClaim != "" || agents.DeadClaim != "" {
+		ref(p, r.bundle.Origins, "agents.seen_origin", "origin", agents.SeenOrigin)
 	}
 	return p.errs
 }

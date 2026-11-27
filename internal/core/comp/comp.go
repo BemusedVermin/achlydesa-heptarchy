@@ -130,7 +130,7 @@ type SeenChunk struct {
 }
 
 // Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge
-// package's Learn, About and Best rather than changing the slice.
+// package's Learn, Forget, About and Best rather than changing the slice.
 type Knowledge struct {
 	Facts []api.Fact `json:"facts"`
 }

@@ -42,6 +42,8 @@ actions: "action.step": {
 party: {slots: 4, sight_radius: 6, follow_action: "action.step"}
 combat: {ai_score: "1.0", aims: "true", attack_tag: "attack", step_action: "action.step"}
 timeline: {step_ticks: "speed >= 2 ? 10 : 20", speed: "grant.speed", default_speed: 2, window_ticks: 30}
+knowledge: cap: 64
+agents: {sight_radius: 8, sight_depth: 6, seen_confidence: 1}
 calendar: {
 	phases: [{id: "phase.dawn", name: "text.phase.dawn", ticks: 60}]
 	exports: {first_day: 3, min_gap: 2, max_gap: 4}

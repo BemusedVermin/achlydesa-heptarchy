@@ -4,8 +4,35 @@ import (
 	"slices"
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
+
+func TestSeesAgreesWithVisible(t *testing.T) {
+	m := NewMap(FuncSource(checkerSource), Prisms{})
+	rapid.Check(t, func(rt *rapid.T) {
+		from := cell(
+			rapid.IntRange(-10, 10).Draw(rt, "q"),
+			rapid.IntRange(-10, 10).Draw(rt, "r"),
+			rapid.IntRange(-3, 3).Draw(rt, "depth"),
+		)
+		radius, depthRange := rapid.IntRange(0, 5).Draw(rt, "radius"), rapid.IntRange(0, 2).Draw(rt, "depthRange")
+		visible, err := m.Visible(from, radius, depthRange)
+		if err != nil {
+			rt.Fatal(err)
+		}
+		for _, to := range m.CellsIn(from.Hex, radius+1, from.Depth-depthRange-1, from.Depth+depthRange+1) {
+			sees, err := m.Sees(from, to, radius, depthRange)
+			if err != nil {
+				rt.Fatal(err)
+			}
+			if want := slices.Contains(visible, to); sees != want {
+				rt.Fatalf("Sees(%v, %v) = %v, Visible says %v", from, to, sees, want)
+			}
+		}
+	})
+}
 
 func visibleSet(t *testing.T, m *Map, from api.Cell, radius, depthRange int) map[api.Cell]bool {
 	t.Helper()

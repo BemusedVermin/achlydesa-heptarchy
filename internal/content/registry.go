@@ -167,6 +167,12 @@ func (r *Registry) ClimbCost(env SpeedEnv) (int64, error) {
 	return run[int64](r.climbCost, env, "party.climb_cost")
 }
 
+// Knowledge returns the numbers of every knower's memory.
+func (r *Registry) Knowledge() KnowledgeConfig { return r.bundle.Knowledge }
+
+// Agents returns the numbers and claims of agents' minds.
+func (r *Registry) Agents() AgentsConfig { return r.bundle.Agents }
+
 // Combat returns the numbers of alert and death.
 func (r *Registry) Combat() CombatConfig { return r.bundle.Combat }
 

@@ -46,13 +46,6 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	do: [...#EffectRef] @go(Do,[]EffectRef)
 }
 
-// AgentsConfig is the numbers every agent shares.
-#AgentsConfig: {
-	// Weight is an Expr over WeightEnv: an individual's weight on a drive, drawn once when it spawns
-	// around its template's typical weight. Required when any template lists drives.
-	weight?: string @go(Weight)
-}
-
 // DriveEnv is what a drive's rise and urge formulas see.
 #DriveEnv: {
 	Level: float64

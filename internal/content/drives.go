@@ -48,13 +48,6 @@ type Threshold struct {
 	Do []EffectRef `json:"do"`
 }
 
-// AgentsConfig is the numbers every agent shares.
-type AgentsConfig struct {
-	// Weight is an Expr over WeightEnv: an individual's weight on a drive, drawn once when it spawns
-	// around its template's typical weight. Required when any template lists drives.
-	Weight string `json:"weight,omitempty"`
-}
-
 // DriveEnv is what a drive's rise and urge formulas see.
 type DriveEnv struct {
 	Level float64 `expr:"level"`
@@ -82,9 +75,6 @@ func (r *Registry) Drive(id api.ContentID) (Drive, bool) {
 	drive, ok := r.bundle.Drives[string(id)]
 	return drive, ok
 }
-
-// Agents returns the numbers every agent shares.
-func (r *Registry) Agents() AgentsConfig { return r.bundle.Agents }
 
 // DriveRise is how much the drive's level rises this phase; a drive without a rise formula gives 0.
 func (r *Registry) DriveRise(id api.ContentID, env DriveEnv) (float64, error) {

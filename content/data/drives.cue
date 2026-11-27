@@ -3,7 +3,6 @@ package data
 import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
 drives: [string]: content.#Drive
-agents: content.#AgentsConfig
 
 // A level counts roughly the phases a drive has gone unmet; a day is four phases. First values, for
 // tuning. A need's thresholds harm the vital torso every phase they hold, so going without kills,
