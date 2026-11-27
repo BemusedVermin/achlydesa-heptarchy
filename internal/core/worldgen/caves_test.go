@@ -20,7 +20,7 @@ var update = flag.Bool("update", false, "rewrite the golden files")
 func caveSource(tb testing.TB, seed, exportCount uint64) (*worldgen.Source, hexmap.Terrain) {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
-	fixed, err := explore.NewWorldSource(reg)
+	fixed, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		tb.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestCavesGolden(t *testing.T) {
 
 func TestCavesKeepSurfaceSolid(t *testing.T) {
 	src, _ := caveSource(t, 1, 0)
-	fixed, err := explore.NewWorldSource(contenttest.Sample(t))
+	fixed, err := explore.NewWorldSource(contenttest.Sample(t), 0)
 	if err != nil {
 		t.Fatal(err)
 	}

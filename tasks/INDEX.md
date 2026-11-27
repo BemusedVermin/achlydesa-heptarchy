@@ -167,7 +167,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-06](M6-minds/M6-06-chunk-graph.md) | The chunk graph: the openings between chunks | done | seam | M | none |
 | [M6-07](M6-minds/M6-07-landmarks.md) | Landmarks: things that advertise what they give | done | seam | M | M6-02, M6-04 |
 | [M6-08](M6-minds/M6-08-pieces.md) | Pieces: building blocks a town is laid out from | done | seam | M | M6-07 |
-| [M6-09](M6-minds/M6-09-settlement-stage.md) | The settlement stage: procgen lays out a town | todo | feature | M | M6-08 |
+| [M6-09](M6-minds/M6-09-settlement-stage.md) | The settlement stage: procgen lays out a town | done | feature | M | M6-08 |
 | [M6-10](M6-minds/M6-10-operators-beliefs.md) | Operators and beliefs: the state both planners plan over | done | seam | M | M6-03, M6-04, M6-07 |
 | [M6-11](M6-minds/M6-11-mind-controller.md) | The mind controller: run a plan, claim what it needs | todo | seam | M | M6-01, M6-10 |
 | [M6-12](M6-minds/M6-12-movement-actions.md) | Movement actions: go to, and wander | todo | feature | M | M6-11 |

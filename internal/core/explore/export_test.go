@@ -50,7 +50,7 @@ func newExportWorld(t *testing.T, seed uint64) *exportWorld {
 	bundle.World.PocketChunks = 0
 	reg := contenttest.Registry(t, bundle)
 	g, w, cfg := gametest.Start(t, game.Config{Seed: seed, Content: reg})
-	src, err := explore.NewWorldSource(reg)
+	src, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

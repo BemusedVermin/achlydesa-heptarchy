@@ -1,7 +1,7 @@
 ---
 id: M6-09
 title: "The settlement stage: procgen lays out a town"
-status: todo
+status: done
 milestone: M6
 kind: feature
 depends_on: [M6-08]
@@ -36,8 +36,8 @@ A town is generated, not drawn. Content says where a settlement sits, how deep, 
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -47,3 +47,11 @@ A town is generated, not drawn. Content says where a settlement sits, how deep, 
 
 ## Notes
 
+- The stage is `worldgen.LaySettlement`, not a chunk `Stage`: a town is fixed ground, so `explore.NewWorldSource` calls it and stamps the pieces, as it does places. `NewWorldSource` now takes the world seed (`w.RNG.Seed()`); callers in tests pass 0. Exits join the footprint as openings, so `join` reaches them like a place's.
+- Draws use `Derived("worldgen", hash of settlement ID)` from the seed only.
+- Reading of the spec: `pieces` maps piece ID to `weight` and `count` (the most uses); `street` must be one of them and is the only piece exits leave from; `landmark_min` maps an affordance ID to the fewest landmark cells giving it. A lacking affordance makes the layout pick only pieces that give it; if none can, or none fit, it errors.
+- Two pieces join where their doors are adjacent. "Every door meets a street or another door" is tested as: every piece after the first has a door beside an earlier piece's door. Other doors may stay unmet.
+- `piece.street` in `content/data/pieces/pieces.cue` had its only side door inside its walkway, so nothing could join its sides. It now has doors in its walls, as its comment says.
+- Content check: a settlement's disc (radius plus one hex) must lie in the world and clear every place and other settlement at the depths its pieces use.
+- No settlement is in `content/data` yet (M6-22); `settlements/settlements.cue` holds the schema only. `docs/content-guide.md` gains a settlements section.
+- Follow-ups filed: none.

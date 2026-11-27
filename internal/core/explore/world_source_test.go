@@ -39,7 +39,7 @@ func TestWorldSourcePlacesEachPlaceInTheFill(t *testing.T) {
 	}
 	bundle.Text["text.place.test.a"] = "a"
 	bundle.Text["text.place.test.b"] = "b"
-	src, err := explore.NewWorldSource(contenttest.Registry(t, bundle))
+	src, err := explore.NewWorldSource(contenttest.Registry(t, bundle), 0)
 	if err != nil {
 		t.Fatal(err)
 	}

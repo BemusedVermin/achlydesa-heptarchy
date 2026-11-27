@@ -31,7 +31,7 @@ func newVerifiedWorldWith(
 ) (*worldgen.Source, *hexmap.Map) {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
-	fixed, err := explore.NewWorldSource(reg)
+	fixed, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		tb.Fatal(err)
 	}

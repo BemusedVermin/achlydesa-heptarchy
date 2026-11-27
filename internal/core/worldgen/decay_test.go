@@ -13,7 +13,7 @@ import (
 func decayAt(tb testing.TB, exports uint64) *worldgen.Decay {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
-	fixed, err := explore.NewWorldSource(reg)
+	fixed, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		tb.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func cellOf(origin api.Cell, q, r, depth int) api.Cell {
 
 func TestSourceDecaysOnlySolidGround(t *testing.T) {
 	reg := contenttest.Sample(t)
-	fixed, err := explore.NewWorldSource(reg)
+	fixed, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

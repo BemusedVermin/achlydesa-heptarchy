@@ -44,7 +44,7 @@ func pieceWorld(tb testing.TB) (*content.Registry, *explore.WorldSource) {
 	bundle.Text["text.place.test.a"] = "a"
 	bundle.Text["text."+testPiece] = "a nook"
 	reg := contenttest.Registry(tb, bundle)
-	src, err := explore.NewWorldSource(reg)
+	src, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		tb.Fatal(err)
 	}
