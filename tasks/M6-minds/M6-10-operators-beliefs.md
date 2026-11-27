@@ -1,7 +1,7 @@
 ---
 id: M6-10
 title: "Operators and beliefs: the state both planners plan over"
-status: todo
+status: done
 milestone: M6
 kind: seam
 depends_on: [M6-03, M6-04, M6-07]
@@ -37,8 +37,8 @@ One symbolic model that GOAP (M6-15) and HTN (M6-16) both use: what an agent bel
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -47,3 +47,13 @@ One symbolic model that GOAP (M6-15) and HTN (M6-16) both use: what an agent bel
 
 ## Notes
 
+- Fact tags are existing content IDs, so no new vocabulary: `has` takes an `item.` ID, `near` and `known` an `affordance.` ID, `drive_met` a `drive.` ID. The loader checks each against its collection. Matching by item tag instead is filed as the question M6-10.F1.
+- A condition is `{fact, tag, n, not}`. As a precondition `has` holds at `n` or more; as an effect `has` adds `n` (negative to take). `not` negates a precondition and makes an effect remove the fact. Neither form is in the spec; they are the smallest that let an operator undo a fact (leaving a well stops `near`).
+- Two new numbers in `agents`, first values for tuning: `near_radius: 1` (how close a believed landmark must be for `near`) and `met: "level < 1"` (a formula over `DriveEnv`, when a drive counts as met). `met` is required once any operator or goal names `drive_met`.
+- `does` is `{action, target}`, where `target` is a picker name. Pickers come with M6-12 and M6-13, so the loader only checks the name isn't empty; those tasks, which register the pickers, should check content's names against them when the game starts.
+- `Goal` has `drive` and `want` only; M6-14 adds `when` and `weight`. Recipes are checked for references and that each step names exactly one operator or recipe; cycle checks are M6-16's.
+- Operators, goals and recipes are collections for ID prefixes (`operator.`, `goal.`, `recipe.`) but not `Collection` constants, as with geographies: they carry no record data.
+- `Plan`, `Step` and `Target` live in `agents/plan.go` as the spec says. M6-11's `comp.Mind` holds a plan, and `comp` cannot import `agents`, so M6-11 will likely move these types into `comp`.
+- `State` is a sorted `[]Fact`; a slice is not comparable, so `State.Key()` gives a string for cache keys.
+- Docs: `docs/content-guide.md` (ID table, the `agents` numbers, a new "Operators, goals and recipes" section, and its old "Recipes" section renamed "How-tos" so the word means only HTN recipes) and `docs/glossary.md` (recipe, state).
+- Follow-ups: M6-10.F1 (question: `has` by item ID or by item tag).

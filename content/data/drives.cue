@@ -47,6 +47,9 @@ drives: {
 // An individual's weight lies between half and one and a half times its template's.
 agents: weight: "typical * (0.5 + roll)"
 
+// A planner counts a drive as met while its level is under one phase's rise.
+agents: met: "level < 1"
+
 text: {
 	"text.drive.water":  "water"
 	"text.drive.food":   "food"
