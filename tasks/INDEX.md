@@ -165,7 +165,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-04](M6-minds/M6-04-memory-sight.md) | A capped memory per agent, learned by sight | done | seam | M | none |
 | [M6-05](M6-minds/M6-05-target-tags.md) | What an action may target, by tag, with corpses opt-in | done | seam | S | none |
 | [M6-06](M6-minds/M6-06-chunk-graph.md) | The chunk graph: the openings between chunks | done | seam | M | none |
-| [M6-07](M6-minds/M6-07-landmarks.md) | Landmarks: things that advertise what they give | in-progress | seam | M | M6-02, M6-04 |
+| [M6-07](M6-minds/M6-07-landmarks.md) | Landmarks: things that advertise what they give | done | seam | M | M6-02, M6-04 |
 | [M6-08](M6-minds/M6-08-pieces.md) | Pieces: building blocks a town is laid out from | todo | seam | M | M6-07 |
 | [M6-09](M6-minds/M6-09-settlement-stage.md) | The settlement stage: procgen lays out a town | todo | feature | M | M6-08 |
 | [M6-10](M6-minds/M6-10-operators-beliefs.md) | Operators and beliefs: the state both planners plan over | todo | seam | M | M6-03, M6-04, M6-07 |
@@ -212,6 +212,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | proposed | question | M6 | M6-07 |
 | [M6-06.F1](followups/M6-06.F1-graph-local-areas.md) | Split chunk graph nodes by the walkable areas inside each chunk | obsolete | seam | M6 | M6-06 |
 | [M6-03.F1](followups/M6-03.F1-safety-rise.md) | Decide what raises drive.safety | done | question | M6 | M6-03 |
 | [M6-04.F1](followups/M6-04.F1-sighting-event-volume.md) | Keep agents' sightings from flooding the event bus | done | seam | M6 | M6-04 |

@@ -127,6 +127,8 @@ func givesValue(tags []api.ContentID) string {
 // the depths it sees, of the nearest open cell it sees at that level (ties by cell order). Recording
 // one cell per level, not every cell in sight, keeps a glance from filling the memory: decay varies only
 // with depth, so the nearest cell is all a mind needs to head for that ground.
+//
+// TODO(M6-07.F1): confirm one cell per level, rather than every open cell seen.
 func senseGround(w *sim.World, body ecs.Entity, from api.Cell, cfg content.AgentsConfig) error {
 	geography := w.Content.World().Geography
 	if geography == "" {
