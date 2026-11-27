@@ -76,7 +76,11 @@ func (ew *exportWorld) checkGraphMatchesTheMap(seed uint64, when string) {
 		if len(summary.Openings) == 0 && len(loaded[key]) == 0 {
 			continue
 		}
-		if !reflect.DeepEqual(summary.Openings, loaded[key]) {
+		steps := make([]worldgen.ChunkOpening, len(summary.Openings))
+		for i, opening := range summary.Openings {
+			steps[i] = worldgen.ChunkOpening{From: opening.From, To: opening.To, Cost: opening.Cost}
+		}
+		if !reflect.DeepEqual(steps, loaded[key]) {
 			ew.t.Fatalf("seed %d %s: chunk %v has %d openings in the graph, %d on the map",
 				seed, when, key, len(summary.Openings), len(loaded[key]))
 		}

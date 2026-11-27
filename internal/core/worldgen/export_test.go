@@ -10,6 +10,9 @@ func PeakChunks(src *Source) int {
 	return -1
 }
 
+// SummaryCount is how many chunks the graph has summarized.
+func SummaryCount(g *Graph) int { return len(g.summaries) }
+
 // RegisterVerifyWorkers adds the verify stage with a fixed number of summary workers.
 func RegisterVerifyWorkers(stages *Stages, workers int) error {
 	return registerVerifyWorkers(stages, workers)

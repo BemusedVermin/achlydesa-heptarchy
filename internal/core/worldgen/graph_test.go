@@ -38,7 +38,7 @@ func tunnelConfig(workers int) worldgen.GraphConfig {
 func TestARouteFollowsTheTunnelBetweenChunks(t *testing.T) {
 	graph := worldgen.NewGraph(tunnelConfig(0))
 	west, middle, east := hexmap.ChunkKey{}, hexmap.ChunkKey{Q: 1}, hexmap.ChunkKey{Q: 2}
-	route, ok, err := graph.Route(west, east)
+	route, ok, err := graph.Route(west, east, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func TestARouteFollowsTheTunnelBetweenChunks(t *testing.T) {
 	if !slices.Equal(linked, []hexmap.ChunkKey{west, east}) {
 		t.Fatalf("middle chunk links %v, want the west and east chunks", links)
 	}
-	if _, ok, err := graph.Route(west, hexmap.ChunkKey{R: 1}); err != nil || ok {
+	if _, ok, err := graph.Route(west, hexmap.ChunkKey{R: 1}, 0); err != nil || ok {
 		t.Fatalf("route into the sealed chamber: ok %v, err %v; want none", ok, err)
 	}
 }
@@ -86,7 +86,7 @@ func TestTheGraphIsTheSameColdOrWarmAndWithAnyWorkers(t *testing.T) {
 		return out
 	}
 	cold := worldgen.NewGraph(tunnelConfig(1))
-	coldRoute, _, err := cold.Route(hexmap.ChunkKey{}, hexmap.ChunkKey{Q: 2})
+	coldRoute, _, err := cold.Route(hexmap.ChunkKey{}, hexmap.ChunkKey{Q: 2}, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func TestTheGraphIsTheSameColdOrWarmAndWithAnyWorkers(t *testing.T) {
 	if err := warm.Prepare(keys); err != nil {
 		t.Fatal(err)
 	}
-	warmRoute, _, err := warm.Route(hexmap.ChunkKey{}, hexmap.ChunkKey{Q: 2})
+	warmRoute, _, err := warm.Route(hexmap.ChunkKey{}, hexmap.ChunkKey{Q: 2}, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,5 +103,50 @@ func TestTheGraphIsTheSameColdOrWarmAndWithAnyWorkers(t *testing.T) {
 	}
 	if !reflect.DeepEqual(summaries(cold), summaries(warm)) {
 		t.Fatal("summaries differ between one worker and eight")
+	}
+}
+
+func TestARouteNeverCrossesAChunkBetweenAreasThatDoNotMeetInIt(t *testing.T) {
+	cfg := tunnelConfig(0)
+	cfg.Source = hexmap.FuncSource(func(cell api.Cell) hexmap.Terrain {
+		if cell.Depth == 5 && cell.Hex.R == 5 && cell.Hex.Q >= 5 && cell.Hex.Q <= 40 && cell.Hex.Q != 24 {
+			return air
+		}
+		return rock
+	})
+	graph := worldgen.NewGraph(cfg)
+	west, middle, east := hexmap.ChunkKey{}, hexmap.ChunkKey{Q: 1}, hexmap.ChunkKey{Q: 2}
+	summary, err := graph.Summary(middle)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Areas != 2 {
+		t.Fatalf("middle chunk has %d areas, want 2 either side of the wall", summary.Areas)
+	}
+	if _, ok, err := graph.Route(west, east, 0); err != nil || ok {
+		t.Fatalf("route across the walled middle chunk: ok %v, err %v; want none", ok, err)
+	}
+	if route, ok, err := graph.Route(west, middle, 0); err != nil || !ok || len(route.Chunks) != 2 {
+		t.Fatalf("route into the middle chunk's west area: %v, ok %v, err %v", route, ok, err)
+	}
+}
+
+func TestARouteWithANodeLimitStopsSearchingForAnUnreachableChunk(t *testing.T) {
+	cfg := tunnelConfig(0)
+	cfg.Source = hexmap.FuncSource(func(cell api.Cell) hexmap.Terrain {
+		floor := cell.Depth == 5
+		chamber := cell.Depth == 20 && cell.Hex.R == 8 && cell.Hex.Q >= 8 && cell.Hex.Q <= 10
+		if floor || chamber {
+			return air
+		}
+		return rock
+	})
+	cfg.Bounds = hexmap.Bounds{MaxCol: 400, MaxRow: 400, MaxDepth: 40}
+	graph := worldgen.NewGraph(cfg)
+	if _, ok, err := graph.Route(hexmap.ChunkKey{Q: 5, R: 5}, hexmap.ChunkKey{Depth: 1}, 10); err != nil || ok {
+		t.Fatalf("route into the sealed chamber: ok %v, err %v; want none", ok, err)
+	}
+	if count := worldgen.SummaryCount(graph); count > 100 {
+		t.Fatalf("the search summarized %d chunks, want it to stop near its limit of 10 areas", count)
 	}
 }
