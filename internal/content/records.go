@@ -38,6 +38,9 @@ func collections() []collection {
 			nil, func(p PlaceDef) (api.ContentID, bool) { return p.Name, true }),
 		described(CollectionPieces, "piece", func(b *Bundle) map[string]PieceDef { return b.Pieces },
 			nil, func(p PieceDef) (api.ContentID, bool) { return p.Name, true }),
+		described[SettlementDef]("settlements", "settlement",
+			func(b *Bundle) map[string]SettlementDef { return b.Settlements }, nil,
+			func(s SettlementDef) (api.ContentID, bool) { return s.Name, true }),
 		// Not a Collection constant: a geography carries no data a choice could list.
 		described[GeographyDef]("geographies", "geography",
 			func(b *Bundle) map[string]GeographyDef { return b.Geographies }, nil, nil),

@@ -30,6 +30,15 @@ func (r *Registry) Piece(id api.ContentID) (PieceDef, bool) {
 // PieceIDs lists every piece ID in sorted order.
 func (r *Registry) PieceIDs() []api.ContentID { return sortedIDs(r.bundle.Pieces) }
 
+// Settlement returns the settlement with the given ID.
+func (r *Registry) Settlement(id api.ContentID) (SettlementDef, bool) {
+	def, ok := r.bundle.Settlements[string(id)]
+	return def, ok
+}
+
+// SettlementIDs lists every settlement ID in sorted order.
+func (r *Registry) SettlementIDs() []api.ContentID { return sortedIDs(r.bundle.Settlements) }
+
 // Start returns the start scenario. Its Place is empty when the content has none.
 func (r *Registry) Start() Start { return r.bundle.Start }
 

@@ -21,6 +21,8 @@ type Bundle struct {
 	Places map[string]PlaceDef `json:"places"`
 	// Pieces are the building blocks towns are laid out from ("piece." IDs).
 	Pieces map[string]PieceDef `json:"pieces,omitempty"`
+	// Settlements are the towns laid out from pieces ("settlement." IDs).
+	Settlements map[string]SettlementDef `json:"settlements,omitempty"`
 	// Geographies are the kinds of generated ground ("geography." IDs).
 	Geographies map[string]GeographyDef `json:"geographies,omitempty"`
 	Start       Start                   `json:"start"`
@@ -526,6 +528,43 @@ type PieceDef struct {
 	// character may appear any number of times (at least once) and must be one of Marks and neither a
 	// spawn nor a landmark.
 	Doors []string `json:"doors"`
+}
+
+// SettlementDef is a town the world builds from pieces, deterministically from the world seed: a street
+// grown from the centre, with pieces attached at their doors. Its layout is fixed ground; its condition is
+// not.
+type SettlementDef struct {
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// At is the world cell of the settlement's centre, where the first street piece is stamped.
+	At SettlementAt `json:"at"`
+	// Radius is how far from the centre, in hexes, any piece may reach.
+	Radius int `json:"radius"`
+	// Street is the piece the settlement grows from, and the only one its ways out leave from. It must
+	// also be one of Pieces.
+	Street api.ContentID `json:"street"`
+	// Pieces maps each piece the settlement may use ("piece." IDs) to how often.
+	Pieces map[string]SettlementPiece `json:"pieces"`
+	// Exits is how many ways out to the generated deep the settlement has, each a street door left open.
+	Exits int `json:"exits"`
+	// LandmarkMin maps an affordance ("affordance." ID) to the fewest landmark cells giving it that the
+	// settlement must contain. Laying it out fails when the pieces cannot meet it.
+	LandmarkMin map[string]int `json:"landmark_min,omitempty"`
+}
+
+// SettlementAt is a world cell in odd-r offset.
+type SettlementAt struct {
+	Col   int `json:"col"`
+	Row   int `json:"row"`
+	Depth int `json:"depth"`
+}
+
+// SettlementPiece says how often a settlement uses one piece.
+type SettlementPiece struct {
+	// Weight is the piece's share when the layout picks the next piece; at least 1.
+	Weight int `json:"weight"`
+	// Count is the most times the settlement uses the piece; at least 1.
+	Count int `json:"count"`
 }
 
 // Layout is how a place or a piece is drawn, apart from where it stands. Openings belong to places and

@@ -256,7 +256,19 @@ To play it, point `start.place` and `start.mark` in `start.cue` at it for the se
 
 A piece is a small building block a town is laid out from (a house, a well, a length of street). It is drawn like a place, with `layers`, `legend`, `marks`, `spawns` and `affordances`, but has no `at`: it is stamped into the world at a cell and turned by one of the six directions, and may not cover a cell a place or another piece covers. Its column 0, row 0 and depth 0 land on that cell. Give it a `piece.` ID and a `name` of `text.<its ID>`.
 
-`doors` lists mark characters where the piece joins a street or another piece; a piece needs at least one. Like a spawn, a door may appear any number of times, and it must not also be a spawn or a landmark. `_#Piece` gives `#` as clay, `.` as air and `+` as the door.
+`doors` lists mark characters where the piece joins a street or another piece; a piece needs at least one. Like a spawn, a door may appear any number of times, and it must not also be a spawn or a landmark. `_#Piece` gives `#` as clay, `.` as air and `+` as the door. Two pieces join where a door of one lies beside a door of the other, so a street has doors in its walls as well as at its ends.
+
+### A settlement, in `settlements/`
+
+A settlement is a town the world lays out from pieces, from the world seed alone, when it builds the world: a street grown from the centre with pieces attached at their doors. Give it a `settlement.` ID and a `name` of `text.<its ID>`, and set:
+
+- `at`: the centre, in `col`, `row` and `depth`, and `radius`: how far in hexes any piece may reach. The disc must lie inside the world and touch no place or other settlement.
+- `street`: the piece it grows from. It must be one of `pieces`, and its doors left open are the only ways out.
+- `pieces`: for each piece, a `weight` (its share when the next piece is picked) and a `count` (the most uses).
+- `exits`: how many open street doors become ways out to the deep, where `join` carves a tunnel.
+- `landmark_min`: for each `affordance.` ID, the fewest landmark cells giving it. Pieces that give a lacking affordance are laid first. Laying fails with an error when the pieces cannot meet it.
+
+The layout never changes after the world is built; only the town's condition does.
 
 ## Checking your work
 

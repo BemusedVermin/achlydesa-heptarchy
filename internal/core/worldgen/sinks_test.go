@@ -38,7 +38,7 @@ func sinkParams(riserChance float64) map[string]float64 {
 func newSinkWorld(tb testing.TB, seed, exportCount uint64, riserChance float64) sinkWorld {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
-	fixed, err := explore.NewWorldSource(reg)
+	fixed, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		tb.Fatal(err)
 	}
@@ -204,7 +204,7 @@ func TestSinksIgnoreChunkOrder(t *testing.T) {
 		}
 	}
 	reference := newSinkWorld(t, 5, 1, 0.5)
-	fixed, err := explore.NewWorldSource(contenttest.Sample(t))
+	fixed, err := explore.NewWorldSource(contenttest.Sample(t), 0)
 	if err != nil {
 		t.Fatal(err)
 	}

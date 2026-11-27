@@ -184,7 +184,7 @@ func buildWorld(w *sim.World, saved Pocket) (*WorldSource, error) {
 	if w.Content.World() == (content.WorldDef{}) {
 		return nil, nil
 	}
-	src, err := NewWorldSource(w.Content)
+	src, err := NewWorldSource(w.Content, w.RNG.Seed())
 	if err != nil {
 		return nil, fmt.Errorf("explore: world: %w", err)
 	}

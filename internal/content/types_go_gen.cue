@@ -28,6 +28,9 @@ import (
 	// Pieces are the building blocks towns are laid out from ("piece." IDs).
 	pieces?: {[string]: #PieceDef} @go(Pieces,map[string]PieceDef)
 
+	// Settlements are the towns laid out from pieces ("settlement." IDs).
+	settlements?: {[string]: #SettlementDef} @go(Settlements,map[string]SettlementDef)
+
 	// Geographies are the kinds of generated ground ("geography." IDs).
 	geographies?: {[string]: #GeographyDef} @go(Geographies,map[string]GeographyDef)
 	start: #Start @go(Start)
@@ -639,6 +642,50 @@ import (
 	// character may appear any number of times (at least once) and must be one of Marks and neither a
 	// spawn nor a landmark.
 	doors: [...string] @go(Doors,[]string)
+}
+
+// SettlementDef is a town the world builds from pieces, deterministically from the world seed: a street
+// grown from the centre, with pieces attached at their doors. Its layout is fixed ground; its condition is
+// not.
+#SettlementDef: {
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// At is the world cell of the settlement's centre, where the first street piece is stamped.
+	at: #SettlementAt @go(At)
+
+	// Radius is how far from the centre, in hexes, any piece may reach.
+	radius: int @go(Radius)
+
+	// Street is the piece the settlement grows from, and the only one its ways out leave from. It must
+	// also be one of Pieces.
+	street: api.#ContentID @go(Street)
+
+	// Pieces maps each piece the settlement may use ("piece." IDs) to how often.
+	pieces: {[string]: #SettlementPiece} @go(Pieces,map[string]SettlementPiece)
+
+	// Exits is how many ways out to the generated deep the settlement has, each a street door left open.
+	exits: int @go(Exits)
+
+	// LandmarkMin maps an affordance ("affordance." ID) to the fewest landmark cells giving it that the
+	// settlement must contain. Laying it out fails when the pieces cannot meet it.
+	landmark_min?: {[string]: int} @go(LandmarkMin,map[string]int)
+}
+
+// SettlementAt is a world cell in odd-r offset.
+#SettlementAt: {
+	col:   int @go(Col)
+	row:   int @go(Row)
+	depth: int @go(Depth)
+}
+
+// SettlementPiece says how often a settlement uses one piece.
+#SettlementPiece: {
+	// Weight is the piece's share when the layout picks the next piece; at least 1.
+	weight: int @go(Weight)
+
+	// Count is the most times the settlement uses the piece; at least 1.
+	count: int @go(Count)
 }
 
 // Layout is how a place or a piece is drawn, apart from where it stands. Openings belong to places and

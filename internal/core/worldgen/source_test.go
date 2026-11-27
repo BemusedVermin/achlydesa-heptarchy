@@ -37,7 +37,7 @@ type fixture struct {
 
 func newFixture(t *testing.T) fixture {
 	t.Helper()
-	fixed, err := explore.NewWorldSource(contenttest.Sample(t))
+	fixed, err := explore.NewWorldSource(contenttest.Sample(t), 0)
 	if err != nil {
 		t.Fatal(err)
 	}

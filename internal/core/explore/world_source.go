@@ -9,6 +9,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
 // ErrOverlap is returned by [WorldSource.Stamp] when the piece would cover a cell that a place or an
@@ -45,9 +46,10 @@ type Stamped struct {
 	Doors []api.Cell
 }
 
-// NewWorldSource builds the world of the content's world and places. Marked cells hold the world's
-// Open terrain.
-func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
+// NewWorldSource builds the world of the content's world, places and settlements. Marked cells hold the
+// world's Open terrain. Each settlement is laid out from the world seed alone and stamped after the places,
+// in ID order.
+func NewWorldSource(reg *content.Registry, seed uint64) (*WorldSource, error) {
 	world := reg.World()
 	src := &WorldSource{
 		bounds: hexmap.Bounds{
@@ -84,7 +86,27 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 		slices.SortFunc(drawn.openings, hexmap.CompareCells)
 		src.places = append(src.places, hexmap.Footprint{Place: id, Openings: drawn.openings})
 	}
+	for _, id := range reg.SettlementIDs() {
+		if err := src.stampSettlement(reg, id, seed); err != nil {
+			return nil, err
+		}
+	}
 	return src, nil
+}
+
+// stampSettlement lays out and stamps a settlement; its exits are the openings of its footprint.
+func (s *WorldSource) stampSettlement(reg *content.Registry, id api.ContentID, seed uint64) error {
+	layout, err := worldgen.LaySettlement(reg, id, seed)
+	if err != nil {
+		return err
+	}
+	for _, placement := range layout.Placements {
+		if _, err := s.Stamp(reg, placement.Piece, placement.At, placement.Rotation); err != nil {
+			return fmt.Errorf("settlement %q: %w", id, err)
+		}
+	}
+	s.places = append(s.places, hexmap.Footprint{Place: id, Openings: layout.Exits})
+	return nil
 }
 
 // Stamp sets a piece into the world with its column 0, row 0 and depth 0 at the cell at, turned about
@@ -141,7 +163,7 @@ func (s *WorldSource) add(id api.ContentID, drawn drawing) {
 // layer of worldgen.
 func (s *WorldSource) Covers(cell api.Cell) bool { return s.covered[cell] }
 
-// Places lists every place's marked openings, places in ID order.
+// Places lists the openings of every place and settlement: places in ID order, then settlements.
 func (s *WorldSource) Places() []hexmap.Footprint { return slices.Clone(s.places) }
 
 // Chunk implements [hexmap.Source].

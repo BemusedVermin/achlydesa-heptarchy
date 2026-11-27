@@ -25,7 +25,7 @@ type joinWorld struct {
 func newJoinWorld(tb testing.TB, seed, exportCount uint64) joinWorld {
 	tb.Helper()
 	reg := contenttest.Sample(tb)
-	fixed, err := explore.NewWorldSource(reg)
+	fixed, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		tb.Fatal(err)
 	}
