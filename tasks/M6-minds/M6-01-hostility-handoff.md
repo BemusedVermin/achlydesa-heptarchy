@@ -1,7 +1,7 @@
 ---
 id: M6-01
 title: Hostility in the foundation, and a two-way controller hand-off
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: []

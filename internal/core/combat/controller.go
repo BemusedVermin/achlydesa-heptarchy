@@ -168,7 +168,7 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 	// In UID order, so the first of equals wins.
 	for _, other := range hostileCandidates(w) {
 		pos := positions.Get(other)
-		if !seen[pos.At] || !Hostile(w, body, other) {
+		if !seen[pos.At] || !anatomy.Hostile(w, body, other) {
 			continue
 		}
 		distance := hexmap.CellDistance(from.At, pos.At)
