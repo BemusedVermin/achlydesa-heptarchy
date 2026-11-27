@@ -254,7 +254,8 @@ This is a hobby project: the harness and the tests are as small as they can be w
 ### The harness
 
 - `harness run --seeds N --steps N` plays headless games with a random policy and writes one CSV row per step.
-- `harness replay <file>` reproduces any run from its seed and command log.
+- `harness replay <file>` reproduces any run from its seed and command log. `--trace` also prints each command's index and kind with the message log lines it added, then the hash.
+- `heptarchy play --record <file>` rewrites the command log after every command, so a crash still leaves a log to replay.
 - Analysis happens outside Go, in a spreadsheet or notebook. Tuning (M9) adds what it needs then.
 
 ### Tests

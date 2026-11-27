@@ -1,7 +1,7 @@
 ---
 id: M5-15
 title: Record as you play, and replay with a readable trace
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-13]
@@ -35,9 +35,9 @@ A player who hits a bug can hand over a seed and a command log, and anyone can r
 
 ## Acceptance criteria
 
-- [ ] With `--record`, the file holds every command applied so far while the game is still running (a test of the record hook).
-- [ ] `harness replay --trace` prints each command's index, kind and log lines, and the same hash as without `--trace` (a golden file under `testdata/`).
-- [ ] `go tool task check` passes.
+- [x] With `--record`, the file holds every command applied so far while the game is still running (a test of the record hook).
+- [x] `harness replay --trace` prints each command's index, kind and log lines, and the same hash as without `--trace` (a golden file under `testdata/`).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -46,4 +46,9 @@ A player who hits a bug can hand over a seed and a command log, and anyone can r
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- `App.Record` is the hook; a record error ends the game like a failed command. The file is rewritten whole each time.
+- `harness.ReplayTrace` is new; `Replay` calls it with no writer, so it now applies commands through `Game.Apply` in a loop (same as `game.Replay`) and its errors name the command.
+- Trace indexes start at 0, like `game.Replay`'s errors.
+- Tests: `internal/harness/replay_test.go` with `testdata/trace.golden`; a record-hook test in `tui/render_test.go`.
+- Docs: `docs/go-technical-design.md` harness section updated.
+- No follow-ups.

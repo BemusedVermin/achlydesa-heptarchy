@@ -189,6 +189,34 @@ func TestDisabledMoveShowsItsReasonAndSendsNothing(t *testing.T) {
 	}
 }
 
+func TestRecordHookSeesEveryCommandAsItIsApplied(t *testing.T) {
+	app := newApp(t)
+	var lengths []int
+	app.Record = func(g *game.Game) error {
+		var log bytes.Buffer
+		if err := tui.WriteReplay(g, &log); err != nil {
+			return err
+		}
+		cmds, err := g.Codec().ReadLog(&log)
+		lengths = append(lengths, len(cmds))
+		return err
+	}
+	for _, k := range []string{"d", "d", "e"} {
+		press(app, k)
+	}
+	if len(lengths) == 0 {
+		t.Fatal("record hook never ran")
+	}
+	for i, n := range lengths {
+		if n != i+1 {
+			t.Errorf("record %d held %d commands, want %d", i, n, i+1)
+		}
+	}
+	if got := len(app.Game.History()); got != len(lengths) {
+		t.Errorf("%d records for %d commands", len(lengths), got)
+	}
+}
+
 func TestPlayRecordsAReplayThatReproducesTheHash(t *testing.T) {
 	app := newApp(t)
 	for _, k := range []string{"d", "d", "e", ".", ",", "tab", "f", "a"} {

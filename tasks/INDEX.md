@@ -150,8 +150,8 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 | [M5-12](M5-procgen/M5-12-decay-spreads.md) | Decay spreads downward over exports | done | feature | S | M5-10 |
 | [M5-13](M5-procgen/M5-13-play-by-play.md) | A play-by-play of every fight in the message log | done | feature | M | none |
 | [M5-14](M5-procgen/M5-14-wipe-screen.md) | A wipe screen that waits for the player before the party wakes | todo | feature | M | M5-13 |
-| [M5-15](M5-procgen/M5-15-replay-trace.md) | Record as you play, and replay with a readable trace | todo | feature | S | M5-13 |
 | [M5-16](M5-procgen/M5-16-readable-elevation.md) | Make elevation readable on the terminal map | done | feature | M | none |
+| [M5-15](M5-procgen/M5-15-replay-trace.md) | Record as you play, and replay with a readable trace | done | feature | S | M5-13 |
 
 ## Later milestones (outlines)
 

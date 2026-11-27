@@ -34,7 +34,7 @@ func (o *playOptions) addFlags(cmd *cobra.Command) {
 	cmd.Flags().Uint64Var(&o.seed, "seed", 1, "world seed")
 	cmd.Flags().StringVar(&o.content, "content", defaultContent, "content directory")
 	cmd.Flags().BoolVar(&o.dev, "dev", false, "reload the content when its files change")
-	cmd.Flags().StringVar(&o.record, "record", "", "write the command history to this replay log when the game exits")
+	cmd.Flags().StringVar(&o.record, "record", "", "keep this replay log up to date after every command")
 }
 
 // root is the command tree. A bare "heptarchy" runs play.
@@ -81,6 +81,9 @@ func play(opts *playOptions) error {
 	if err != nil {
 		return err
 	}
+	if opts.record != "" {
+		app.Record = func(g *game.Game) error { return record(g, opts.record) }
+	}
 	program := tea.NewProgram(app)
 	if opts.dev {
 		stop, err := content.Watch(opts.content, func(reg *content.Registry, err error) {
@@ -98,11 +101,6 @@ func play(opts *playOptions) error {
 	}
 	if _, err := program.Run(); err != nil {
 		return err
-	}
-	if opts.record != "" {
-		if err := record(g, opts.record); err != nil {
-			return err
-		}
 	}
 	return app.Err()
 }
