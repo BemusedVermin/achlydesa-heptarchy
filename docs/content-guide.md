@@ -187,7 +187,7 @@ Planners plan over a small state of symbolic facts, built from what the agent ca
 
 | Fact | Tag | Holds when |
 | --- | --- | --- |
-| `has` | an `item.` ID | the agent carries at least `n` of it |
+| `has` | an item tag, one of `vocabulary.tags.items` | the agent carries at least `n` items in all with that tag |
 | `known` | an `affordance.` ID | it remembers a landmark giving it, and where |
 | `near` | an `affordance.` ID | the nearest such landmark it remembers is within `agents.near_radius` cells |
 | `drive_met` | a `drive.` ID | `agents.met`, a formula over `level` and `weight`, is true for that drive |
@@ -196,8 +196,8 @@ Planners plan over a small state of symbolic facts, built from what the agent ca
 
 ```cue
 "operator.drink": {
-	pre: [{fact: "has", tag: "item.water", n: 1}]
-	eff: [{fact: "has", tag: "item.water", n: -1}, {fact: "drive_met", tag: "drive.water"}]
+	pre: [{fact: "has", tag: "drinkable", n: 1}]
+	eff: [{fact: "has", tag: "drinkable", n: -1}, {fact: "drive_met", tag: "drive.water"}]
 	cost: 1
 	does: {action: "action.consume", target: "self"}
 	kind: "work"
