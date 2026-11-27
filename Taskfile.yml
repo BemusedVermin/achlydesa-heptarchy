@@ -32,6 +32,11 @@ tasks:
     cmds:
       - go run ./internal/tools/affected {{if .BASE}}--base {{.BASE}}{{end}}
 
+  bench:
+    desc: "Run benchmarks, no tests (BENCH=<regexp>, default all; args after --, e.g. BENCH=Step -- -count 6 ./internal/core/game)"
+    cmds:
+      - go test -run '^$' -bench '{{.BENCH | default "."}}' -benchmem {{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}./...{{end}}
+
   lint:
     desc: Run golangci-lint (a separately installed binary)
     preconditions:

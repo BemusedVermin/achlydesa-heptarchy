@@ -22,8 +22,8 @@ tasks/
 id: M1-03
 title: "sim: world, event bus and system scheduler"   # quote titles that contain a colon
 status: todo            # proposed | todo | in-progress | blocked | done | obsolete
-milestone: M1           # M1..M9, a cleanup milestone (C1, C2, ...), a post-MVP milestone (PM-STORY), or unplanned
-kind: feature           # feature | seam | bug | debt | test | content | question
+milestone: M1           # M1..M9, a cleanup milestone (C1, C2, ...), a speed milestone (P1, P2, ...), a post-MVP milestone (PM-STORY), or unplanned
+kind: feature           # feature | seam | bug | debt | test | content | perf | question
 depends_on: [M1-01]
 discovered_by: null     # the task ID that filed it, for follow-ups
 size: M                 # S (< 200 lines), M (200-600), L (> 600: split it)
@@ -88,6 +88,12 @@ Between milestones, the owner runs a cleanup: `/audit` has read-only agents look
 Developer tools (`internal/tools/` and what they run) are excluded from cleanups: `/audit` does not sweep them, and a cleanup task does not touch them.
 
 A cleanup task changes no behavior on purpose; its Notes name any change it makes anyway. A tests task (`kind: test`) changes only tests, which `go tool task check-pr` checks, and CI runs it on every pull request, along with the task bookkeeping checks.
+
+The owner can also ask for a cleanup directly, as he did for C2, which reshapes the core from a proposal rather than from an audit.
+
+## Speed milestones
+
+When the owner wants the game faster, `/optimize` runs the benchmarks with the profiler, has read-only `perf-auditor` agents rank the bottlenecks in the game step, world building and the harness, and files the fixes as a milestone `P1`, `P2` and so on, in `tasks/P<n>-perf/`, as `proposed` tasks of `kind: perf`. The owner accepts them with `/triage`. Each task proves its gain with a benchmark run before and after on the same machine, and changes no golden: the same seed still plays the same game. The steps are in `.claude/skills/optimize/SKILL.md`.
 
 ## Writing a task spec
 
