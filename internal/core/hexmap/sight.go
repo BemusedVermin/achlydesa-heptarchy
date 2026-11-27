@@ -30,6 +30,15 @@ func (m *Map) Visible(from api.Cell, radius, depthRange int) ([]api.Cell, error)
 	return cells, nil
 }
 
+// Sees reports whether to is in [Map.Visible] from from, without working out every visible cell: it is
+// cheaper when only a few cells are asked about, as when an agent looks at the bodies around it.
+func (m *Map) Sees(from, to api.Cell, radius, depthRange int) (bool, error) {
+	if Distance(from.Hex, to.Hex) > radius || max(from.Depth-to.Depth, to.Depth-from.Depth) > depthRange {
+		return false, nil
+	}
+	return m.clearLine(from, to)
+}
+
 // sightKey is what a Visible result depends on, besides the terrain.
 type sightKey struct {
 	from               api.Cell

@@ -30,6 +30,8 @@ import (
 	start: #Start @go(Start)
 	claims: {[string]: #Claim} @go(Claims,map[string]Claim)
 	origins: {[string]: #Origin} @go(Origins,map[string]Origin)
+	knowledge: #KnowledgeConfig @go(Knowledge)
+	agents:    #AgentsConfig    @go(Agents)
 
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	parts: {[string]: #PartTemplate} @go(Parts,map[string]PartTemplate)
@@ -145,6 +147,30 @@ import (
 #Origin: {
 	// Name is a text ID.
 	name: api.#ContentID @go(Name)
+}
+
+// KnowledgeConfig is the numbers of every knower's memory.
+#KnowledgeConfig: {
+	// Cap is how many facts a knower outside the controlled party keeps; past it the least
+	// confident, then the oldest, is forgotten.
+	cap: int @go(Cap)
+}
+
+// AgentsConfig is the numbers and claims of agents' minds.
+#AgentsConfig: {
+	// SightRadius and SightDepth are how far an agent sees, in hexes and in depths.
+	sight_radius: int @go(SightRadius)
+	sight_depth:  int @go(SightDepth)
+
+	// AtClaim is the claim ("claim." ID) an agent records for where it saw a body, and DeadClaim the
+	// one for seeing it dead. Empty means that sighting is not recorded.
+	at_claim?:   api.#ContentID @go(AtClaim)
+	dead_claim?: api.#ContentID @go(DeadClaim)
+
+	// SeenOrigin is the origin ("origin." ID) of what an agent sees, and SeenConfidence how sure of
+	// it the agent is, from 0 to 1.
+	seen_origin?:    api.#ContentID @go(SeenOrigin)
+	seen_confidence: float64        @go(SeenConfidence)
 }
 
 // Material is a substance things are made of.

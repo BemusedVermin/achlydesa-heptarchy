@@ -169,3 +169,72 @@ func TestNoticedFactLogsTheValueAsText(t *testing.T) {
 		}
 	}
 }
+
+func cappedWorld(tb testing.TB, capacity int) *sim.World {
+	tb.Helper()
+	bundle := contenttest.SampleBundle(tb)
+	bundle.Knowledge.Cap = capacity
+	w := sim.NewWorld(1)
+	w.Content = contenttest.Registry(tb, bundle)
+	return w
+}
+
+func TestLearnPastTheCapForgetsTheLeastSureThenTheOldest(t *testing.T) {
+	w := cappedWorld(t, 3)
+	knower := newKnower(w)
+	var learned []api.UID
+	w.Bus.SubscribeAll("test", func(_ *sim.World, e api.Event) {
+		if l, ok := e.(api.FactLearned); ok {
+			learned = append(learned, l.Fact.Subject)
+		}
+	})
+	learn := func(subject api.UID, confidence float64) {
+		knowledge.Learn(
+			w,
+			knower,
+			api.Fact{Subject: subject, Claim: "claim.at", Origin: "origin.seen", Confidence: confidence},
+		)
+		w.Now++
+	}
+	learn(1, 0.5)
+	learn(2, 0.9)
+	learn(3, 0.5)
+	learn(4, 0.7)
+	learn(5, 0.1)
+	if _, err := w.Bus.Drain(w); err != nil {
+		t.Fatal(err)
+	}
+	var kept []api.UID
+	for _, f := range ecs.NewMap[comp.Knowledge](w.ECS).Get(knower).Facts {
+		kept = append(kept, f.Subject)
+	}
+	if want := []api.UID{2, 3, 4}; !slices.Equal(kept, want) {
+		t.Errorf(
+			"kept subjects %v, want %v: the oldest of the least sure goes first, and a new fact surer of nothing goes itself",
+			kept,
+			want,
+		)
+	}
+	if want := []api.UID{1, 2, 3, 4}; !slices.Equal(learned, want) {
+		t.Errorf("FactLearned for subjects %v, want %v: none for a fact forgotten as it came", learned, want)
+	}
+	if !knowledge.Forget(w, knower, 3, "claim.at", "origin.seen") || len(knowledge.About(w, knower, 3)) != 0 {
+		t.Error("Forget did not drop the fact")
+	}
+	if knowledge.Forget(w, knower, 3, "claim.at", "origin.seen") {
+		t.Error("Forget reported a fact it no longer held")
+	}
+}
+
+func TestThePartysFactsAreNotCapped(t *testing.T) {
+	w := cappedWorld(t, 2)
+	member := newKnower(w)
+	party := ecs.NewMap1[comp.Controlled](w.ECS).NewEntity(&comp.Controlled{})
+	ecs.NewMap[comp.MemberOf](w.ECS).Add(member, &comp.MemberOf{}, party)
+	for subject := range api.UID(5) {
+		knowledge.Learn(w, member, api.Fact{Subject: subject, Claim: "claim.at", Origin: "origin.seen"})
+	}
+	if got := len(ecs.NewMap[comp.Knowledge](w.ECS).Get(member).Facts); got != 5 {
+		t.Errorf("a party member keeps %d facts, want all 5", got)
+	}
+}

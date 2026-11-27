@@ -24,6 +24,8 @@ type Bundle struct {
 	Start       Start                   `json:"start"`
 	Claims      map[string]Claim        `json:"claims"`
 	Origins     map[string]Origin       `json:"origins"`
+	Knowledge   KnowledgeConfig         `json:"knowledge"`
+	Agents      AgentsConfig            `json:"agents"`
 	// Parts are the body part templates ("part." IDs); Bodies are the body plans ("body." IDs).
 	Parts  map[string]PartTemplate `json:"parts"`
 	Bodies map[string]BodyPlan     `json:"bodies"`
@@ -120,6 +122,28 @@ const (
 type Origin struct {
 	// Name is a text ID.
 	Name api.ContentID `json:"name"`
+}
+
+// KnowledgeConfig is the numbers of every knower's memory.
+type KnowledgeConfig struct {
+	// Cap is how many facts a knower outside the controlled party keeps; past it the least
+	// confident, then the oldest, is forgotten.
+	Cap int `json:"cap"`
+}
+
+// AgentsConfig is the numbers and claims of agents' minds.
+type AgentsConfig struct {
+	// SightRadius and SightDepth are how far an agent sees, in hexes and in depths.
+	SightRadius int `json:"sight_radius"`
+	SightDepth  int `json:"sight_depth"`
+	// AtClaim is the claim ("claim." ID) an agent records for where it saw a body, and DeadClaim the
+	// one for seeing it dead. Empty means that sighting is not recorded.
+	AtClaim   api.ContentID `json:"at_claim,omitempty"`
+	DeadClaim api.ContentID `json:"dead_claim,omitempty"`
+	// SeenOrigin is the origin ("origin." ID) of what an agent sees, and SeenConfidence how sure of
+	// it the agent is, from 0 to 1.
+	SeenOrigin     api.ContentID `json:"seen_origin,omitempty"`
+	SeenConfidence float64       `json:"seen_confidence"`
 }
 
 // Material is a substance things are made of.

@@ -1,7 +1,7 @@
 ---
 id: M6-04
 title: A capped memory per agent, learned by sight
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: []
