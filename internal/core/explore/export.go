@@ -2,11 +2,14 @@ package explore
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
@@ -58,21 +61,10 @@ func regenerateDeep(w *sim.World) error {
 	if w.Map == nil || base == nil || world.Geography == "" {
 		return nil
 	}
-	members := memberCells(w)
-	pocket := pocketKeys(members, world.PocketChunks)
-	fixed := &pocketFixed{Fixed: base, chunks: make(map[hexmap.ChunkKey]*hexmap.Chunk, len(pocket))}
-	for _, key := range pocket {
-		chunk, err := snapshot(w.Map, key)
-		if err != nil {
-			return err
-		}
-		fixed.chunks[key] = chunk
-	}
-	exits, err := pocketExits(w, fixed, members, base.Bounds(), world.PocketExits)
+	fixed, pocket, err := openPocket(w, base, memberCells(w), world)
 	if err != nil {
 		return err
 	}
-	fixed.footprint = hexmap.Footprint{Place: pocketPlace, Openings: exits}
 	cells, err := cellSource(w, fixed, base.Bounds())
 	if err != nil {
 		return err
@@ -87,6 +79,108 @@ func regenerateDeep(w *sim.World) error {
 	w.Map.Replace(cells, fixed.Covers)
 	forgetSeen(w, slices.Concat(pocket, base.ChunkKeys()))
 	return relocate(w, fixed)
+}
+
+// openPocket builds the pocket and its openings. A pocket with no opening gets a tunnel cut from the
+// party's ground to new ground.
+func openPocket(
+	w *sim.World, base *WorldSource, members []api.Cell, world content.WorldDef,
+) (*pocketFixed, []hexmap.ChunkKey, error) {
+	radius := world.PocketChunks
+	fixed, pocket, reached, err := buildPocket(w, base, members, world, radius)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(fixed.footprint.Openings) == 0 {
+		if err := cutTunnel(w, fixed, reached, base.Bounds()); err != nil {
+			return nil, nil, err
+		}
+		if fixed, pocket, _, err = buildPocket(w, base, members, world, radius); err != nil {
+			return nil, nil, err
+		}
+		if len(fixed.footprint.Openings) == 0 {
+			return nil, nil, fmt.Errorf("no way out of the pocket around %v", members)
+		}
+	}
+	return fixed, pocket, nil
+}
+
+// buildPocket snapshots the chunks within radius of the members and finds their openings, returning the
+// cells the party can walk to.
+func buildPocket(
+	w *sim.World, base *WorldSource, members []api.Cell, world content.WorldDef, radius int,
+) (*pocketFixed, []hexmap.ChunkKey, []api.Cell, error) {
+	pocket := pocketKeys(members, radius)
+	fixed := &pocketFixed{Fixed: base, chunks: make(map[hexmap.ChunkKey]*hexmap.Chunk, len(pocket))}
+	for _, key := range pocket {
+		chunk, err := snapshot(w.Map, key)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		fixed.chunks[key] = chunk
+	}
+	exits, reached, err := pocketExits(w, fixed, members, base.Bounds(), world.PocketExits)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	fixed.footprint = hexmap.Footprint{Place: pocketPlace, Openings: exits}
+	return fixed, pocket, reached, nil
+}
+
+// cutTunnel opens the shortest line of cells on one level from the reached region to a cell bordering new
+// ground, keeping the floor under every cell it opens.
+func cutTunnel(w *sim.World, fixed *pocketFixed, reached []api.Cell, bounds hexmap.Bounds) error {
+	if len(reached) == 0 {
+		return errors.New("no ground to cut a tunnel from")
+	}
+	topo := hexmap.Prisms{}
+	open, err := w.Map.At(reached[0])
+	if err != nil {
+		return err
+	}
+	parent := make(map[api.Cell]api.Cell, len(reached))
+	for _, at := range reached {
+		parent[at] = at
+	}
+	frontier := slices.Clone(reached)
+	for len(frontier) > 0 {
+		cell := frontier[0]
+		frontier = frontier[1:]
+		for dir := range api.Dir(api.DirCount) {
+			next := topo.Neighbor(cell, dir).Cell
+			if !bounds.Contains(next) {
+				continue
+			}
+			if !fixed.Covers(next) {
+				if parent[cell] == cell {
+					continue
+				}
+				return carve(w, parent, cell, open)
+			}
+			if _, seen := parent[next]; seen {
+				continue
+			}
+			floor, err := w.Map.At(topo.Below(next).Cell)
+			if err != nil {
+				return err
+			}
+			if floor.Solid {
+				parent[next] = cell
+				frontier = append(frontier, next)
+			}
+		}
+	}
+	return fmt.Errorf("no tunnel from %v reaches new ground", reached[0])
+}
+
+// carve opens every cell on the path from end back to the region.
+func carve(w *sim.World, parent map[api.Cell]api.Cell, end api.Cell, open hexmap.Terrain) error {
+	for cell := end; parent[cell] != cell; cell = parent[cell] {
+		if err := w.Map.Set(cell, open); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // memberCells lists where every party member stands, by UID.
@@ -156,14 +250,14 @@ func snapshot(m *hexmap.Map, key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 // standable cells that border new ground, spread evenly along the sorted list.
 func pocketExits(
 	w *sim.World, fixed *pocketFixed, members []api.Cell, bounds hexmap.Bounds, most int,
-) ([]api.Cell, error) {
+) (exits, reached []api.Cell, err error) {
 	rules := stateOf(w).rules
 	topo := hexmap.Prisms{}
-	reached := map[api.Cell]bool{}
+	seen := map[api.Cell]bool{}
 	var frontier []api.Cell
 	for _, at := range members {
-		if !reached[at] {
-			reached[at] = true
+		if !seen[at] {
+			seen[at] = true
 			frontier = append(frontier, at)
 		}
 	}
@@ -178,10 +272,10 @@ func pocketExits(
 			}
 			step, can, err := w.Map.Step(cell, dir, rules)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			if to := step.To.Cell; can && fixed.Covers(to) && !reached[to] {
-				reached[to] = true
+			if to := step.To.Cell; can && fixed.Covers(to) && !seen[to] {
+				seen[to] = true
 				frontier = append(frontier, to)
 			}
 		}
@@ -190,14 +284,16 @@ func pocketExits(
 		}
 	}
 	slices.SortFunc(edge, hexmap.CompareCells)
+	reached = slices.Collect(maps.Keys(seen))
+	slices.SortFunc(reached, hexmap.CompareCells)
 	if len(edge) <= most {
-		return edge, nil
+		return edge, reached, nil
 	}
-	exits := make([]api.Cell, most)
+	exits = make([]api.Cell, most)
 	for i := range exits {
 		exits[i] = edge[i*len(edge)/most]
 	}
-	return exits, nil
+	return exits, reached, nil
 }
 
 // forgetSeen drops every party's memory of chunks outside kept.
