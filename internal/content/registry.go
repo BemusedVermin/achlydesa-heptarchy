@@ -30,8 +30,11 @@ type Registry struct {
 	aims      *vm.Program
 	records   map[api.ContentID]Record
 	// offers has no entry for a choice without an offer formula.
-	offers      map[string]*vm.Program
-	mods        map[api.ContentID]compiledMods
+	offers map[string]*vm.Program
+	mods   map[api.ContentID]compiledMods
+	drives map[api.ContentID]compiledDrive
+	// weight is nil when agents.weight is empty.
+	weight      *vm.Program
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

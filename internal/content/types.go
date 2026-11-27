@@ -40,6 +40,9 @@ type Bundle struct {
 	Choices map[string]ChoiceDef `json:"choices,omitempty"`
 	// Vocabulary closes the sets of tags, grant kinds and list values content may use.
 	Vocabulary Vocabulary `json:"vocabulary,omitempty"`
+	// Drives are the needs and desires bodies carry ("drive." IDs).
+	Drives map[string]Drive `json:"drives,omitempty"`
+	Agents AgentsConfig     `json:"agents,omitempty"`
 }
 
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
@@ -237,6 +240,9 @@ type Template struct {
 	Triggers []Trigger `json:"triggers,omitempty"`
 	// Faction is the side ("faction." ID) a body of this template fights for.
 	Faction *api.ContentID `json:"faction,omitempty"`
+	// Drives maps each drive ID a body of this template carries to its typical weight, which each
+	// individual's own weight is drawn around.
+	Drives map[string]float64 `json:"drives,omitempty"`
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.
@@ -481,6 +487,7 @@ const (
 	CollectionItems     Collection = "items"
 	CollectionFactions  Collection = "factions"
 	CollectionStatuses  Collection = "statuses"
+	CollectionDrives    Collection = "drives"
 )
 
 // TargetKind is what an action targets.
