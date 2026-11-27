@@ -220,13 +220,13 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
    To make marked cells landmarks with no body, such as a graveyard's ground, map a mark's character in `affordances` to the `affordance.` IDs each such cell gives. Like a spawn, it may appear any number of times; it must not also be a spawn or an opening.
 6. Add the name to the file's `text:` block.
 
+To play it, point `start.place` and `start.mark` in `start.cue` at it for the session, and put them back before you commit unless the change is meant. Nothing joins the places yet, so a party started in one stays there.
+
 ### A piece, like `piece.house` in `pieces/pieces.cue`
 
 A piece is a small building block a town is laid out from (a house, a well, a length of street). It is drawn like a place, with `layers`, `legend`, `marks`, `spawns` and `affordances`, but has no `at`: it is stamped into the world at a cell and turned by one of the six directions, and may not cover a cell a place or another piece covers. Its column 0, row 0 and depth 0 land on that cell. Give it a `piece.` ID and a `name` of `text.<its ID>`.
 
 `doors` lists mark characters where the piece joins a street or another piece; a piece needs at least one. Like a spawn, a door may appear any number of times, and it must not also be a spawn or a landmark. `_#Piece` gives `#` as clay, `.` as air and `+` as the door.
-
-To play it, point `start.place` and `start.mark` in `start.cue` at it for the session, and put them back before you commit unless the change is meant. Nothing joins the places yet, so a party started in one stays there.
 
 ## Checking your work
 

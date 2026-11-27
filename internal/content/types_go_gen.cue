@@ -631,13 +631,13 @@ import (
 // Layout is how a place or a piece is drawn, apart from where it stands. Openings belong to places and
 // Doors to pieces; the other is empty.
 #Layout: {
-	Layers: [...#LayerDef] @go(,[]LayerDef)
-	Legend: {[string]: api.#ContentID} @go(,map[string]api.ContentID)
-	Marks: {[string]: string} @go(,map[string]string)
-	Spawns: {[string]: api.#ContentID} @go(,map[string]api.ContentID)
-	Affordances: {[string]: [...api.#ContentID]} @go(,map[string][]api.ContentID)
-	Openings: [...string] @go(,[]string)
-	Doors: [...string] @go(,[]string)
+	layers: [...#LayerDef] @go(Layers,[]LayerDef)
+	legend: {[string]: api.#ContentID} @go(Legend,map[string]api.ContentID)
+	marks: {[string]: string} @go(Marks,map[string]string)
+	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
+	affordances?: {[string]: [...api.#ContentID]} @go(Affordances,map[string][]api.ContentID)
+	openings?: [...string] @go(Openings,[]string)
+	doors?: [...string] @go(Doors,[]string)
 }
 
 // PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.

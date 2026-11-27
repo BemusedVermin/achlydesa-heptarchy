@@ -521,13 +521,13 @@ type PieceDef struct {
 // Layout is how a place or a piece is drawn, apart from where it stands. Openings belong to places and
 // Doors to pieces; the other is empty.
 type Layout struct {
-	Layers      []LayerDef
-	Legend      map[string]api.ContentID
-	Marks       map[string]string
-	Spawns      map[string]api.ContentID
-	Affordances map[string][]api.ContentID
-	Openings    []string
-	Doors       []string
+	Layers      []LayerDef                 `json:"layers"`
+	Legend      map[string]api.ContentID   `json:"legend"`
+	Marks       map[string]string          `json:"marks"`
+	Spawns      map[string]api.ContentID   `json:"spawns,omitempty"`
+	Affordances map[string][]api.ContentID `json:"affordances,omitempty"`
+	Openings    []string                   `json:"openings,omitempty"`
+	Doors       []string                   `json:"doors,omitempty"`
 }
 
 // Layout returns the place's drawing. Its maps and slices are shared: don't change them.

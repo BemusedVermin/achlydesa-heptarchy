@@ -81,9 +81,8 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 		for name, cell := range drawn.marks {
 			src.marks[placeMark{place: id, name: name}] = cell
 		}
-		openings := slices.Clone(drawn.openings)
-		slices.SortFunc(openings, hexmap.CompareCells)
-		src.places = append(src.places, hexmap.Footprint{Place: id, Openings: openings})
+		slices.SortFunc(drawn.openings, hexmap.CompareCells)
+		src.places = append(src.places, hexmap.Footprint{Place: id, Openings: drawn.openings})
 	}
 	return src, nil
 }
@@ -114,10 +113,10 @@ func (s *WorldSource) Stamp(
 	}
 	for _, p := range drawn.cells {
 		if !s.bounds.Contains(p.cell) {
-			return Stamped{}, fmt.Errorf("stamp %q at %v: %w", piece, p.cell, ErrOutside)
+			return Stamped{}, fmt.Errorf("explore: stamp %q at %v: %w", piece, p.cell, ErrOutside)
 		}
 		if s.covered[p.cell] {
-			return Stamped{}, fmt.Errorf("stamp %q at %v: %w", piece, p.cell, ErrOverlap)
+			return Stamped{}, fmt.Errorf("explore: stamp %q at %v: %w", piece, p.cell, ErrOverlap)
 		}
 	}
 	s.add(piece, drawn)

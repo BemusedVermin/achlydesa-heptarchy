@@ -4,7 +4,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
 pieces: [string]: content.#PieceDef
 
-// Every piece so far is walled in packed clay round air, with "+" for its doors.
+// _#Piece draws "#" as packed clay, "." as air and "+" as a door.
 _#Piece: {
 	legend: {
 		"#": "terrain.packed_clay"

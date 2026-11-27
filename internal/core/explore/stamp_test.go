@@ -134,7 +134,8 @@ func TestAStampThatOverlapsOrLeavesTheWorldIsRefused(t *testing.T) {
 				t.Fatalf("Stamp = %v, want %v", err, test.want)
 			}
 			if len(src.Spawns()) != 1 || len(src.Landmarks()) != 1 || !slices.Equal(src.ChunkKeys(), covered) {
-				t.Errorf("a refused stamp left spawns %v, landmarks %v", src.Spawns(), src.Landmarks())
+				t.Errorf("a refused stamp left spawns %v, landmarks %v, chunks %v (before %v)",
+					src.Spawns(), src.Landmarks(), src.ChunkKeys(), covered)
 			}
 		})
 	}
