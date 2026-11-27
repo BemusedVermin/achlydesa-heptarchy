@@ -14,53 +14,61 @@ type placed struct {
 	terrain hexmap.Terrain
 }
 
-// layOut adds the authored cells of a place's layers, offset by its At, to authored, and reports each
-// mark, spawn, opening and landmark in row order.
-func layOut(
+// drawing is a place or a piece laid out in world cells, each list in the order the cells are drawn:
+// layers as authored, then rows and columns.
+type drawing struct {
+	cells     []placed
+	marks     map[string]api.Cell
+	spawns    []Spawn
+	openings  []api.Cell
+	doors     []api.Cell
+	landmarks []Landmark
+}
+
+// draw lays out a drawing, finding the world cell of each authored column, row and layer depth with cellOf.
+// Every mark is reported once in its own list: a plain mark by name, the rest by their kind.
+func draw(
 	reg *content.Registry,
-	def content.PlaceDef,
+	layout content.Layout,
 	open hexmap.Terrain,
-	authored map[hexmap.ChunkKey][]placed,
-	mark func(name string, cell api.Cell),
-	spawn func(Spawn),
-	opening func(api.Cell),
-	landmark func(Landmark),
-) error {
-	at := def.At
-	for _, layer := range def.Layers {
+	cellOf func(col, row, depth int) api.Cell,
+) (drawing, error) {
+	out := drawing{marks: map[string]api.Cell{}}
+	for _, layer := range layout.Layers {
 		for row, text := range layer.Rows {
 			for col, char := range []rune(text) {
 				if char == ' ' {
 					continue
 				}
-				cell := api.Cell{Hex: hexmap.FromOffsetOddR(at.Col+col, at.Row+row), Depth: at.Depth + layer.Depth}
+				cell := cellOf(col, row, layer.Depth)
 				t := open
-				if id, ok := def.Legend[string(char)]; ok {
+				if id, ok := layout.Legend[string(char)]; ok {
 					var err error
 					if t, err = Terrain(reg, id); err != nil {
-						return fmt.Errorf("legend %q: %w", string(char), err)
+						return drawing{}, fmt.Errorf("legend %q: %w", string(char), err)
 					}
-				} else if name, ok := def.Marks[string(char)]; ok {
-					gives, isLandmark := def.Affordances[string(char)]
-					switch template, spawns := def.Spawns[string(char)]; {
+				} else if name, ok := layout.Marks[string(char)]; ok {
+					gives, isLandmark := layout.Affordances[string(char)]
+					switch template, spawns := layout.Spawns[string(char)]; {
 					case spawns:
-						spawn(Spawn{Cell: cell, Template: template})
-					case slices.Contains(def.Openings, string(char)):
-						opening(cell)
+						out.spawns = append(out.spawns, Spawn{Cell: cell, Template: template})
+					case slices.Contains(layout.Openings, string(char)):
+						out.openings = append(out.openings, cell)
+					case slices.Contains(layout.Doors, string(char)):
+						out.doors = append(out.doors, cell)
 					case isLandmark:
-						landmark(Landmark{Cell: cell, Gives: gives})
+						out.landmarks = append(out.landmarks, Landmark{Cell: cell, Gives: gives})
 					default:
-						mark(name, cell)
+						out.marks[name] = cell
 					}
 				} else {
-					return fmt.Errorf("character %q is in neither the legend nor the marks", string(char))
+					return drawing{}, fmt.Errorf("character %q is in neither the legend nor the marks", string(char))
 				}
-				key := hexmap.KeyOf(cell)
-				authored[key] = append(authored[key], placed{cell: cell, terrain: t})
+				out.cells = append(out.cells, placed{cell: cell, terrain: t})
 			}
 		}
 	}
-	return nil
+	return out, nil
 }
 
 func filledChunk(key hexmap.ChunkKey, fill hexmap.Terrain, authored []placed) *hexmap.Chunk {
@@ -84,7 +92,7 @@ type Landmark struct {
 	Cell api.Cell
 	// Gives lists "affordance." IDs.
 	Gives []api.ContentID
-	// Place is the place ID the mark is in.
+	// Place is the place or piece ID the mark is in.
 	Place api.ContentID
 }
 

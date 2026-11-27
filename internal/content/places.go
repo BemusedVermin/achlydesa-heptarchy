@@ -21,6 +21,15 @@ func (r *Registry) Place(id api.ContentID) (PlaceDef, bool) {
 // PlaceIDs lists every place ID in sorted order.
 func (r *Registry) PlaceIDs() []api.ContentID { return sortedIDs(r.bundle.Places) }
 
+// Piece returns the piece with the given ID.
+func (r *Registry) Piece(id api.ContentID) (PieceDef, bool) {
+	def, ok := r.bundle.Pieces[string(id)]
+	return def, ok
+}
+
+// PieceIDs lists every piece ID in sorted order.
+func (r *Registry) PieceIDs() []api.ContentID { return sortedIDs(r.bundle.Pieces) }
+
 // Start returns the start scenario. Its Place is empty when the content has none.
 func (r *Registry) Start() Start { return r.bundle.Start }
 
@@ -62,7 +71,7 @@ func (r *Registry) checkWorld() []error {
 		if def.At.Row%2 != 0 {
 			p.addf("%s.at.row: %d is odd; a place must start on an even row", path, def.At.Row)
 		}
-		r.checkLayout(p, path, def)
+		r.checkLayout(p, path, def.Layout())
 		outside := false
 		overlaps := map[string]bool{}
 		for _, layer := range def.Layers {
@@ -94,8 +103,8 @@ func (r *Registry) checkWorld() []error {
 	return p.errs
 }
 
-// checkLayout checks the layers, legend, marks and spawns of a place.
-func (r *Registry) checkLayout(p *problems, path string, def PlaceDef) {
+// checkLayout checks the layers, legend and marks of a place or a piece.
+func (r *Registry) checkLayout(p *problems, path string, def Layout) {
 	checkTerrain := func(field string, id api.ContentID) {
 		ref(p, r.bundle.Terrains, path+"."+field, "terrain", id)
 	}
@@ -156,23 +165,30 @@ func (r *Registry) checkLayout(p *problems, path string, def PlaceDef) {
 			p.addf("%s.spawns[%q]: the character is in no layer", path, char)
 		}
 	}
-	for _, char := range def.Openings {
-		if _, ok := def.Marks[char]; !ok {
-			p.addf("%s.openings[%q]: not one of the marks", path, char)
+	exits := func(field string, chars []string) {
+		for _, char := range chars {
+			if _, ok := def.Marks[char]; !ok {
+				p.addf("%s.%s[%q]: not one of the marks", path, field, char)
+			}
+			if _, spawns := def.Spawns[char]; spawns {
+				p.addf("%s.%s[%q]: also a spawn", path, field, char)
+			}
+			if found[char] < 1 {
+				p.addf("%s.%s[%q]: the character is in no layer", path, field, char)
+			}
 		}
-		if _, spawns := def.Spawns[char]; spawns {
-			p.addf("%s.openings[%q]: also a spawn", path, char)
-		}
-		if found[char] < 1 {
-			p.addf("%s.openings[%q]: the character is in no layer", path, char)
-		}
+	}
+	exits("openings", def.Openings)
+	exits("doors", def.Doors)
+	repeats := func(char string) bool {
+		return slices.Contains(def.Openings, char) || slices.Contains(def.Doors, char)
 	}
 	for _, char := range sortedKeys(def.Affordances) {
 		if _, ok := def.Marks[char]; !ok {
 			p.addf("%s.affordances[%q]: not one of the marks", path, char)
 		}
-		if _, spawns := def.Spawns[char]; spawns || slices.Contains(def.Openings, char) {
-			p.addf("%s.affordances[%q]: also a spawn or an opening", path, char)
+		if _, spawns := def.Spawns[char]; spawns || repeats(char) {
+			p.addf("%s.affordances[%q]: also a spawn, an opening or a door", path, char)
 		}
 		if found[char] < 1 {
 			p.addf("%s.affordances[%q]: the character is in no layer", path, char)
@@ -181,13 +197,28 @@ func (r *Registry) checkLayout(p *problems, path string, def PlaceDef) {
 	for _, char := range sortedKeys(def.Marks) {
 		_, spawns := def.Spawns[char]
 		_, gives := def.Affordances[char]
-		if spawns || gives || slices.Contains(def.Openings, char) {
+		if spawns || gives || repeats(char) {
 			continue
 		}
 		if n := found[char]; n != 1 {
 			p.addf("%s.marks[%q]: mark %q must appear exactly once, found %d", path, char, def.Marks[char], n)
 		}
 	}
+}
+
+// checkPieces validates every piece's layout; each has at least one door, so it can be joined to a town.
+func (r *Registry) checkPieces() []error {
+	p := r.problems()
+	for _, key := range sortedKeys(r.bundle.Pieces) {
+		def := r.bundle.Pieces[key]
+		path := fmt.Sprintf("pieces[%q]", key)
+		p.text(path+".name", def.Name)
+		if len(def.Doors) == 0 {
+			p.addf("%s.doors: a piece needs at least one door", path)
+		}
+		r.checkLayout(p, path, def.Layout())
+	}
+	return p.errs
 }
 
 // checkStart validates the start scenario when the content has one.

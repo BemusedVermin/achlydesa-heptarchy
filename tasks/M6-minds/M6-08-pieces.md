@@ -1,7 +1,7 @@
 ---
 id: M6-08
 title: "Pieces: building blocks a town is laid out from"
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: [M6-07]

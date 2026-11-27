@@ -25,6 +25,9 @@ import (
 	// Places are the hand-made pieces of the world ("place." IDs).
 	places: {[string]: #PlaceDef} @go(Places,map[string]PlaceDef)
 
+	// Pieces are the building blocks towns are laid out from ("piece." IDs).
+	pieces?: {[string]: #PieceDef} @go(Pieces,map[string]PieceDef)
+
 	// Geographies are the kinds of generated ground ("geography." IDs).
 	geographies?: {[string]: #GeographyDef} @go(Geographies,map[string]GeographyDef)
 	start: #Start @go(Start)
@@ -595,6 +598,48 @@ import (
 	affordances?: {[string]: [...api.#ContentID]} @go(Affordances,map[string][]api.ContentID)
 }
 
+// PieceDef is a small building block a town is laid out from, such as a house or a well: drawn like a
+// place, but with no position of its own. It is stamped into the world at an offset and a rotation.
+#PieceDef: {
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+
+	// Layers are drawn with column 0, row 0 and depth 0 at the cell the piece is stamped at.
+	layers: [...#LayerDef] @go(Layers,[]LayerDef)
+
+	// Legend maps one character to a terrain ID.
+	legend: {[string]: api.#ContentID} @go(Legend,map[string]api.ContentID)
+
+	// Marks maps one character to a mark name, unique within the piece. A marked cell holds the world's
+	// Open terrain.
+	marks: {[string]: string} @go(Marks,map[string]string)
+
+	// Spawns maps a mark character to a template ("template." ID), as a place's do: a body, container or
+	// source of it starts at each such character.
+	spawns?: {[string]: api.#ContentID} @go(Spawns,map[string]api.ContentID)
+
+	// Affordances maps a mark character to what each cell holding it gives ("affordance." IDs), as a
+	// place's do.
+	affordances?: {[string]: [...api.#ContentID]} @go(Affordances,map[string][]api.ContentID)
+
+	// Doors lists mark characters that stand where the piece joins a street or another piece. The
+	// character may appear any number of times (at least once) and must be one of Marks and neither a
+	// spawn nor a landmark.
+	doors: [...string] @go(Doors,[]string)
+}
+
+// Layout is how a place or a piece is drawn, apart from where it stands. Openings belong to places and
+// Doors to pieces; the other is empty.
+#Layout: {
+	Layers: [...#LayerDef] @go(,[]LayerDef)
+	Legend: {[string]: api.#ContentID} @go(,map[string]api.ContentID)
+	Marks: {[string]: string} @go(,map[string]string)
+	Spawns: {[string]: api.#ContentID} @go(,map[string]api.ContentID)
+	Affordances: {[string]: [...api.#ContentID]} @go(,map[string][]api.ContentID)
+	Openings: [...string] @go(,[]string)
+	Doors: [...string] @go(,[]string)
+}
+
 // PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.
 #PlaceAt: {
 	col:   int @go(Col)
@@ -651,6 +696,7 @@ import (
 	#CollectionTemplates |
 	#CollectionActions |
 	#CollectionPlaces |
+	#CollectionPieces |
 	#CollectionParts |
 	#CollectionClaims |
 	#CollectionOrigins |
@@ -668,6 +714,7 @@ import (
 #CollectionTemplates:   #Collection & "templates"
 #CollectionActions:     #Collection & "actions"
 #CollectionPlaces:      #Collection & "places"
+#CollectionPieces:      #Collection & "pieces"
 #CollectionParts:       #Collection & "parts"
 #CollectionClaims:      #Collection & "claims"
 #CollectionOrigins:     #Collection & "origins"

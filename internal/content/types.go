@@ -19,6 +19,8 @@ type Bundle struct {
 	World     WorldDef             `json:"world"`
 	// Places are the hand-made pieces of the world ("place." IDs).
 	Places map[string]PlaceDef `json:"places"`
+	// Pieces are the building blocks towns are laid out from ("piece." IDs).
+	Pieces map[string]PieceDef `json:"pieces,omitempty"`
 	// Geographies are the kinds of generated ground ("geography." IDs).
 	Geographies map[string]GeographyDef `json:"geographies,omitempty"`
 	Start       Start                   `json:"start"`
@@ -492,6 +494,58 @@ type PlaceDef struct {
 	Affordances map[string][]api.ContentID `json:"affordances,omitempty"`
 }
 
+// PieceDef is a small building block a town is laid out from, such as a house or a well: drawn like a
+// place, but with no position of its own. It is stamped into the world at an offset and a rotation.
+type PieceDef struct {
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+	// Layers are drawn with column 0, row 0 and depth 0 at the cell the piece is stamped at.
+	Layers []LayerDef `json:"layers"`
+	// Legend maps one character to a terrain ID.
+	Legend map[string]api.ContentID `json:"legend"`
+	// Marks maps one character to a mark name, unique within the piece. A marked cell holds the world's
+	// Open terrain.
+	Marks map[string]string `json:"marks"`
+	// Spawns maps a mark character to a template ("template." ID), as a place's do: a body, container or
+	// source of it starts at each such character.
+	Spawns map[string]api.ContentID `json:"spawns,omitempty"`
+	// Affordances maps a mark character to what each cell holding it gives ("affordance." IDs), as a
+	// place's do.
+	Affordances map[string][]api.ContentID `json:"affordances,omitempty"`
+	// Doors lists mark characters that stand where the piece joins a street or another piece. The
+	// character may appear any number of times (at least once) and must be one of Marks and neither a
+	// spawn nor a landmark.
+	Doors []string `json:"doors"`
+}
+
+// Layout is how a place or a piece is drawn, apart from where it stands. Openings belong to places and
+// Doors to pieces; the other is empty.
+type Layout struct {
+	Layers      []LayerDef
+	Legend      map[string]api.ContentID
+	Marks       map[string]string
+	Spawns      map[string]api.ContentID
+	Affordances map[string][]api.ContentID
+	Openings    []string
+	Doors       []string
+}
+
+// Layout returns the place's drawing. Its maps and slices are shared: don't change them.
+func (d PlaceDef) Layout() Layout {
+	return Layout{
+		Layers: d.Layers, Legend: d.Legend, Marks: d.Marks, Spawns: d.Spawns,
+		Affordances: d.Affordances, Openings: d.Openings,
+	}
+}
+
+// Layout returns the piece's drawing. Its maps and slices are shared: don't change them.
+func (d PieceDef) Layout() Layout {
+	return Layout{
+		Layers: d.Layers, Legend: d.Legend, Marks: d.Marks, Spawns: d.Spawns,
+		Affordances: d.Affordances, Doors: d.Doors,
+	}
+}
+
 // PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.
 type PlaceAt struct {
 	Col   int `json:"col"`
@@ -544,6 +598,7 @@ const (
 	CollectionTemplates   Collection = "templates"
 	CollectionActions     Collection = "actions"
 	CollectionPlaces      Collection = "places"
+	CollectionPieces      Collection = "pieces"
 	CollectionParts       Collection = "parts"
 	CollectionClaims      Collection = "claims"
 	CollectionOrigins     Collection = "origins"
