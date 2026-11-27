@@ -254,7 +254,9 @@ func Start(w *sim.World) error {
 	for _, landmark := range src.Landmarks() {
 		mark := w.NewIdentified(landmark.Place)
 		ecs.NewMap[comp.Pos](w.ECS).Add(mark, &comp.Pos{At: landmark.Cell})
-		ecs.NewMap[comp.Affordance](w.ECS).Add(mark, &comp.Affordance{Tags: slices.Sorted(slices.Values(landmark.Gives))})
+		ecs.NewMap[comp.Affordance](
+			w.ECS,
+		).Add(mark, &comp.Affordance{Tags: slices.Sorted(slices.Values(landmark.Gives))})
 	}
 	return populateLoaded(w)
 }
