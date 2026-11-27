@@ -12,7 +12,8 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | --- | --- |
 | `materials.cue` | `materials`: what parts are made of, their weaknesses and immunities |
 | `terrains.cue` | `terrains`: what one cell of the world is made of |
-| `templates.cue` | `templates`: people, creatures, crawling parts, test bodies, the party, and sources and containers. A container is any template with an `inventory` and a place to stand; `container: true` makes one that has an inventory from the moment it spawns, even with nothing in it; a `source` (`item`, `max`, and a `refill` formula over `stock` and `max`) starts full and gets back `refill` of its item at each phase boundary, never above `max` |
+| `templates.cue` | `templates`: people, creatures, crawling parts, test bodies, the party, and sources and containers. A container is any template with an `inventory` and a place to stand; `container: true` makes one that has an inventory from the moment it spawns, even with nothing in it; a `source` (`item`, `max`, and a `refill` formula over `stock` and `max`) starts full and gets back `refill` of its item at each phase boundary, never above `max`. A template's `affordances` (`affordance.` IDs) make each entity of it a landmark from the moment it spawns, as a well gives water; a body's `combat.body_died` trigger with the `afford` effect makes its corpse one |
+| `affordances.cue` | `affordances`: what a landmark can give (water, rest, worship, the dead). Agents record what each landmark they see gives |
 | `bodies.cue` | `parts` (part templates) and `bodies` (body plans) |
 | `forms.cue` | the seven forms, as `actions` tagged `form` |
 | `actions.cue` | the other `actions`, such as `action.step` |
@@ -21,10 +22,10 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
 | `drives.cue` | `drives`: needs and desires (see Drives below), and `agents`: the numbers every agent shares |
-| `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from); the `knowledge` config (how many facts a knower outside the party keeps) and the `agents` config (how far an agent sees, and which claims it records of what it sees) |
+| `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from); the `knowledge` config (how many facts a knower outside the party keeps) and the `agents` config (how far an agent sees, and which claims it records of what it sees: where bodies and landmarks are, which are dead, what each landmark gives, and how decayed the ground is (`ground_claim`, from the world geography's decay level, for the cell an agent stands in and the nearest open cell it sees at each other level)) |
 | `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque), the `open` terrain of a marked cell and the `geography` that generates the cells no place covers |
 | `geography.cue` | `geographies`: kinds of generated ground. A geography lists its `stages` in order, each a registered stage's name (`stage`) and its numbers (`params`). Worldgen checks that every stage is registered and takes its params. Fixed cells always keep what their place authors. Its `spawns` list what starts on the generated ground: each entry names a `template`, a `weight`, a depth band (`min_depth`, `max_depth`) and a `density`. A cell that is open with solid ground below, inside the band and outside every place, draws once: an entry takes the share weight x density / (sum of the applying weights), and the rest of the draw is no body. A chunk is populated once, the first time it loads for an export count |
-| `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks`, `spawns` and `openings`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
+| `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks`, `spawns`, `openings` and `affordances`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
 | `start.cue` | `start`: the place and mark a new game begins at, and the party template |
 | `rules.cue` | `rules`: named formulas |
 | `choices.cue` | `choices`: what an action can ask the player to pick |
@@ -58,6 +59,7 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `items` | `item.` | `item.lake_water` |
 | `factions` | `faction.` | `faction.wild` |
 | `statuses` | `status.` | `status.standing` |
+| `affordances` | `affordance.` | `affordance.water` |
 
 The day's phases in `calendar.cue` have IDs too (`phase.dawn`), and are named `text.<phase id>` like any record.
 
@@ -213,6 +215,7 @@ Give it `crawls_as: "template.crawling.<name>"` to have it fight on as a crawlin
 4. Draw one or more `layers`, each a `depth` (relative to `at.depth`) and `rows`: one character per cell, in odd-r offset layout (odd rows are shifted half a hex right). A space leaves the fill.
 5. Name the special characters in `marks`; a mark name is unique within its place. Put a mark's character in `spawns` with a template ID to spawn a body of it at every such cell. A mark with no spawn must appear exactly once in the layers; a spawn's character must also be a mark, and may appear any number of times.
    To open the place onto the generated deep, list a mark's character in `openings`: worldgen carves a tunnel out of every such cell (the `join` stage in `geography.cue`). Like a spawn, it may appear any number of times, and it needs a neighbor outside the places. Nothing else makes a tunnel, so a place with no `openings` stays closed, and a wall-less edge is not an opening.
+   To make marked cells landmarks with no body, such as a graveyard's ground, map a mark's character in `affordances` to the `affordance.` IDs each such cell gives. Like a spawn, it may appear any number of times; it must not also be a spawn or an opening.
 6. Add the name to the file's `text:` block.
 
 To play it, point `start.place` and `start.mark` in `start.cue` at it for the session, and put them back before you commit unless the change is meant. Nothing joins the places yet, so a party started in one stays there.

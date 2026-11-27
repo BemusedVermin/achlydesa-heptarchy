@@ -20,6 +20,7 @@ type WorldSource struct {
 	places     []hexmap.Footprint
 	marks      map[placeMark]api.Cell
 	spawns     []Spawn
+	landmarks  []Landmark
 }
 
 type placeMark struct {
@@ -58,7 +59,11 @@ func NewWorldSource(reg *content.Registry) (*WorldSource, error) {
 		err := layOut(reg, def, open, own, func(name string, cell api.Cell) {
 			src.marks[placeMark{place: id, name: name}] = cell
 		}, func(spawn Spawn) { src.spawns = append(src.spawns, spawn) },
-			func(cell api.Cell) { footprint.Openings = append(footprint.Openings, cell) })
+			func(cell api.Cell) { footprint.Openings = append(footprint.Openings, cell) },
+			func(landmark Landmark) {
+				landmark.Place = id
+				src.landmarks = append(src.landmarks, landmark)
+			})
 		if err != nil {
 			return nil, fmt.Errorf("place %q: %w", id, err)
 		}
@@ -101,6 +106,9 @@ func (s *WorldSource) Mark(place api.ContentID, name string) (api.Cell, bool) {
 
 // Spawns lists every place's spawn marks: places in ID order, then layers as authored, rows and columns.
 func (s *WorldSource) Spawns() []Spawn { return slices.Clone(s.spawns) }
+
+// Landmarks lists every place's landmark marks, in the order of [WorldSource.Spawns].
+func (s *WorldSource) Landmarks() []Landmark { return slices.Clone(s.landmarks) }
 
 // ChunkKeys lists the chunks any place covers, sorted by [hexmap.CompareKeys].
 func (s *WorldSource) ChunkKeys() []hexmap.ChunkKey {

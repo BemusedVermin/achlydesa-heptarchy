@@ -29,3 +29,10 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	// Refill is the template ("template." ID) whose source.refill formula sets the rate.
 	refill: api.#ContentID @go(Refill)
 }
+
+// Affordance makes an entity a landmark: what it gives, as "affordance." IDs in ID order, such as a
+// well's water or a corpse's dead. Any entity with a position can carry one: a body, an item or a place
+// mark.
+#Affordance: {
+	tags: [...api.#ContentID] @go(Tags,[]api.ContentID)
+}

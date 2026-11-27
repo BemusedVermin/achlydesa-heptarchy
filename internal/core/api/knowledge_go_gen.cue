@@ -9,9 +9,13 @@ package api
 
 // Fact is one thing a knower holds to be true about a subject.
 #Fact: {
-	// Who or what the fact is about
-	subject: #UID       @go(Subject)
-	claim:   #ContentID @go(Claim)
+	// Who or what the fact is about; 0 for a fact about a cell
+	subject: #UID @go(Subject)
+
+	// Cell is the cell a fact about a place is about, such as how decayed its ground is. Facts about
+	// different cells are different facts.
+	cell?: null | #Cell @go(Cell,*Cell)
+	claim: #ContentID   @go(Claim)
 
 	// E.g. "material.clay"
 	value:  string     @go(Value)

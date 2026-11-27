@@ -57,6 +57,9 @@ import (
 
 	// Drives are the needs and desires bodies carry ("drive." IDs).
 	drives?: {[string]: #Drive} @go(Drives,map[string]Drive)
+
+	// Affordances are what a landmark can give ("affordance." IDs), such as water or the dead.
+	affordances?: {[string]: #Affordance} @go(Affordances,map[string]Affordance)
 }
 
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
@@ -146,6 +149,14 @@ import (
 // ValueText is a text ID, shown rendered.
 #ValueText: #ValueKind & "text"
 
+// Affordance is something a landmark gives, which an agent plans toward when a goal needs it.
+#Affordance: {
+	#Data
+
+	// Name is a text ID.
+	name: api.#ContentID @go(Name)
+}
+
 // Origin is where a fact came from, such as a sweep.
 #Origin: {
 	// Name is a text ID.
@@ -178,6 +189,15 @@ import (
 	// it the agent is, from 0 to 1.
 	seen_origin?:    api.#ContentID @go(SeenOrigin)
 	seen_confidence: float64        @go(SeenConfidence)
+
+	// GivesClaim is the claim an agent records for what a landmark it sees gives, its value the
+	// affordance IDs joined by commas; where the landmark is goes under AtClaim. Empty records neither.
+	gives_claim?: api.#ContentID @go(GivesClaim)
+
+	// GroundClaim is the claim an agent records for how decayed the ground is at a cell, its value the
+	// world geography's decay level there: for the cell it stands in, and for the nearest open cell it
+	// sees at each other level. Empty records none.
+	ground_claim?: api.#ContentID @go(GroundClaim)
 }
 
 // Material is a substance things are made of.
@@ -345,6 +365,10 @@ import (
 	// Drives maps each drive ID a body of this template carries to its typical weight, which each
 	// individual's own weight is drawn around.
 	drives?: {[string]: float64} @go(Drives,map[string]float64)
+
+	// Affordances are what an entity of this template gives from the moment it spawns, as
+	// "affordance." IDs, which makes it a landmark.
+	affordances?: [...api.#ContentID] @go(Affordances,[]api.ContentID)
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.
@@ -564,6 +588,11 @@ import (
 	// carves a tunnel from each such cell. The character may appear any number of times (at least once)
 	// and must be one of Marks and not one of Spawns.
 	openings?: [...string] @go(Openings,[]string)
+
+	// Affordances maps a mark character to what each cell holding it gives ("affordance." IDs), such
+	// as a graveyard's dead: the cell is a landmark with no body. The character may appear any number of
+	// times (at least once) and must be one of Marks and neither a spawn nor an opening.
+	affordances?: {[string]: [...api.#ContentID]} @go(Affordances,map[string][]api.ContentID)
 }
 
 // PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.
@@ -630,23 +659,25 @@ import (
 	#CollectionItems |
 	#CollectionFactions |
 	#CollectionStatuses |
-	#CollectionDrives
+	#CollectionDrives |
+	#CollectionAffordances
 
-#CollectionMaterials: #Collection & "materials"
-#CollectionTerrains:  #Collection & "terrains"
-#CollectionText:      #Collection & "text"
-#CollectionTemplates: #Collection & "templates"
-#CollectionActions:   #Collection & "actions"
-#CollectionPlaces:    #Collection & "places"
-#CollectionParts:     #Collection & "parts"
-#CollectionClaims:    #Collection & "claims"
-#CollectionOrigins:   #Collection & "origins"
-#CollectionBodies:    #Collection & "bodies"
-#CollectionTypes:     #Collection & "types"
-#CollectionItems:     #Collection & "items"
-#CollectionFactions:  #Collection & "factions"
-#CollectionStatuses:  #Collection & "statuses"
-#CollectionDrives:    #Collection & "drives"
+#CollectionMaterials:   #Collection & "materials"
+#CollectionTerrains:    #Collection & "terrains"
+#CollectionText:        #Collection & "text"
+#CollectionTemplates:   #Collection & "templates"
+#CollectionActions:     #Collection & "actions"
+#CollectionPlaces:      #Collection & "places"
+#CollectionParts:       #Collection & "parts"
+#CollectionClaims:      #Collection & "claims"
+#CollectionOrigins:     #Collection & "origins"
+#CollectionBodies:      #Collection & "bodies"
+#CollectionTypes:       #Collection & "types"
+#CollectionItems:       #Collection & "items"
+#CollectionFactions:    #Collection & "factions"
+#CollectionStatuses:    #Collection & "statuses"
+#CollectionDrives:      #Collection & "drives"
+#CollectionAffordances: #Collection & "affordances"
 
 // TargetKind is what an action targets.
 #TargetKind: #enumTargetKind

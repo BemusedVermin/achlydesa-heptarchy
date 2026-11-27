@@ -230,7 +230,7 @@ func setGraph(w *sim.World, cells hexmap.Source, src *WorldSource) {
 }
 
 // Start builds the world and, when the content has a start scenario, spawns the start party on its
-// mark, then every place's spawns. game.New calls it once, after Install.
+// mark, then every place's spawns and landmark marks. game.New calls it once, after Install.
 func Start(w *sim.World) error {
 	src, err := buildWorld(w, Pocket{})
 	if err != nil || src == nil {
@@ -250,6 +250,11 @@ func Start(w *sim.World) error {
 		if _, err := w.Spawn(spawn.Template, &comp.Pos{At: spawn.Cell}); err != nil {
 			return fmt.Errorf("explore: start: spawn %q at %v: %w", spawn.Template, spawn.Cell, err)
 		}
+	}
+	for _, landmark := range src.Landmarks() {
+		mark := w.NewIdentified(landmark.Place)
+		ecs.NewMap[comp.Pos](w.ECS).Add(mark, &comp.Pos{At: landmark.Cell})
+		ecs.NewMap[comp.Affordance](w.ECS).Add(mark, &comp.Affordance{Tags: slices.Sorted(slices.Values(landmark.Gives))})
 	}
 	return populateLoaded(w)
 }

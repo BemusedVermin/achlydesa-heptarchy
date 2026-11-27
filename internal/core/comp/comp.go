@@ -135,7 +135,7 @@ type SeenChunk struct {
 	Bits []uint64 `json:"bits"`
 }
 
-// Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge
+// Knowledge is a knower's facts, kept sorted by (Subject, Cell, Claim, Source). Use the knowledge
 // package's Learn, Forget, About and Best rather than changing the slice.
 type Knowledge struct {
 	Facts []api.Fact `json:"facts"`
@@ -248,4 +248,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Delegate](world)
 	ecs.ComponentID[Source](world)
 	ecs.ComponentID[Drives](world)
+	ecs.ComponentID[Affordance](world)
 }

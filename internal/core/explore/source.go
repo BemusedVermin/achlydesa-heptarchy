@@ -15,7 +15,7 @@ type placed struct {
 }
 
 // layOut adds the authored cells of a place's layers, offset by its At, to authored, and reports each
-// mark and spawn in row order.
+// mark, spawn, opening and landmark in row order.
 func layOut(
 	reg *content.Registry,
 	def content.PlaceDef,
@@ -24,6 +24,7 @@ func layOut(
 	mark func(name string, cell api.Cell),
 	spawn func(Spawn),
 	opening func(api.Cell),
+	landmark func(Landmark),
 ) error {
 	at := def.At
 	for _, layer := range def.Layers {
@@ -40,11 +41,15 @@ func layOut(
 						return fmt.Errorf("legend %q: %w", string(char), err)
 					}
 				} else if name, ok := def.Marks[string(char)]; ok {
-					if template, spawns := def.Spawns[string(char)]; spawns {
+					gives, isLandmark := def.Affordances[string(char)]
+					switch template, spawns := def.Spawns[string(char)]; {
+					case spawns:
 						spawn(Spawn{Cell: cell, Template: template})
-					} else if slices.Contains(def.Openings, string(char)) {
+					case slices.Contains(def.Openings, string(char)):
 						opening(cell)
-					} else {
+					case isLandmark:
+						landmark(Landmark{Cell: cell, Gives: gives})
+					default:
 						mark(name, cell)
 					}
 				} else {
@@ -71,6 +76,16 @@ func filledChunk(key hexmap.ChunkKey, fill hexmap.Terrain, authored []placed) *h
 type Spawn struct {
 	Cell     api.Cell
 	Template api.ContentID
+}
+
+// Landmark is a marked cell of a place that gives something, with no body of its own, such as a
+// graveyard's ground.
+type Landmark struct {
+	Cell api.Cell
+	// Gives lists "affordance." IDs.
+	Gives []api.ContentID
+	// Place is the place ID the mark is in.
+	Place api.ContentID
 }
 
 // Terrain resolves a terrain content ID to the cell terrain it stands for.
