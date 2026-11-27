@@ -176,7 +176,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | --- | --- | --- | --- | --- | --- |
 | [M5-07.F1.F1](followups/M5-07.F1.F1-verify-large-world-start.md) | Make verify fast enough to run on the large world at game start | todo | debt | M5 | M5-07.F1 |
 | [M5-07.F1](followups/M5-07.F1-verify-chunk-summaries.md) | Verify from chunk summaries, not the whole ground | done | debt | M5 | M5-07 |
-| [M5-10.F2](followups/M5-10.F2-sealed-pocket.md) | Give a sealed pocket a way out | proposed | question | M5 | M5-10 |
+| [M5-10.F2](followups/M5-10.F2-sealed-pocket.md) | Give a sealed pocket a way out | todo | question | M5 | M5-10 |
 | [M5-10.F1](followups/M5-10.F1-save-the-pocket.md) | Save the pocket and the export count's source across a load | todo | bug | M5 | M5-10 |
 | [M5-05.F1](followups/M5-05.F1-wall-less-place-edges.md) | Stop wall-less place layers from sprouting a tunnel per cell | done | question | M5 | M5-05 |
 | [M5-09.F1](followups/M5-09.F1-flaky-watch-burst-test.md) | Stop TestWatchOneCallbackPerBurst flaking on a loaded CI runner | done | test | M5 | M5-09 |
