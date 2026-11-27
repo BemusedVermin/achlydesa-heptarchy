@@ -31,6 +31,9 @@ func Install(w *sim.World) error {
 	if err := installLandmarks(w); err != nil {
 		return err
 	}
+	if err := installMovement(w); err != nil {
+		return err
+	}
 	if err := installMind(w); err != nil {
 		return err
 	}

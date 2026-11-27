@@ -53,6 +53,13 @@ type Picker interface {
 	Pick(w *sim.World, body ecs.Entity, step Step) (actions.Intent, bool, error)
 }
 
+// Finisher is a picker for a step that takes many actions: the step repeats until Finished says it
+// is done, then the plan moves on.
+type Finisher interface {
+	Picker
+	Finished(w *sim.World, body ecs.Entity, step Step) bool
+}
+
 type selfPicker struct{}
 
 func (selfPicker) Pick(_ *sim.World, body ecs.Entity, _ Step) (actions.Intent, bool, error) {
@@ -318,7 +325,11 @@ func stockOf(w *sim.World, thing ecs.Entity, item api.ContentID) int {
 // startStep starts the plan's next step as a timeline action, and reports false when it cannot: a
 // belief the step needs is contradicted, the picker finds nothing to aim at, or the action is refused.
 func startStep(w *sim.World, body ecs.Entity) (bool, error) {
+	skipFinished(w, body)
 	mind := *ecs.NewMap[comp.Mind](w.ECS).Get(body)
+	if mind.Step >= len(mind.Plan.Steps) {
+		return false, nil
+	}
 	step := mind.Plan.Steps[mind.Step]
 	op, ok := w.Content.Operator(step.Operator)
 	if !ok {
@@ -343,6 +354,25 @@ func startStep(w *sim.World, body ecs.Entity) (bool, error) {
 	if err := actions.Start(w, intent); err != nil {
 		return false, err
 	}
-	ecs.NewMap[comp.Mind](w.ECS).Get(body).Step++
+	if _, repeats := picker.(Finisher); !repeats {
+		ecs.NewMap[comp.Mind](w.ECS).Get(body).Step++
+	}
 	return true, nil
+}
+
+// skipFinished moves the body past the steps whose picker says they are done.
+func skipFinished(w *sim.World, body ecs.Entity) {
+	mind := ecs.NewMap[comp.Mind](w.ECS).Get(body)
+	for mind.Step < len(mind.Plan.Steps) {
+		step := mind.Plan.Steps[mind.Step]
+		op, ok := w.Content.Operator(step.Operator)
+		if !ok {
+			return
+		}
+		finisher, ok := mindsOf(w).pickers[op.Does.Target].(Finisher)
+		if !ok || !finisher.Finished(w, body, step) {
+			return
+		}
+		mind.Step++
+	}
 }

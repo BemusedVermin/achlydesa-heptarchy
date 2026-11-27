@@ -1,7 +1,7 @@
 ---
 id: M6-12
 title: "Movement actions: go to, and wander"
-status: todo
+status: done
 milestone: M6
 kind: feature
 depends_on: [M6-11]
@@ -35,8 +35,8 @@ An agent can go to a place it believes in, and with nothing known can pick a pat
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -44,3 +44,10 @@ An agent can go to a place it believes in, and with nothing known can pick a pat
 
 ## Notes
 
+
+- Pickers `go_to` and `wander` are in `internal/core/agents/movement.go`. A step the picker can take many actions for needs a new optional `agents.Finisher` interface (in `mind.go`): the mind controller repeats the step until `Finished` is true, then moves on. `go_to` finishes on the target cell, or within `agents.near_radius` of a landmark target.
+- `go_to` routes by the true map (A* over loaded cells), pricing cells held by other bodies at 1000, and falls back to a plain route. An unreachable target fails the step, which drops the plan.
+- `wander` avoids the cell it just left using `comp.Trail`, which `wander` adds to the body; the step effect keeps it current. This replaces the suggested `claim.visited` (less machinery, one cell of memory). Draws come from `agents.wander` derived per UID and tick.
+- `operator.go_to` and `operator.wander` are written for `affordance.water` only (the one need so far); more operators are added as goals need them.
+- Test worlds set `w.Map` in `Spawn`, because the game replaces a map set in `Install`.
+- `docs/content-guide.md` now lists the two pickers.
