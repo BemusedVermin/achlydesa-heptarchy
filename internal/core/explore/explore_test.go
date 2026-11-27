@@ -183,8 +183,14 @@ func TestWalkingTheSlopeGoesDownFourDepthsWithNoGap(t *testing.T) {
 				t.Errorf("after %d steps down: no cell drawn at slope hex %v", depth, h)
 				continue
 			}
-			if want := q - start.At.Hex.Q - 6 - depth; c.Visible && (c.Glyph != "." || c.Below != want) {
-				t.Errorf("after %d steps down: hex %v = %+v, want a floor glyph at Below %d", depth, h, c, want)
+			if want := q - start.At.Hex.Q - 6 - depth; c.Visible && !drawnRight(c, want) {
+				t.Errorf(
+					"after %d steps down: hex %v = %+v, want the height glyph and weight at Below %d",
+					depth,
+					h,
+					c,
+					want,
+				)
 			}
 		}
 		if c, _ := cellAt(view.Map, center); c.Below != 0 || c.Glyph != "." {
@@ -206,8 +212,8 @@ func checkSlopeIsFloor(t *testing.T, fx *fixture, openingQ, row, leaderDepth int
 			t.Errorf("%s: no cell drawn at slope hex %v", when, h)
 			continue
 		}
-		if want := k - leaderDepth; c.Glyph != "." || c.Below != want {
-			t.Errorf("%s: hex %v = %+v, want a floor glyph at Below %d", when, h, c, want)
+		if want := k - leaderDepth; !drawnRight(c, want) {
+			t.Errorf("%s: hex %v = %+v, want the height glyph and weight at Below %d", when, h, c, want)
 		}
 	}
 }
@@ -250,7 +256,7 @@ func TestTheRangeCapLeavesFarSlopeFloorToTheWalls(t *testing.T) {
 		}
 		return c
 	}
-	if c := farSlope(12); c.Glyph != "." || c.Below != 4 {
+	if c := farSlope(12); c.Glyph != "v" || c.Below != 4 {
 		t.Errorf("within range: %+v, want the slope's floor at Below 4", c)
 	}
 	if c := farSlope(2); c.Glyph != "#" {

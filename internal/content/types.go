@@ -354,6 +354,19 @@ type PartyDef struct {
 	Members []api.ContentID `json:"members"`
 }
 
+// PlanGlyphs are the plan view's glyphs for open cells higher and lower than the party.
+type PlanGlyphs struct {
+	Up   string `json:"up"`
+	Down string `json:"down"`
+}
+
+// PlanRise gives the cut-offs, in cells above the party, at which a cell draws at normal weight
+// and at bold weight; a smaller rise draws dim.
+type PlanRise struct {
+	Normal int `json:"normal"`
+	Bold   int `json:"bold"`
+}
+
 // PartyConfig holds the numbers every party shares.
 type PartyConfig struct {
 	// Slots is how many fighters fight at a time.
@@ -363,10 +376,14 @@ type PartyConfig struct {
 	// SightDepth is how many cells up and down the party sees.
 	SightDepth int `json:"sight_depth"`
 	// PlanRange is how many steps of walking from the focus the plan view draws reachable floor.
-	PlanRange   int `json:"plan_range"`
-	MaxStepUp   int `json:"max_step_up"`
-	MaxStepDown int `json:"max_step_down"`
-	MaxDrop     int `json:"max_drop"`
+	PlanRange int `json:"plan_range"`
+	// PlanGlyphs are the glyphs the plan view draws for open cells above and below the party.
+	PlanGlyphs PlanGlyphs `json:"plan_glyphs"`
+	// PlanRise sets how bold a cell above the party draws.
+	PlanRise    PlanRise `json:"plan_rise"`
+	MaxStepUp   int      `json:"max_step_up"`
+	MaxStepDown int      `json:"max_step_down"`
+	MaxDrop     int      `json:"max_drop"`
 	// ClimbCost is an Expr with SpeedEnv: ticks added to each step up, on top of the timeline's
 	// step_ticks. Climbing costs more than descending on purpose. Empty means no extra cost.
 	ClimbCost string `json:"climb_cost,omitempty"`

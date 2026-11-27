@@ -52,18 +52,15 @@ func mix(c, to rgb, t float64) rgb {
 	return rgb{c.r + (to.r-c.r)*t, c.g + (to.g-c.g)*t, c.b + (to.b-c.b)*t}
 }
 
-// shade darkens a color and turns it toward blue for each cell lower than the party, and lightens
-// it and turns it toward amber for each cell higher, out to maxShade. It dims the color further
-// when it is only remembered.
+// shade turns a color toward blue for each cell lower than the party, and toward amber for each
+// cell higher, out to maxShade, where it is the full hue. A level cell keeps its color. It dims the
+// color when it is only remembered.
 func shade(c rgb, below int, remembered bool) rgb {
-	below = max(-maxShade, min(maxShade, below))
 	switch {
 	case below > 0:
-		f := 1 - 0.06*float64(below)
-		c = mix(rgb{c.r * f, c.g * f, c.b * f}, hueBelow, 0.07*float64(below))
+		c = mix(c, hueBelow, float64(min(below, maxShade))/maxShade)
 	case below < 0:
-		t := 0.04 * float64(-below)
-		c = mix(rgb{c.r + (255-c.r)*t, c.g + (255-c.g)*t, c.b + (255-c.b)*t}, hueAbove, 0.07*float64(-below))
+		c = mix(c, hueAbove, float64(min(-below, maxShade))/maxShade)
 	}
 	if remembered {
 		c = rgb{c.r * 0.45, c.g * 0.45, c.b * 0.45}
@@ -81,6 +78,16 @@ func paint(text string, c rgb, below int, remembered, bold bool) string {
 	return style.Render(text)
 }
 
+// paintCell draws a map cell: red and unshaded when unreachable, otherwise shaded, at its weight.
+func paintCell(d drawn) string {
+	ink := shade(d.color, d.below, d.remembered)
+	if d.unreachable {
+		ink = lookupColor("red")
+	}
+	style := lipgloss.NewStyle().Foreground(ink.color()).Bold(d.bold || d.weight > 0).Faint(d.weight < 0)
+	return style.Render(d.glyph)
+}
+
 // glyphOf is the first character of a content glyph, or a space.
 func glyphOf(s string) string {
 	for _, r := range s {
@@ -91,17 +98,19 @@ func glyphOf(s string) string {
 
 // drawn is one grid position of the map.
 type drawn struct {
-	glyph      string
-	color      rgb
-	below      int
-	remembered bool
-	bold       bool
-	mark       mark
+	glyph       string
+	color       rgb
+	below       int
+	remembered  bool
+	bold        bool
+	weight      int
+	unreachable bool
+	mark        mark
 }
 
 // RenderMap draws the plan view in double-width layout: hex (q, r) is at column 2q+r, row r. The
 // result is exactly height lines of width columns. When the map is larger than the pane it is
-// scrolled to center on the party. Depth shows only as shading relative to the party.
+// scrolled to center on the party. Height shows as a glyph, a tint and a weight relative to the party; red marks floor out of reach.
 func RenderMap(m *api.MapView, party *api.PartyView, width, height int) string {
 	return RenderMapOverlay(m, party, MapOverlay{}, width, height)
 }
@@ -133,6 +142,9 @@ func RenderMapOverlay(m *api.MapView, party *api.PartyView, overlay MapOverlay, 
 				color:      lookupColor(cell.Color),
 				below:      cell.Below,
 				remembered: !cell.Visible,
+				weight:     cell.Weight,
+				// Red is for what is in view now.
+				unreachable: cell.Unreachable && cell.Visible,
 			}
 			if overlay.Heights && cell.Visible && !cell.Wall {
 				d.glyph = heightGlyph(cell.Below)
@@ -208,7 +220,7 @@ func RenderMapOverlay(m *api.MapView, party *api.PartyView, overlay MapOverlay, 
 		var line strings.Builder
 		for x := range width {
 			if d, ok := grid[[2]int{originCol + x, originRow + y}]; ok {
-				line.WriteString(d.mark.apply(paint(d.glyph, d.color, d.below, d.remembered, d.bold)))
+				line.WriteString(d.mark.apply(paintCell(d)))
 			} else {
 				line.WriteByte(' ')
 			}

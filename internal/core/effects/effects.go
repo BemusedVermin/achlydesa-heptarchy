@@ -78,6 +78,9 @@ type Primitive struct {
 	Apply         func(ctx *Context, p Params) error
 	// Check, when set, says whether the effect could apply now, and why not. It must not change the world.
 	Check func(ctx *Context, p Params) (ok bool, reason api.Text)
+	// Confirm, when set, returns the question to ask the player before the effect applies, or an
+	// empty text when it needs none. It must not change the world.
+	Confirm func(ctx *Context, p Params) api.Text
 }
 
 // Params gives a primitive its parameters, evaluated against the context.
@@ -229,6 +232,24 @@ func Check(ctx *Context, refs []content.EffectRef) (bool, api.Text) {
 	return true, api.Text{}
 }
 
+// Confirm returns the first question an effect asks before it applies, or an empty text.
+func Confirm(ctx *Context, refs []content.EffectRef) api.Text {
+	st := stateOf(ctx.World)
+	for _, ref := range refs {
+		prim, ok := st.primitives[ref.Do]
+		if !ok || prim.Confirm == nil {
+			continue
+		}
+		if question := prim.Confirm(
+			ctx,
+			&params{ctx: ctx, st: st, prim: prim, raw: ref.Params, checking: true},
+		); question.ID != "" {
+			return question
+		}
+	}
+	return api.Text{}
+}
+
 // Validate checks effect references against the registered primitives: unknown primitives, unknown
 // or missing parameters, formulas that do not compile and malformed selectors. Every problem is
 // reported, each naming path.
@@ -309,7 +330,7 @@ func validateFormula(reg *content.Registry, prim Primitive, src string, option e
 	if _, err := reg.Compile(src, content.EffectEnv{}, options...); err != nil {
 		return err
 	}
-	if prim.Check == nil {
+	if prim.Check == nil && prim.Confirm == nil {
 		return nil
 	}
 	reads, err := reg.ReadsVariable(src, "roll")

@@ -252,3 +252,29 @@ func (p *tickPopup) View(app *App) string {
 	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1).Render(strings.Join(lines, "\n"))
 	return lipgloss.Place(app.Width, app.Height, lipgloss.Center, lipgloss.Center, box)
 }
+
+// confirmPopup asks an option's question; y or enter sends the option, n or esc sends nothing.
+type confirmPopup struct {
+	id       string
+	question string
+}
+
+// Update implements [Screen].
+func (p *confirmPopup) Update(msg tea.Msg, app *App) (Screen, tea.Cmd) {
+	if k, ok := msg.(tea.KeyPressMsg); ok {
+		switch k.String() {
+		case "y", "enter":
+			return nil, app.choose(p.id)
+		case "n", "esc":
+			return nil, nil
+		}
+	}
+	return p, nil
+}
+
+// View implements [Screen].
+func (p *confirmPopup) View(app *App) string {
+	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0, 1).
+		Render(p.question + "\n\ny yes   n no")
+	return lipgloss.Place(app.Width, app.Height, lipgloss.Center, lipgloss.Center, box)
+}

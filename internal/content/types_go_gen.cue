@@ -427,6 +427,19 @@ import (
 	members: [...api.#ContentID] @go(Members,[]api.ContentID)
 }
 
+// PlanGlyphs are the plan view's glyphs for open cells higher and lower than the party.
+#PlanGlyphs: {
+	up:   string @go(Up)
+	down: string @go(Down)
+}
+
+// PlanRise gives the cut-offs, in cells above the party, at which a cell draws at normal weight
+// and at bold weight; a smaller rise draws dim.
+#PlanRise: {
+	normal: int @go(Normal)
+	bold:   int @go(Bold)
+}
+
 // PartyConfig holds the numbers every party shares.
 #PartyConfig: {
 	// Slots is how many fighters fight at a time.
@@ -439,10 +452,16 @@ import (
 	sight_depth: int @go(SightDepth)
 
 	// PlanRange is how many steps of walking from the focus the plan view draws reachable floor.
-	plan_range:    int @go(PlanRange)
-	max_step_up:   int @go(MaxStepUp)
-	max_step_down: int @go(MaxStepDown)
-	max_drop:      int @go(MaxDrop)
+	plan_range: int @go(PlanRange)
+
+	// PlanGlyphs are the glyphs the plan view draws for open cells above and below the party.
+	plan_glyphs: #PlanGlyphs @go(PlanGlyphs)
+
+	// PlanRise sets how bold a cell above the party draws.
+	plan_rise:     #PlanRise @go(PlanRise)
+	max_step_up:   int       @go(MaxStepUp)
+	max_step_down: int       @go(MaxStepDown)
+	max_drop:      int       @go(MaxDrop)
 
 	// ClimbCost is an Expr with SpeedEnv: ticks added to each step up, on top of the timeline's
 	// step_ticks. Climbing costs more than descending on purpose. Empty means no extra cost.
