@@ -97,6 +97,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 		actions:     map[api.ContentID]compiledAction{},
 		offers:      map[string]*vm.Program{},
 		mods:        map[api.ContentID]compiledMods{},
+		drives:      map[api.ContentID]compiledDrive{},
 		rulesUsed:   map[string]bool{},
 		collections: collections(),
 	}
@@ -116,6 +117,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkChoices()...)
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkTriggers()...)
+	problems = append(problems, registry.checkDrives()...)
 	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.checkWorld()...)
 	problems = append(problems, registry.checkGeographies()...)
@@ -177,7 +179,7 @@ func (r *Registry) checkCrawlsAs(path string, id api.ContentID) []error {
 	ignored := map[string]bool{
 		"body": def.Body != nil, "party": def.Party != nil, "actor": def.Actor != nil,
 		"faction": def.Faction != nil, "protected": def.Protected, "inventory": len(def.Inventory) > 0,
-		"triggers": len(def.Triggers) > 0,
+		"triggers": len(def.Triggers) > 0, "drives": len(def.Drives) > 0,
 	}
 	for _, field := range sortedKeys(ignored) {
 		if ignored[field] {
