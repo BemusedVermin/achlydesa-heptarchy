@@ -173,7 +173,10 @@ func TestADelegatedHunterHandsTheBodyBackWithNoPreyInSight(t *testing.T) {
 	}
 	f.moveParty(east(f.at(creature), -12))
 	if !f.until(300, func() bool { return timeline.ControllerOf(f.w, creature) == "still" }) {
-		t.Errorf("controller with no prey in sight = %q, want the body's own, still", timeline.ControllerOf(f.w, creature))
+		t.Errorf(
+			"controller with no prey in sight = %q, want the body's own, still",
+			timeline.ControllerOf(f.w, creature),
+		)
 	}
 }
 

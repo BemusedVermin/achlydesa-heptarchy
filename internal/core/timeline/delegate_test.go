@@ -45,7 +45,11 @@ func (d delegator) Decide(w *sim.World, body ecs.Entity) error {
 func TestADelegateDecidesUntilItResumes(t *testing.T) {
 	fx := newFixture(t, 1)
 	var deputyTicks []int64
-	if err := timeline.RegisterController(fx.w, "deputy", deputy{ticks: &deputyTicks, resumeAfter: 2, step: true}); err != nil {
+	if err := timeline.RegisterController(
+		fx.w,
+		"deputy",
+		deputy{ticks: &deputyTicks, resumeAfter: 2, step: true},
+	); err != nil {
 		t.Fatal(err)
 	}
 	body := fx.spawn(t, "record", 2)
