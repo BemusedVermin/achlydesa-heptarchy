@@ -29,7 +29,7 @@ drives: {
 		urge: "min(level / 8, 1)"
 		thresholds: [{at: 24, do: [{do: "damage", params: {parts: "self:torso", amount: "1"}}]}]
 	}
-	// TODO(M6-03.F1): decide what raises safety; time alone does not, so it rises by nothing yet.
+	// Raised by events, not time: being hit or a neighbour dying.
 	"drive.safety": {
 		name: "text.drive.safety"
 		kind: "need"
