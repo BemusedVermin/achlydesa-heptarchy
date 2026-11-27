@@ -164,7 +164,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-03](M6-minds/M6-03-drives.md) | Drives: needs and desires with a weight per individual | done | seam | M | none |
 | [M6-04](M6-minds/M6-04-memory-sight.md) | A capped memory per agent, learned by sight | done | seam | M | none |
 | [M6-05](M6-minds/M6-05-target-tags.md) | What an action may target, by tag, with corpses opt-in | todo | seam | S | none |
-| [M6-06](M6-minds/M6-06-chunk-graph.md) | The chunk graph: the openings between chunks | todo | seam | M | none |
+| [M6-06](M6-minds/M6-06-chunk-graph.md) | The chunk graph: the openings between chunks | in-progress | seam | M | none |
 | [M6-07](M6-minds/M6-07-landmarks.md) | Landmarks: things that advertise what they give | todo | seam | M | M6-02, M6-04 |
 | [M6-08](M6-minds/M6-08-pieces.md) | Pieces: building blocks a town is laid out from | todo | seam | M | M6-07 |
 | [M6-09](M6-minds/M6-09-settlement-stage.md) | The settlement stage: procgen lays out a town | todo | feature | M | M6-08 |

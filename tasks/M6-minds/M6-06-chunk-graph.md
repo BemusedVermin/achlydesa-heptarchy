@@ -1,7 +1,7 @@
 ---
 id: M6-06
 title: "The chunk graph: the openings between chunks"
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: []
