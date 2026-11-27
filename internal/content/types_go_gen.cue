@@ -353,6 +353,9 @@ import (
 	party?:      null | #PartyDef        @go(Party,*PartyDef)
 	actor?:      null | #ActorDef        @go(Actor,*ActorDef)
 
+	// Mind is how a body run by the mind controller plans.
+	mind?: null | #MindDef @go(Mind,*MindDef)
+
 	// Actions lists the actions a body of this template knows, as "action." IDs.
 	actions?: [...api.#ContentID] @go(Actions,[]api.ContentID)
 
@@ -737,6 +740,12 @@ import (
 #ActorDef: {
 	// Controller is "player", "follow", "idle", ...
 	controller: string @go(Controller)
+}
+
+// MindDef says how a template's bodies plan.
+#MindDef: {
+	// Planner names a registered planner, such as GOAP's or HTN's.
+	planner: string @go(Planner)
 }
 
 // EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for

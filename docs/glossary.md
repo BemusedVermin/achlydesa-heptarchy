@@ -33,6 +33,8 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **plan**: the steps a planner found for a goal, each a timeline action.
 - **operator**: a content record a planner uses: preconditions and effects over beliefs, and the action that carries it out.
 - **recipe**: a plan written in content for HTN: a goal and its steps in order, each an operator or another recipe.
+- **mind**: the controller that decides by goal and plan (`agents.MindController`), and what it holds for a body (`comp.Mind`).
+- **claim** (of a plan): a reservation a plan holds on a thing or some of its stock while it runs, so no other plan counts on it (`comp.Claims`). Not a knowledge claim, the kind of a fact (`claim.` records).
 - **state**: the small set of symbolic facts both planners plan over (`agents.State`), built from what an agent carries and believes.
 - **belief**: what an agent remembers of the world, from sight and from being told. Plans use beliefs, never the truth.
 - **landmark**: a thing that advertises what it gives (`comp.Affordance`), such as a well, a bed or a corpse.

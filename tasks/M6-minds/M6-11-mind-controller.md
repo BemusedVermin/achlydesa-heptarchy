@@ -1,7 +1,7 @@
 ---
 id: M6-11
 title: "The mind controller: run a plan, claim what it needs"
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: [M6-01, M6-10]

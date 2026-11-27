@@ -9,6 +9,7 @@ import (
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/agents"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/combat"
@@ -113,12 +114,15 @@ func build(cfg Config, scenario func(w *sim.World) error, spawn func(*sim.World,
 }
 
 // validateContent runs the content checks that need the packages installed: effect primitives and
-// references, and action choice providers.
+// references, action choice providers, and the planners and pickers minds name.
 func validateContent(w *sim.World) error {
 	if err := effects.ValidateContent(w); err != nil {
 		return err
 	}
-	return actions.ValidateContent(w)
+	if err := actions.ValidateContent(w); err != nil {
+		return err
+	}
+	return agents.ValidateContent(w)
 }
 
 // SwapContent replaces the game's content with reg, for hot reload in dev builds. It runs the

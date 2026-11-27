@@ -24,6 +24,8 @@ type Saved struct {
 	Sleeping []api.UID `json:"sleeping,omitempty"`
 	// Changes is the counter that tells whether a controller did anything.
 	Changes int64 `json:"changes"`
+	// Seq is the last Seq handed to a pending action, including those that have landed since.
+	Seq uint64 `json:"seq"`
 }
 
 // SavedSlot is one live timeline entry.
@@ -35,7 +37,7 @@ type SavedSlot struct {
 // Export returns the timeline's state for a save. Stale entries are left out.
 func Export(w *sim.World) Saved {
 	st := stateOf(w)
-	saved := Saved{Line: []SavedSlot{}, SystemsDue: st.systemsDue, Changes: st.changes}
+	saved := Saved{Line: []SavedSlot{}, SystemsDue: st.systemsDue, Changes: st.changes, Seq: st.seq}
 	for _, s := range st.line {
 		if st.live(w, s) {
 			saved.Line = append(saved.Line, SavedSlot{Tick: s.tick, UID: s.uid})
@@ -87,6 +89,6 @@ func Import(w *sim.World, saved Saved) error {
 		}
 		st.current, st.hasCurrent = e, true
 	}
-	st.systemsDue, st.changes = saved.SystemsDue, saved.Changes
+	st.systemsDue, st.changes, st.seq = saved.SystemsDue, saved.Changes, saved.Seq
 	return nil
 }

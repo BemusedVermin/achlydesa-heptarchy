@@ -380,6 +380,9 @@ func (r *Registry) checkTemplates() []error {
 		if actor := r.bundle.Templates[key].Actor; actor != nil && actor.Controller == "" {
 			p.addf("templates[%q].actor.controller: required", key)
 		}
+		if mind := r.bundle.Templates[key].Mind; mind != nil && mind.Planner == "" {
+			p.addf("templates[%q].mind.planner: required", key)
+		}
 		def := r.bundle.Templates[key].Party
 		if def == nil {
 			continue
