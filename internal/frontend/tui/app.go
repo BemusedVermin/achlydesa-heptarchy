@@ -26,6 +26,8 @@ type App struct {
 	Height int
 	// Status is the one-line message under the map: a disabled option's reason, or empty.
 	Status string
+	// Record, when set, runs after every command the game accepts, so a crash loses nothing.
+	Record func(*game.Game) error
 
 	keys  KeyMap
 	help  help.Model
@@ -79,6 +81,11 @@ func (a *App) Choose(id string) tea.Cmd {
 	before := lastSeq(a.State)
 	if _, err := a.Game.Apply(option.Command); err != nil {
 		return a.fail(err)
+	}
+	if a.Record != nil {
+		if err := a.Record(a.Game); err != nil {
+			return a.fail(err)
+		}
 	}
 	if err := a.refresh(); err != nil {
 		return a.fail(err)

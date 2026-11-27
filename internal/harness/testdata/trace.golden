@@ -1,0 +1,28 @@
+#0 actions.do
+  t0 The Reaper begins Sever at Salken (lands at tick 2).
+#1 actions.do
+  t0 The Reaper begins Sever at Salken (lands at tick 2).
+#2 actions.do
+  t2 The Reaper's Sever hits Salken's arm: 1 integrity lost, 2 left.
+#3 actions.do
+  t11 The Reaper begins Strike at Salken (lands at tick 14).
+#4 actions.do
+  t11 The Reaper begins Pin at Salken (lands at tick 12).
+#5 timeline.wait
+#6 actions.do
+  t12 The Reaper is standing until tick 22.
+#7 actions.do
+  t12 The Reaper begins Sever at Salken (lands at tick 14).
+#8 actions.do
+  t14 The Reaper's Strike hits Salken's torso: 3 integrity lost, 2 left.
+  t14 The Reaper's Sever hits Salken's torso: 1 integrity lost, 1 left.
+  t20 Full day on day 1.
+#9 actions.do
+  t23 The Reaper begins Strike at Salken (lands at tick 26).
+#10 actions.do
+  t23 The Reaper begins Sever at Salken (lands at tick 25).
+#11 actions.do
+  t25 The Reaper's Sever hits Salken's arm: 1 integrity lost, 1 left.
+  t25 Salken's arm is cut away.
+  t26 The Reaper's Strike hits Salken's arm: 3 integrity lost, 0 left.
+  t26 Salken's arm is cut away.

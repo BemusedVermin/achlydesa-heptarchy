@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 
@@ -65,6 +66,7 @@ func runCommand() *cobra.Command {
 func replayCommand() *cobra.Command {
 	var seed uint64
 	var dir, expect string
+	var trace bool
 	cmd := &cobra.Command{
 		Use:   "replay FILE",
 		Short: "Replay a command log and print the final hash",
@@ -79,7 +81,11 @@ func replayCommand() *cobra.Command {
 				return err
 			}
 			defer func() { _ = f.Close() }()
-			hash, err := harness.Replay(reg, seed, f)
+			var traceOut io.Writer
+			if trace {
+				traceOut = cmd.OutOrStdout()
+			}
+			hash, err := harness.ReplayTrace(reg, seed, f, traceOut)
 			if err != nil {
 				return err
 			}
@@ -92,6 +98,7 @@ func replayCommand() *cobra.Command {
 	}
 	cmd.Flags().Uint64Var(&seed, "seed", 1, "the seed the log was recorded with")
 	cmd.Flags().StringVar(&dir, "content", defaultContent, "content directory")
+	cmd.Flags().BoolVar(&trace, "trace", false, "print each command and the log lines it added before the hash")
 	cmd.Flags().StringVar(&expect, "expect", "", "expected final hash in hex; exit 1 on mismatch")
 	return cmd
 }
