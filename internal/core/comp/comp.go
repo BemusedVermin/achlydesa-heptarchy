@@ -75,6 +75,12 @@ type Actor struct {
 	WaitUntil int64 `json:"wait_until"`
 }
 
+// Delegate is the controller deciding for a body in place of its Actor's own until the timeline's
+// Resume. Use timeline.DelegateTo and timeline.Resume rather than changing it.
+type Delegate struct {
+	Controller string `json:"controller"`
+}
+
 // Pending is an action in flight, on an entity of its own: one per action. Whatever the action
 // needs beyond this lives in a kind-specific component on the same entity.
 type Pending struct {
@@ -239,4 +245,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Allegiance](world)
 	ecs.ComponentID[Triggers](world)
 	ecs.ComponentID[Calm](world)
+	ecs.ComponentID[Delegate](world)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 )
 
 var update = flag.Bool("update", false, "rewrite the golden files")
@@ -149,6 +150,30 @@ func TestAHunterClosesInOverSeveralStepsAndBites(t *testing.T) {
 	}
 	if !slices.Contains(f.memberUIDs(), swing.Target) {
 		t.Errorf("the swing is aimed at %d, not a member of the party", swing.Target)
+	}
+}
+
+func TestADelegatedHunterHandsTheBodyBackWithNoPreyInSight(t *testing.T) {
+	f := huntField(t, func(b *content.Bundle) {
+		movingClay := b.Templates["template.creature.moving_clay"]
+		movingClay.Actor = &content.ActorDef{Controller: "still"}
+		b.Templates["template.creature.moving_clay"] = movingClay
+	})
+	creature := f.creature()
+	uid := f.w.UIDOf(creature)
+	if err := timeline.DelegateTo(f.w, creature, "hunt"); err != nil {
+		t.Fatal(err)
+	}
+	f.moveParty(east(f.at(creature), -5))
+	if !f.until(300, func() bool { return f.movingClayStarted(uid) }) {
+		t.Fatal("the delegated hunter never attacked")
+	}
+	if got := timeline.ControllerOf(f.w, creature); got != "hunt" {
+		t.Fatalf("controller with prey in sight = %q, want hunt", got)
+	}
+	f.moveParty(east(f.at(creature), -12))
+	if !f.until(300, func() bool { return timeline.ControllerOf(f.w, creature) == "still" }) {
+		t.Errorf("controller with no prey in sight = %q, want the body's own, still", timeline.ControllerOf(f.w, creature))
 	}
 }
 

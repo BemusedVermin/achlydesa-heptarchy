@@ -71,7 +71,7 @@ func CurrentPlayer(w *sim.World, uid api.UID) (ecs.Entity, bool) {
 	if !ok || uid == 0 || w.UIDOf(e) != uid {
 		return ecs.Entity{}, false
 	}
-	return e, stateOf(w).actors.Get(e).Controller == PlayerController
+	return e, stateOf(w).controllerOf(e) == PlayerController
 }
 
 // nextPhaseBoundary is the tick at which the phase after the current one starts.

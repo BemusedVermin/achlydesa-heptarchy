@@ -19,6 +19,9 @@ import (
 // MaxAITurns is the most non-player decisions one Run takes, so a world with no player cannot hang.
 const MaxAITurns = 10_000
 
+// maxHandOffs is the most hand-offs between controllers in one decision.
+const maxHandOffs = 2
+
 // bodyTag is the tag of a body's own channel.
 const bodyTag = "body"
 
@@ -114,6 +117,7 @@ type state struct {
 	busy      *ecs.Map[comp.Busy]
 	members   *ecs.Map[comp.MemberOf]
 	pendings  *ecs.Map[comp.Pending]
+	delegates *ecs.Map[comp.Delegate]
 	resolvers map[string]Resolver
 	// The last Seq handed out.
 	seq uint64
@@ -133,6 +137,7 @@ func stateOf(w *sim.World) *state {
 		busy:        ecs.NewMap[comp.Busy](w.ECS),
 		members:     ecs.NewMap[comp.MemberOf](w.ECS),
 		pendings:    ecs.NewMap[comp.Pending](w.ECS),
+		delegates:   ecs.NewMap[comp.Delegate](w.ECS),
 		resolvers:   map[string]Resolver{},
 	}
 	st.channels = func(_ *sim.World, body ecs.Entity) []Channel {
@@ -402,7 +407,7 @@ func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 		if st.halt != nil && st.halt(w) {
 			return ecs.Entity{}, nil
 		}
-		if body, ok := Current(w); ok && st.actors.Get(body).Controller == PlayerController &&
+		if body, ok := Current(w); ok && st.controllerOf(body) == PlayerController &&
 			!st.landingDue(w) {
 			return body, nil
 		}
@@ -424,7 +429,7 @@ func Run(w *sim.World, clk *clock.Clock) (current ecs.Entity, err error) {
 		if err := st.open(w, clk, body); err != nil {
 			return ecs.Entity{}, err
 		}
-		controller := st.actors.Get(body).Controller
+		controller := st.controllerOf(body)
 		if controller == PlayerController {
 			return body, nil
 		}
@@ -454,22 +459,37 @@ func (st *state) open(w *sim.World, clk *clock.Clock, body ecs.Entity) error {
 	return nil
 }
 
-// decide runs a non-player body's controller, and makes the body wait if it did nothing.
+// decide runs a non-player body's controller, and makes the body wait if it did nothing. A
+// controller that hands the body off without acting lets the next one decide at once, up to
+// maxHandOffs times, so two controllers handing back and forth cannot loop.
 func (st *state) decide(w *sim.World, body ecs.Entity, name string) error {
-	controller, ok := st.controllers[name]
-	if !ok {
-		return fmt.Errorf("timeline: entity %d has unknown controller %q", w.UIDOf(body), name)
+	for handOffs := 0; ; handOffs++ {
+		controller, ok := st.controllers[name]
+		if !ok {
+			return fmt.Errorf("timeline: entity %d has unknown controller %q", w.UIDOf(body), name)
+		}
+		before := st.changes
+		if err := controller.Decide(w, body); err != nil {
+			return fmt.Errorf("timeline: controller %q: %w", name, err)
+		}
+		if st.changes != before {
+			delete(st.sleeping, body)
+			return nil
+		}
+		if !w.ECS.Alive(body) || !st.actors.Has(body) {
+			return nil
+		}
+		next := st.controllerOf(body)
+		if next == PlayerController {
+			return nil
+		}
+		if next == name || handOffs == maxHandOffs {
+			break
+		}
+		name = next
 	}
-	before := st.changes
-	if err := controller.Decide(w, body); err != nil {
-		return fmt.Errorf("timeline: controller %q: %w", name, err)
-	}
-	if st.changes != before {
-		delete(st.sleeping, body)
-	} else if w.ECS.Alive(body) && st.actors.Has(body) {
-		st.sleeping[body] = true
-		st.waitUntil(w, body, st.nextOtherEntry(w, body))
-	}
+	st.sleeping[body] = true
+	st.waitUntil(w, body, st.nextOtherEntry(w, body))
 	return nil
 }
 

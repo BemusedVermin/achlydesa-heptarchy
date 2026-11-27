@@ -81,6 +81,12 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	wait_until: int64 @go(WaitUntil)
 }
 
+// Delegate is the controller deciding for a body in place of its Actor's own until the timeline's
+// Resume. Use timeline.DelegateTo and timeline.Resume rather than changing it.
+#Delegate: {
+	controller: string @go(Controller)
+}
+
 // Pending is an action in flight, on an entity of its own: one per action. Whatever the action
 // needs beyond this lives in a kind-specific component on the same entity.
 #Pending: {
