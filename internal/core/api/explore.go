@@ -139,6 +139,24 @@ type MapView struct {
 	Cells []CellView `json:"cells"`
 	// Sorted by UID
 	Entities []EntityView `json:"entities"`
+	// Moves has one entry per direction in Dir order, for the body the view is centered on.
+	Moves []MoveView `json:"moves"`
+	// Elevation is the rendered line telling how deep that body stands.
+	Elevation string `json:"elevation"`
+}
+
+// MoveBlocked is the kind of a [MoveView] with no step; the others are the [Moved] kinds.
+const MoveBlocked = "blocked"
+
+// MoveView is what a step in one direction would do.
+type MoveView struct {
+	Dir Dir `json:"dir"`
+	// One of MoveLevel, MoveUp, MoveDown, MoveDrop, MoveBlocked
+	Kind string `json:"kind"`
+	// Below is the destination's depth minus the body's, as for [CellView]; 0 when blocked.
+	Below int `json:"below"`
+	// Label is the rendered line, including the reason when blocked.
+	Label string `json:"label"`
 }
 
 // CellView is one drawn hex.
@@ -150,6 +168,8 @@ type CellView struct {
 	Visible bool `json:"visible"`
 	// Below is the drawn cell's depth minus the party's: positive is lower, negative is higher.
 	Below int `json:"below"`
+	// Wall is true for a solid cell drawn with its wall glyph.
+	Wall bool `json:"wall,omitempty"`
 }
 
 // EntityView is one visible entity on the map.

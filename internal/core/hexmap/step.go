@@ -57,24 +57,34 @@ func (m *Map) Step(from api.Cell, dir api.Dir, rules StepRules) (Step, bool, err
 
 // stepUp climbs onto a standable cell above the solid cell n, needing headroom above from.
 func (m *Map) stepUp(from, n api.Cell, rules StepRules) (Step, bool, error) {
+	link, _, err := m.climb(from, n, rules.MaxStepUp)
+	if err != nil || link == nil {
+		return Step{}, false, err
+	}
+	return Step{To: *link, Kind: StepUp}, true, nil
+}
+
+// climb finds the lowest standable cell above the solid cell n, at most limit cells up, needing
+// headroom above from. It returns nil when there is none, and how many cells up it found otherwise.
+func (m *Map) climb(from, n api.Cell, limit int) (*Link, int, error) {
 	above, head := n, from
-	for k := 1; k <= rules.MaxStepUp; k++ {
+	for k := 1; k <= limit; k++ {
 		aboveLink, headLink := m.topo.Above(above), m.topo.Above(head)
 		above, head = aboveLink.Cell, headLink.Cell
 		blocked, err := m.solid(headLink)
 		if err != nil || blocked {
 			// No headroom, and climbing higher needs even more
-			return Step{}, false, err
+			return nil, 0, err
 		}
 		standable, err := m.Standable(above)
 		if err != nil {
-			return Step{}, false, err
+			return nil, 0, err
 		}
 		if standable {
-			return Step{To: aboveLink, Kind: StepUp}, true, nil
+			return &aboveLink, k, nil
 		}
 	}
-	return Step{}, false, nil
+	return nil, 0, nil
 }
 
 // stepDown finds the first standable cell below the open cell n, at most MaxDrop cells down.
@@ -96,4 +106,45 @@ func (m *Map) stepDown(n api.Cell, rules StepRules) (Step, bool, error) {
 		return Step{To: link, Kind: StepDrop, Fall: fall}, true, nil
 	}
 	return Step{}, false, nil
+}
+
+// RefusalKind says why [Map.Step] offers no step.
+type RefusalKind uint8
+
+// The kinds of refusal.
+const (
+	// RefusedSolid is a wall, or a ledge with no floor just above the climb limit.
+	RefusedSolid RefusalKind = iota
+	// RefusedTooHigh is a ledge one cell above what can be climbed.
+	RefusedTooHigh
+	// RefusedTooFar is open ground with no floor within MaxDrop.
+	RefusedTooFar
+)
+
+// Refusal is why a step is not offered.
+type Refusal struct {
+	Kind RefusalKind
+	// Height is how many cells up the ledge is, for RefusedTooHigh.
+	Height int
+}
+
+// Refusal explains why [Map.Step] offers no step from from in dir. Call it only after Step
+// reported none.
+func (m *Map) Refusal(from api.Cell, dir api.Dir, rules StepRules) (Refusal, error) {
+	if !dir.Valid() {
+		return Refusal{}, ErrBadDir
+	}
+	n := m.topo.Neighbor(from, dir).Cell
+	t, err := m.At(n)
+	if err != nil {
+		return Refusal{}, err
+	}
+	if !t.Solid {
+		return Refusal{Kind: RefusedTooFar}, nil
+	}
+	link, k, err := m.climb(from, n, rules.MaxStepUp+1)
+	if err != nil || link == nil {
+		return Refusal{Kind: RefusedSolid}, err
+	}
+	return Refusal{Kind: RefusedTooHigh, Height: k}, nil
 }

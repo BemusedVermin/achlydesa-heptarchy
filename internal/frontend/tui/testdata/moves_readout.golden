@@ -1,0 +1,7 @@
+east: step down 1
+northeast: drop 3
+[38;2;154;154;154mnorthwest: ledge 2 up, too high[m
+west: climb 1
+[38;2;154;154;154msouthwest: wall[m
+southeast: level
+Depth 1

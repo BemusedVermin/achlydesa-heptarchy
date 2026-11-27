@@ -61,9 +61,7 @@ func positioned(w *sim.World, body ecs.Entity) (*comp.Pos, *hexmap.Map, bool) {
 	return positions.Get(body), w.Map, true
 }
 
-func bump() api.Text { return api.Text{ID: "text.explore.bump"} }
-
-// checkStep fails with text.explore.bump when the hexmap rules offer no step that way.
+// checkStep fails with the reason the hexmap rules offer no step that way.
 func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
 	pos, m, ok := positioned(ctx.World, ctx.Source)
 	if !ok {
@@ -77,7 +75,11 @@ func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
 		return false, api.Text{ID: "text.explore.broken", Args: map[string]string{"error": err.Error()}}
 	}
 	if !can {
-		return false, bump()
+		reason, err := refusalText(m, pos.At, *ctx.Dir, stateOf(ctx.World).rules)
+		if err != nil {
+			return false, api.Text{ID: "text.explore.broken", Args: map[string]string{"error": err.Error()}}
+		}
+		return false, reason
 	}
 	if _, occupied, swappable := occupant(ctx.World, ctx.Source, step); occupied && !swappable {
 		return false, api.Text{ID: "text.explore.occupied"}

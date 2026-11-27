@@ -24,6 +24,8 @@ type mapScreen struct {
 	// menu and look are nil while the action menu is closed and look mode is off.
 	menu *menuState
 	look *lookState
+	// heights is whether the map shows each cell's relative height.
+	heights bool
 }
 
 func newMapScreen() *mapScreen { return &mapScreen{} }
@@ -115,6 +117,8 @@ func (s *mapScreen) key(msg tea.KeyPressMsg, app *App) tea.Cmd {
 		}
 	case key.Matches(msg, app.keys.look):
 		s.startLook(app)
+	case key.Matches(msg, app.keys.heights):
+		s.heights = !s.heights
 	case key.Matches(msg, app.keys.quit):
 		return tea.Quit
 	case key.Matches(msg, app.keys.prevTick):
@@ -177,9 +181,18 @@ func (s *mapScreen) View(app *App) string {
 		cursor = &s.look.cursor
 	}
 	overlay := OverlayFor(app.State.Bodies, target, cursor)
+	overlay.Heights = s.heights
 	mapPane := RenderMapOverlay(app.State.Map, app.State.Party, overlay, mapWidth, bodyHeight)
 
-	panel := []string{RenderClock(app.State.Clock, side), "", RenderParty(app.State.Party), ""}
+	panel := []string{
+		RenderClock(app.State.Clock, side),
+		"",
+		RenderParty(app.State.Party),
+		"",
+	}
+	if s.menu == nil {
+		panel = append(panel, RenderMoves(app.State.Map), "")
+	}
 	switch body, ok := currentBody(app.State.Bodies); {
 	case s.look != nil:
 		panel = append(panel, RenderLook(app.State, s.look.cursor, side), "")
