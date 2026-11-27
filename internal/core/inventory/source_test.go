@@ -68,7 +68,9 @@ func TestMove(t *testing.T) {
 	cistern := spawnAt(t, w, cisternTemplate, api.Cell{Hex: api.Hex{Q: 1}})
 	far := spawnAt(t, w, cisternTemplate, api.Cell{Hex: api.Hex{Q: 3}})
 	full := sourceOf(w, well).Max
-	held := inventory.Count(w, cistern, water, 0)
+	const held = 5
+	inventory.Add(w, cistern, comp.ItemStack{Item: water, Count: held})
+	inventory.Add(w, far, comp.ItemStack{Item: water, Count: held})
 
 	tests := []struct {
 		name     string
@@ -100,6 +102,22 @@ func TestMove(t *testing.T) {
 	}
 	if got := inventory.Count(w, far, water, 0); got != held {
 		t.Errorf("the far cistern holds %d, want %d", got, held)
+	}
+}
+
+func TestAnEmptyContainerSpawnsWithAnEmptyInventory(t *testing.T) {
+	_, w, _ := gametest.New(t, 1, func(b *content.Bundle) {
+		cistern := b.Templates[cisternTemplate]
+		cistern.Container, cistern.Inventory = true, nil
+		b.Templates[cisternTemplate] = cistern
+	})
+	cistern := spawnAt(t, w, cisternTemplate, api.Cell{})
+	inventories := ecs.NewMap[comp.Inventory](w.ECS)
+	if !inventories.Has(cistern) {
+		t.Fatal("the empty cistern spawned without an inventory")
+	}
+	if got := inventories.Get(cistern).Stacks; len(got) != 0 {
+		t.Errorf("the empty cistern holds %v, want nothing", got)
 	}
 }
 

@@ -199,9 +199,16 @@ func (r *Registry) checkCrawlsAs(path string, id api.ContentID) []error {
 		return p.errs
 	}
 	ignored := map[string]bool{
-		"body": def.Body != nil, "party": def.Party != nil, "actor": def.Actor != nil,
-		"faction": def.Faction != nil, "protected": def.Protected, "inventory": len(def.Inventory) > 0,
-		"triggers": len(def.Triggers) > 0, "drives": len(def.Drives) > 0, "source": def.Source != nil,
+		"body":      def.Body != nil,
+		"party":     def.Party != nil,
+		"actor":     def.Actor != nil,
+		"faction":   def.Faction != nil,
+		"protected": def.Protected,
+		"inventory": len(def.Inventory) > 0,
+		"container": def.Container,
+		"triggers":  len(def.Triggers) > 0,
+		"drives":    len(def.Drives) > 0,
+		"source":    def.Source != nil,
 	}
 	for _, field := range sortedKeys(ignored) {
 		if ignored[field] {
