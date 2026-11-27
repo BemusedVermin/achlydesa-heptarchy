@@ -81,6 +81,10 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	wait_until: int64 @go(WaitUntil)
 }
 
+// Parked takes a body with an Actor off the timeline until it is removed. Use timeline.Park and
+// timeline.Unpark rather than changing it.
+#Parked: {}
+
 // Delegate is the controller deciding for a body in place of its Actor's own until the timeline's
 // Resume. Use timeline.DelegateTo and timeline.Resume rather than changing it.
 #Delegate: {

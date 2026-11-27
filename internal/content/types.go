@@ -185,6 +185,9 @@ type AgentsConfig struct {
 	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
 	// when any goal exists.
 	ThinkTicks int `json:"think_ticks,omitempty"`
+	// FarTicks is how many ticks pass between the decisions of an agent far from every party member,
+	// which world.near_chunks says. It must be at least 1 when any goal exists.
+	FarTicks int `json:"far_ticks,omitempty"`
 	// ChatGoal is the goal ("goal." ID) an agent has while it tells a near agent what it knows, and
 	// ChatAction the action ("action." ID) it takes to do so. Empty means agents tell nothing.
 	ChatGoal   api.ContentID `json:"chat_goal,omitempty"`

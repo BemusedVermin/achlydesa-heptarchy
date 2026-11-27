@@ -226,6 +226,10 @@ import (
 	// when any goal exists.
 	think_ticks?: int @go(ThinkTicks)
 
+	// FarTicks is how many ticks pass between the decisions of an agent far from every party member,
+	// which world.near_chunks says. It must be at least 1 when any goal exists.
+	far_ticks?: int @go(FarTicks)
+
 	// ChatGoal is the goal ("goal." ID) an agent has while it tells a near agent what it knows, and
 	// ChatAction the action ("action." ID) it takes to do so. Empty means agents tell nothing.
 	chat_goal?:   api.#ContentID @go(ChatGoal)

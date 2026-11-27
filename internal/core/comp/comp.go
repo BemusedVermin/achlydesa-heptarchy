@@ -75,6 +75,10 @@ type Actor struct {
 	WaitUntil int64 `json:"wait_until"`
 }
 
+// Parked takes a body with an Actor off the timeline until it is removed. Use timeline.Park and
+// timeline.Unpark rather than changing it.
+type Parked struct{}
+
 // Delegate is the controller deciding for a body in place of its Actor's own until the timeline's
 // Resume. Use timeline.DelegateTo and timeline.Resume rather than changing it.
 type Delegate struct {
@@ -251,4 +255,6 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Affordance](world)
 	ecs.ComponentID[Mind](world)
 	ecs.ComponentID[Claims](world)
+	ecs.ComponentID[Parked](world)
+	ecs.ComponentID[Far](world)
 }

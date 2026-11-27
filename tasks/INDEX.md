@@ -175,7 +175,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-14](M6-minds/M6-14-goal-choice.md) | Goal choice: drives score into a goal | done | feature | M | M6-03, M6-11 |
 | [M6-15](M6-minds/M6-15-goap.md) | The GOAP planner for important individuals | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-16](M6-minds/M6-16-htn.md) | The HTN planner and recipes for everyone else | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
-| [M6-17](M6-minds/M6-17-far-agents.md) | Far agents: goals only, over the chunk graph | todo | feature | L | M6-06, M6-12, M6-14 |
+| [M6-17](M6-minds/M6-17-far-agents.md) | Far agents: goals only, over the chunk graph | done | feature | L | M6-06, M6-12, M6-14 |
 | [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | done | feature | S | M6-04, M6-11 |
 | [M6-19](M6-minds/M6-19-flee-engage.md) | Flee, terror and engaging: handing a fight over and back | todo | feature | M | M6-01, M6-12, M6-14 |
 | [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | done | feature | M | M6-03, M6-06, M6-14 |
@@ -223,6 +223,10 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M6-17.F4](followups/M6-17.F4-far-act-targets.md) | Give far agents' take and put a target when the plan names none | proposed | seam | M6 | M6-17 |
+| [M6-17.F3](followups/M6-17.F3-far-route-start-area.md) | Start a far route from the agent's own local area | proposed | debt | unplanned | M6-17 |
+| [M6-17.F2](followups/M6-17.F2-alert-cost.md) | Make the party's alert check cheap with many bodies near | proposed | debt | M6 | M6-17 |
+| [M6-17.F1](followups/M6-17.F1-go-to-path-cost.md) | Stop the go_to picker searching a whole cell path at every step | proposed | debt | M6 | M6-17 |
 | [M6-18.F1](followups/M6-18.F1-shared-language.md) | Decide what a shared language is for telling | todo | question | M6 | M6-18 |
 | [M6-13.F1](followups/M6-13.F1-take-options-noise.md) | Hide take options for items the thing does not hold | todo | seam | M6 | M6-13 |
 | [M1-11.F2](followups/M1-11.F2-height-glyphs-drop-prompt.md) | Plan view: ^ and v for height, red for out of reach, and ask before a drop | done | feature | M6 | M1-11 |

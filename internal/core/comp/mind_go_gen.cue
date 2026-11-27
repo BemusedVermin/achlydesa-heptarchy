@@ -64,3 +64,20 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Claims: {
 	held: [...#Claim] @go(Held,[]Claim)
 }
+
+// Far marks a body far from every party member: it is parked off the timeline, decides every
+// agents.far_ticks at goal level, and travels the chunk graph instead of cell by cell. Use the agents
+// package rather than changing it.
+#Far: {
+	// Decides is the tick of its next far decision.
+	decides: int64 @go(Decides)
+
+	// Hops are the stops still ahead on its route, in order.
+	hops?: [...#FarHop] @go(Hops,[]FarHop)
+}
+
+// FarHop is one stop of a far route: the cell the body is put in, and the tick it gets there.
+#FarHop: {
+	at:     api.#Cell @go(At)
+	arrive: int64     @go(Arrive)
+}
