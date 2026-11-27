@@ -21,13 +21,17 @@ const (
 	driveSpawner = "drives"
 )
 
-// Install registers the drive and affordance spawners, the satisfy and afford effects and the
-// per-phase drive tick. It needs effects installed first.
+// Install registers the drive, affordance and mind spawners, the satisfy and afford effects, the
+// per-phase drive tick, and the mind controller with its self picker. It needs effects and the
+// timeline installed first.
 func Install(w *sim.World) error {
 	if err := w.RegisterSpawner(sim.Spawner{Name: driveSpawner, Apply: spawnDrives}); err != nil {
 		return err
 	}
 	if err := installLandmarks(w); err != nil {
+		return err
+	}
+	if err := installMind(w); err != nil {
 		return err
 	}
 	err := effects.Register(w, effects.Primitive{

@@ -249,4 +249,6 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Source](world)
 	ecs.ComponentID[Drives](world)
 	ecs.ComponentID[Affordance](world)
+	ecs.ComponentID[Mind](world)
+	ecs.ComponentID[Claims](world)
 }

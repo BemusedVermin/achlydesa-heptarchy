@@ -293,6 +293,8 @@ type Template struct {
 	Appearance *comp.Appearance `json:"appearance,omitempty"`
 	Party      *PartyDef        `json:"party,omitempty"`
 	Actor      *ActorDef        `json:"actor,omitempty"`
+	// Mind is how a body run by the mind controller plans.
+	Mind *MindDef `json:"mind,omitempty"`
 	// Actions lists the actions a body of this template knows, as "action." IDs.
 	Actions []api.ContentID `json:"actions,omitempty"`
 	// Name is the text ID of the entity's name, for display.
@@ -627,6 +629,12 @@ type TimelineConfig struct {
 type ActorDef struct {
 	// Controller is "player", "follow", "idle", ...
 	Controller string `json:"controller"`
+}
+
+// MindDef says how a template's bodies plan.
+type MindDef struct {
+	// Planner names a registered planner, such as GOAP's or HTN's.
+	Planner string `json:"planner"`
 }
 
 // EffectRef is one primitive invocation. Params are Expr sources evaluated with EffectEnv, or, for
