@@ -86,6 +86,7 @@ func TestApplyingAnOperatorChangesTheStateAsWritten(t *testing.T) {
 	if !Holds(drink, start) {
 		t.Fatalf("preconditions do not hold in %v", start)
 	}
+	before := slices.Clone(start)
 	got := Apply(drink, start)
 	want := State{
 		{Kind: content.FactDriveMet, Tag: "drive.water"},
@@ -95,8 +96,11 @@ func TestApplyingAnOperatorChangesTheStateAsWritten(t *testing.T) {
 	if !slices.Equal(got, want) {
 		t.Errorf("state after = %v, want %v", got, want)
 	}
-	if start.Key() == got.Key() || len(start) != 3 {
-		t.Errorf("Apply changed its input %v, or the keys of different states match", start)
+	if !slices.Equal(start, before) {
+		t.Errorf("Apply changed its input to %v, want %v", start, before)
+	}
+	if start.Key() == got.Key() {
+		t.Errorf("states %v and %v share the key %q", start, got, got.Key())
 	}
 	if Holds(drink, got) {
 		t.Errorf("preconditions hold again after the water is drunk, in %v", got)

@@ -206,14 +206,14 @@ Planners plan over a small state of symbolic facts, built from what the agent ca
 - A goal names the `drive` it serves and the conditions it `want`s.
 - A recipe names a `goal` and its `steps` in order; each step names exactly one `operator` or `recipe`.
 
-## Recipes
+## How-tos
 
 ### A creature, in `templates.cue`
 
 1. Copy a hunter, such as `template.creature.beast`: `_#Hunter & {...}` gives it a step, Strike, Cut, the `hunt` controller and `faction.wild`.
 2. Give it an ID under `template.creature.`, a `name` of `text.<its ID>`, an `appearance` (one glyph and a color) and a `body` (a `body.` ID from `bodies.cue`).
 3. Add its name to the `text:` block at the bottom of `templates.cue`.
-4. To meet it, put it in a place: a mark character in `marks` and the same character in `spawns` (see the place recipe).
+4. To meet it, put it in a place: a mark character in `marks` and the same character in `spawns` (see the place how-to).
 
 Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does.
 

@@ -168,7 +168,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-07](M6-minds/M6-07-landmarks.md) | Landmarks: things that advertise what they give | done | seam | M | M6-02, M6-04 |
 | [M6-08](M6-minds/M6-08-pieces.md) | Pieces: building blocks a town is laid out from | todo | seam | M | M6-07 |
 | [M6-09](M6-minds/M6-09-settlement-stage.md) | The settlement stage: procgen lays out a town | todo | feature | M | M6-08 |
-| [M6-10](M6-minds/M6-10-operators-beliefs.md) | Operators and beliefs: the state both planners plan over | in-progress | seam | M | M6-03, M6-04, M6-07 |
+| [M6-10](M6-minds/M6-10-operators-beliefs.md) | Operators and beliefs: the state both planners plan over | done | seam | M | M6-03, M6-04, M6-07 |
 | [M6-11](M6-minds/M6-11-mind-controller.md) | The mind controller: run a plan, claim what it needs | todo | seam | M | M6-01, M6-10 |
 | [M6-12](M6-minds/M6-12-movement-actions.md) | Movement actions: go to, and wander | todo | feature | M | M6-11 |
 | [M6-13](M6-minds/M6-13-thing-actions.md) | Thing actions: take, put and consume | todo | feature | M | M6-02, M6-11 |
@@ -212,6 +212,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M6-10.F1](followups/M6-10.F1-has-by-item-or-tag.md) | Decide whether a has fact names an item or an item tag | proposed | question | M6 | M6-10 |
 | [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | done | question | M6 | M6-07 |
 | [M6-06.F1](followups/M6-06.F1-graph-local-areas.md) | Split chunk graph nodes by the walkable areas inside each chunk | obsolete | seam | M6 | M6-06 |
 | [M6-03.F1](followups/M6-03.F1-safety-rise.md) | Decide what raises drive.safety | done | question | M6 | M6-03 |
