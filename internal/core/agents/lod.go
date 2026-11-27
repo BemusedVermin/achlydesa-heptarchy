@@ -398,6 +398,7 @@ func travel(w *sim.World, body ecs.Entity, step Step) (bool, error) {
 	if hexmap.KeyOf(from) == hexmap.KeyOf(goal) {
 		hops = []comp.FarHop{{At: goal, Arrive: w.Now + ticks*int64(max(1, hexmap.CellDistance(from, goal)))}}
 	} else {
+		// TODO(M6-17.F3): start from the agent's own local area, not any area of its chunk.
 		route, found, err := graph.Route(hexmap.KeyOf(from), hexmap.KeyOf(goal), farRouteNodes)
 		if err != nil || !found {
 			return false, err
@@ -445,6 +446,7 @@ func act(w *sim.World, body ecs.Entity, step Step, op content.Operator) (bool, e
 	if !ok {
 		return false, fmt.Errorf("agents: operator %q names unknown action %q", step.Operator, op.Does.Action)
 	}
+	// TODO(M6-17.F4): a far choice of target for pickers that pick one, such as take and put.
 	target := body
 	if step.Target != nil && step.Target.Subject != 0 {
 		found, ok := w.ByUID(step.Target.Subject)
