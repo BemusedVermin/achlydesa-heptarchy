@@ -159,7 +159,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| [M6-01](M6-minds/M6-01-hostility-handoff.md) | Hostility in the foundation, and a two-way controller hand-off | in-progress | seam | S | none |
+| [M6-01](M6-minds/M6-01-hostility-handoff.md) | Hostility in the foundation, and a two-way controller hand-off | done | seam | S | none |
 | [M6-02](M6-minds/M6-02-sources.md) | Sources and containers | todo | seam | M | none |
 | [M6-03](M6-minds/M6-03-drives.md) | Drives: needs and desires with a weight per individual | todo | seam | M | none |
 | [M6-04](M6-minds/M6-04-memory-sight.md) | A capped memory per agent, learned by sight | todo | seam | M | none |
