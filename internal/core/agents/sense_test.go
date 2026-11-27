@@ -115,6 +115,40 @@ func TestANewSightingReplacesTheOldAndAnUnseenMoveIsNotKnown(t *testing.T) {
 	}
 }
 
+func TestReSensingAnUnchangedScenePublishesNothing(t *testing.T) {
+	w := sightWorld(t)
+	looker := spawnBody(w, at(0, 0, 0))
+	spawnBody(w, at(0, 2, 0))
+	corpse := spawnBody(w, at(0, -2, 0))
+	ecs.NewMap[comp.Dead](w.ECS).Add(corpse, &comp.Dead{})
+	var learned int
+	w.Bus.SubscribeAll("test", func(_ *sim.World, e api.Event) {
+		if _, ok := e.(api.FactLearned); ok {
+			learned++
+		}
+	})
+	for _, look := range []struct {
+		name string
+		tick int64
+		want int
+	}{
+		{"first look", 0, 3},
+		{"second look at the same scene", 10, 0},
+	} {
+		learned = 0
+		w.Now = look.tick
+		if err := sense(w, looker); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := w.Bus.Drain(w); err != nil {
+			t.Fatal(err)
+		}
+		if learned != look.want {
+			t.Errorf("%s published %d FactLearned, want %d", look.name, learned, look.want)
+		}
+	}
+}
+
 func BenchmarkThousandAgentsSenseOnce(b *testing.B) {
 	w := sightWorld(b)
 	var bodies []ecs.Entity

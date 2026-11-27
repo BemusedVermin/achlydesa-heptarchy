@@ -238,3 +238,65 @@ func TestThePartysFactsAreNotCapped(t *testing.T) {
 		t.Errorf("a party member keeps %d facts, want all 5", got)
 	}
 }
+
+func TestLearnPublishesOnlyWhatTheKnowerDidNotHold(t *testing.T) {
+	w := sim.NewWorld(1)
+	var learned int
+	w.Bus.SubscribeAll("test", func(_ *sim.World, e api.Event) {
+		if _, ok := e.(api.FactLearned); ok {
+			learned++
+		}
+	})
+	knower := newKnower(w)
+	fact := api.Fact{Subject: 2, Claim: "claim.at", Value: "1,0,0", Origin: "origin.seen", Confidence: 0.8}
+	moved, surer, otherSource := fact, fact, fact
+	moved.Value = "2,0,0"
+	surer.Value, surer.Confidence = moved.Value, 1
+	otherSource.Origin = "origin.rumor"
+	for _, test := range []struct {
+		name string
+		fact api.Fact
+		want int
+	}{
+		{"a new fact", fact, 1},
+		{"the same fact again", fact, 0},
+		{"a new value", moved, 1},
+		{"a new confidence", surer, 1},
+		{"the same claim from another source", otherSource, 1},
+		{"the new value again", surer, 0},
+	} {
+		learned = 0
+		w.Now++
+		knowledge.Learn(w, knower, test.fact)
+		if _, err := w.Bus.Drain(w); err != nil {
+			t.Fatal(err)
+		}
+		if learned != test.want {
+			t.Errorf("%s: %d FactLearned, want %d", test.name, learned, test.want)
+		}
+	}
+	if got := knowledge.About(w, knower, 2); got[1].Tick != w.Now {
+		t.Errorf("a known fact learned again kept tick %d, want %d", got[1].Tick, w.Now)
+	}
+}
+
+func TestThePartyNoticesAFactItAlreadyHeld(t *testing.T) {
+	w := sim.NewWorld(1)
+	var noticed int
+	w.Bus.SubscribeAll("test", func(_ *sim.World, e api.Event) {
+		if _, ok := e.(api.FactNoticed); ok {
+			noticed++
+		}
+	})
+	knower := newKnower(w)
+	ecs.NewMap[comp.Controlled](w.ECS).Add(knower, &comp.Controlled{})
+	fact := api.Fact{Subject: 2, Claim: "claim.material", Value: "material.clay", Origin: "origin.sweep"}
+	knowledge.Learn(w, knower, fact)
+	knowledge.Learn(w, knower, fact)
+	if _, err := w.Bus.Drain(w); err != nil {
+		t.Fatal(err)
+	}
+	if noticed != 2 {
+		t.Errorf("FactNoticed %d times, want 2", noticed)
+	}
+}

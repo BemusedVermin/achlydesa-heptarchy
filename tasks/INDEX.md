@@ -214,7 +214,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | --- | --- | --- | --- | --- | --- |
 | [M6-06.F1](followups/M6-06.F1-graph-local-areas.md) | Split chunk graph nodes by the walkable areas inside each chunk | proposed | seam | M6 | M6-06 |
 | [M6-03.F1](followups/M6-03.F1-safety-rise.md) | Decide what raises drive.safety | done | question | M6 | M6-03 |
-| [M6-04.F1](followups/M6-04.F1-sighting-event-volume.md) | Keep agents' sightings from flooding the event bus | todo | seam | M6 | M6-04 |
+| [M6-04.F1](followups/M6-04.F1-sighting-event-volume.md) | Keep agents' sightings from flooding the event bus | done | seam | M6 | M6-04 |
 | [M6-02.F1](followups/M6-02.F1-empty-container-template.md) | Let a template spawn an empty container | done | seam | M6 | M6-02 |
 | [M5-07.F1.F1](followups/M5-07.F1.F1-verify-large-world-start.md) | Make verify fast enough to run on the large world at game start | done | debt | M5 | M5-07.F1 |
 | [M5-07.F1](followups/M5-07.F1-verify-chunk-summaries.md) | Verify from chunk summaries, not the whole ground | done | debt | M5 | M5-07 |

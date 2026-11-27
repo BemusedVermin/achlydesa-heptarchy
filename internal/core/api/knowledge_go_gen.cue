@@ -22,14 +22,15 @@ package api
 	tick:       int64   @go(Tick)
 }
 
-// FactLearned reports that a knower learned a fact, or learned it again from the same source.
+// FactLearned reports that a knower learned a fact it did not hold, or a new value or confidence for
+// one it held from the same source.
 #FactLearned: {
 	knower: #UID  @go(Knower)
 	fact:   #Fact @go(Fact)
 }
 
-// FactNoticed is published beside [FactLearned] when the knower is the controlled party or one of
-// its members, so that only what the player's side learns reaches the message log.
+// FactNoticed is published when the controlled party or one of its members learns a fact, even one
+// it already held, so that only what the player's side learns reaches the message log.
 #FactNoticed: {
 	fact: #Fact @go(Fact)
 
