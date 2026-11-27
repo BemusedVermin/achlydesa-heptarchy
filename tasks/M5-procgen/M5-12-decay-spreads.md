@@ -1,7 +1,7 @@
 ---
 id: M5-12
 title: Decay spreads downward over exports
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: [M5-10]
@@ -33,8 +33,8 @@ The deep changes character over the game: each export lets decay reach a little 
 
 ## Acceptance criteria
 
-- [ ] The test above passes.
-- [ ] `go tool task check` passes.
+- [x] The test above passes.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -42,4 +42,8 @@ The deep changes character over the game: each export lets decay reach a little 
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- A geography has an optional `decay`: a `level` formula over `depth` and `exports` (the named rule `rule.decay_level`) and `terrains`, level n giving terrains[n-1] (the last once past the list). The loader requires the terrains to be solid.
+- `worldgen.NewDecay` reads the formula once per depth; `Source.Chunk` then swaps solid, non-fixed cells for the decayed terrain after every stage has run, so stages and verify never see it. Open cells and fixed places are untouched.
+- Rule and two terrains (`decayed_clay`, `rotten_clay`) are first values: one level per export, one less per 4 depths. Tune in M9.
+- Not run: `go tool task check` fails here at golangci-lint (built with go1.25, repo targets 1.27); vet, gofmt and tests pass.
+- Follow-ups filed: none.

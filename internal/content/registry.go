@@ -17,6 +17,8 @@ type Registry struct {
 	hash   string
 	// moveCosts is keyed by terrain ID.
 	moveCosts map[api.ContentID]*vm.Program
+	// decays is keyed by geography ID; a geography without decay has no entry.
+	decays    map[api.ContentID]*vm.Program
 	stepTicks *vm.Program
 	// climbCost is nil when party.climb_cost is empty.
 	climbCost *vm.Program
@@ -101,6 +103,16 @@ func (r *Registry) MoveCost(terrain api.ContentID, env MoveEnv) (int64, error) {
 		return 0, nil
 	}
 	return run[int64](program, env, fmt.Sprintf("terrain %q move_cost", terrain))
+}
+
+// DecayLevel is how decayed the geography's generated ground is for the env, by its decay formula. A
+// geography without decay is always at level 0.
+func (r *Registry) DecayLevel(geography api.ContentID, env DecayEnv) (int64, error) {
+	program, ok := r.decays[geography]
+	if !ok {
+		return 0, nil
+	}
+	return run[int64](program, env, fmt.Sprintf("geography %q decay level", geography))
 }
 
 // Calendar returns the calendar. Phases is a copy.

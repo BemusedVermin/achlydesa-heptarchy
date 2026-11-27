@@ -42,6 +42,8 @@ type Config struct {
 	Fixed       Fixed
 	// Open is the terrain stages carve open cells with.
 	Open hexmap.Terrain
+	// Decay, when set, turns the solid generated ground into decayed ground once every stage has run.
+	Decay *Decay
 }
 
 // Context is all a stage may read while it builds one chunk.
@@ -101,6 +103,7 @@ type Source struct {
 	exportCount uint64
 	bounds      hexmap.Bounds
 	fixed       Fixed
+	decay       *Decay
 	openings    []Opening
 	siblings    map[string]map[string]float64
 	stages      []boundStage
@@ -123,6 +126,7 @@ func NewSource(cfg Config) (*Source, error) {
 		exportCount: cfg.ExportCount,
 		bounds:      cfg.Bounds,
 		fixed:       cfg.Fixed,
+		decay:       cfg.Decay,
 		openings:    openings,
 		siblings:    map[string]map[string]float64{},
 		spawns:      slices.Clone(cfg.Geography.Spawns),
@@ -177,6 +181,10 @@ func (s *Source) Chunk(key hexmap.ChunkKey) (*hexmap.Chunk, error) {
 		cell := api.Cell{Hex: api.Hex{Q: origin.Hex.Q + q, R: origin.Hex.R + r}, Depth: origin.Depth + depth}
 		if !s.bounds.Contains(cell) || s.fixed.Covers(cell) {
 			chunk.Set(q, r, depth, fixed.Get(q, r, depth))
+			return
+		}
+		if decayed, ok := s.decay.Terrain(cell.Depth); ok && chunk.Get(q, r, depth).Solid {
+			chunk.Set(q, r, depth, decayed)
 		}
 	})
 	return chunk, nil

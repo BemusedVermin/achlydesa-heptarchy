@@ -364,6 +364,17 @@ type GeographyDef struct {
 	// Spawns is what lives on the generated ground: each entry can start a body of its template on any
 	// open cell with solid ground below, within its depth band.
 	Spawns []GeographySpawn `json:"spawns,omitempty"`
+	// Decay changes the solid ground the stages leave, by depth and export count. Empty leaves it as it is.
+	Decay *DecayDef `json:"decay,omitempty"`
+}
+
+// DecayDef says how decayed the generated ground is at a depth, and what decayed ground is made of.
+type DecayDef struct {
+	// Level is a formula over DecayEnv giving a whole number: 0 leaves the ground as it is, and level n
+	// turns it into Terrains[n-1], or the last terrain once n passes the list.
+	Level string `json:"level"`
+	// Terrains are solid terrain IDs, from the least decayed to the most.
+	Terrains []api.ContentID `json:"terrains"`
 }
 
 // GeographySpawn is one kind of creature a geography starts with.

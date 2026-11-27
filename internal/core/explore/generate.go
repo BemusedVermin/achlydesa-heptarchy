@@ -34,9 +34,15 @@ func cellSource(w *sim.World, fixed worldgen.Fixed, bounds hexmap.Bounds) (hexma
 	if err != nil {
 		return nil, fmt.Errorf("world open: %w", err)
 	}
+	exportCount := uint64(max(w.ExportCount, 0))
+	decay, err := worldgen.NewDecay(w.Content, world.Geography, exportCount, bounds)
+	if err != nil {
+		return nil, err
+	}
 	return worldgen.NewSource(worldgen.Config{
 		Seed:        w.RNG.Seed(),
-		ExportCount: uint64(max(w.ExportCount, 0)),
+		ExportCount: exportCount,
+		Decay:       decay,
 		Bounds:      bounds,
 		Geography:   geography,
 		Stages:      stages,

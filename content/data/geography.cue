@@ -61,6 +61,14 @@ _#verify: {
 // The ground and the guarantees check.
 geographies: "geography.deep": stages: list.Concat([_#ground, [_#verify]])
 
+// Decay turns the solid ground of the deep into decayed ground: level 1 is decayed clay, 2 and up rotten.
+_#decay: {
+	level: "rule.decay_level"
+	terrains: ["terrain.decayed_clay", "terrain.rotten_clay"]
+}
+
+geographies: "geography.deep": decay: _#decay
+
 // What starts on the generated ground: the soop's clay near the surface, remnants and beasts deeper. The
 // weights, bands and densities are first values, for tuning.
 _#spawns: [{

@@ -92,6 +92,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	registry := &Registry{
 		bundle:      bundle,
 		moveCosts:   map[api.ContentID]*vm.Program{},
+		decays:      map[api.ContentID]*vm.Program{},
 		templates:   map[api.ContentID]*template.Template{},
 		actions:     map[api.ContentID]compiledAction{},
 		offers:      map[string]*vm.Program{},
