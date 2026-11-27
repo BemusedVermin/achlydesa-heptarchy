@@ -563,6 +563,8 @@ type ActionDef struct {
 	// Uses are the channels it occupies; every requirement must be met by free channels.
 	Uses   []Requirement `json:"uses"`
 	Target TargetKind    `json:"target"`
+	// Targets narrows which bodies a body, ally or part action may be aimed at.
+	Targets TargetFilter `json:"targets,omitempty"`
 	// Range is in hexes, for body/part/ally/cell targets.
 	Range int `json:"range,omitempty"`
 	// Sight means the target must be visible from the source.
@@ -582,6 +584,17 @@ type ActionDef struct {
 	Connects string `json:"connects,omitempty"`
 	// Tags are free tags for rules and content: "attack", "movement", ...
 	Tags []string `json:"tags,omitempty"`
+}
+
+// TargetFilter narrows an action's body targets by the tags on their templates. The zero filter
+// allows any living body.
+type TargetFilter struct {
+	// Tags must all be on the target's template.
+	Tags []string `json:"tags,omitempty"`
+	// Not must all be absent from the target's template.
+	Not []string `json:"not,omitempty"`
+	// Corpse allows a dead body as well as a living one.
+	Corpse bool `json:"corpse,omitempty"`
 }
 
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.

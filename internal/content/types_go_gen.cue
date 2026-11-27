@@ -682,6 +682,9 @@ import (
 	uses: [...#Requirement] @go(Uses,[]Requirement)
 	target: #TargetKind @go(Target)
 
+	// Targets narrows which bodies a body, ally or part action may be aimed at.
+	targets?: #TargetFilter @go(Targets)
+
 	// Range is in hexes, for body/part/ally/cell targets.
 	range?: int @go(Range)
 
@@ -708,6 +711,19 @@ import (
 
 	// Tags are free tags for rules and content: "attack", "movement", ...
 	tags?: [...string] @go(Tags,[]string)
+}
+
+// TargetFilter narrows an action's body targets by the tags on their templates. The zero filter
+// allows any living body.
+#TargetFilter: {
+	// Tags must all be on the target's template.
+	tags?: [...string] @go(Tags,[]string)
+
+	// Not must all be absent from the target's template.
+	not?: [...string] @go(Not,[]string)
+
+	// Corpse allows a dead body as well as a living one.
+	corpse?: bool @go(Corpse)
 }
 
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.

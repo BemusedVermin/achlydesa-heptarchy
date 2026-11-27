@@ -78,7 +78,7 @@ A text ID with no entry renders as `[missing text: <id>]`. Look for that wheneve
 
 ## Records carry data; formulas read it
 
-Most records embed `Data`: free `tags`, named numbers in `props` and named `lists`. Code never reads a tag, prop or list; formulas do. `material.clay` lists `weak_to: ["type.soak", "type.relic"]`, and `rule.weak` reads it as `target.material.lists.weak_to`.
+Most records embed `Data`: free `tags`, named numbers in `props` and named `lists`. Code never names a tag, prop or list; formulas, selectors and target filters do. `material.clay` lists `weak_to: ["type.soak", "type.relic"]`, and `rule.weak` reads it as `target.material.lists.weak_to`.
 
 Formulas are [Expr](https://expr-lang.org) strings, such as an action's `windup`, a trigger's `if`, or an effect's `amount`. What each formula can see is a struct in `internal/content/env.go`: `source` and `target` (a `BodyEnv` each), `chosen.<x>.id` (the records the player picked), `inventory`, `roll`, and a trigger event's params such as `cells`. An effect param that holds text is a literal, or a formula when it starts with `=`, as in `value: "= target.material.id"`.
 
@@ -101,6 +101,22 @@ Strike's damage is then just `amount: "rule.hit"` in `forms.cue`. A formula that
 A form can ask the player to pick a record as well as a target. `choices.cue` defines each choice: the collection it draws from (`from`) and an `offer` formula that says which records to offer. The `type` choice offers the types a body knows innately (its template's `lists.types`), Relic to a body with a graft, and any type whose item the inventory holds. An action lists the choices it asks for, as Strike does with `choices: ["type"]`.
 
 The record picked then changes the action through its **mods**, the fields a type or an item shares with an action: `requires` (with a `refusal` text), extra `windup` and `recovery`, and more effects `on_start` and `on_land`. `type.soak` adds `recovery: "2"`; `type.press` adds an `interrupt` on landing. The action's formulas read the pick as `chosen.type.id`.
+
+### What an action may target
+
+A `body`, `ally` or `part` action aims at any living body in reach unless its `targets` narrows that:
+
+```cue
+targets: {
+	tags: ["crawls"]
+	not: ["innate"]
+	corpse: true
+}
+```
+
+- `tags`: the target's template must carry every one.
+- `not`: the target's template must carry none of them.
+- `corpse: true` lets the action aim at a dead body as well as a living one. Without it a corpse is never offered and an intent naming one is refused as a bad target.
 
 ### `vocabulary.cue`
 
