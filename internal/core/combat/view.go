@@ -12,6 +12,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
@@ -27,6 +28,10 @@ func seenCells(w *sim.World, from comp.Pos) (map[api.Cell]bool, error) {
 	cfg := w.Content.Combat()
 	m := w.Map
 	if m == nil {
+		return nil, nil
+	}
+	// A body in an unloaded chunk sees nothing: looking would load the ground of every creature in the world.
+	if !m.IsLoaded(hexmap.KeyOf(from.At)) {
 		return nil, nil
 	}
 	cells, err := m.Visible(from.At, cfg.SightRadius, cfg.SightDepth)

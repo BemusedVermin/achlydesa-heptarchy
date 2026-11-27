@@ -612,6 +612,19 @@ import (
 	// Density is in [0, 1]: how likely a cell the entry applies to is to start a body, before the entry's
 	// weight shares that chance with the other entries that apply there.
 	density: float64 @go(Density)
+
+	// Mind, when set, gives some of the entry's individuals a planner of their own. The template must
+	// have a mind.
+	mind?: null | #SpawnMind @go(Mind,*SpawnMind)
+}
+
+// SpawnMind picks which individuals of a spawn entry plan differently from their template.
+#SpawnMind: {
+	// Planner names a registered planner.
+	planner: string @go(Planner)
+
+	// Chance is in [0, 1]: how likely each individual is to get the planner.
+	chance: float64 @go(Chance)
 }
 
 // StageDef names a registered worldgen stage and its numbers. Whether the stage takes those params is the

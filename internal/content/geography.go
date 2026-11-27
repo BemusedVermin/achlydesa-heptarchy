@@ -44,6 +44,17 @@ func (r *Registry) checkGeographies() []error {
 			if spawn.MinDepth > spawn.MaxDepth {
 				p.addf("%s: min_depth is above max_depth", path)
 			}
+			if spawn.Mind != nil {
+				if spawn.Mind.Planner == "" {
+					p.addf("%s.mind.planner: required", path)
+				}
+				if spawn.Mind.Chance < 0 || spawn.Mind.Chance > 1 {
+					p.addf("%s.mind.chance: must be between 0 and 1", path)
+				}
+				if template, ok := r.bundle.Templates[string(spawn.Template)]; ok && template.Mind == nil {
+					p.addf("%s.mind: template %q has no mind", path, spawn.Template)
+				}
+			}
 		}
 	}
 	if id := r.bundle.World.Geography; id != "" {

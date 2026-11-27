@@ -503,6 +503,17 @@ type GeographySpawn struct {
 	// Density is in [0, 1]: how likely a cell the entry applies to is to start a body, before the entry's
 	// weight shares that chance with the other entries that apply there.
 	Density float64 `json:"density"`
+	// Mind, when set, gives some of the entry's individuals a planner of their own. The template must
+	// have a mind.
+	Mind *SpawnMind `json:"mind,omitempty"`
+}
+
+// SpawnMind picks which individuals of a spawn entry plan differently from their template.
+type SpawnMind struct {
+	// Planner names a registered planner.
+	Planner string `json:"planner"`
+	// Chance is in [0, 1]: how likely each individual is to get the planner.
+	Chance float64 `json:"chance"`
 }
 
 // StageDef names a registered worldgen stage and its numbers. Whether the stage takes those params is the

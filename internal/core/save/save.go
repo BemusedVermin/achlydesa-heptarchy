@@ -15,7 +15,7 @@ import (
 const Format = "heptarchy-save"
 
 // CurrentVersion is the version Write produces. Raise it together with a migration from the old one.
-const CurrentVersion = 14
+const CurrentVersion = 15
 
 // Header says what the file is and what it was made from.
 type Header struct {
@@ -81,8 +81,6 @@ type Snapshot struct {
 	// Edits lists the world's edits, sorted by depth, R, Q. The world itself is rebuilt from content
 	// on load.
 	Edits []Edit `json:"edits"`
-	// Populated lists the chunks whose starting bodies have been spawned, sorted by depth, R, Q.
-	Populated []Chunk `json:"populated"`
 	// History is every command applied so far, in the codec's envelope form.
 	History []json.RawMessage `json:"history"`
 	// Log is the message log the view shows.

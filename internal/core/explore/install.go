@@ -71,7 +71,7 @@ func checkStep(ctx *effects.Context, _ effects.Params) (bool, api.Text) {
 	if !ok {
 		return true, api.Text{}
 	}
-	if ctx.Dir == nil {
+	if ctx.Dir == nil || !m.IsLoaded(hexmap.KeyOf(pos.At)) {
 		return false, bump()
 	}
 	step, can, err := m.Step(pos.At, *ctx.Dir, stateOf(ctx.World).rules)
@@ -211,9 +211,6 @@ func applyStep(ctx *effects.Context, _ effects.Params) error {
 		return err
 	}
 	if member {
-		if err := populateLoaded(w); err != nil {
-			return err
-		}
 		unloadFar(w)
 	}
 	if cost < 1 {
