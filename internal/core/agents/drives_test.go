@@ -153,7 +153,12 @@ func TestWeightsAreIndividualAndReproducible(t *testing.T) {
 	_, loaded, _ := gametest.Reload(t, cfg, g)
 	for q, drives := range first {
 		if !maps.Equal(drives.Weights, second[q].Weights) {
-			t.Errorf("beast at q=%d: weights %v, then %v spawning in the other order", q, drives.Weights, second[q].Weights)
+			t.Errorf(
+				"beast at q=%d: weights %v, then %v spawning in the other order",
+				q,
+				drives.Weights,
+				second[q].Weights,
+			)
 		}
 		e, ok := loaded.ByUID(uids[q])
 		if !ok {
