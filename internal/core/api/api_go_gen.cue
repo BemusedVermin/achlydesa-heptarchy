@@ -13,6 +13,9 @@ package api
 // Loggable events produce a line in the player's message log.
 #Loggable: _
 
+// Pausing events are fight beats: the log line they produce asks a frontend to stop on it.
+#Pausing: _
+
 // UID is the stable identity of an individual; 0 means none.
 #UID: uint64
 

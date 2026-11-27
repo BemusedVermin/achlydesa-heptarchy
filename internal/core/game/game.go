@@ -41,6 +41,7 @@ type Game struct {
 	// events are those delivered since the last Apply returned.
 	events []api.Event
 	log    []api.LogLine
+	logSeq int64
 	broken error
 }
 
@@ -148,10 +149,10 @@ func (g *Game) ReloadFailed(err error) {
 
 // Note adds a line of text straight to the message log, for the frontend to report something that
 // is not a game event, such as a failed reload.
-func (g *Game) Note(text string) { g.appendLog(text) }
+func (g *Game) Note(text string) { g.appendLog(text, false) }
 
 // NoteText is [Game.Note] for text the game's content renders.
-func (g *Game) NoteText(text api.Text) { g.appendLog(g.world.Content.Render(text)) }
+func (g *Game) NoteText(text api.Text) { g.appendLog(g.world.Content.Render(text), false) }
 
 // Apply runs one command, plays time forward until a player-controlled body decides, and returns
 // the events in delivery order. An invalid command is not an error: it comes back as an

@@ -36,6 +36,9 @@ package api
 
 	// Autonomous says a grafted part started the action on its own, not its host's controller.
 	autonomous?: bool @go(Autonomous)
+
+	// Line is the log text; empty when the party could not perceive the start.
+	line?: #Text @go(Line)
 }
 
 // ActionMissed reports that an action landed and did nothing: its target was out of reach, or one of

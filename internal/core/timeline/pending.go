@@ -69,10 +69,24 @@ func Cancel(w *sim.World, pending ecs.Entity, reason api.ContentID) {
 		return
 	}
 	p := *st.pendings.Get(pending)
+	line := canceledLine(w, pending, p, reason)
 	w.ECS.RemoveEntity(pending)
 	w.Bus.Publish(api.ActionCanceled{
-		Kind: p.Kind, Source: p.Actor, Target: p.Target, Tick: w.Now, Reason: api.Text{ID: reason},
+		Kind: p.Kind, Source: p.Actor, Target: p.Target, Tick: w.Now, Reason: api.Text{ID: reason}, Line: line,
 	})
+}
+
+func canceledLine(w *sim.World, pending ecs.Entity, p comp.Pending, reason api.ContentID) api.Text {
+	actor, _ := w.ByUID(p.Actor)
+	target, _ := w.ByUID(p.Target)
+	landing := ecs.NewMap[comp.Landing](w.ECS)
+	if !landing.Has(pending) || !w.Alive(actor) || (!IsVisible(w, actor) && !IsVisible(w, target)) {
+		return api.Text{}
+	}
+	return api.Text{ID: "text.timeline.canceled_line", Args: map[string]string{
+		"actor": w.NameOf(actor), "action": w.ActionName(landing.Get(pending).Action),
+		"reason": w.Content.Render(api.Text{ID: reason}),
+	}}
 }
 
 // allPending lists every pending entity, sorted by landing tick then Seq.
