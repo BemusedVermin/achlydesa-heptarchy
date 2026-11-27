@@ -98,6 +98,21 @@ func TestLoadRejectsBadActions(t *testing.T) {
 			want:   []string{"choices[1]", "listed twice"},
 		},
 		{
+			name:   "target filter on a direction action",
+			mutate: func(b *Bundle) { change(b, func(d *ActionDef) { d.Targets.Corpse = true }) },
+			want:   []string{`actions["action.step"].targets`, "only a body, ally or part action"},
+		},
+		{
+			name: "tag both required and excluded",
+			mutate: func(b *Bundle) {
+				change(b, func(d *ActionDef) {
+					d.Target = TargetBody
+					d.Targets = TargetFilter{Tags: []string{"ward"}, Not: []string{"ward"}}
+				})
+			},
+			want: []string{"targets.not[0]", "also required"},
+		},
+		{
 			name: "template with an unknown action",
 			mutate: func(b *Bundle) {
 				template := b.Templates["template.person.reaper"]
