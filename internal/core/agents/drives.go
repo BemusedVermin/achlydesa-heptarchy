@@ -37,6 +37,9 @@ func Install(w *sim.World) error {
 	if err := installMind(w); err != nil {
 		return err
 	}
+	if err := installLOD(w); err != nil {
+		return err
+	}
 	err := effects.Register(w, effects.Primitive{
 		Name: "satisfy", Params: []string{"bodies", "drive", "amount"},
 		Kinds:         map[string]effects.Kind{"bodies": effects.KindBodies, "drive": effects.KindText},

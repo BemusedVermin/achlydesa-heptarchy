@@ -127,6 +127,12 @@ package api
 
 	// Wall is true for a solid cell drawn with its wall glyph.
 	wall?: bool @go(Wall)
+
+	// Weight is how strongly to draw the cell: -1 dim, 0 normal, 1 bold.
+	weight?: int @go(Weight)
+
+	// Unreachable is true for a visible open cell within the plan range that the party cannot walk to.
+	unreachable?: bool @go(Unreachable)
 }
 
 // EntityView is one visible entity on the map.

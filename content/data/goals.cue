@@ -9,6 +9,8 @@ goals: [string]: content.#Goal
 agents: {
 	think_ticks: 4
 	keep_bonus:  0.1
+	// An agent far from the party decides this often instead: about a tenth of a phase.
+	far_ticks: 6
 }
 
 goals: {

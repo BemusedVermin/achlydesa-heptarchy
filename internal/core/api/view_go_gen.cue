@@ -44,6 +44,9 @@ package api
 	// of a menu built from the IDs. It may be shorter than the ID, or empty, for an option that is
 	// not grouped.
 	path?: [...string] @go(Path,[]string)
+
+	// Confirm is the rendered question to ask before choosing the option; empty when it needs none.
+	confirm?: string @go(Confirm)
 }
 
 // LogLine is one line of the player's message log.

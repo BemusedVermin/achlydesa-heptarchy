@@ -118,6 +118,7 @@ type state struct {
 	members   *ecs.Map[comp.MemberOf]
 	pendings  *ecs.Map[comp.Pending]
 	delegates *ecs.Map[comp.Delegate]
+	parked    *ecs.Map[comp.Parked]
 	resolvers map[string]Resolver
 	// The last Seq handed out.
 	seq uint64
@@ -138,6 +139,7 @@ func stateOf(w *sim.World) *state {
 		members:     ecs.NewMap[comp.MemberOf](w.ECS),
 		pendings:    ecs.NewMap[comp.Pending](w.ECS),
 		delegates:   ecs.NewMap[comp.Delegate](w.ECS),
+		parked:      ecs.NewMap[comp.Parked](w.ECS),
 		resolvers:   map[string]Resolver{},
 	}
 	st.channels = func(_ *sim.World, body ecs.Entity) []Channel {
@@ -240,6 +242,9 @@ func (st *state) decisionTick(w *sim.World, body ecs.Entity) int64 {
 
 // schedule gives body a live slot at its current decision tick, replacing any other.
 func (st *state) schedule(w *sim.World, body ecs.Entity) {
+	if st.parked.Has(body) {
+		return
+	}
 	tick := st.decisionTick(w, body)
 	if old, ok := st.queued[body]; ok && old == tick {
 		return
@@ -250,7 +255,7 @@ func (st *state) schedule(w *sim.World, body ecs.Entity) {
 
 // live reports whether s is still the body's live slot.
 func (st *state) live(w *sim.World, s slot) bool {
-	if !w.ECS.Alive(s.e) || !st.actors.Has(s.e) {
+	if !w.ECS.Alive(s.e) || !st.actors.Has(s.e) || st.parked.Has(s.e) {
 		return false
 	}
 	tick, ok := st.queued[s.e]
@@ -517,6 +522,32 @@ func Reschedule(w *sim.World, body ecs.Entity) {
 	if w.ECS.Alive(body) && st.actors.Has(body) {
 		st.schedule(w, body)
 	}
+}
+
+// Park takes a body off the timeline: it has no entry and no controller decides for it until
+// [Unpark], though its channels stay busy as they were. A body with no Actor is left alone.
+func Park(w *sim.World, body ecs.Entity) {
+	st := stateOf(w)
+	if !w.ECS.Alive(body) || !st.actors.Has(body) || st.parked.Has(body) {
+		return
+	}
+	st.parked.Add(body, &comp.Parked{})
+	st.changes++
+	delete(st.queued, body)
+	delete(st.sleeping, body)
+	if st.hasCurrent && st.current == body {
+		st.hasCurrent = false
+	}
+}
+
+// Unpark puts a parked body back on the timeline at its decision tick.
+func Unpark(w *sim.World, body ecs.Entity) {
+	st := stateOf(w)
+	if !w.ECS.Alive(body) || !st.parked.Has(body) {
+		return
+	}
+	st.parked.Remove(body)
+	Reschedule(w, body)
 }
 
 // Speed is the body's speed from the world's speed hook; an error is a content bug.

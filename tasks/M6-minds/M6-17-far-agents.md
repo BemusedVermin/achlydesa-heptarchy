@@ -1,7 +1,7 @@
 ---
 id: M6-17
 title: "Far agents: goals only, over the chunk graph"
-status: todo
+status: in-progress
 milestone: M6
 kind: feature
 depends_on: [M6-06, M6-12, M6-14]

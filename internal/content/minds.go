@@ -264,6 +264,9 @@ func (r *Registry) checkMinds() []error {
 	if len(r.bundle.Goals) > 0 && r.bundle.Agents.ThinkTicks < 1 {
 		p.addf("agents.think_ticks: must be at least 1 when goals exist, got %d", r.bundle.Agents.ThinkTicks)
 	}
+	if len(r.bundle.Goals) > 0 && r.bundle.Agents.FarTicks < 1 {
+		p.addf("agents.far_ticks: must be at least 1 when goals exist, got %d", r.bundle.Agents.FarTicks)
+	}
 	if r.bundle.Agents.KeepBonus < 0 {
 		p.addf("agents.keep_bonus: must not be negative, got %v", r.bundle.Agents.KeepBonus)
 	}

@@ -225,6 +225,10 @@ import (
 	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
 	// when any goal exists.
 	think_ticks?: int @go(ThinkTicks)
+
+	// FarTicks is how many ticks pass between the decisions of an agent far from every party member,
+	// which world.near_chunks says. It must be at least 1 when any goal exists.
+	far_ticks?: int @go(FarTicks)
 }
 
 // Material is a substance things are made of.

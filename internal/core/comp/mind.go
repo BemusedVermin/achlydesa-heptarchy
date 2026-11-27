@@ -55,3 +55,19 @@ type Claim struct {
 type Claims struct {
 	Held []Claim `json:"held"`
 }
+
+// Far marks a body far from every party member: it is parked off the timeline, decides every
+// agents.far_ticks at goal level, and travels the chunk graph instead of cell by cell. Use the agents
+// package rather than changing it.
+type Far struct {
+	// Decides is the tick of its next far decision.
+	Decides int64 `json:"decides"`
+	// Hops are the stops still ahead on its route, in order.
+	Hops []FarHop `json:"hops,omitempty"`
+}
+
+// FarHop is one stop of a far route: the cell the body is put in, and the tick it gets there.
+type FarHop struct {
+	At     api.Cell `json:"at"`
+	Arrive int64    `json:"arrive"`
+}

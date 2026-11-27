@@ -169,6 +169,10 @@ func (mindController) Decide(w *sim.World, body ecs.Entity) error {
 			return nil
 		}
 	}
+	if !Near(w, body) {
+		demote(w, body)
+		return nil
+	}
 	if err := think(w, body); err != nil {
 		return err
 	}
@@ -229,30 +233,46 @@ func makePlan(w *sim.World, body ecs.Entity) (bool, error) {
 	if mind.Goal == "" {
 		return false, nil
 	}
-	planner, ok := mindsOf(w).planners[mind.Planner]
-	if !ok {
-		return false, fmt.Errorf("agents: body %d has unknown planner %q", w.UIDOf(body), mind.Planner)
-	}
-	beliefs, err := StateOf(w, body)
+	planner, snapshot, err := planInput(w, body)
 	if err != nil {
 		return false, err
 	}
+	plan, found := planner.Plan(snapshot, mind.Goal)
+	return adopt(w, body, plan, found)
+}
+
+// planInput is the body's planner and the snapshot it plans from.
+func planInput(w *sim.World, body ecs.Entity) (Planner, Snapshot, error) {
+	mind := ecs.NewMap[comp.Mind](w.ECS).Get(body)
+	planner, ok := mindsOf(w).planners[mind.Planner]
+	if !ok {
+		return nil, Snapshot{}, fmt.Errorf("agents: body %d has unknown planner %q", w.UIDOf(body), mind.Planner)
+	}
+	beliefs, err := StateOf(w, body)
+	if err != nil {
+		return nil, Snapshot{}, err
+	}
 	uid := w.UIDOf(body)
-	plan, found := planner.Plan(Snapshot{
+	return planner, Snapshot{
 		Agent:   uid,
 		Tick:    w.Now,
 		Beliefs: beliefs,
 		Content: w.Content,
 		Rand:    w.RNG.Derived(planStream, planSalt(uid, w.Now)),
-	}, mind.Goal)
+	}, nil
+}
+
+// adopt gives the body a plan its planner found for its goal, if the claims it makes can be had.
+func adopt(w *sim.World, body ecs.Entity, plan Plan, found bool) (bool, error) {
 	if !found || len(plan.Steps) == 0 {
 		return false, nil
 	}
-	plan.Goal = mind.Goal
+	minds := ecs.NewMap[comp.Mind](w.ECS)
+	plan.Goal = minds.Get(body).Goal
 	if claimed, err := claim(w, body, plan.Claims); err != nil || !claimed {
 		return false, err
 	}
-	stored := ecs.NewMap[comp.Mind](w.ECS).Get(body)
+	stored := minds.Get(body)
 	stored.Plan, stored.Step, stored.Exports = plan, 0, w.ExportCount
 	return true, nil
 }
