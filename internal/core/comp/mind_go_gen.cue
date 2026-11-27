@@ -12,6 +12,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	// Planner names the registered planner that makes the body's plans, from its template.
 	planner: string @go(Planner)
 
+	// Thought is the tick the body last chose a goal, or 0 before its first choice.
+	thought?: int64 @go(Thought)
+
 	// Goal is the "goal." ID the body works toward, or empty for none.
 	goal?: api.#ContentID @go(Goal)
 
@@ -25,8 +28,8 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	exports: int @go(Exports)
 }
 
-// Plan is the steps a planner found for a goal ("goal." ID), in the order they run, and what they
-// need to themselves while they run. GOAP and HTN both make one.
+// Plan is the steps a planner found for a goal ("goal." ID), in the order they run, and the claims
+// they hold while they run. GOAP and HTN both make one.
 #Plan: {
 	goal?: api.#ContentID @go(Goal)
 	steps?: [...#PlanStep] @go(Steps,[]PlanStep)

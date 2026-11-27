@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 )
@@ -60,12 +61,43 @@ type Does struct {
 	Target string `json:"target"`
 }
 
-// Goal is a state an agent works toward to meet a drive.
+// Goal is a state an agent works toward to meet a drive. A goal with no drive is a standing activity,
+// such as wandering, and wants no state.
 type Goal struct {
-	// Drive is the "drive." ID the goal serves.
-	Drive api.ContentID `json:"drive"`
-	// Want holds once the goal is reached.
-	Want []Condition `json:"want"`
+	// Drive is the "drive." ID the goal serves. An agent that does not carry it never has the goal.
+	Drive api.ContentID `json:"drive,omitempty"`
+	// Want holds once the goal is reached. Required when the goal has a drive.
+	Want []Condition `json:"want,omitempty"`
+	// When is an Expr bool over BeliefEnv: whether the goal applies to an agent. Empty means always.
+	When string `json:"when,omitempty"`
+	// Weight is an Expr over GoalEnv: how strongly the agent leans to the goal, at least 0.
+	Weight string `json:"weight"`
+}
+
+// BeliefEnv is what a goal's when formula sees: the agent's beliefs, keyed by tag ID. A tag the agent
+// has no belief about reads as 0 or false.
+type BeliefEnv struct {
+	// Has is how many carried items have each item tag.
+	Has map[string]int `expr:"has"`
+	// Near, Known and Met are the affordances believed near, those remembered, and the drives
+	// believed met.
+	Near  map[string]bool `expr:"near"`
+	Known map[string]bool `expr:"known"`
+	Met   map[string]bool `expr:"met"`
+}
+
+// GoalEnv is what a goal's weight formula sees: the level of its drive, the individual's weight on
+// it, and the drive's urge at that level. All are 0 for a goal with no drive.
+type GoalEnv struct {
+	Level  float64 `expr:"level"`
+	Weight float64 `expr:"weight"`
+	Urge   float64 `expr:"urge"`
+}
+
+type compiledGoal struct {
+	// when is nil for a goal that always applies.
+	when   *vm.Program
+	weight *vm.Program
 }
 
 // Recipe is a written plan for a goal: its steps in order, each an operator or another recipe.
@@ -97,6 +129,38 @@ func (r *Registry) Goal(id api.ContentID) (Goal, bool) {
 	return goal, ok
 }
 
+// GoalIDs lists every goal's ID in order.
+func (r *Registry) GoalIDs() []api.ContentID { return sortedIDs(r.bundle.Goals) }
+
+// GoalApplies says by the goal's when formula whether it applies given the beliefs.
+func (r *Registry) GoalApplies(id api.ContentID, env BeliefEnv) (bool, error) {
+	compiled, ok := r.goals[id]
+	if !ok {
+		return false, fmt.Errorf("content: unknown goal %q", id)
+	}
+	if compiled.when == nil {
+		return true, nil
+	}
+	return run[bool](compiled.when, env, fmt.Sprintf("goal %q when", id))
+}
+
+// GoalWeight is how strongly an agent leans to the goal, by its weight formula. A negative or NaN
+// result is a content bug.
+func (r *Registry) GoalWeight(id api.ContentID, env GoalEnv) (float64, error) {
+	compiled, ok := r.goals[id]
+	if !ok {
+		return 0, fmt.Errorf("content: unknown goal %q", id)
+	}
+	weight, err := run[float64](compiled.weight, env, fmt.Sprintf("goal %q weight", id))
+	if err != nil {
+		return 0, err
+	}
+	if !(weight >= 0) {
+		return 0, fmt.Errorf("content: goal %q weight is %v, want at least 0", id, weight)
+	}
+	return weight, nil
+}
+
 // Recipe returns the recipe with the given ID. Its Steps slice is shared with the registry: don't
 // change it.
 func (r *Registry) Recipe(id api.ContentID) (Recipe, bool) {
@@ -116,6 +180,7 @@ func (r *Registry) DriveMet(env DriveEnv) (bool, error) {
 // checkMinds checks operators, goals and recipes, and compiles agents.met.
 func (r *Registry) checkMinds() []error {
 	p := r.problems()
+	r.goals = map[api.ContentID]compiledGoal{}
 	namesMet := false
 	conditions := func(path string, conds []Condition, effect bool) {
 		for i, cond := range conds {
@@ -145,11 +210,27 @@ func (r *Registry) checkMinds() []error {
 	for _, key := range sortedKeys(r.bundle.Goals) {
 		goal := r.bundle.Goals[key]
 		path := fmt.Sprintf("goals[%q]", key)
-		ref(p, r.bundle.Drives, path+".drive", "drive", goal.Drive)
-		if len(goal.Want) == 0 {
-			p.addf("%s.want: at least one condition is required", path)
+		if goal.Drive != "" {
+			ref(p, r.bundle.Drives, path+".drive", "drive", goal.Drive)
+			if len(goal.Want) == 0 {
+				p.addf("%s.want: at least one condition is required", path)
+			}
 		}
 		conditions(path+".want", goal.Want, false)
+		var compiled compiledGoal
+		if goal.When != "" {
+			program, err := r.Compile(goal.When, BeliefEnv{}, expr.AsBool())
+			if err != nil {
+				p.addf("%s.when: %w", path, err)
+			}
+			compiled.when = program
+		}
+		program, err := r.Compile(goal.Weight, GoalEnv{}, expr.AsFloat64())
+		if err != nil {
+			p.addf("%s.weight: %w", path, err)
+		}
+		compiled.weight = program
+		r.goals[api.ContentID(key)] = compiled
 	}
 	for _, key := range sortedKeys(r.bundle.Recipes) {
 		recipe := r.bundle.Recipes[key]
@@ -179,6 +260,12 @@ func (r *Registry) checkMinds() []error {
 		r.met = program
 	case namesMet:
 		p.addf("agents.met: required when an operator or goal names drive_met")
+	}
+	if len(r.bundle.Goals) > 0 && r.bundle.Agents.ThinkTicks < 1 {
+		p.addf("agents.think_ticks: must be at least 1 when goals exist, got %d", r.bundle.Agents.ThinkTicks)
+	}
+	if r.bundle.Agents.KeepBonus < 0 {
+		p.addf("agents.keep_bonus: must not be negative, got %v", r.bundle.Agents.KeepBonus)
 	}
 	if r.bundle.Agents.NearRadius < 0 {
 		p.addf("agents.near_radius: must not be negative, got %d", r.bundle.Agents.NearRadius)

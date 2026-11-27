@@ -7,6 +7,8 @@ import "github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 type Mind struct {
 	// Planner names the registered planner that makes the body's plans, from its template.
 	Planner string `json:"planner"`
+	// Thought is the tick the body last chose a goal, or 0 before its first choice.
+	Thought int64 `json:"thought,omitempty"`
 	// Goal is the "goal." ID the body works toward, or empty for none.
 	Goal api.ContentID `json:"goal,omitempty"`
 	// Plan has no steps while the body has no plan.

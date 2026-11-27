@@ -48,8 +48,9 @@ func thinkingContent(b *content.Bundle) {
 		Mind:    &content.MindDef{Planner: onePlanner},
 		Actions: []api.ContentID{ponder},
 		Faction: new(api.ContentID("faction.party")),
-		Drives:  map[string]float64{string(water): 1},
+		Drives:  map[string]float64{string(water): 1, "drive.rest": 1},
 	}
+	b.Agents.ThinkTicks = 1 << 40
 	b.Text["text.action.test.ponder"] = "Ponder"
 	b.Text["text.template.test.thinker"] = "Thinker"
 }

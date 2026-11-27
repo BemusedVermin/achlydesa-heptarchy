@@ -39,6 +39,7 @@ type Registry struct {
 	weight *vm.Program
 	// met is nil when agents.met is empty.
 	met         *vm.Program
+	goals       map[api.ContentID]compiledGoal
 	warnings    []string
 	collections []collection
 	// rulesUsed is filled in while the registry loads, to warn about rules nothing uses.

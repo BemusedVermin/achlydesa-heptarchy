@@ -162,6 +162,9 @@ func (mindController) Decide(w *sim.World, body ecs.Entity) error {
 			return nil
 		}
 	}
+	if err := think(w, body); err != nil {
+		return err
+	}
 	if mind := minds.Get(body); len(mind.Plan.Steps) > 0 && (mind.Step >= len(mind.Plan.Steps) || !planHolds(w, body)) {
 		drop(w, body)
 	}
