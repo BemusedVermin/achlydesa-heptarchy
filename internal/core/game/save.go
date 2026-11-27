@@ -157,7 +157,9 @@ func savedPocket(w *sim.World) save.Pocket {
 func loadedPocket(pocket save.Pocket) explore.Pocket {
 	out := explore.Pocket{Openings: pocket.Openings}
 	for _, chunk := range pocket.Chunks {
-		loaded := explore.PocketChunk{Key: hexmap.ChunkKey{Q: chunk.Chunk.Q, R: chunk.Chunk.R, Depth: chunk.Chunk.Depth}}
+		loaded := explore.PocketChunk{
+			Key: hexmap.ChunkKey{Q: chunk.Chunk.Q, R: chunk.Chunk.R, Depth: chunk.Chunk.Depth},
+		}
 		for _, run := range chunk.Runs {
 			loaded.Runs = append(loaded.Runs, explore.PocketRun{Terrain: run.Terrain, Count: run.Count})
 		}
