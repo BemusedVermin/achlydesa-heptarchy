@@ -103,7 +103,7 @@ templates: {
 		tags: ["crawls"]
 	}
 	// A well refills on its own. A cistern and a larder are containers: what is in them is what
-	// someone carried there. The numbers are placeholders, for tuning.
+	// someone carried there, so the cistern starts empty. The numbers are placeholders, for tuning.
 	"template.source.well": {
 		name: "text.template.source.well"
 		appearance: {glyph: "o", color: "blue"}
@@ -112,11 +112,12 @@ templates: {
 	"template.container.cistern": {
 		name: "text.template.container.cistern"
 		appearance: {glyph: "u", color: "blue"}
-		inventory: [{item: "item.water", count: 5}]
+		container: true
 	}
 	"template.container.larder": {
 		name: "text.template.container.larder"
 		appearance: {glyph: "u", color: "yellow"}
+		container: true
 		inventory: [{item: "item.ration", count: 5}]
 	}
 	"template.party.main": {
