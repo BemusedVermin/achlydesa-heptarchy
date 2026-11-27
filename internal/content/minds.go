@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/expr-lang/expr"
 
@@ -13,7 +14,7 @@ type FactKind string
 
 // Kinds of fact.
 const (
-	// FactHas counts an item the agent carries: its tag is an "item." ID.
+	// FactHas counts the carried items that have an item tag: its tag is one of vocabulary.tags.items.
 	FactHas FactKind = "has"
 	// FactNear is a landmark the agent believes is within agents.near_radius: its tag is an
 	// "affordance." ID.
@@ -190,7 +191,10 @@ func (r *Registry) checkMinds() []error {
 func (r *Registry) checkCondition(p *problems, path string, cond Condition, effect bool) {
 	switch cond.Fact {
 	case FactHas:
-		ref(p, r.bundle.Items, path+".tag", "item", cond.Tag)
+		itemTags := r.bundle.Vocabulary.Tags[string(CollectionItems)]
+		if !slices.Contains(itemTags, string(cond.Tag)) {
+			p.addf("%s.tag: %q is not an item tag in vocabulary.tags.items (want one of %v)", path, cond.Tag, itemTags)
+		}
 		switch {
 		case effect && cond.Not:
 			p.addf("%s.not: a has effect changes the count by n instead", path)

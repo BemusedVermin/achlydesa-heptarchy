@@ -6,7 +6,7 @@ vocabulary: content.#Vocabulary
 
 // What content closes: anything not declared here stays open.
 vocabulary: {
-	tags: items: ["consumable", "piece", "keepsake", "name"]
+	tags: items: ["consumable", "piece", "keepsake", "name", "drinkable", "edible"]
 	grants: ["action", "targeting", "speed"]
 	lists: {
 		"materials.weak_to":   "types"
