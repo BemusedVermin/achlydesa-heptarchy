@@ -275,6 +275,9 @@ import (
 
 	// Triggers run for holders of the item.
 	triggers?: [...#Trigger] @go(Triggers,[]Trigger)
+
+	// OnConsume are the effects of consuming one, on the body that consumes it.
+	on_consume?: [...#EffectRef] @go(OnConsume,[]EffectRef)
 }
 
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
@@ -908,6 +911,9 @@ import (
 
 	// Corpse allows a dead body as well as a living one.
 	corpse?: bool @go(Corpse)
+
+	// Thing allows a source or container, which has a cell and no body, instead of any body.
+	thing?: bool @go(Thing)
 }
 
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.

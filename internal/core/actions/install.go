@@ -55,6 +55,9 @@ func Install(w *sim.World) error {
 	if err := api.RegisterEvent[api.ActionMissed](w.Codec); err != nil {
 		return err
 	}
+	if err := registerThings(w); err != nil {
+		return err
+	}
 	if err := sim.Handle(w, handleDo); err != nil {
 		return err
 	}

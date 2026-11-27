@@ -117,7 +117,8 @@ func (ev *evaluator) targets(actor ecs.Entity, def content.ActionDef) ([]Intent,
 }
 
 func (ev *evaluator) bodyTargets(actor ecs.Entity, def content.ActionDef) ([]Intent, error) {
-	key := targetKey{actor: actor, target: def.Target, rng: def.Range, sight: def.Sight, corpse: def.Targets.Corpse}
+	key := targetKey{actor: actor, target: def.Target, rng: def.Range, sight: def.Sight, corpse: def.Targets.Corpse,
+		thing: def.Targets.Thing}
 	out, ok := ev.targetMemo[key]
 	if !ok {
 		var err error
@@ -147,6 +148,14 @@ func (ev *evaluator) findBodyTargets(actor ecs.Entity, def content.ActionDef) ([
 		dead := ecs.NewFilter2[comp.Pos, comp.Dead](ev.w.ECS).Query()
 		for dead.Next() {
 			bodies = append(bodies, dead.Entity())
+		}
+	}
+	if def.Targets.Thing {
+		things := ecs.NewFilter1[comp.Pos](ev.w.ECS).Query()
+		for things.Next() {
+			if e := things.Entity(); ev.isThing(e) && !slices.Contains(bodies, e) {
+				bodies = append(bodies, e)
+			}
 		}
 	}
 	ev.w.SortByUID(bodies)

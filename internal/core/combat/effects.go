@@ -414,8 +414,20 @@ func inventoryHas(ctx *effects.Context, item api.ContentID) (bool, api.Text) {
 	return false, api.Text{ID: inventoryShortReason, Args: args}
 }
 
+// consumedItem is the item a consume names, or else the one its choice picked.
+func consumedItem(ctx *effects.Context, p effects.Params) (string, error) {
+	if p.Has("item") {
+		return p.String("item")
+	}
+	choice, err := p.String("choice")
+	if err != nil {
+		return "", fmt.Errorf("consume needs an item or a choice: %w", err)
+	}
+	return ctx.Choices[choice], nil
+}
+
 func checkConsume(ctx *effects.Context, p effects.Params) (bool, api.Text) {
-	item, _ := p.String("item")
+	item, _ := consumedItem(ctx, p)
 	id := api.ContentID(item)
 	// A bound item held for some other body doesn't refuse: refusing would tell the player whose
 	// keepsake they hold. The swing lands and the stack bound to this target, if any, is used.
@@ -427,7 +439,7 @@ func checkConsume(ctx *effects.Context, p effects.Params) (bool, api.Text) {
 }
 
 func applyConsume(ctx *effects.Context, p effects.Params) error {
-	item, err := p.String("item")
+	item, err := consumedItem(ctx, p)
 	if err != nil {
 		return err
 	}
@@ -435,8 +447,11 @@ func applyConsume(ctx *effects.Context, p effects.Params) error {
 		return err
 	}
 	id := api.ContentID(item)
-	inventory.Take(ctx.World, inventory.HolderOf(ctx.World, ctx.Source), id, boundTo(ctx, id), 1)
-	return nil
+	if !inventory.Take(ctx.World, inventory.HolderOf(ctx.World, ctx.Source), id, boundTo(ctx, id), 1) {
+		return nil
+	}
+	def, _ := ctx.World.Content.Item(id)
+	return effects.Apply(&effects.Context{World: ctx.World, Source: ctx.Source, Target: ctx.Source}, def.OnConsume)
 }
 
 // applySpawnFromPart makes a severed part a body of its own, at the cell where it lies. The body's
