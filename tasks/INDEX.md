@@ -160,7 +160,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | ID | Title | Status | Kind | Size | Depends on |
 | --- | --- | --- | --- | --- | --- |
 | [M6-01](M6-minds/M6-01-hostility-handoff.md) | Hostility in the foundation, and a two-way controller hand-off | todo | seam | S | none |
-| [M6-02](M6-minds/M6-02-sources.md) | Sources and containers | in-progress | seam | M | none |
+| [M6-02](M6-minds/M6-02-sources.md) | Sources and containers | done | seam | M | none |
 | [M6-03](M6-minds/M6-03-drives.md) | Drives: needs and desires with a weight per individual | todo | seam | M | none |
 | [M6-04](M6-minds/M6-04-memory-sight.md) | A capped memory per agent, learned by sight | todo | seam | M | none |
 | [M6-05](M6-minds/M6-05-target-tags.md) | What an action may target, by tag, with corpses opt-in | todo | seam | S | none |
@@ -212,6 +212,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M6-02.F1](followups/M6-02.F1-empty-container-template.md) | Let a template spawn an empty container | proposed | seam | M6 | M6-02 |
 | [M5-07.F1.F1](followups/M5-07.F1.F1-verify-large-world-start.md) | Make verify fast enough to run on the large world at game start | done | debt | M5 | M5-07.F1 |
 | [M5-07.F1](followups/M5-07.F1-verify-chunk-summaries.md) | Verify from chunk summaries, not the whole ground | done | debt | M5 | M5-07 |
 | [M5-10.F2.F1](followups/M5-10.F2.F1-sealed-pocket-widening-fails.md) | Choose another way to open a sealed pocket | done | question | M5 | M5-10.F2 |

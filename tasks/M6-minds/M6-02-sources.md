@@ -1,7 +1,7 @@
 ---
 id: M6-02
 title: Sources and containers
-status: in-progress
+status: done
 milestone: M6
 kind: seam
 depends_on: []
@@ -38,8 +38,8 @@ Water and food come from somewhere. A well, lake or field is a source that refil
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes, and the save version is bumped.
+- [x] The tests above pass.
+- [x] `go tool task check` passes, and the save version is bumped.
 
 ## Out of scope
 
@@ -47,4 +47,13 @@ Water and food come from somewhere. A well, lake or field is a source that refil
 - Towns that contain them: M6-22.
 
 ## Notes
+
+- `comp.Source.Refill` is the template ID whose `source.refill` formula is read each phase, so the component holds an ID, not a formula, and a hot reload picks up a new rate. The formula sees `stock` and `max` (`content.RefillEnv`) and returns an int; a negative result is a content error. `Registry.Refill(template, env)` runs it.
+- A source's stock lives in `comp.Source.Stock`, apart from any `comp.Inventory` on the same entity. `inventory.Move` gives from and puts into a source's stock when the source is of that item (putting is refused over `Max`), and uses the inventory otherwise.
+- Where the spec was silent: a source spawns full; "within reach" is the same cell or a neighbouring one (`hexmap.CellDistance` ≤ 1, which counts depth), fixed in code as the meaning of "next to" rather than a tuning number; `Move` returns a bool like `Take`, and moves only unbound stacks.
+- `Move` needs a `Pos` on both entities. A party keeps its inventory on the party entity, which has none, so M6-13 must decide how a member takes into the party's inventory.
+- Sample content: `item.water`, `item.ration` (no tags, so the type choice doesn't offer them), `template.source.well`, `template.container.cistern` and `template.container.larder`. No place spawns them yet. The containers start with five items because a template can't spawn an empty container: M6-02.F1.
+- Save version 9 (`save_test.go` gets the matching no-op migration step). `inventory.Install` now also registers the `source` spawner and the per-phase `inventory.refill` system.
+- Files outside the deliverables: `internal/core/save/`, `internal/content/load_test.go` (a bad-source load case), `docs/content-guide.md` (templates row) and `docs/go-technical-design.md` (the `inventory` package row).
+- Follow-ups: M6-02.F1.
 
