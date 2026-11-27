@@ -73,6 +73,7 @@ After the player commits a move, they can read, one beat at a time, everything t
 - Events carry `Line api.Text`; an empty line (ID "") is not logged. The line is left empty when neither the actor nor the target is visible by the timeline's visibility hook (party members, or in the party's sight): `timeline.IsVisible`. `ActionMissed` follows the same rule now.
 - `ActionsInterrupted` and `ChannelsLocked` get no line: each canceled action already logs through `ActionCanceled`.
 - Added `sim.World.NameOf` and `ActionName`, and `effects.Context.Action`. Without an acting action, damage reads "text.combat.part_damaged_plain".
-- Keys: any key advances, `x` or esc skips (chrome only). The ring golden encounters have no party, so their lines are empty; the TUI tests cover the real lines.
+- Keys: any key advances, `x` or esc skips (chrome only). Most ring golden encounters have no party, so their strike lines are empty; the TUI tests check the start and damage lines in a real game, by pattern. No golden pins the sever line.
 - Files outside Deliverables: `sim/names.go`, `timeline/controllers.go`, `save/save.go` and its test, `actions/actions.go`, `content/data/text/*.cue`.
+- A cancel line is left out when its actor is already gone, so it never reads "Someone's".
 - Follow-ups filed: none.

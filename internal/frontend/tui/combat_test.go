@@ -1,6 +1,7 @@
 package tui_test
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -450,6 +451,15 @@ func TestAFightCommandOpensAPlayByPlayThatStepsAndCloses(t *testing.T) {
 	if !strings.Contains(view, "begins") || strings.Contains(view, "Actions") {
 		t.Fatalf("the play-by-play is not showing the start line:\n%s", view)
 	}
+	if len(beats) > 1 {
+		press(app, "n")
+		if !strings.Contains(app.View().Content, beats[1].Text) {
+			t.Errorf("one key did not show the second line:\n%s", app.View().Content)
+		}
+		if len(beats) > 2 && strings.Contains(app.View().Content, beats[2].Text) {
+			t.Errorf("one key showed more than one line:\n%s", app.View().Content)
+		}
+	}
 	press(app, "x")
 	if !strings.Contains(app.View().Content, beats[len(beats)-1].Text) {
 		t.Errorf("skip did not show every line:\n%s", app.View().Content)
@@ -460,7 +470,12 @@ func TestAFightCommandOpensAPlayByPlayThatStepsAndCloses(t *testing.T) {
 	}
 }
 
-func TestAHitLogsTheStartTheDamageAndTheSever(t *testing.T) {
+var (
+	startLine  = regexp.MustCompile(`\S.* begins \S.* at \S.* \(lands at tick \d+\)\.`)
+	damageLine = regexp.MustCompile(`\S.*'s \S.* hits \S.*'s \S.*: \d+ integrity lost, \d+ left\.`)
+)
+
+func TestAHitLogsTheStartAndTheDamage(t *testing.T) {
 	app := fightApp(t)
 	commitStrike(t, app)
 	press(app, "x")
@@ -471,8 +486,8 @@ func TestAHitLogsTheStartTheDamageAndTheSever(t *testing.T) {
 			text.WriteString(line.Text + "\n")
 		}
 		if strings.Contains(text.String(), "integrity lost") {
-			if !strings.Contains(text.String(), "begins") {
-				t.Errorf("no start line:\n%s", text.String())
+			if !startLine.MatchString(text.String()) || !damageLine.MatchString(text.String()) {
+				t.Errorf("start or damage line missing or malformed:\n%s", text.String())
 			}
 			return
 		}

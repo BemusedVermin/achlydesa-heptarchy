@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"slices"
 	"strings"
 
 	"charm.land/bubbles/v2/key"
@@ -33,12 +34,7 @@ func newLines(v api.View, afterSeq int64) []api.LogLine {
 
 // hasPause reports whether any of the lines is a fight beat.
 func hasPause(lines []api.LogLine) bool {
-	for _, line := range lines {
-		if line.Pause {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(lines, func(line api.LogLine) bool { return line.Pause })
 }
 
 // Update implements [Screen]: advance shows the next line, skip jumps to the end, and a key

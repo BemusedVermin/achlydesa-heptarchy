@@ -80,7 +80,7 @@ func canceledLine(w *sim.World, pending ecs.Entity, p comp.Pending, reason api.C
 	actor, _ := w.ByUID(p.Actor)
 	target, _ := w.ByUID(p.Target)
 	landing := ecs.NewMap[comp.Landing](w.ECS)
-	if !landing.Has(pending) || (!IsVisible(w, actor) && !IsVisible(w, target)) {
+	if !landing.Has(pending) || !w.Alive(actor) || (!IsVisible(w, actor) && !IsVisible(w, target)) {
 		return api.Text{}
 	}
 	return api.Text{ID: "text.timeline.canceled_line", Args: map[string]string{
