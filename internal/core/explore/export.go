@@ -78,6 +78,7 @@ func regenerateDeep(w *sim.World) error {
 		return err
 	}
 	st := stateOf(w)
+	st.pocket = fixed
 	st.generated, _ = cells.(*worldgen.Source)
 	clear(st.populated)
 	for _, key := range pocket {

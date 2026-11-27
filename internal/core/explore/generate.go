@@ -9,8 +9,7 @@ import (
 )
 
 // cellSource generates the deep around the places from the world's seed. With no geography the places sit in
-// the world's fill. A loaded game builds it before its saved export count is restored, so it regenerates on
-// its next export.
+// the world's fill.
 func cellSource(w *sim.World, fixed worldgen.Fixed, bounds hexmap.Bounds) (hexmap.Source, error) {
 	world := w.Content.World()
 	if world.Geography == "" {
