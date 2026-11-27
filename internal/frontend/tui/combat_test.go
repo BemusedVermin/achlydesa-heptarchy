@@ -167,6 +167,7 @@ func TestMenuLeafSendsTheOptionAndTheActorPanelShowsTheSwing(t *testing.T) {
 	if got := len(app.Game.History()); got != history+1 {
 		t.Fatalf("choosing a leaf sent %d commands, want 1", got-history)
 	}
+	press(app, "x")
 	if strings.Contains(app.View().Content, "Actions") {
 		t.Error("the menu stayed open after a command")
 	}
@@ -420,5 +421,78 @@ func TestWholeFightEndsAndTheMapResumesFollow(t *testing.T) {
 	}
 	if !sawThreat {
 		t.Error("the hunting movingClay never showed a threat")
+	}
+}
+
+func commitStrike(t *testing.T, app *tui.App) {
+	t.Helper()
+	pressCode(app, tea.KeyEnter)
+	for _, label := range []string{"Strike", "Cut", "maw"} {
+		selectEntry(t, app, label)
+		pressCode(app, tea.KeyEnter)
+	}
+	pressCode(app, tea.KeyEnter)
+}
+
+func TestAFightCommandOpensAPlayByPlayThatStepsAndCloses(t *testing.T) {
+	app := fightApp(t)
+	commitStrike(t, app)
+	var beats []api.LogLine
+	for _, line := range app.State.Log {
+		if line.Pause {
+			beats = append(beats, line)
+		}
+	}
+	if len(beats) == 0 {
+		t.Fatal("a Strike committed produced no fight beat")
+	}
+	view := app.View().Content
+	if !strings.Contains(view, "begins") || strings.Contains(view, "Actions") {
+		t.Fatalf("the play-by-play is not showing the start line:\n%s", view)
+	}
+	press(app, "x")
+	if !strings.Contains(app.View().Content, beats[len(beats)-1].Text) {
+		t.Errorf("skip did not show every line:\n%s", app.View().Content)
+	}
+	press(app, "x")
+	if strings.Contains(app.View().Content, "skip") {
+		t.Errorf("the play-by-play stayed open after the last line:\n%s", app.View().Content)
+	}
+}
+
+func TestAHitLogsTheStartTheDamageAndTheSever(t *testing.T) {
+	app := fightApp(t)
+	commitStrike(t, app)
+	press(app, "x")
+	press(app, "x")
+	for range 20 {
+		var text strings.Builder
+		for _, line := range app.State.Log {
+			text.WriteString(line.Text + "\n")
+		}
+		if strings.Contains(text.String(), "integrity lost") {
+			if !strings.Contains(text.String(), "begins") {
+				t.Errorf("no start line:\n%s", text.String())
+			}
+			return
+		}
+		press(app, ".")
+		press(app, "x")
+		press(app, "x")
+	}
+	t.Error("no damage line ever appeared in the log")
+}
+
+func TestWalkingPausesNothing(t *testing.T) {
+	app := startApp(t)
+	press(app, "d")
+	press(app, ".")
+	for _, line := range app.State.Log {
+		if line.Pause {
+			t.Errorf("line %q pauses while walking", line.Text)
+		}
+	}
+	if strings.Contains(app.View().Content, "skip") {
+		t.Error("a play-by-play opened while walking")
 	}
 }

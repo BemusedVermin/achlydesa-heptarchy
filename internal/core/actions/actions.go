@@ -3,6 +3,7 @@ package actions
 import (
 	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -83,7 +84,7 @@ func (p *plan) intent() Intent {
 func (p *plan) context(w *sim.World) *effects.Context {
 	return &effects.Context{
 		World: w, Source: p.actor, Used: p.channels, Target: p.target, TargetPart: p.part, Dir: p.dir,
-		Choices: p.choices,
+		Choices: p.choices, Action: p.id,
 	}
 }
 
@@ -456,9 +457,25 @@ func (ev *evaluator) start(p *plan, autonomous bool) error {
 	ecs.NewMap[comp.Landing](w.ECS).Add(pending, landing)
 	w.Bus.Publish(api.ActionStarted{
 		Source: w.UIDOf(p.actor), Action: p.id, Target: w.UIDOf(p.target), Tick: w.Now, Lands: w.Now + p.windup,
-		Autonomous: autonomous,
+		Autonomous: autonomous, Line: ev.startLine(p),
 	})
 	return nil
+}
+
+// startLine is the log text of an action's start, empty when the party can't perceive it.
+func (ev *evaluator) startLine(p *plan) api.Text {
+	w := ev.w
+	if !timeline.IsVisible(w, p.actor) && !timeline.IsVisible(w, p.target) {
+		return api.Text{}
+	}
+	args := map[string]string{
+		"actor": ev.nameOf(p.actor), "action": w.ActionName(p.id), "tick": strconv.FormatInt(w.Now+p.windup, 10),
+	}
+	if p.target.IsZero() || p.target == p.actor {
+		return api.Text{ID: "text.actions.started_alone", Args: args}
+	}
+	args["target"] = ev.nameOf(p.target)
+	return api.Text{ID: "text.actions.started", Args: args}
 }
 
 // connects says whether the landing action reaches its target, and why not when it does not.
@@ -513,10 +530,14 @@ func (ev *evaluator) land(p *plan) error {
 }
 
 func (ev *evaluator) missed(actor ecs.Entity, source, target api.UID, action api.ContentID, reason api.Text) {
-	ev.w.Bus.Publish(api.ActionMissed{
-		Source: source, Action: action, Target: target, Tick: ev.w.Now, Reason: reason,
-		Line: api.Text{ID: "text.actions.missed", Args: ev.landArgs(actor, action)},
-	})
+	var line api.Text
+	targetEntity, _ := ev.w.ByUID(target)
+	if timeline.IsVisible(ev.w, actor) || timeline.IsVisible(ev.w, targetEntity) {
+		line = api.Text{ID: "text.actions.missed", Args: ev.landArgs(actor, action)}
+	}
+	ev.w.Bus.Publish(
+		api.ActionMissed{Source: source, Action: action, Target: target, Tick: ev.w.Now, Reason: reason, Line: line},
+	)
 }
 
 // landArgs are the text arguments naming a landing's actor and action.

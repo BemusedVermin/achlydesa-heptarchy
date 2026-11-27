@@ -1,7 +1,7 @@
 ---
 id: M5-13
 title: A play-by-play of every fight in the message log
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: []
@@ -54,12 +54,12 @@ After the player commits a move, they can read, one beat at a time, everything t
 
 ## Acceptance criteria
 
-- [ ] In a golden encounter where a strike lands, the log holds the start line, the damage line (actor, action, target part, amount lost, integrity left) and, if the part comes off, the sever line.
-- [ ] A body the party can't perceive leaves no line (or, without a sight check, a non-party body acting on a non-party body leaves none).
-- [ ] Walking with no fight pauses nothing: no clock or phase line has `Pause`.
-- [ ] The TUI opens the play-by-play after a command whose new lines include a pause line, steps one line per key, skips with the skip key, and closes after the last line (a TUI test).
-- [ ] `go tool task schema` is run and its output committed.
-- [ ] `go tool task check` passes.
+- [x] In a golden encounter where a strike lands, the log holds the start line, the damage line (actor, action, target part, amount lost, integrity left) and, if the part comes off, the sever line.
+- [x] A body the party can't perceive leaves no line (or, without a sight check, a non-party body acting on a non-party body leaves none).
+- [x] Walking with no fight pauses nothing: no clock or phase line has `Pause`.
+- [x] The TUI opens the play-by-play after a command whose new lines include a pause line, steps one line per key, skips with the skip key, and closes after the last line (a TUI test).
+- [x] `go tool task schema` is run and its output committed.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -69,4 +69,10 @@ After the player commits a move, they can read, one beat at a time, everything t
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- `Pause` is set by a marker interface, `api.Pausing`, on the ten fight-beat events. `LogLine` also gained `Seq`, so the app can find the lines a command added once the log is capped at 200. Save version raised to 8.
+- Events carry `Line api.Text`; an empty line (ID "") is not logged. The line is left empty when neither the actor nor the target is visible by the timeline's visibility hook (party members, or in the party's sight): `timeline.IsVisible`. `ActionMissed` follows the same rule now.
+- `ActionsInterrupted` and `ChannelsLocked` get no line: each canceled action already logs through `ActionCanceled`.
+- Added `sim.World.NameOf` and `ActionName`, and `effects.Context.Action`. Without an acting action, damage reads "text.combat.part_damaged_plain".
+- Keys: any key advances, `x` or esc skips (chrome only). The ring golden encounters have no party, so their lines are empty; the TUI tests cover the real lines.
+- Files outside Deliverables: `sim/names.go`, `timeline/controllers.go`, `save/save.go` and its test, `actions/actions.go`, `content/data/text/*.cue`.
+- Follow-ups filed: none.

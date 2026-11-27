@@ -16,7 +16,10 @@ func (g *Game) installLog() error {
 	g.world.Bus.SubscribeAll("game.log", func(w *sim.World, e api.Event) {
 		g.events = append(g.events, e)
 		if loggable, ok := e.(api.Loggable); ok {
-			g.appendLog(w.Content.Render(loggable.LogText()))
+			if text := loggable.LogText(); text.ID != "" {
+				_, pause := e.(api.Pausing)
+				g.appendLog(w.Content.Render(text), pause)
+			}
 		}
 	})
 	err := g.world.Views.Register(sim.ViewBuilder{Name: "game.log", Build: func(_ *sim.World, v *api.View) error {
@@ -33,8 +36,9 @@ func (g *Game) installLog() error {
 }
 
 // appendLog adds a line at the current tick, dropping the oldest beyond LogLines.
-func (g *Game) appendLog(text string) {
-	g.log = append(g.log, api.LogLine{Tick: g.world.Now, Text: text})
+func (g *Game) appendLog(text string, pause bool) {
+	g.logSeq++
+	g.log = append(g.log, api.LogLine{Seq: g.logSeq, Tick: g.world.Now, Text: text, Pause: pause})
 	if len(g.log) > LogLines {
 		g.log = g.log[len(g.log)-LogLines:]
 	}

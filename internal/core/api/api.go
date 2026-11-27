@@ -9,6 +9,9 @@ type Event interface{ EventKind() string }
 // Loggable events produce a line in the player's message log.
 type Loggable interface{ LogText() Text }
 
+// Pausing events are fight beats: the log line they produce asks a frontend to stop on it.
+type Pausing interface{ FightBeat() }
+
 // UID is the stable identity of an individual; 0 means none.
 type UID uint64
 

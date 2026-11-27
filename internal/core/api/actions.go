@@ -34,10 +34,18 @@ type ActionStarted struct {
 	Lands  int64     `json:"lands"`
 	// Autonomous says a grafted part started the action on its own, not its host's controller.
 	Autonomous bool `json:"autonomous,omitempty"`
+	// Line is the log text; empty when the party could not perceive the start.
+	Line Text `json:"line,omitempty"`
 }
 
 // EventKind implements [Event].
 func (ActionStarted) EventKind() string { return ActionStartedKind }
+
+// LogText implements [Loggable].
+func (e ActionStarted) LogText() Text { return e.Line }
+
+// FightBeat implements [Pausing].
+func (ActionStarted) FightBeat() {}
 
 // ActionMissed reports that an action landed and did nothing: its target was out of reach, or one of
 // its effects could no longer apply.
@@ -57,3 +65,6 @@ func (ActionMissed) EventKind() string { return ActionMissedKind }
 
 // LogText implements [Loggable].
 func (e ActionMissed) LogText() Text { return e.Line }
+
+// FightBeat implements [Pausing].
+func (ActionMissed) FightBeat() {}

@@ -89,6 +89,9 @@ func (PartyWoke) EventKind() string { return PartyWokeKind }
 // LogText implements [Loggable].
 func (PartyWoke) LogText() Text { return Text{ID: "text.explore.party_woke"} }
 
+// FightBeat implements [Pausing].
+func (PartyWoke) FightBeat() {}
+
 // The kinds of a [Moved] event.
 const (
 	MoveLevel = "level"

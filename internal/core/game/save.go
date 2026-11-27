@@ -138,6 +138,9 @@ func (g *Game) restore(snapshot save.Snapshot) error {
 		g.history = append(g.history, cmd)
 	}
 	g.log = snapshot.Log
+	if len(g.log) > 0 {
+		g.logSeq = g.log[len(g.log)-1].Seq
+	}
 	return nil
 }
 

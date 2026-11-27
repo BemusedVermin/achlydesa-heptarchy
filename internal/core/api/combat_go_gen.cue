@@ -42,6 +42,9 @@ package api
 	// Source is the body that acted, or zero when nothing did.
 	source?: #UID  @go(Source)
 	tick:    int64 @go(Tick)
+
+	// Line is the log text; empty when the party could not perceive the damage.
+	line?: #Text @go(Line)
 }
 
 // PartSevered reports that a part came off its body. It stays in the world, where the body stands.
@@ -55,6 +58,9 @@ package api
 	// Source is the body that acted, or zero when nothing did.
 	source?: #UID  @go(Source)
 	tick:    int64 @go(Tick)
+
+	// Line is the log text; empty when the party could not perceive the sever.
+	line?: #Text @go(Line)
 }
 
 // PartAttached reports that a part was fitted onto a body, which gains its channel.
@@ -81,6 +87,9 @@ package api
 	// Source is the body that acted, or zero when nothing did.
 	source?: #UID  @go(Source)
 	tick:    int64 @go(Tick)
+
+	// Line is the log text; empty when the party could not perceive the status.
+	line?: #Text @go(Line)
 }
 
 // AlertStarted reports that the controlled party has a hostile body in sight.

@@ -41,6 +41,10 @@ type Option struct {
 
 // LogLine is one line of the player's message log.
 type LogLine struct {
+	// Seq counts every line the log has ever held, so a frontend can tell which lines are new.
+	Seq  int64  `json:"seq"`
 	Tick int64  `json:"tick"`
 	Text string `json:"text"`
+	// Pause marks a fight beat: a frontend stops on it so the player can read it.
+	Pause bool `json:"pause,omitempty"`
 }

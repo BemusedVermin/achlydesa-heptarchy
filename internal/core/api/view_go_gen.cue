@@ -47,6 +47,11 @@ package api
 
 // LogLine is one line of the player's message log.
 #LogLine: {
+	// Seq counts every line the log has ever held, so a frontend can tell which lines are new.
+	seq:  int64  @go(Seq)
 	tick: int64  @go(Tick)
 	text: string @go(Text)
+
+	// Pause marks a fight beat: a frontend stops on it so the player can read it.
+	pause?: bool @go(Pause)
 }

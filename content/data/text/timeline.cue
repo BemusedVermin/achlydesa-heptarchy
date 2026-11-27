@@ -8,5 +8,6 @@ text: {
 	"text.timeline.bad_wait":      "Waiting takes some time."
 	"text.timeline.lands":         "{{.kind}} lands"
 	"text.timeline.canceled.gone": "The one acting is gone."
+	"text.timeline.canceled_line": "{{.actor}}'s {{.action}} is canceled: {{.reason}}"
 	"text.timeline.tick":          "Tick {{.tick}}"
 }

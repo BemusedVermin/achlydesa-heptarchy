@@ -42,6 +42,8 @@ type Context struct {
 	Dir *api.Dir
 	// The action's chosen values, e.g. "type": "type.soak".
 	Choices map[string]string
+	// The action being worked out, or empty when something else caused the effect.
+	Action api.ContentID
 }
 
 // Kind says how a primitive reads one of its parameters. The zero value is an Expr.
