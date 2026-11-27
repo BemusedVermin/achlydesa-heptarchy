@@ -100,11 +100,16 @@ func RegisterChooser(w *sim.World, name string, c Chooser) error {
 type hunter struct{}
 
 // Decide picks the nearest visible hostile, attacks it when something reaches, otherwise steps
-// toward it, otherwise waits for the next entry on the timeline.
+// toward it, otherwise waits for the next entry on the timeline. With no prey in sight it gives a
+// body it was delegated back to the body's own controller.
 func (hunter) Decide(w *sim.World, body ecs.Entity) error {
 	prey, found, err := nearestHostile(w, body)
-	if err != nil || !found {
+	if err != nil {
 		return err
+	}
+	if !found {
+		timeline.Resume(w, body)
+		return nil
 	}
 	startable := actions.Startable(w, body)
 	aims, err := w.Content.Aims(content.GrantEnv{Grant: anatomy.GrantTotals(w, body)})
@@ -168,7 +173,7 @@ func nearestHostile(w *sim.World, body ecs.Entity) (ecs.Entity, bool, error) {
 	// In UID order, so the first of equals wins.
 	for _, other := range hostileCandidates(w) {
 		pos := positions.Get(other)
-		if !seen[pos.At] || !Hostile(w, body, other) {
+		if !seen[pos.At] || !anatomy.Hostile(w, body, other) {
 			continue
 		}
 		distance := hexmap.CellDistance(from.At, pos.At)

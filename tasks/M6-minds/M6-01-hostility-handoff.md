@@ -1,7 +1,7 @@
 ---
 id: M6-01
 title: Hostility in the foundation, and a two-way controller hand-off
-status: todo
+status: done
 milestone: M6
 kind: seam
 depends_on: []
@@ -38,9 +38,9 @@ size: S
 
 ## Acceptance criteria
 
-- [ ] `go tool task test -- ./internal/core/timeline ./internal/core/anatomy ./internal/core/combat` passes, with a test that a delegated body is decided by the delegate and returns to its base controller on `Resume`.
-- [ ] A test that a delegate survives a save and load.
-- [ ] `go tool task check` passes.
+- [x] `go tool task test -- ./internal/core/timeline ./internal/core/anatomy ./internal/core/combat` passes, with a test that a delegated body is decided by the delegate and returns to its base controller on `Resume`.
+- [x] A test that a delegate survives a save and load.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -49,3 +49,13 @@ size: S
 
 ## Notes
 
+- `combat.Hostile` is now `anatomy.Hostile`; its test moved to `anatomy_test.go`. `combat/hostility.go` is gone and its `nameOf` helper moved to `combat/view.go`.
+- `timeline.DelegateTo`, `timeline.Resume` and `timeline.ControllerOf`, with `comp.Delegate{Controller}` holding the delegate. The save version is now 12 (master was at 11 when this merged); `save_test.go` gained the no-op migration step for 11, as earlier bumps did.
+- Decisions the spec left open, each the easier one to change later:
+  - A controller that hands the body off (DelegateTo or Resume) without acting lets the next controller decide at once, in the same decision, so a hand-off never costs a wait. At most two hand-offs per decision (`maxHandOffs`), so two controllers handing back and forth end in a wait instead of a loop.
+  - Only a registered controller can be a delegate; `player` cannot. A delegate overrides a player base too, so a player body with a delegate is decided by the delegate.
+  - `explore`'s control-mode switch still changes the base controller only and leaves a delegate alone.
+  - The `hunt` controller calls `Resume` when it sees no prey. On a body whose own controller is `hunt`, that does nothing, so creatures behave as before.
+- Combat goldens are unchanged; no regeneration was needed.
+- Files outside the Deliverables: `internal/core/combat/hunt_test.go` (a delegated hunter hands the body back), `internal/core/save/save.go` and `save_test.go` (the version bump), `internal/core/comp/comp_go_gen.cue` (regenerated), `docs/go-technical-design.md` (the timeline row names the hand-off).
+- No follow-ups filed.

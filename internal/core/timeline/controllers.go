@@ -6,6 +6,7 @@ import (
 
 	"github.com/mlange-42/ark/ecs"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
@@ -43,6 +44,49 @@ func RegisterController(w *sim.World, name string, c Controller) error {
 	}
 	st.controllers[name] = c
 	return nil
+}
+
+// DelegateTo makes the named controller decide for body in place of its own until [Resume], and
+// replaces any delegate it had. The name must be registered; the player cannot be a delegate. When
+// the body's controller hands off without acting, the delegate decides at once.
+func DelegateTo(w *sim.World, body ecs.Entity, name string) error {
+	st := stateOf(w)
+	if _, ok := st.controllers[name]; !ok {
+		return fmt.Errorf("timeline: cannot delegate to unknown controller %q", name)
+	}
+	if !w.ECS.Alive(body) || !st.actors.Has(body) {
+		return fmt.Errorf("timeline: entity %d is not a living actor", w.UIDOf(body))
+	}
+	if st.delegates.Has(body) {
+		st.delegates.Get(body).Controller = name
+	} else {
+		st.delegates.Add(body, &comp.Delegate{Controller: name})
+	}
+	st.schedule(w, body)
+	return nil
+}
+
+// Resume gives the decisions back to the body's own controller. A body with no delegate is left
+// alone. When the delegate resumes without acting, the body's own controller decides at once.
+func Resume(w *sim.World, body ecs.Entity) {
+	st := stateOf(w)
+	if !w.ECS.Alive(body) || !st.delegates.Has(body) {
+		return
+	}
+	st.delegates.Remove(body)
+	if st.actors.Has(body) {
+		st.schedule(w, body)
+	}
+}
+
+// ControllerOf is the name of the controller deciding for body: its delegate's, or else its own.
+func ControllerOf(w *sim.World, body ecs.Entity) string { return stateOf(w).controllerOf(body) }
+
+func (st *state) controllerOf(body ecs.Entity) string {
+	if st.delegates.Has(body) {
+		return st.delegates.Get(body).Controller
+	}
+	return st.actors.Get(body).Controller
 }
 
 // SetChannels replaces how a body's channels are found. The default is one channel, the body
