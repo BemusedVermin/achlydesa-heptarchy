@@ -1,7 +1,7 @@
 ---
 id: M5-16
 title: Make elevation readable on the terminal map
-status: todo
+status: done
 milestone: M5
 kind: feature
 depends_on: []
@@ -60,13 +60,13 @@ What this game can take from them, keeping its one continuous map:
 
 ## Acceptance criteria
 
-- [ ] The view's move readout lists the six directions with the right kind for a level step, a climb, a step down, a drop and a refused ledge (an explore test on a small fixture map).
-- [ ] Stepping into a ledge too high to climb logs the ledge refusal, not `text.explore.bump`. Stepping into solid ground still logs the bump.
-- [ ] With the overlay on, a golden render shows the relative heights of visible open cells. With it off, the render shows the hue shading.
-- [ ] The side panel shows the move readout and the depth line (a golden render).
-- [ ] `docs/game-design.md` → "The hex grid" describes the hue and the overlay.
-- [ ] `go tool task schema` is run and its output committed.
-- [ ] `go tool task check` passes.
+- [x] The view's move readout lists the six directions with the right kind for a level step, a climb, a step down, a drop and a refused ledge (an explore test on a small fixture map).
+- [x] Stepping into a ledge too high to climb logs the ledge refusal, not `text.explore.bump`. Stepping into solid ground still logs the bump.
+- [x] With the overlay on, a golden render shows the relative heights of visible open cells. With it off, the render shows the hue shading.
+- [x] The side panel shows the move readout and the depth line (a golden render).
+- [x] `docs/game-design.md` → "The hex grid" describes the hue and the overlay.
+- [x] `go tool task schema` is run and its output committed.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -76,4 +76,11 @@ What this game can take from them, keeping its one continuous map:
 
 ## Notes
 
-Filled in by the implementer: assumptions, deviations, files touched outside Deliverables, follow-ups filed.
+- Core: `hexmap.Map.Refusal` explains a refused step (solid, ledge one past the climb limit, drop past `MaxDrop`); `checkStep` uses it for `text.explore.too_high` and `text.explore.too_far`. A ledge more than one cell past the limit still reads as a wall.
+- `api.MapView` gains `Moves`, `Elevation` (named so, since a test forbids "depth" keys) and `CellView.Wall`, which the overlay needs to leave solid cells unchanged.
+- The readout labels carry no tick cost ("climb 1", not "+5 ticks"): the cost depends on the body's speed, and the label stays simple. Say if you want it.
+- The overlay key is `h`. Above the party draws `+n` using the spacer column before the hex. The move readout hides while the action menu is open, so the menu keeps its room.
+- Hue shading: blue and darker below, amber and lighter above; `maxShade` still caps it.
+- Tests: hexmap refusal table, explore readout on the descent place, goldens for the overlay and the readout. No explore-level test of the ledge log line (no fixture has a 2-high ledge); the hexmap test covers the classification.
+- `docs/game-design.md` "The hex grid" updated.
+- Follow-ups: none.

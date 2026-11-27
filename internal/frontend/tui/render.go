@@ -43,17 +43,27 @@ func lookupColor(name string) rgb {
 	return neutral
 }
 
-// shade darkens a color one step for each cell lower than the party and lightens it one step for
-// each cell higher, out to maxShade, and dims it further when it is only remembered.
+var (
+	hueBelow = rgb{60, 110, 255}
+	hueAbove = rgb{255, 175, 40}
+)
+
+func mix(c, to rgb, t float64) rgb {
+	return rgb{c.r + (to.r-c.r)*t, c.g + (to.g-c.g)*t, c.b + (to.b-c.b)*t}
+}
+
+// shade darkens a color and turns it toward blue for each cell lower than the party, and lightens
+// it and turns it toward amber for each cell higher, out to maxShade. It dims the color further
+// when it is only remembered.
 func shade(c rgb, below int, remembered bool) rgb {
 	below = max(-maxShade, min(maxShade, below))
 	switch {
 	case below > 0:
-		f := 1 - 0.08*float64(below)
-		c = rgb{c.r * f, c.g * f, c.b * f}
+		f := 1 - 0.06*float64(below)
+		c = mix(rgb{c.r * f, c.g * f, c.b * f}, hueBelow, 0.07*float64(below))
 	case below < 0:
-		t := 0.06 * float64(-below)
-		c = rgb{c.r + (255-c.r)*t, c.g + (255-c.g)*t, c.b + (255-c.b)*t}
+		t := 0.04 * float64(-below)
+		c = mix(rgb{c.r + (255-c.r)*t, c.g + (255-c.g)*t, c.b + (255-c.b)*t}, hueAbove, 0.07*float64(-below))
 	}
 	if remembered {
 		c = rgb{c.r * 0.45, c.g * 0.45, c.b * 0.45}
@@ -118,15 +128,22 @@ func RenderMapOverlay(m *api.MapView, party *api.PartyView, overlay MapOverlay, 
 	if m != nil {
 		for _, cell := range m.Cells {
 			extend(cell.Hex)
-			place(
-				cell.Hex,
-				drawn{
-					glyph:      glyphOf(cell.Glyph),
-					color:      lookupColor(cell.Color),
-					below:      cell.Below,
-					remembered: !cell.Visible,
-				},
-			)
+			d := drawn{
+				glyph:      glyphOf(cell.Glyph),
+				color:      lookupColor(cell.Color),
+				below:      cell.Below,
+				remembered: !cell.Visible,
+			}
+			if overlay.Heights && cell.Visible && !cell.Wall {
+				d.glyph = heightGlyph(cell.Below)
+				if cell.Below < 0 {
+					minCol = min(minCol, 2*cell.Hex.Q+cell.Hex.R-1)
+					grid[[2]int{2*cell.Hex.Q + cell.Hex.R - 1, cell.Hex.R}] = drawn{
+						glyph: "+", color: d.color, below: cell.Below,
+					}
+				}
+			}
+			place(cell.Hex, d)
 		}
 		members := map[api.UID]bool{}
 		current := map[api.UID]bool{}
@@ -197,6 +214,31 @@ func RenderMapOverlay(m *api.MapView, party *api.PartyView, overlay MapOverlay, 
 			}
 		}
 		lines[y] = line.String()
+	}
+	return strings.Join(lines, "\n")
+}
+
+// heightGlyph is a cell's height relative to the party as one digit: how far down it lies, or how
+// far up when a "+" is drawn before it; "*" is ten or more.
+func heightGlyph(below int) string {
+	return plural(max(below, -below))
+}
+
+// RenderMoves lists the move readout, one line per direction.
+func RenderMoves(m *api.MapView) string {
+	if m == nil {
+		return ""
+	}
+	lines := make([]string, 0, len(m.Moves)+1)
+	for _, move := range m.Moves {
+		line := move.Label
+		if move.Kind == api.MoveBlocked {
+			line = paint(line, lookupColor("gray"), 0, false, false)
+		}
+		lines = append(lines, line)
+	}
+	if m.Elevation != "" {
+		lines = append(lines, m.Elevation)
 	}
 	return strings.Join(lines, "\n")
 }

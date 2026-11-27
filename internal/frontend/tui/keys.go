@@ -34,6 +34,7 @@ type KeyMap struct {
 	selectTic key.Binding
 	menu      key.Binding
 	look      key.Binding
+	heights   key.Binding
 	quit      key.Binding
 }
 
@@ -61,6 +62,7 @@ func DefaultKeyMap() KeyMap {
 		selectTic: key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "list tick")),
 		menu:      key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "actions")),
 		look:      key.NewBinding(key.WithKeys("l"), key.WithHelp("l", "look")),
+		heights:   key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "heights")),
 		quit:      key.NewBinding(key.WithKeys("esc", "ctrl+c"), key.WithHelp("esc", "quit")),
 	}
 }
@@ -189,6 +191,9 @@ func (k KeyMap) HelpBindings(v api.View) []key.Binding {
 	}
 	if v.Bodies != nil {
 		out = append(out, k.look)
+	}
+	if v.Map != nil {
+		out = append(out, k.heights)
 	}
 	if v.Timeline != nil {
 		out = append(out, k.prevTick, k.selectTic)

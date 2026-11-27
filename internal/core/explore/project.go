@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/mlange-42/ark/ecs"
 
@@ -164,10 +165,21 @@ func buildMap(w *sim.World, v *api.View) error {
 			continue
 		}
 		view.Cells = append(view.Cells, api.CellView{
-			Hex: h, Glyph: best.glyph, Color: best.color, Visible: isVisible, Below: best.depth - here.At.Depth,
+			Hex:     h,
+			Glyph:   best.glyph,
+			Color:   best.color,
+			Visible: isVisible,
+			Below:   best.depth - here.At.Depth,
+			Wall:    best.wall,
 		})
 	}
 	view.Entities = entitiesIn(w, here, visible)
+	if view.Moves, err = movesFrom(w, focus, here.At, m); err != nil {
+		return err
+	}
+	view.Elevation = w.Content.Render(api.Text{
+		ID: "text.explore.elevation", Args: map[string]string{"cells": strconv.Itoa(here.At.Depth)},
+	})
 	v.Map = view
 	return nil
 }

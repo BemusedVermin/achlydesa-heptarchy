@@ -89,6 +89,28 @@ package api
 
 	// Sorted by UID
 	entities: [...#EntityView] @go(Entities,[]EntityView)
+
+	// Moves has one entry per direction in Dir order, for the body the view is centered on.
+	moves: [...#MoveView] @go(Moves,[]MoveView)
+
+	// Elevation is the rendered line telling how deep that body stands.
+	elevation: string @go(Elevation)
+}
+
+#MoveBlocked: "blocked"
+
+// MoveView is what a step in one direction would do.
+#MoveView: {
+	dir: #Dir @go(Dir)
+
+	// One of MoveLevel, MoveUp, MoveDown, MoveDrop, MoveBlocked
+	kind: string @go(Kind)
+
+	// Below is the destination's depth minus the body's, as for [CellView]; 0 when blocked.
+	below: int @go(Below)
+
+	// Label is the rendered line, including the reason when blocked.
+	label: string @go(Label)
 }
 
 // CellView is one drawn hex.
@@ -102,6 +124,9 @@ package api
 
 	// Below is the drawn cell's depth minus the party's: positive is lower, negative is higher.
 	below: int @go(Below)
+
+	// Wall is true for a solid cell drawn with its wall glyph.
+	wall?: bool @go(Wall)
 }
 
 // EntityView is one visible entity on the map.

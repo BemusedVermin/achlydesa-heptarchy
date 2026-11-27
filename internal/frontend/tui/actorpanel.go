@@ -41,6 +41,8 @@ type MapOverlay struct {
 	Target api.UID
 	// Cursor is the look cursor, if look mode is on.
 	Cursor *api.Hex
+	// Heights draws each visible open cell as its height relative to the party.
+	Heights bool
 }
 
 // OverlayFor builds the overlay for a view: the threats, plus the target and cursor given.
