@@ -1,7 +1,7 @@
 ---
 id: M6-03
 title: "Drives: needs and desires with a weight per individual"
-status: todo
+status: in-progress
 milestone: M6
 kind: seam
 depends_on: []
