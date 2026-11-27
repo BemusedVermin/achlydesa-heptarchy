@@ -12,6 +12,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	// Planner names the registered planner that makes the body's plans, from its template.
 	planner: string @go(Planner)
 
+	// Thought is the tick the body last chose a goal, or 0 before its first choice.
+	thought?: int64 @go(Thought)
+
 	// Goal is the "goal." ID the body works toward, or empty for none.
 	goal?: api.#ContentID @go(Goal)
 

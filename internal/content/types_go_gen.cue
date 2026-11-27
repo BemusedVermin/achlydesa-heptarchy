@@ -217,6 +217,14 @@ import (
 	// Met is an Expr bool over DriveEnv: whether an agent believes a drive it carries is met. Required
 	// when an operator or goal names drive_met.
 	met?: string @go(Met)
+
+	// KeepBonus is added to the score of the goal an agent already has, so it keeps it unless another
+	// clearly beats it.
+	keep_bonus?: float64 @go(KeepBonus)
+
+	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
+	// when any goal exists.
+	think_ticks?: int @go(ThinkTicks)
 }
 
 // Material is a substance things are made of.

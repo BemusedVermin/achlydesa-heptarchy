@@ -179,6 +179,12 @@ type AgentsConfig struct {
 	// Met is an Expr bool over DriveEnv: whether an agent believes a drive it carries is met. Required
 	// when an operator or goal names drive_met.
 	Met string `json:"met,omitempty"`
+	// KeepBonus is added to the score of the goal an agent already has, so it keeps it unless another
+	// clearly beats it.
+	KeepBonus float64 `json:"keep_bonus,omitempty"`
+	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
+	// when any goal exists.
+	ThinkTicks int `json:"think_ticks,omitempty"`
 }
 
 // Material is a substance things are made of.

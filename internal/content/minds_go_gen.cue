@@ -64,13 +64,41 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	target: string @go(Target)
 }
 
-// Goal is a state an agent works toward to meet a drive.
+// Goal is a state an agent works toward to meet a drive. A goal with no drive is a standing activity,
+// such as wandering, and wants no state.
 #Goal: {
-	// Drive is the "drive." ID the goal serves.
-	drive: api.#ContentID @go(Drive)
+	// Drive is the "drive." ID the goal serves. An agent that does not carry it never has the goal.
+	drive?: api.#ContentID @go(Drive)
 
-	// Want holds once the goal is reached.
-	want: [...#Condition] @go(Want,[]Condition)
+	// Want holds once the goal is reached. Required when the goal has a drive.
+	want?: [...#Condition] @go(Want,[]Condition)
+
+	// When is an Expr bool over BeliefEnv: whether the goal applies to an agent. Empty means always.
+	when?: string @go(When)
+
+	// Weight is an Expr over GoalEnv: how strongly the agent leans to the goal, at least 0.
+	weight: string @go(Weight)
+}
+
+// BeliefEnv is what a goal's when formula sees: the agent's beliefs, keyed by tag ID. A tag the agent
+// has no belief about reads as 0 or false.
+#BeliefEnv: {
+	// Has is how many carried items have each item tag.
+	Has: {[string]: int} @go(,map[string]int)
+
+	// Near, Known and Met are the affordances believed near, those remembered, and the drives
+	// believed met.
+	Near: {[string]: bool} @go(,map[string]bool)
+	Known: {[string]: bool} @go(,map[string]bool)
+	Met: {[string]: bool} @go(,map[string]bool)
+}
+
+// GoalEnv is what a goal's weight formula sees: the level of its drive, the individual's weight on
+// it, and the drive's urge at that level. All are 0 for a goal with no drive.
+#GoalEnv: {
+	Level:  float64
+	Weight: float64
+	Urge:   float64
 }
 
 // Recipe is a written plan for a goal: its steps in order, each an operator or another recipe.

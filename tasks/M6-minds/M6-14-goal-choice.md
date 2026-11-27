@@ -1,7 +1,7 @@
 ---
 id: M6-14
 title: "Goal choice: drives score into a goal"
-status: todo
+status: done
 milestone: M6
 kind: feature
 depends_on: [M6-03, M6-11]
@@ -37,8 +37,8 @@ At each decision an agent weighs its drives, picks one goal, keeps it unless ano
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -47,3 +47,6 @@ At each decision an agent weighs its drives, picks one goal, keeps it unless ano
 
 ## Notes
 
+- `Goal` already had `drive` and `want`; it gains `when` and `weight`. A goal with no drive (wander) may have no `want`; an agent that does not carry a goal's drive never has the goal. `when` reads `has`, `near`, `known`, `met` maps keyed by tag; `weight` reads `level`, `weight`, `urge`.
+- `agents.think_ticks` must be at least 1 when goals exist; the mind test fixture sets it huge so its hand-set goal stands. `comp.Mind.Thought` records the last choice. The think cadence itself is not unit-tested.
+- Sample weights are `urge * weight`; wander is a flat 0.05. First values, for tuning.
