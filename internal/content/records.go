@@ -75,7 +75,13 @@ func collections() []collection {
 			func(a Affordance) (api.ContentID, bool) { return a.Name, true },
 		),
 		// Not Collection constants: operators, goals and recipes carry no data a choice could list.
-		described[Operator]("operators", "operator", func(b *Bundle) map[string]Operator { return b.Operators }, nil, nil),
+		described[Operator](
+			"operators",
+			"operator",
+			func(b *Bundle) map[string]Operator { return b.Operators },
+			nil,
+			nil,
+		),
 		described[Goal]("goals", "goal", func(b *Bundle) map[string]Goal { return b.Goals }, nil, nil),
 		described[Recipe]("recipes", "recipe", func(b *Bundle) map[string]Recipe { return b.Recipes }, nil, nil),
 	}
