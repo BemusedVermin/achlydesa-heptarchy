@@ -17,8 +17,8 @@ items: {
 
 // Supplies: what people drink and eat, drawn from sources and kept in containers.
 items: {
-	"item.water": {name: "text.item.water"}
-	"item.ration": {name: "text.item.ration"}
+	"item.water": {name: "text.item.water", tags: ["drinkable"]}
+	"item.ration": {name: "text.item.ration", tags: ["edible"]}
 }
 
 // A name: the thing a name type is spoken with, tied to its owner.

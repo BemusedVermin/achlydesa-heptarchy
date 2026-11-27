@@ -48,7 +48,7 @@ func TestAStateIgnoresAWellTheAgentHasNotSeen(t *testing.T) {
 	}{
 		{"one that never saw the well", unseeing, State{
 			{Kind: content.FactDriveMet, Tag: "drive.water"},
-			{Kind: content.FactHas, Tag: "item.water", N: 3},
+			{Kind: content.FactHas, Tag: "drinkable", N: 3},
 		}},
 		{"one beside the well it saw", looker, State{
 			{Kind: content.FactKnown, Tag: waterGiven},
@@ -67,18 +67,18 @@ func TestAStateIgnoresAWellTheAgentHasNotSeen(t *testing.T) {
 
 func TestApplyingAnOperatorChangesTheStateAsWritten(t *testing.T) {
 	start := State{
-		{Kind: content.FactHas, Tag: "item.ration", N: 1},
-		{Kind: content.FactHas, Tag: "item.water", N: 2},
+		{Kind: content.FactHas, Tag: "drinkable", N: 2},
+		{Kind: content.FactHas, Tag: "edible", N: 1},
 		{Kind: content.FactKnown, Tag: waterGiven},
 	}
 	drink := content.Operator{
 		Pre: []content.Condition{
-			{Fact: content.FactHas, Tag: "item.water", N: 2},
+			{Fact: content.FactHas, Tag: "drinkable", N: 2},
 			{Fact: content.FactDriveMet, Tag: "drive.water", Not: true},
 		},
 		Eff: []content.Condition{
-			{Fact: content.FactHas, Tag: "item.water", N: -2},
-			{Fact: content.FactHas, Tag: "item.coal", N: 1},
+			{Fact: content.FactHas, Tag: "drinkable", N: -2},
+			{Fact: content.FactHas, Tag: "consumable", N: 1},
 			{Fact: content.FactKnown, Tag: waterGiven, Not: true},
 			{Fact: content.FactDriveMet, Tag: "drive.water"},
 		},
@@ -90,8 +90,8 @@ func TestApplyingAnOperatorChangesTheStateAsWritten(t *testing.T) {
 	got := Apply(drink, start)
 	want := State{
 		{Kind: content.FactDriveMet, Tag: "drive.water"},
-		{Kind: content.FactHas, Tag: "item.coal", N: 1},
-		{Kind: content.FactHas, Tag: "item.ration", N: 1},
+		{Kind: content.FactHas, Tag: "consumable", N: 1},
+		{Kind: content.FactHas, Tag: "edible", N: 1},
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("state after = %v, want %v", got, want)

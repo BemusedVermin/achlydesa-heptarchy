@@ -92,7 +92,7 @@ func Apply(op content.Operator, s State) State {
 	return out
 }
 
-// StateOf is what the body believes: the items it carries, the landmarks it remembers and which of
+// StateOf is what the body believes: the item tags it carries, each counting every carried item with the tag, the landmarks it remembers and which of
 // them it believes are within agents.near_radius, and the drives agents.met counts as met. Landmarks
 // come from its memory, so a well it has never seen or been told of is not in it.
 func StateOf(w *sim.World, body ecs.Entity) (State, error) {
@@ -103,11 +103,17 @@ func StateOf(w *sim.World, body ecs.Entity) (State, error) {
 	if inventories := ecs.NewMap[comp.Inventory](w.ECS); inventories.Has(body) {
 		counts := map[api.ContentID]int{}
 		for _, stack := range inventories.Get(body).Stacks {
-			counts[stack.Item] += stack.Count
+			item, ok := w.Content.Item(stack.Item)
+			if !ok {
+				return nil, fmt.Errorf("agents: body %d carries unknown item %q", w.UIDOf(body), stack.Item)
+			}
+			for _, tag := range item.Tags {
+				counts[api.ContentID(tag)] += stack.Count
+			}
 		}
-		for _, item := range slices.Sorted(maps.Keys(counts)) {
-			if counts[item] > 0 {
-				s = append(s, Fact{Kind: content.FactHas, Tag: item, N: counts[item]})
+		for _, tag := range slices.Sorted(maps.Keys(counts)) {
+			if counts[tag] > 0 {
+				s = append(s, Fact{Kind: content.FactHas, Tag: tag, N: counts[tag]})
 			}
 		}
 	}

@@ -4,12 +4,13 @@ import "testing"
 
 func TestOperatorsGoalsAndRecipesAreChecked(t *testing.T) {
 	data := validData + `
+vocabulary: tags: items: ["edible"]
 drives: "drive.water": {name: "text.drive.water", kind: "need", rise: "1", urge: "1"}
 items: "item.water": name: "text.item.water"
 text: {"text.drive.water": "water", "text.item.water": "water"}
 operators: "operator.drink": {
-	pre: [{fact: "has", tag: "item.water", n: 1}, {fact: "near", tag: "affordance.well"}]
-	eff: [{fact: "has", tag: "item.water", n: -1}, {fact: "drive_met", tag: "drive.water"}, {fact: "wet", tag: "item.water"}]
+	pre: [{fact: "has", tag: "drinkable", n: 1}, {fact: "near", tag: "affordance.well"}]
+	eff: [{fact: "has", tag: "edible", n: -1}, {fact: "drive_met", tag: "drive.water"}, {fact: "wet", tag: "item.water"}]
 	cost: 0
 	does: {action: "action.drink", target: "self"}
 	kind: "work"
@@ -18,7 +19,10 @@ goals: "goal.drink": {drive: "drive.thirst", want: [{fact: "drive_met", tag: "dr
 recipes: "recipe.drink": {goal: "goal.drink", steps: [{operator: "operator.sip"}, {}]}
 `
 	_, err := Load(writeData(t, data))
-	requireErrContains(t, err,
+	requireErrContains(
+		t,
+		err,
+		`operators["operator.drink"].pre[0].tag: "drinkable" is not an item tag in vocabulary.tags.items (want one of [edible])`,
 		`operators["operator.drink"].pre[1].tag: unknown affordance "affordance.well"`,
 		`operators["operator.drink"].eff[2].fact: unknown fact "wet"`,
 		`operators["operator.drink"].cost: must be above 0`,
