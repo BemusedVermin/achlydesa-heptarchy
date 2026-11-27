@@ -204,7 +204,7 @@ Planners plan over a small state of symbolic facts, built from what the agent ca
 }
 ```
 
-- An operator's `eff` makes each fact true, or false with `not`; a `has` effect adds `n` (negative to take away) instead. `cost` is above 0. `does` names the action a step starts and the target picker that aims it; the game refuses to start when no picker of that name is registered. The `self` picker aims the action at the agent itself. `kind` is a free word that sorts operators.
+- An operator's `eff` makes each fact true, or false with `not`; a `has` effect adds `n` (negative to take away) instead. `cost` is above 0. `does` names the action a step starts and the target picker that aims it; the game refuses to start when no picker of that name is registered. The `self` picker aims the action at the agent itself; `go_to` steps along a route (around standing bodies) to the cell the plan step names, and repeats until the agent is there or, for a landmark, near it; `wander` steps in a random open direction, not back into the cell it just left. `kind` is a free word that sorts operators.
 - A template whose bodies decide by goal and plan sets `actor: controller: "mind"` and `mind: planner: "<name>"`, naming a registered planner. The `mind` controller starts a plan's steps one at a time, and drops the plan and makes another when a step's action can't start, a belief a step needs no longer holds, a claim is lost, the goal changes, or an export begins.
 - A goal names the `drive` it serves and the conditions it `want`s.
 - A recipe names a `goal` and its `steps` in order; each step names exactly one `operator` or `recipe`.
