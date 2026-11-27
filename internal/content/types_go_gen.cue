@@ -225,6 +225,16 @@ import (
 	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
 	// when any goal exists.
 	think_ticks?: int @go(ThinkTicks)
+
+	// ChatGoal is the goal ("goal." ID) an agent has while it tells a near agent what it knows, and
+	// ChatAction the action ("action." ID) it takes to do so. Empty means agents tell nothing.
+	chat_goal?:   api.#ContentID @go(ChatGoal)
+	chat_action?: api.#ContentID @go(ChatAction)
+
+	// ToldOrigin is the origin of a fact an agent was told, and ToldConfidence the share of its
+	// confidence the fact keeps when told, above 0 and at most 1.
+	told_origin?:     api.#ContentID @go(ToldOrigin)
+	told_confidence?: float64        @go(ToldConfidence)
 }
 
 // Material is a substance things are made of.

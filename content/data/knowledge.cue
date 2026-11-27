@@ -46,6 +46,11 @@ agents: {
 	ground_claim: "claim.ground"
 	// A landmark believed this many cells away or fewer counts as near, for planning.
 	near_radius: 1
+	// What an agent does to pass a fact on, and how much of its confidence the fact keeps when told.
+	chat_goal:       "goal.chat"
+	chat_action:     "action.chat"
+	told_origin:     "origin.told"
+	told_confidence: 0.6
 }
 
 text: {

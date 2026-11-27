@@ -172,6 +172,14 @@ func (mindController) Decide(w *sim.World, body ecs.Entity) error {
 	if err := think(w, body); err != nil {
 		return err
 	}
+	if chat := w.Content.Agents().ChatGoal; chat != "" && minds.Get(body).Goal == chat {
+		drop(w, body)
+		started, err := startChat(w, body)
+		if !started {
+			minds.Get(body).Goal = ""
+		}
+		return err
+	}
 	if mind := minds.Get(body); len(mind.Plan.Steps) > 0 && (mind.Step >= len(mind.Plan.Steps) || !planHolds(w, body)) {
 		drop(w, body)
 	}
