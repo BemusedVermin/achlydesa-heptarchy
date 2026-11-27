@@ -17,8 +17,8 @@ type Mind struct {
 	Exports int `json:"exports"`
 }
 
-// Plan is the steps a planner found for a goal ("goal." ID), in the order they run, and what they
-// need to themselves while they run. GOAP and HTN both make one.
+// Plan is the steps a planner found for a goal ("goal." ID), in the order they run, and the claims
+// they hold while they run. GOAP and HTN both make one.
 type Plan struct {
 	Goal   api.ContentID `json:"goal,omitempty"`
 	Steps  []PlanStep    `json:"steps,omitempty"`

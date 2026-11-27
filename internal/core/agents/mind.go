@@ -109,6 +109,9 @@ func ValidateContent(w *sim.World) error {
 	for _, id := range w.Content.RecordIDs(content.CollectionTemplates) {
 		template, _ := w.Content.Template(id)
 		if template.Mind == nil {
+			if template.Actor != nil && template.Actor.Controller == MindController {
+				errs = append(errs, fmt.Errorf("templates[%q].mind: required by the %q controller", id, MindController))
+			}
 			continue
 		}
 		if _, ok := st.planners[template.Mind.Planner]; !ok {

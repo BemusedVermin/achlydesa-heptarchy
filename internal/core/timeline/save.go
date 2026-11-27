@@ -24,7 +24,7 @@ type Saved struct {
 	Sleeping []api.UID `json:"sleeping,omitempty"`
 	// Changes is the counter that tells whether a controller did anything.
 	Changes int64 `json:"changes"`
-	// Seq is the last Seq handed to a pending action, including those that have landed since.
+	// Seq is the last Seq handed out, so a load never reuses one that a landed action had.
 	Seq uint64 `json:"seq"`
 }
 
