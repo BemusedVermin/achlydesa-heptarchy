@@ -98,7 +98,7 @@ type evaluator struct {
 	positions  *ecs.Map[comp.Pos]
 	actors     *ecs.Map[comp.Actor]
 	dead       *ecs.Map[comp.Dead]
-	sight     map[ecs.Entity]map[ecs.Entity]bool
+	sight      map[ecs.Entity]map[ecs.Entity]bool
 	// Each actor's whole inventory, for choice offers.
 	inventory map[ecs.Entity]map[string]int
 	// Body targets, by what decides them.
