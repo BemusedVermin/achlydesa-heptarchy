@@ -16,7 +16,6 @@ You coordinate. You don't implement, commit, push or merge anything yourself.
    - If the arguments name task IDs, use those. Each must be listed under **Ready**; for any that isn't, say why and leave it out.
    - If the arguments are a number, take that many ready tasks from the top of the list.
    - With no arguments, take two.
-   - Never start more than four at once.
 3. Check for overlap. Read each picked task's Deliverables. If two tasks name the same file (other than `tasks/INDEX.md`), keep the first and defer the other: they would conflict.
 4. Pick each task's model from its front matter. A task with `size: L` or `kind: seam` gets Opus: big tasks, and seams other code builds on, are where a weaker first draft costs the most. Every other task stays on Sonnet, the agent's default.
 5. Say which tasks you're starting, on which model, and which you deferred and why.
