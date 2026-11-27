@@ -25,7 +25,18 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **params**: a trigger event's numbers, such as `cells` (`api.Params`).
 - **form**: one of the seven combat actions, tagged `form` in `forms.cue`. Not a separate record.
 - **world**: the one continuous, bounded space of cells everything stands in (`sim.World.Map`, `world.cue`). There is no **map** as a unit of the world: `hexmap.Map` is only the store of its cells, and the map the player sees is the plan view of it.
-- **place**: a hand-made piece of the world set at a fixed position, such as a town (`place.` IDs, `places/`).
+- **place**: a piece of the world set at a fixed position, either hand-made or built from pieces by the settlement stage, such as a town (`place.` IDs, `places/`).
+- **drive**: a need or a desire, a content record each agent weighs by its own weight. Personality is the set of weights.
+- **need**: a drive that rises with time and can kill (water, food, rest, safety).
+- **desire**: a drive that does not kill (pay, belonging, faith, duty, a wish).
+- **goal**: what an agent chose to work toward at a decision, from its drives.
+- **plan**: the steps a planner found for a goal, each a timeline action.
+- **operator**: a content record a planner uses: preconditions and effects over beliefs, and the action that carries it out.
+- **belief**: what an agent remembers of the world, from sight and from being told. Plans use beliefs, never the truth.
+- **landmark**: a thing that advertises what it gives (`comp.Affordance`), such as a well, a bed or a corpse.
+- **source**: a thing that refills a stock at a content rate (`comp.Source`), such as a well or a lake.
+- **container**: anything with a place and an inventory, such as a cistern, a larder or a pile on the floor.
+- **piece**: a content-defined sub-place (a house, a well) that the settlement stage lays out into a town.
 - **move**: movement across the world (`api.Moved`, `move_cost`); never form x type.
 - **type**: what a form carries into the part it lands on (`content.Type`). Not every type does damage.
 - **still**: the controller for a creature that keeps still (`still_ticks`). Not rest.

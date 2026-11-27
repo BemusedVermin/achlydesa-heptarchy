@@ -153,13 +153,47 @@ Brief: [M5-procgen/README.md](M5-procgen/README.md)
 | [M5-16](M5-procgen/M5-16-readable-elevation.md) | Make elevation readable on the terminal map | done | feature | M | none |
 | [M5-15](M5-procgen/M5-15-replay-trace.md) | Record as you play, and replay with a readable trace | done | feature | S | M5-13 |
 
+## M6 · Minds
+
+Brief: [M6-minds/README.md](M6-minds/README.md)
+
+| ID | Title | Status | Kind | Size | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| [M6-01](M6-minds/M6-01-hostility-handoff.md) | Hostility in the foundation, and a two-way controller hand-off | todo | seam | S | none |
+| [M6-02](M6-minds/M6-02-sources.md) | Sources and containers | todo | seam | M | none |
+| [M6-03](M6-minds/M6-03-drives.md) | Drives: needs and desires with a weight per individual | todo | seam | M | none |
+| [M6-04](M6-minds/M6-04-memory-sight.md) | A capped memory per agent, learned by sight | todo | seam | M | none |
+| [M6-05](M6-minds/M6-05-target-tags.md) | What an action may target, by tag, with corpses opt-in | todo | seam | S | none |
+| [M6-06](M6-minds/M6-06-chunk-graph.md) | The chunk graph: the openings between chunks | todo | seam | M | none |
+| [M6-07](M6-minds/M6-07-landmarks.md) | Landmarks: things that advertise what they give | todo | seam | M | M6-02, M6-04 |
+| [M6-08](M6-minds/M6-08-pieces.md) | Pieces: building blocks a town is laid out from | todo | seam | M | M6-07 |
+| [M6-09](M6-minds/M6-09-settlement-stage.md) | The settlement stage: procgen lays out a town | todo | feature | M | M6-08 |
+| [M6-10](M6-minds/M6-10-operators-beliefs.md) | Operators and beliefs: the state both planners plan over | todo | seam | M | M6-03, M6-04, M6-07 |
+| [M6-11](M6-minds/M6-11-mind-controller.md) | The mind controller: run a plan, claim what it needs | todo | seam | M | M6-01, M6-10 |
+| [M6-12](M6-minds/M6-12-movement-actions.md) | Movement actions: go to, and wander | todo | feature | M | M6-11 |
+| [M6-13](M6-minds/M6-13-thing-actions.md) | Thing actions: take, put and consume | todo | feature | M | M6-02, M6-11 |
+| [M6-14](M6-minds/M6-14-goal-choice.md) | Goal choice: drives score into a goal | todo | feature | M | M6-03, M6-11 |
+| [M6-15](M6-minds/M6-15-goap.md) | The GOAP planner for important individuals | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
+| [M6-16](M6-minds/M6-16-htn.md) | The HTN planner and recipes for everyone else | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
+| [M6-17](M6-minds/M6-17-far-agents.md) | Far agents: goals only, over the chunk graph | todo | feature | M | M6-06, M6-12, M6-14 |
+| [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | todo | feature | S | M6-04, M6-11 |
+| [M6-19](M6-minds/M6-19-flee-engage.md) | Flee, terror and engaging: handing a fight over and back | todo | feature | M | M6-01, M6-12, M6-14 |
+| [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | todo | feature | M | M6-03, M6-06, M6-14 |
+| [M6-21](M6-minds/M6-21-monster-families.md) | Monster families: moving clay, remnants and beasts as minds | todo | content | M | M6-05, M6-07, M6-15, M6-16, M6-19, M6-20 |
+| [M6-22](M6-minds/M6-22-settlements.md) | The three towns as settlements | todo | content | M | M6-09, M6-13, M6-20 |
+| [M6-23](M6-minds/M6-23-residents.md) | Residents: roles, jobs and a town that can run dry | todo | content | M | M6-15, M6-16, M6-18, M6-22 |
+| [M6-24](M6-minds/M6-24-party-needs.md) | The party eats, drinks and rests | todo | feature | M | M6-03, M6-07, M6-13 |
+| [M6-25](M6-minds/M6-25-hiring.md) | Hiring recruits, pay and quitting | todo | feature | M | M6-19, M6-23, M6-24 |
+| [M6-26](M6-minds/M6-26-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | todo | feature | M | M6-25 |
+| [M6-27](M6-minds/M6-27-exotic-recruits.md) | Graftable and exotic recruits | todo | content | S | M6-21, M6-26 |
+| [M6-28](M6-minds/M6-28-golden-and-budget.md) | Golden scenarios for the exit criteria, and the step budget | todo | test | M | M6-17, M6-21, M6-23, M6-26 |
+
 ## Later milestones (outlines)
 
 Each becomes task files when the milestone before it is done: run `/plan-milestone`.
 
 | Milestone | Brief |
 | --- | --- |
-| M6 · Minds | [M6-minds/README.md](M6-minds/README.md) |
 | M7 · Seats | [M7-seats/README.md](M7-seats/README.md) |
 | M8 · Emergence | [M8-emergence/README.md](M8-emergence/README.md) |
 | M9 · Tuning | [M9-tuning/README.md](M9-tuning/README.md) |
@@ -186,7 +220,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M5-05.F1](followups/M5-05.F1-wall-less-place-edges.md) | Stop wall-less place layers from sprouting a tunnel per cell | done | question | M5 | M5-05 |
 | [M5-09.F1](followups/M5-09.F1-flaky-watch-burst-test.md) | Stop TestWatchOneCallbackPerBurst flaking on a loaded CI runner | done | test | M5 | M5-09 |
 | [M5-01.F1](followups/M5-01.F1-rng-only-math-rand.md) | Only the rng package imports math/rand | done | debt | M5 | M5-01 |
-| [M4-03.F1](followups/M4-03.F1-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | todo | feature | M6 | M6 |
+| [M4-03.F1](followups/M4-03.F1-recruit-personality.md) | Recruit personality: robbery, desertion and loyalty | obsolete | feature | M6 | M6 |
 | [M3-11.F1.F1.F1](followups/M3-11.F1.F1.F1-off-screen-bodies-emptied.md) | Report TownEmptied for a town off screen whose resident bodies leave or die | obsolete | seam | unplanned | M3-11.F1.F1 |
 | [M3-16.F2](followups/M3-16.F2-deserters-hostility.md) | Decide how deserters stand toward the party | done | question | M6 | M3-16 |
 | [M3-16.F1](followups/M3-16.F1-terror-witness-selector.md) | Raise terror in the bodies that witness an event, not those in the striker's sight | done | seam | M3 | M3-16 |

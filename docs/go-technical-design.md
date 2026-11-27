@@ -38,7 +38,7 @@ The game will change once it's played, so every place the game design already ex
 | Actions | Every action, a step included, is content: which channels it occupies (by tag and count), wind-up and recovery formulas, target and range, and effects on start and on landing. The choices an action asks for, and what a chosen type or item changes about it, are content too; code adds only primitives | Two-handed and lunging actions, new forms, effects that hit several limbs or stop a whole body, alternative combat rules tried in CUE |
 | Rules | Content records carry generic tags, numbers and lists. Named formulas (`rules`) and content-defined choices read them, and code names no content record, tag or rule | Reworking what weakness means, partial resistances, types that only work on pinned parts, new kinds of item or grant, all in CUE |
 | Triggers | A `Triggers` component from content: on an event, if an Expr condition holds, apply effects | Graft autonomy, curdle modes, exotic recruit abilities and material reactions, all as data |
-| Behaviors | Agent behaviors are registered primitives that content composes and scores with Expr considerations; monsters, people, recruits and candidates share one path | Simulating candidates later, new creature families as pure data |
+| Behaviors | Agents hold weighted drives; a decision scores them into a goal, and a planner (GOAP for important individuals, HTN recipes for the rest) turns it into steps of content-defined actions over the agent's beliefs. Monsters, people, recruits and candidates share one path | Simulating candidates later (a wish is one more drive), new creature families as pure data |
 | Knowledge | One fact store per knower (subject, claim, source, confidence); the piece, rumors, clues and dreams all write facts | New clue sources, false positives, NPCs who know things, the journal as a view over facts |
 | Identity | Every individual gets a stable `UID`; content IDs are namespaced strings (`material.violet`); components hold IDs, never pointers into content | Persistent nemeses and deserters, rumors about the dead, hot reload, saves that survive content edits |
 | Saves | A save header carries a save version and a content hash; migration functions run in order | Changing components without breaking old saves |
@@ -166,7 +166,7 @@ Each package owns one part of the rules and leans on a library for everything el
 | `worldgen` | Foundation. A pipeline of named stages per geography: generating the deep around fixed towns and set pieces, and the guarantees on it. A pure function of seed, export count and content | opensimplex-go, fzipp/astar for the guarantees |
 | `procgen` | Reseeding the deep on exports and keeping the party's pocket; reads game state, so it is a feature | `worldgen` |
 | `combat` | The party's alert, combat primitives, the creature controller and the score chooser, death, graft autonomy. Forms × types is content | `effects`, Expr for content formulas |
-| `agents` | The behavior primitive registry, needs scoring and behavior choice for every agent; every creature and person an individual agent, deciding less often and travelling coarsely far from the party | Expr for need curves, Ark relations for grudges and relationships |
+| `agents` | Drives and goal choice, the operator and belief model, the GOAP and HTN planners, the `mind` controller with its reservations, and level of detail for every agent; every creature and person an individual, deciding less often and travelling coarsely far from the party | Expr for drive curves and scoring, Ark relations for grudges and relationships |
 | `seats` | The seven seat state machines, stage events, seat passing, the piece's region-plus-progression readings | Ark events, `rng` |
 | `cast` | Wound scoring, relationships, plot-armor flags, the wish generator (wound → wish → curdle mode → price → form) | Content tables, Expr |
 | `rumor` | Facts carried between people and towns, drifting with each retelling | `knowledge`, `text/template` for the words |
@@ -209,6 +209,8 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 - **Everyone is an individual.** Every creature and person is a full Ark entity with a body, needs, an inventory and memory, all the time. Nothing is ever folded into a count.
 - **Detail is fidelity, not existence.** Near the party, agents act through the timeline and move cell by cell. Far from it, they decide less often and travel a coarse graph of the world (chunks and the openings between them), so pathfinding stays affordable. All three numbers are content, first set and then tuned with the harness: an agent is near within a radius of chunks of any party member (first value 2 chunks, 32 hexes), far agents decide every `agents.far_ticks` (first value a tenth of a phase), and the graph is chunks and the openings between them.
+- **Populated at start.** A new game populates the whole bounded world as individuals, in chunk-key order from per-chunk streams, so load order never decides who exists. An export moves bodies to open ground and creates nobody. The first target is about 1,000 individuals at once.
+- **Far agents.** A far agent never calls sight or cell pathing. It plans at the level of goals and travels the chunk graph: the openings between chunks, a pure, cached function of the seed and export count. It is put on a standable cell when its chunk loads.
 - **Chunks in memory.** Generated chunks are rebuilt from the world seed and export count and are never saved; only edits are. Chunks far from every party member are unloaded, farthest first, under a chunk budget set in content.
 - **Towns are areas of one world.** Towns and the deep are areas of a single continuous world, never maps of their own, and nothing joins them but the ground. The world isn't divided into regions: what the deep is like changes with depth, through content.
 
@@ -216,7 +218,7 @@ Systems register with the scheduler in `sim`, each declaring a cadence and what 
 
 - **Named streams.** Every subsystem draws from its own PCG stream, so adding a feature in combat never changes procgen.
 - **No hidden order.** Never let Go map iteration order or goroutines decide an outcome; sort by entity ID where order matters.
-- **Parallel, then in order.** Work may run on other goroutines only as pure computation: it reads its inputs and returns results without touching the world. The world's goroutine then applies the results in a fixed order (by chunk key, region ID or seed). Procgen chunks, harness games and off-screen region updates fit this. The `sim` registries are safe for concurrent use; the ECS world, `World.Now` and the RNG streams are not.
+- **Parallel, then in order.** Work may run on other goroutines only as pure computation: it reads its inputs and returns results without touching the world. The world's goroutine then applies the results in a fixed order (by chunk key, UID or seed). Procgen chunks, harness games and far agents' plans fit this. The `sim` registries are safe for concurrent use; the ECS world, `World.Now` and the RNG streams are not.
 - **Procgen seeds** come from the world seed plus the export count, so any export's layout can be regenerated exactly.
 
 ### Saves and replays
@@ -309,7 +311,7 @@ Agent-ready task specs for each step live in the repo under `tasks/`, and `tasks
 
 - [ ] CUE or YAML plus JSON Schema? CUE removes the most custom validation code, but it has a learning curve for content authoring.
 - [x] Hex library: decided, gravitton/hexagon (double-width layout, field of view and line drawing).
-- [x] The world is bounded: decided, small and hand-built at first, grown by procgen. How cheap agents must be is settled with M6.
+- [x] The world is bounded: decided, small and hand-built at first, grown by procgen. How cheap agents must be is settled with M6: about 1,000 individuals at once.
 - [x] Stable content IDs: decided, namespaced string IDs plus versioned saves with migrations (see Designing for pivots).
 - [ ] Terminal font: hexes look even only with a font about twice as tall as it is wide; pick a default for Windows Terminal.
 - [x] Combat: decided, on the hex map and the same clock as exploring, with moves picked from menus.
