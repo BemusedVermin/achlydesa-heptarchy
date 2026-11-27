@@ -20,6 +20,11 @@
 | [M5-10](M5-10-regenerate-on-export.md) | Regenerate the deep on an export | M5-06, M5-07, M5-08, M5-09 |
 | [M5-11](M5-11-populate.md) | Populate generated ground | M5-06, M5-08 |
 | [M5-12](M5-12-decay-spreads.md) | Decay spreads downward over exports | M5-10 |
+| [M5-13](M5-13-play-by-play.md) | A play-by-play of every fight in the message log | none |
+| [M5-14](M5-14-wipe-screen.md) | A wipe screen that waits for the player before the party wakes | M5-13 |
+| [M5-15](M5-15-replay-trace.md) | Record as you play, and replay with a readable trace | M5-13 |
+
+M5-13 to M5-15 were added by the owner on 2026-11-26 after a playtest: a fight resolved with no visible beats, then the party woke the next day. M5-14 and M5-15 both touch the TUI app, so they run one after the other.
 
 M5-01 and M5-09 can start at once. After M5-01, M5-02, M5-03 and M5-08 run side by side. The chain M5-02 → M5-05 → M5-06 is the critical path.
 
