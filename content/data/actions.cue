@@ -29,9 +29,47 @@ actions: {
 		on_land: [{do: "tell", params: {}}]
 		tags: ["speech"]
 	}
+	// Take, put and consume are open to anyone next to what they act on, agent or party alike.
+	"action.take": {
+		name: "text.action.take"
+		key:  "take"
+		uses: [{tag: "grant:action", count: 1}]
+		target: "body"
+		targets: {thing: true, tags: ["stock"]}
+		range: 1
+		choices: ["ware"]
+		windup:   "0"
+		recovery: "2"
+		on_land: [{do: "take", params: {choice: "ware", count: "1"}}]
+	}
+	"action.put": {
+		name: "text.action.put"
+		key:  "put"
+		uses: [{tag: "grant:action", count: 1}]
+		target: "body"
+		targets: {thing: true, tags: ["stock"]}
+		range: 1
+		choices: ["carried"]
+		windup:   "0"
+		recovery: "2"
+		on_land: [{do: "put", params: {choice: "carried", count: "1"}}]
+	}
+	"action.consume": {
+		name: "text.action.consume"
+		key:  "consume"
+		uses: [{tag: "grant:action", count: 1}]
+		target: "self"
+		choices: ["carried"]
+		windup:   "0"
+		recovery: "2"
+		on_land: [{do: "consume", params: {choice: "carried"}}]
+	}
 }
 
 text: {
-	"text.action.step": "Step"
-	"text.action.chat": "Chat"
+	"text.action.chat":    "Chat"
+	"text.action.step":    "Step"
+	"text.action.take":    "Take"
+	"text.action.put":     "Put"
+	"text.action.consume": "Consume"
 }

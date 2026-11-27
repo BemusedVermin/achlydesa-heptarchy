@@ -226,6 +226,8 @@ type Item struct {
 	Part *api.ContentID `json:"part,omitempty"`
 	// Triggers run for holders of the item.
 	Triggers []Trigger `json:"triggers,omitempty"`
+	// OnConsume are the effects of consuming one, on the body that consumes it.
+	OnConsume []EffectRef `json:"on_consume,omitempty"`
 }
 
 // Faction is a side. Hostility is not symmetric unless both sides list each other.
@@ -773,6 +775,8 @@ type TargetFilter struct {
 	Not []string `json:"not,omitempty"`
 	// Corpse allows a dead body as well as a living one.
 	Corpse bool `json:"corpse,omitempty"`
+	// Thing also allows a source or container, which has a cell and no body.
+	Thing bool `json:"thing,omitempty"`
 }
 
 // PartTemplate is one kind of body part. Material and integrity are copied onto each part spawned.

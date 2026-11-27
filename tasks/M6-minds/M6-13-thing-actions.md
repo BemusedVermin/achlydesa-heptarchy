@@ -1,7 +1,7 @@
 ---
 id: M6-13
 title: "Thing actions: take, put and consume"
-status: todo
+status: done
 milestone: M6
 kind: feature
 depends_on: [M6-02, M6-11]
@@ -36,8 +36,8 @@ Agents and the party can take from a source or container, put into one, and cons
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -45,3 +45,12 @@ Agents and the party can take from a source or container, put into one, and cons
 
 ## Notes
 
+- Wells and containers are not bodies, so `TargetFilter` gains `thing: true` (a source or container with a cell); take and put also need the template tag `stock`, which the sample well, cistern and larder carry.
+- `take`/`put` effects live in `actions` (`things.go`) and call `inventory.Transfer`, new beside `Move`: only an end that is not the actor's holder must be next to the actor, so a party member takes into the party's inventory (the M6-02 open point). Reasons are `text.actions.none_there`, `none_carried`, `no_room`.
+- Which item is chosen by content choices `ware` (take) and `carried` (put, consume). `consume` now takes a `choice` param instead of a fixed `item`, and applies the new item field `on_consume`; `item.water` and `item.ration` satisfy `drive.water` and `drive.food` with first values 12 and 40, for tuning.
+- Wind-up is 0 and recovery 2, not a wind-up: a refusal then shows in the menu as a disabled option and `Validate`, as for any action.
+- Operators are `take`, `take_food`, `put`, `put_food`, `consume` and `eat` (one per tag), with pickers `take`, `put`, `consume`. New affordances `food` and `store`; the cistern and larder advertise them. `agents.TakeClaim` builds the claim a take step makes; planners (M6-15, M6-16) add it to their plans.
+- A container has no capacity, so "full" is a source at its max; the test puts into a full well.
+- Docs: `docs/content-guide.md` (`thing`, `on_consume`).
+- Follow-ups: M6-13.F1.
+- Review fixes: `consume` content must give exactly one of `item` and `choice`; a put into a source of another item is refused as no room.

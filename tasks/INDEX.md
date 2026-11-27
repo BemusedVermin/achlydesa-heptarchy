@@ -171,7 +171,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-10](M6-minds/M6-10-operators-beliefs.md) | Operators and beliefs: the state both planners plan over | done | seam | M | M6-03, M6-04, M6-07 |
 | [M6-11](M6-minds/M6-11-mind-controller.md) | The mind controller: run a plan, claim what it needs | done | seam | M | M6-01, M6-10 |
 | [M6-12](M6-minds/M6-12-movement-actions.md) | Movement actions: go to, and wander | done | feature | M | M6-11 |
-| [M6-13](M6-minds/M6-13-thing-actions.md) | Thing actions: take, put and consume | todo | feature | M | M6-02, M6-11 |
+| [M6-13](M6-minds/M6-13-thing-actions.md) | Thing actions: take, put and consume | done | feature | M | M6-02, M6-11 |
 | [M6-14](M6-minds/M6-14-goal-choice.md) | Goal choice: drives score into a goal | done | feature | M | M6-03, M6-11 |
 | [M6-15](M6-minds/M6-15-goap.md) | The GOAP planner for important individuals | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-16](M6-minds/M6-16-htn.md) | The HTN planner and recipes for everyone else | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
@@ -224,6 +224,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
 | [M6-18.F1](followups/M6-18.F1-shared-language.md) | Decide what a shared language is for telling | todo | question | M6 | M6-18 |
+| [M6-13.F1](followups/M6-13.F1-take-options-noise.md) | Hide take options for items the thing does not hold | proposed | seam | M6 | M6-13 |
 | [M1-11.F2](followups/M1-11.F2-height-glyphs-drop-prompt.md) | Plan view: ^ and v for height, red for out of reach, and ask before a drop | done | feature | M6 | M1-11 |
 | [M6-10.F1](followups/M6-10.F1-has-by-item-or-tag.md) | Decide whether a has fact names an item or an item tag | done | question | M6 | M6-10 |
 | [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | done | question | M6 | M6-07 |

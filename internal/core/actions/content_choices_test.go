@@ -158,7 +158,7 @@ func TestChosenRecordsChangeTheAction(t *testing.T) {
 
 func TestContentChoiceMayNotShadowAProvider(t *testing.T) {
 	reg := contenttest.Registry(t, testBundle(t, opts{contentChoices: true}))
-	if got := reg.ChoiceNames(); !slices.Equal(got, []string{"piece", "type"}) {
+	if got := reg.ChoiceNames(); !slices.Equal(got, []string{"carried", "piece", "type", "ware"}) {
 		t.Fatalf("choices = %v", got)
 	}
 }

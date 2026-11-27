@@ -124,6 +124,7 @@ targets: {
 - `tags`: the target's template must carry every one.
 - `not`: the target's template must carry none of them.
 - `corpse: true` lets the action aim at a dead body as well as a living one. Without it a corpse is never offered and an intent naming one is refused as a bad target.
+- `thing: true` lets the action aim at a source or container, which has a cell and no body. Take and put use it with a template tag.
 
 ### `vocabulary.cue`
 
@@ -194,12 +195,14 @@ Planners plan over a small state of symbolic facts, built from what the agent ca
 
 `not: true` turns a condition around.
 
+An item's `on_consume` effects run on the body that consumes one with the `consume` effect, as `item.water` lowers `drive.water` by `satisfy`. `take`, `put` and `consume` read which item from the action's choice, named by their `choice` param.
+
 ```cue
-"operator.drink": {
+"operator.consume": {
 	pre: [{fact: "has", tag: "drinkable", n: 1}]
 	eff: [{fact: "has", tag: "drinkable", n: -1}, {fact: "drive_met", tag: "drive.water"}]
 	cost: 1
-	does: {action: "action.consume", target: "self"}
+	does: {action: "action.consume", target: "consume"}
 	kind: "work"
 }
 ```

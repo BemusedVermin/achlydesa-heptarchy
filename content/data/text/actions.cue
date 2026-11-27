@@ -25,5 +25,8 @@ text: {
 	"text.actions.no_connect":    "It does not connect."
 	"text.actions.channel_gone":  "A limb it needed is gone."
 	"text.actions.too_quick":     "That action would take no time."
+	"text.actions.none_there":    "There is no {{.item}} there to take."
+	"text.actions.none_carried":  "You carry no {{.item}} to put there."
+	"text.actions.no_room":       "There is no room for more {{.item}} there."
 	"text.actions.broken":        "That action cannot be worked out: {{.error}}"
 }

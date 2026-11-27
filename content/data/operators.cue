@@ -22,3 +22,49 @@ operators: {
 		kind: "travel"
 	}
 }
+
+// Taking, putting away and consuming, for water and for food.
+operators: {
+	"operator.take": {
+		pre: [{fact: "near", tag: "affordance.water"}]
+		eff: [{fact: "has", tag: "drinkable", n: 1}]
+		cost: 1
+		does: {action: "action.take", target: "take"}
+		kind: "work"
+	}
+	"operator.take_food": {
+		pre: [{fact: "near", tag: "affordance.food"}]
+		eff: [{fact: "has", tag: "edible", n: 1}]
+		cost: 1
+		does: {action: "action.take", target: "take"}
+		kind: "work"
+	}
+	"operator.put": {
+		pre: [{fact: "has", tag: "drinkable", n: 1}, {fact: "near", tag: "affordance.store"}]
+		eff: [{fact: "has", tag: "drinkable", n: -1}]
+		cost: 1
+		does: {action: "action.put", target: "put"}
+		kind: "work"
+	}
+	"operator.put_food": {
+		pre: [{fact: "has", tag: "edible", n: 1}, {fact: "near", tag: "affordance.store"}]
+		eff: [{fact: "has", tag: "edible", n: -1}]
+		cost: 1
+		does: {action: "action.put", target: "put"}
+		kind: "work"
+	}
+	"operator.consume": {
+		pre: [{fact: "has", tag: "drinkable", n: 1}]
+		eff: [{fact: "has", tag: "drinkable", n: -1}, {fact: "drive_met", tag: "drive.water"}]
+		cost: 1
+		does: {action: "action.consume", target: "consume"}
+		kind: "work"
+	}
+	"operator.eat": {
+		pre: [{fact: "has", tag: "edible", n: 1}]
+		eff: [{fact: "has", tag: "edible", n: -1}, {fact: "drive_met", tag: "drive.food"}]
+		cost: 1
+		does: {action: "action.consume", target: "consume"}
+		kind: "work"
+	}
+}
