@@ -207,7 +207,26 @@ func buildWorld(w *sim.World, saved Pocket) (*WorldSource, error) {
 	clear(st.populated)
 	w.Map = hexmap.NewMap(cells, hexmap.Prisms{})
 	w.Map.SetBounds(src.Bounds(), src.Edge())
+	setGraph(w, cells, src)
 	return src, nil
+}
+
+// setGraph points the world's chunk graph, an Ark resource other packages read, at the ground cells builds,
+// dropping every summary of the ground before.
+func setGraph(w *sim.World, cells hexmap.Source, src *WorldSource) {
+	res := ecs.NewResource[worldgen.Graph](w.ECS)
+	exportCount := uint64(max(w.ExportCount, 0))
+	if res.Has() {
+		res.Get().Reset(cells, exportCount)
+		return
+	}
+	res.Add(worldgen.NewGraph(worldgen.GraphConfig{
+		Source:      cells,
+		Bounds:      src.Bounds(),
+		Edge:        src.Edge(),
+		Rules:       stateOf(w).rules,
+		ExportCount: exportCount,
+	}))
 }
 
 // Start builds the world and, when the content has a start scenario, spawns the start party on its
