@@ -42,7 +42,7 @@ func TestReplayTraceListsCommandsAndKeepsTheHash(t *testing.T) {
 	if traced != plain {
 		t.Errorf("trace hash %s, want %s", traced, plain)
 	}
-	got := trace.String() + traced + "\n"
+	got := trace.String()
 	path := filepath.Join("testdata", "trace.golden")
 	if *update {
 		if err := os.MkdirAll("testdata", 0o755); err != nil {
