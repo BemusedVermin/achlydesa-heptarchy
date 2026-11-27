@@ -48,7 +48,7 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `templates` | `template.` | `template.creature.beast` |
 | `actions` | `action.` | `action.strike` |
 | `places` | `place.` | `place.test.hall` |
-| `geographies` | `geography.` | `geography.deep`, `geography.large` |
+| `geographies` | `geography.` | `geography.deep` |
 | `parts` | `part.` | `part.human_arm` |
 | `claims` | `claim.` | `claim.material` |
 | `origins` | `origin.` | `origin.sweep` |

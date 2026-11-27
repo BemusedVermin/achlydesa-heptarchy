@@ -22,6 +22,14 @@ var verifyRules = hexmap.StepRules{MaxStepUp: 1, MaxStepDown: 1, MaxDrop: 1}
 // newVerifiedWorld builds the fixture world's deep; a budget above zero replaces verify's max_chunks.
 func newVerifiedWorld(tb testing.TB, seed, exportCount uint64, budget int) (*worldgen.Source, *hexmap.Map) {
 	tb.Helper()
+	return newVerifiedWorldWith(tb, seed, exportCount, budget, 0)
+}
+
+// newVerifiedWorldWith is newVerifiedWorld with verify's summary workers fixed; zero leaves the default.
+func newVerifiedWorldWith(
+	tb testing.TB, seed, exportCount uint64, budget, workers int,
+) (*worldgen.Source, *hexmap.Map) {
+	tb.Helper()
 	reg := contenttest.Sample(tb)
 	fixed, err := explore.NewWorldSource(reg)
 	if err != nil {
@@ -37,7 +45,13 @@ func newVerifiedWorld(tb testing.TB, seed, exportCount uint64, budget int) (*wor
 	}
 	stages := worldgen.NewStages()
 	for _, register := range []func(*worldgen.Stages) error{
-		worldgen.RegisterCaves, worldgen.RegisterJoin, worldgen.RegisterSinks, worldgen.RegisterVerify,
+		worldgen.RegisterCaves, worldgen.RegisterJoin, worldgen.RegisterSinks,
+		func(stages *worldgen.Stages) error {
+			if workers > 0 {
+				return worldgen.RegisterVerifyWorkers(stages, workers)
+			}
+			return worldgen.RegisterVerify(stages)
+		},
 	} {
 		if err := register(stages); err != nil {
 			tb.Fatal(err)
@@ -138,6 +152,34 @@ func reaches(rt *rapid.T, m *hexmap.Map, seen map[api.Cell]bool, opening worldge
 		}
 	}
 	return false
+}
+
+func TestVerifyIsWorkerIndependent(t *testing.T) {
+	for _, seed := range []uint64{3, 9} {
+		one, _ := newVerifiedWorldWith(t, seed, 1, 0, 1)
+		many, _ := newVerifiedWorldWith(t, seed, 1, 0, 5)
+		for q := range 6 {
+			for r := range 3 {
+				key := hexmap.ChunkKey{Q: q, R: r}
+				first, err := one.Chunk(key)
+				if err != nil {
+					t.Fatal(err)
+				}
+				second, err := many.Chunk(key)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for slot := range hexmap.ChunkCells {
+					cell := key.Cell(slot)
+					origin := key.Origin()
+					x, y, d := cell.Hex.Q-origin.Hex.Q, cell.Hex.R-origin.Hex.R, cell.Depth-origin.Depth
+					if first.Get(x, y, d) != second.Get(x, y, d) {
+						t.Fatalf("seed %d: chunk %v differs at %v between 1 and 5 workers", seed, key, cell)
+					}
+				}
+			}
+		}
+	}
 }
 
 func TestVerifyIsOrderIndependent(t *testing.T) {

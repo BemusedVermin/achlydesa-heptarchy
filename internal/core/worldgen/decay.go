@@ -17,7 +17,12 @@ type Decay struct {
 
 // NewDecay reads the geography's decay rule for every depth in the bounds. A geography without decay gives
 // a nil Decay, which changes nothing.
-func NewDecay(reg *content.Registry, geography api.ContentID, exportCount uint64, bounds hexmap.Bounds) (*Decay, error) {
+func NewDecay(
+	reg *content.Registry,
+	geography api.ContentID,
+	exportCount uint64,
+	bounds hexmap.Bounds,
+) (*Decay, error) {
 	def, ok := reg.Geography(geography)
 	if !ok {
 		return nil, fmt.Errorf("worldgen: decay: unknown geography %q", geography)
