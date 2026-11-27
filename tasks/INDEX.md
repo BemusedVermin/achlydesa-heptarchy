@@ -212,7 +212,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | proposed | question | M6 | M6-07 |
+| [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | done | question | M6 | M6-07 |
 | [M6-06.F1](followups/M6-06.F1-graph-local-areas.md) | Split chunk graph nodes by the walkable areas inside each chunk | obsolete | seam | M6 | M6-06 |
 | [M6-03.F1](followups/M6-03.F1-safety-rise.md) | Decide what raises drive.safety | done | question | M6 | M6-03 |
 | [M6-04.F1](followups/M6-04.F1-sighting-event-volume.md) | Keep agents' sightings from flooding the event bus | done | seam | M6 | M6-04 |
