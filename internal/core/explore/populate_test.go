@@ -8,9 +8,10 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
@@ -49,61 +50,69 @@ func dummies(w *sim.World) []dummy {
 	return out
 }
 
-func TestBodiesSpawnOnceWhenAChunkFirstLoads(t *testing.T) {
+func TestTheWholeWorldIsPopulatedAtStart(t *testing.T) {
 	fx := newFixture(t, "", populatedRoad)
-	atStart := dummies(fx.w)
-	if len(atStart) == 0 {
-		t.Fatal("no bodies spawned on the generated ground around the start")
-	}
-	for range 40 {
-		if !fx.option("step/e").Enabled {
-			break
+	all := dummies(fx.w)
+	loaded := slices.Collect(func(yield func(hexmap.ChunkKey) bool) {
+		for _, key := range fx.w.Map.Loaded() {
+			if !yield(key) {
+				return
+			}
 		}
+	})
+	inLoaded := 0
+	for _, body := range all {
+		if slices.Contains(loaded, hexmap.KeyOf(body.At)) {
+			inLoaded++
+		}
+	}
+	if len(all) < 10 || inLoaded == len(all) {
+		t.Errorf("%d bodies, %d of them in loaded chunks, want over 10 and some in unloaded chunks", len(all), inLoaded)
+	}
+	for range 20 {
 		fx.stepLeader("e")
 	}
-	afterWalk := dummies(fx.w)
-	if len(afterWalk) <= len(atStart) {
-		t.Fatalf("%d bodies after walking out, want more than the %d at the start", len(afterWalk), len(atStart))
+	if got := len(dummies(fx.w)); got != len(all) {
+		t.Errorf("%d bodies after walking, want the %d from the start", got, len(all))
 	}
+}
 
-	populated := explore.Populated(fx.w)
-	fx.w.Map.Unload(func(hexmap.ChunkKey) bool { return false })
-	fx.toLeader()
-	for _, dir := range []string{"w", "e"} {
-		if fx.option("step/" + dir).Enabled {
-			fx.step(dir)
-			break
-		}
-	}
-	for _, body := range dummies(fx.w) {
-		if !slices.Contains(afterWalk, body) && slices.Contains(populated, hexmap.KeyOf(body.At)) {
-			t.Errorf("body %v appeared in a chunk that was already populated", body)
-		}
-	}
-	for _, body := range afterWalk {
-		if !slices.Contains(dummies(fx.w), body) {
-			t.Errorf("body %v is gone after its chunk reloaded", body)
-		}
-	}
-
+func TestReloadingAndExportingCreateAndLoseNobody(t *testing.T) {
+	fx := newFixture(t, "", populatedRoad)
+	atStart := dummies(fx.w)
 	_, w, _ := gametest.Reload(t, fx.cfg, fx.g)
-	if got, want := dummies(w), dummies(fx.w); !slices.Equal(got, want) {
-		t.Errorf("bodies after a reload = %v, want %v", got, want)
+	if got := dummies(w); !slices.Equal(got, atStart) {
+		t.Errorf("%d bodies after a reload, want the %d from the start", len(got), len(atStart))
 	}
-	if got, want := explore.Populated(w), explore.Populated(fx.w); !slices.Equal(got, want) {
-		t.Errorf("populated chunks after a reload = %v, want %v", got, want)
+	fx.w.ExportCount = 1
+	fx.w.Bus.Publish(api.ExportBegan{Day: 30, Count: 1})
+	if _, err := fx.w.Bus.Drain(fx.w); err != nil {
+		t.Fatal(err)
+	}
+	after := dummies(fx.w)
+	if len(after) != len(atStart) {
+		t.Fatalf("%d bodies after an export, want %d", len(after), len(atStart))
+	}
+	for i := range after {
+		if after[i].UID != atStart[i].UID {
+			t.Errorf("body %d is UID %d after an export, want %d", i, after[i].UID, atStart[i].UID)
+		}
 	}
 }
 
 func TestTheSameSeedSpawnsTheSameBodies(t *testing.T) {
 	first := newFixture(t, "", populatedRoad)
 	second := newFixture(t, "", populatedRoad)
-	for range 20 {
-		first.stepLeader("e")
-		second.stepLeader("e")
-	}
 	got, want := dummies(second.w), dummies(first.w)
 	if len(want) == 0 || !slices.Equal(got, want) {
 		t.Errorf("bodies = %v, want %v, and some", got, want)
+	}
+}
+
+// TestTheRealWorldStartsWithAboutAThousandIndividuals builds the real 400 by 400 world, which takes seconds.
+func TestTheRealWorldStartsWithAboutAThousandIndividuals(t *testing.T) {
+	_, w, _ := gametest.Start(t, game.Config{Seed: 1, Content: contenttest.Full(t)})
+	if got := w.NextUID(); got < 500 || got > 6000 {
+		t.Errorf("%d individuals at start, want between 500 and 6000 while density is tuned", got)
 	}
 }

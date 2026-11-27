@@ -1,7 +1,11 @@
 package worldgen
 
 import (
+	"errors"
 	"fmt"
+	"runtime"
+	"slices"
+	"sync"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
@@ -12,6 +16,8 @@ import (
 type Spawn struct {
 	Cell     api.Cell
 	Template api.ContentID
+	// Planner names the planner the generator picked for this individual, or is empty for the template's own.
+	Planner string
 }
 
 // ExportCount is the export count the source generates for.
@@ -53,7 +59,11 @@ func (s *Source) Populate(key hexmap.ChunkKey) ([]Spawn, error) {
 				for _, entry := range entries {
 					share := entry.Weight * entry.Density
 					if pick < share {
-						spawns = append(spawns, Spawn{Cell: cell, Template: entry.Template})
+						spawn := Spawn{Cell: cell, Template: entry.Template}
+						if entry.Mind != nil && gen.Float64() < entry.Mind.Chance {
+							spawn.Planner = entry.Mind.Planner
+						}
+						spawns = append(spawns, spawn)
 						break
 					}
 					pick -= share
@@ -62,6 +72,40 @@ func (s *Source) Populate(key hexmap.ChunkKey) ([]Spawn, error) {
 		}
 	}
 	return spawns, nil
+}
+
+// PopulateAll lists the bodies of every chunk in the bounds, in chunk key order. Chunks are populated on
+// several goroutines and each is a pure function of its key, so the number of workers never changes the result.
+func (s *Source) PopulateAll(workers int) ([]Spawn, error) {
+	if len(s.spawns) == 0 {
+		return nil, nil
+	}
+	keys := boundsChunks(s.bounds)
+	if workers <= 0 {
+		workers = runtime.GOMAXPROCS(0)
+	}
+	workers = max(1, min(workers, len(keys)))
+	results := make([][]Spawn, len(keys))
+	errs := make([]error, workers)
+	var wg sync.WaitGroup
+	for i := range workers {
+		from, to := i*len(keys)/workers, (i+1)*len(keys)/workers
+		wg.Go(func() {
+			for j, key := range keys[from:to] {
+				spawns, err := s.Populate(key)
+				if err != nil {
+					errs[i] = err
+					return
+				}
+				results[from+j] = spawns
+			}
+		})
+	}
+	wg.Wait()
+	if err := errors.Join(errs...); err != nil {
+		return nil, err
+	}
+	return slices.Concat(results...), nil
 }
 
 // PopulateName names the stream a chunk's spawns are drawn from.

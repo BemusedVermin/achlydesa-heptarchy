@@ -125,6 +125,18 @@ func ValidateContent(w *sim.World) error {
 			errs = append(errs, fmt.Errorf("templates[%q].mind.planner: unknown planner %q", id, template.Mind.Planner))
 		}
 	}
+	for _, id := range w.Content.GeographyIDs() {
+		geography, _ := w.Content.Geography(id)
+		for i, spawn := range geography.Spawns {
+			if spawn.Mind == nil {
+				continue
+			}
+			if _, ok := st.planners[spawn.Mind.Planner]; !ok {
+				errs = append(errs, fmt.Errorf("geographies[%q].spawns[%d].mind.planner: unknown planner %q",
+					id, i, spawn.Mind.Planner))
+			}
+		}
+	}
 	for _, id := range w.Content.OperatorIDs() {
 		op, _ := w.Content.Operator(id)
 		if _, ok := st.pickers[op.Does.Target]; !ok {

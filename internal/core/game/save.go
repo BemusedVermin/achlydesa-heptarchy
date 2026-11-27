@@ -59,25 +59,20 @@ func (g *Game) snapshot() (save.Snapshot, error) {
 			edits = append(edits, save.Edit{At: edit.Cell, Terrain: edit.Terrain.ID})
 		}
 	}
-	var populated []save.Chunk
-	for _, key := range explore.Populated(g.world) {
-		populated = append(populated, save.Chunk{Q: key.Q, R: key.R, Depth: key.Depth})
-	}
 	return save.Snapshot{
 		Header: save.Header{
 			Format: save.Format, Version: save.CurrentVersion, ContentHash: g.world.Content.Hash(),
 			Seed: g.world.RNG.Seed(), Tick: g.world.Now,
 		},
-		World:     world,
-		RNG:       streams,
-		NextUID:   g.world.NextUID(),
-		Timeline:  timeline.Export(g.world),
-		Exports:   save.Exports{Count: g.world.ExportCount, NextDay: g.world.NextExportDay},
-		Pocket:    savedPocket(g.world),
-		Edits:     edits,
-		Populated: populated,
-		History:   history,
-		Log:       append([]api.LogLine{}, g.log...),
+		World:    world,
+		RNG:      streams,
+		NextUID:  g.world.NextUID(),
+		Timeline: timeline.Export(g.world),
+		Exports:  save.Exports{Count: g.world.ExportCount, NextDay: g.world.NextExportDay},
+		Pocket:   savedPocket(g.world),
+		Edits:    edits,
+		History:  history,
+		Log:      append([]api.LogLine{}, g.log...),
 	}, nil
 }
 
@@ -121,11 +116,6 @@ func (g *Game) restore(snapshot save.Snapshot) error {
 	if err := applyEdits(w, snapshot.Edits); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}
-	keys := make([]hexmap.ChunkKey, len(snapshot.Populated))
-	for i, chunk := range snapshot.Populated {
-		keys[i] = hexmap.ChunkKey{Q: chunk.Q, R: chunk.R, Depth: chunk.Depth}
-	}
-	explore.RestorePopulated(w, keys)
 	if err := timeline.Import(w, snapshot.Timeline); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}

@@ -178,7 +178,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-17](M6-minds/M6-17-far-agents.md) | Far agents: goals only, over the chunk graph | todo | feature | L | M6-06, M6-12, M6-14 |
 | [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | done | feature | S | M6-04, M6-11 |
 | [M6-19](M6-minds/M6-19-flee-engage.md) | Flee, terror and engaging: handing a fight over and back | todo | feature | M | M6-01, M6-12, M6-14 |
-| [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | todo | feature | M | M6-03, M6-06, M6-14 |
+| [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | done | feature | M | M6-03, M6-06, M6-14 |
 | [M6-21](M6-minds/M6-21-monster-families.md) | Monster families: moving clay, remnants and beasts as minds | todo | content | M | M6-05, M6-07, M6-15, M6-16, M6-19, M6-20 |
 | [M6-22](M6-minds/M6-22-settlements.md) | The three towns as settlements | todo | content | M | M6-09, M6-13, M6-20 |
 | [M6-23](M6-minds/M6-23-residents.md) | Residents: roles, jobs and a town that can run dry | todo | content | M | M6-15, M6-16, M6-18, M6-22 |
