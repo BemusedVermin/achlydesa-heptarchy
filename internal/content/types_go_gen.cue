@@ -240,6 +240,19 @@ import (
 	count: int @go(Count)
 }
 
+// SourceDef is what a source holds and how fast it refills.
+#SourceDef: {
+	// Item names the item by its ID.
+	item: api.#ContentID @go(Item)
+
+	// Max is the most stock the source holds; at least 1.
+	max: int @go(Max)
+
+	// Refill is an Expr with RefillEnv: the stock that comes back at each phase boundary, never
+	// negative. The stock never goes above Max.
+	refill: string @go(Refill)
+}
+
 // Terrain is what one cell of the world is made of: solid (clay, rock) or open (air, later water).
 #Terrain: {
 	// Name is a text ID.
@@ -315,6 +328,9 @@ import (
 
 	// Inventory is the inventory the entity starts with.
 	inventory?: [...#StackDef] @go(Inventory,[]StackDef)
+
+	// Source makes the entity a source of one item, which it starts full of.
+	source?: null | #SourceDef @go(Source,*SourceDef)
 
 	// Triggers react to events for the entities spawned from this template.
 	triggers?: [...#Trigger] @go(Triggers,[]Trigger)

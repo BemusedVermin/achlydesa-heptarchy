@@ -15,7 +15,7 @@ import (
 const Format = "heptarchy-save"
 
 // CurrentVersion is the version Write produces. Raise it together with a migration from the old one.
-const CurrentVersion = 9
+const CurrentVersion = 11
 
 // Header says what the file is and what it was made from.
 type Header struct {

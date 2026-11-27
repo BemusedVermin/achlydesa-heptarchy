@@ -201,6 +201,17 @@ type StackDef struct {
 	Count int `json:"count"`
 }
 
+// SourceDef is what a source holds and how fast it refills.
+type SourceDef struct {
+	// Item names the item by its ID.
+	Item api.ContentID `json:"item"`
+	// Max is the most stock the source holds; at least 1.
+	Max int `json:"max"`
+	// Refill is an Expr with RefillEnv: the stock that comes back at each phase boundary, never
+	// negative. The stock never goes above Max.
+	Refill string `json:"refill"`
+}
+
 // Terrain is what one cell of the world is made of: solid (clay, rock) or open (air, later water).
 type Terrain struct {
 	// Name is a text ID.
@@ -262,6 +273,8 @@ type Template struct {
 	Protected bool `json:"protected,omitempty"`
 	// Inventory is the inventory the entity starts with.
 	Inventory []StackDef `json:"inventory,omitempty"`
+	// Source makes the entity a source of one item, which it starts full of.
+	Source *SourceDef `json:"source,omitempty"`
 	// Triggers react to events for the entities spawned from this template.
 	Triggers []Trigger `json:"triggers,omitempty"`
 	// Faction is the side ("faction." ID) a body of this template fights for.

@@ -15,6 +15,12 @@ items: {
 	"item.keepsake": {name: "text.item.keepsake", tags: ["keepsake"], bound: true}
 }
 
+// Supplies: what people drink and eat, drawn from sources and kept in containers.
+items: {
+	"item.water": {name: "text.item.water"}
+	"item.ration": {name: "text.item.ration"}
+}
+
 // A name: the thing a name type is spoken with, tied to its owner.
 items: "item.name": {name: "text.item.name", tags: ["name"], bound: true}
 
@@ -42,4 +48,6 @@ text: {
 	"text.item.violet_blood": "Violet blood"
 	"text.item.lees":         "lees"
 	"text.item.keepsake":     "keepsake"
+	"text.item.water":        "water"
+	"text.item.ration":       "ration"
 }

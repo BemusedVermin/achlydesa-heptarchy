@@ -12,7 +12,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | --- | --- |
 | `materials.cue` | `materials`: what parts are made of, their weaknesses and immunities |
 | `terrains.cue` | `terrains`: what one cell of the world is made of |
-| `templates.cue` | `templates`: people, creatures, crawling parts, test bodies and the party |
+| `templates.cue` | `templates`: people, creatures, crawling parts, test bodies, the party, and sources and containers. A container is any template with an `inventory` and a place to stand; a `source` (`item`, `max`, and a `refill` formula over `stock` and `max`) starts full and gets back `refill` of its item at each phase boundary, never above `max` |
 | `bodies.cue` | `parts` (part templates) and `bodies` (body plans) |
 | `forms.cue` | the seven forms, as `actions` tagged `form` |
 | `actions.cue` | the other `actions`, such as `action.step` |

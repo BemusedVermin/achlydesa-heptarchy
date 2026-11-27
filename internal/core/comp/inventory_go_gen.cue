@@ -18,3 +18,14 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Inventory: {
 	stacks: [...#ItemStack] @go(Stacks,[]ItemStack)
 }
+
+// Source is a stock of one item that refills each phase, such as a well. It is taken from like a
+// container's inventory, but its stock is kept here, apart from any Inventory the entity has.
+#Source: {
+	item:  api.#ContentID @go(Item)
+	stock: int            @go(Stock)
+	max:   int            @go(Max)
+
+	// Refill is the template ("template." ID) whose source.refill formula sets the rate.
+	refill: api.#ContentID @go(Refill)
+}
