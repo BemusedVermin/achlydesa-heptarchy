@@ -205,7 +205,7 @@ func (r *Registry) EffectSites() []EffectSite {
 			sites = append(sites, EffectSite{Path: site.Path + ".do", Refs: site.Trigger.Do})
 		}
 	}
-	return sites
+	return append(sites, driveSites(r.bundle.Drives)...)
 }
 
 func modSites(path string, mods Mods) []EffectSite {

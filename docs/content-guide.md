@@ -20,6 +20,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `items.cue` | `items`: what the inventory carries |
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
+| `drives.cue` | `drives`: needs and desires (see Drives below), and `agents`: the numbers every agent shares |
 | `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from) |
 | `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque), the `open` terrain of a marked cell and the `geography` that generates the cells no place covers |
 | `geography.cue` | `geographies`: kinds of generated ground. A geography lists its `stages` in order, each a registered stage's name (`stage`) and its numbers (`params`). Worldgen checks that every stage is registered and takes its params. Fixed cells always keep what their place authors. Its `spawns` list what starts on the generated ground: each entry names a `template`, a `weight`, a depth band (`min_depth`, `max_depth`) and a `density`. A cell that is open with solid ground below, inside the band and outside every place, draws once: an entry takes the share weight x density / (sum of the applying weights), and the rest of the draw is no body. A chunk is populated once, the first time it loads for an export count |
@@ -131,12 +132,31 @@ Several triggers that match one event fire in UID order of their carriers, then 
 
 ## Effects
 
-An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part` and `step`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
+An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
 
 Params that pick bodies or parts are selectors:
 
 - bodies: `self`, `target`, `allies`, `enemies`, `others` or `everyone`, optionally narrowed to a template tag, as in `others[crawls]`;
 - channels and parts: `used`, `target_part`, or `<bodies>:<tag>`, as in `target:all`, `target:legs` or `self:all`.
+
+## Drives
+
+A drive is a need or a desire. A body carries the drives its template lists in `drives`, each with a typical weight; when the body spawns, its own weight on each is drawn once by `agents.weight`, a formula over `typical` and a fresh `roll` in [0, 1), and kept for good. That set of weights is its personality.
+
+```cue
+"drive.water": {
+	name: "text.drive.water"
+	kind: "need"
+	rise: "1"
+	urge: "min(level / 12, 1)"
+	thresholds: [{at: 12, do: [{do: "damage", params: {parts: "self:torso", amount: "1"}}]}]
+}
+```
+
+- A level is 0 when the drive is met and never goes below it. Once a phase, every living body's levels rise by `rise`, a formula over `level` and `weight`. A need requires a rise; a desire without one keeps its level until something changes it.
+- `urge` says how pressing the drive is at its level, from 0 to 1; anything outside that is a content bug.
+- After the rise, each threshold whose `at` the level has reached applies its effects, with the body as both `self` and `target`. Only a need has thresholds: a desire never kills.
+- The `satisfy` effect lowers a drive's level by `amount` for the `bodies` it selects (`drive` names the drive); a negative amount raises it.
 
 ## Recipes
 

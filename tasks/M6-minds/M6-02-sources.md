@@ -53,7 +53,7 @@ Water and food come from somewhere. A well, lake or field is a source that refil
 - Where the spec was silent: a source spawns full; "within reach" is the same cell or a neighbouring one (`hexmap.CellDistance` ≤ 1, which counts depth), fixed in code as the meaning of "next to" rather than a tuning number; `Move` returns a bool like `Take`, and moves only unbound stacks.
 - `Move` needs a `Pos` on both entities. A party keeps its inventory on the party entity, which has none, so M6-13 must decide how a member takes into the party's inventory.
 - Sample content: `item.water`, `item.ration` (no tags, so the type choice doesn't offer them), `template.source.well`, `template.container.cistern` and `template.container.larder`. No place spawns them yet. The containers start with five items because a template can't spawn an empty container: M6-02.F1.
-- Save version 9 (`save_test.go` gets the matching no-op migration step). `inventory.Install` now also registers the `source` spawner and the per-phase `inventory.refill` system.
+- Save version 11, after #206 takes 10 (`save_test.go` gets the matching no-op migration step). `inventory.Install` now also registers the `source` spawner and the per-phase `inventory.refill` system.
 - Files outside the deliverables: `internal/core/save/`, `internal/content/load_test.go` (a bad-source load case), `docs/content-guide.md` (templates row) and `docs/go-technical-design.md` (the `inventory` package row).
 - Follow-ups: M6-02.F1.
 

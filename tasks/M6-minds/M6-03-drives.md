@@ -1,7 +1,7 @@
 ---
 id: M6-03
 title: "Drives: needs and desires with a weight per individual"
-status: todo
+status: done
 milestone: M6
 kind: seam
 depends_on: []
@@ -38,8 +38,8 @@ Every body can carry drives: needs that rise with time and can kill, and desires
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes, and the save version is bumped.
+- [x] The tests above pass.
+- [x] `go tool task check` passes, and the save version is bumped.
 
 ## Out of scope
 
@@ -47,4 +47,15 @@ Every body can carry drives: needs that rise with time and can kill, and desires
 - Eating and drinking by the party: M6-24.
 
 ## Notes
+
+- **No template carries drives yet.** The drives exist in `content/data/drives.cue`, but M6-21 and M6-24 attach them to creatures and the party. Attaching them now would starve the party in normal play, with no way to drink until M6-24. The tests add drives to the beast template on a copied bundle.
+- **Weights:** `agents.weight` (new `agents` config, in `drives.cue`) is a formula over `typical` and `roll`; the first value draws 0.5 to 1.5 times the typical weight. One roll per drive, in drive ID order. A negative weight is a content error.
+- **Stream per spawn:** `rng.Derived("agents", salt)`, where the salt hashes the template and the spawn cell. A body spawned with no position (a party member) uses its UID instead, which game start hands out in a fixed order. Two bodies of one template spawned on the same cell would draw the same weights; M6-20 may pass its own per-chunk salt if that ever matters.
+- **Levels** start at 0, never go below 0, and have no ceiling. The tick (`agents.drives`, per phase) skips dead bodies, raises every drive, then runs the thresholds each level has reached, with the body as source and target. It stops early when a threshold kills the body.
+- **Desires** may have a rise but no thresholds, since a desire never kills (glossary). `drive.pay` has no rise yet; M6-25 adds one.
+- **Urge** must come out between 0 and 1; anything else is a content error at run time. Nothing calls it yet (M6-14 will).
+- **`satisfy`** (`bodies`, `drive`, `amount`) lowers the level and stops at 0; a negative amount raises it. A body that doesn't carry the drive is skipped.
+- **Thresholds** apply only damage for now. The design wants "slowed first", which needs a status that the speed formula reads. That is M6-24's job.
+- Files outside the Deliverables: `internal/content/{types,load,records,registry,actions}.go` (the wiring), `internal/core/game/install.go` (installs `agents`), `internal/core/save/save.go` and `save_test.go` (save version 9), and `docs/content-guide.md` (the new Drives section, `drives.cue` in the layout, `satisfy` in the primitives).
+- Follow-up filed: M6-03.F1 (question: what raises `drive.safety`; it ships with `rise: "0"`).
 

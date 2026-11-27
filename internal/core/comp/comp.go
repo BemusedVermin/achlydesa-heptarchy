@@ -240,4 +240,5 @@ func Register(world *ecs.World) {
 	ecs.ComponentID[Triggers](world)
 	ecs.ComponentID[Calm](world)
 	ecs.ComponentID[Source](world)
+	ecs.ComponentID[Drives](world)
 }
