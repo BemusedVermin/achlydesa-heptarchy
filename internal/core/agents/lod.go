@@ -222,10 +222,8 @@ func decideFar(w *sim.World, due []ecs.Entity, members []hexmap.ChunkKey) error 
 		if err := think(w, body); err != nil {
 			return err
 		}
-		if mind := minds.Get(
-			body,
-		); len(mind.Plan.Steps) > 0 &&
-			(mind.Step >= len(mind.Plan.Steps) || !planHolds(w, body)) {
+		mind := minds.Get(body)
+		if len(mind.Plan.Steps) > 0 && (mind.Step >= len(mind.Plan.Steps) || !planHolds(w, body)) {
 			drop(w, body)
 		}
 		deciding = append(deciding, body)

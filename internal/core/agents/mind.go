@@ -40,8 +40,9 @@ type Snapshot struct {
 	Rand *rng.Generator
 }
 
-// Planner makes a plan for a goal from a snapshot alone. It reports false when it finds none. A plan
-// with no steps counts as none.
+// Planner makes a plan for a goal from a snapshot alone. Plan may run on several goroutines at once
+// and must change no shared state. It reports false when it finds none. A plan with no steps counts
+// as none.
 type Planner interface {
 	Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool)
 }

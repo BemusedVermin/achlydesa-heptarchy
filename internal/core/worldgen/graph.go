@@ -316,7 +316,8 @@ func (g *Graph) keyOf(key hexmap.ChunkKey) graphKey {
 }
 
 // Summary returns a chunk's openings, each with the area it leads into. On a miss it summarizes the chunk's
-// neighbors too, which it needs for those areas and a route through it is likely to ask for next.
+// neighbors too, which it needs for those areas and a route through it is likely to ask for next. The
+// summary's slices are the graph's own: a caller must not change them.
 func (g *Graph) Summary(key hexmap.ChunkKey) (OpeningSummary, error) {
 	entry, ok := g.summaries[g.keyOf(key)]
 	if ok && entry.resolved {
@@ -326,6 +327,7 @@ func (g *Graph) Summary(key hexmap.ChunkKey) (OpeningSummary, error) {
 		return OpeningSummary{}, err
 	}
 	entry = g.summaries[g.keyOf(key)]
+	// A step that crosses a side and drops may land in a chunk that shares no face with key.
 	into := make([]hexmap.ChunkKey, len(entry.summary.Openings))
 	for i, opening := range entry.summary.Openings {
 		into[i] = hexmap.KeyOf(opening.To)

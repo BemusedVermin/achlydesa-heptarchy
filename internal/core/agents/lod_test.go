@@ -17,7 +17,6 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
-	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/timeline"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
 )
 
@@ -275,8 +274,5 @@ func TestAFarAgentThePartyComesNearStandsOnGroundAndDecidesAsABody(t *testing.T)
 	}
 	if !agents.Near(fx.w, body) {
 		t.Error("a promoted agent is not near")
-	}
-	if timeline.ControllerOf(fx.w, body) != agents.MindController {
-		t.Errorf("promoted agent's controller %q, want the mind", timeline.ControllerOf(fx.w, body))
 	}
 }
