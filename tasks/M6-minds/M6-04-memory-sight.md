@@ -1,7 +1,7 @@
 ---
 id: M6-04
 title: A capped memory per agent, learned by sight
-status: in-progress
+status: done
 milestone: M6
 kind: seam
 depends_on: []
@@ -37,9 +37,9 @@ An agent remembers what it has seen, up to a cap, forgetting the oldest and leas
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] A benchmark in the test file stays within a stated budget for 1,000 near agents sensing once (recorded in Notes).
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] A benchmark in the test file stays within a stated budget for 1,000 near agents sensing once (recorded in Notes).
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -47,4 +47,13 @@ An agent remembers what it has seen, up to a cap, forgetting the oldest and leas
 - Planning over beliefs: M6-10.
 
 ## Notes
+
+- **Benchmark budget:** `BenchmarkThousandAgentsSenseOnce` (`internal/core/agents/sense_test.go`): 1,000 bodies on a 64×64-hex, 4-depth open area, each sensing once with a bus drain after each. Budget 150 ms per pass; measured 60–80 ms on a 4-core 2.3 GHz Xeon. Most of it is line-of-sight checks and `Learn`'s eviction churn once a knower is past its cap.
+- **Content shape:** "a content list of which claims to record" is the `agents` config in `knowledge.cue`: `at_claim` and `dead_claim` name the claims, and an empty one records nothing. `seen_origin` and `seen_confidence` (first value 1) say how sure a sighting is. I added `sight_depth` (first value 6, the same as the party's and combat's) because sight needs a depth range. `knowledge.cap` is 64 and `agents.sight_radius` is 8. Both configs sit in `knowledge.cue`, as the Deliverables say.
+- **What is sensed:** bodies (entities with `comp.Pos` and `comp.Body`), giving `claim.at` (value `"q,r,depth"`, written by `knowledge.CellValue` and read back by `knowledge.ParseCell`) and `claim.dead` (empty value). Landmarks and ground (the "places worth remembering") come with M6-07, which extends `sense`. No place entities exist yet.
+- **Who calls `sense`:** no mind controller exists yet, so only the tests call `sense`. M6-10/M6-11's controller calls it from its own `Decide`, which keeps the firm "own timeline entries only" rule.
+- **Cap:** `Learn` evicts the lowest (confidence, tick), then the lowest key, so learning order cannot change the outcome. If the new fact is the one evicted, it publishes nothing. The controlled party and its members are never capped. With no content loaded (`w.Content == nil`, as in older tests), nothing is capped.
+- **Outside the Deliverables:** `hexmap.Map.Sees` (`internal/core/hexmap/sight.go`) checks one line of sight without building a whole visible field, which keeps sensing cheap. A rapid test checks that it agrees with `Visible`. The other files: `internal/content/{types,load,registry}.go` (configs, getters, checks), `internal/content/load_test.go` (minimal content gains the two configs), the regenerated schemas, `comp.Knowledge`'s doc comment, `content/data/text/knowledge.cue`, and one line each in `docs/content-guide.md` and `docs/go-technical-design.md`.
+- **Save:** no component changed shape, so the save version is not bumped.
+- **Follow-ups:** M6-04.F1 (each re-sighting publishes `FactLearned`, so many agents sensing before one drain pass the bus's 10,000-event cascade limit).
 
