@@ -147,7 +147,7 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	bits: [...uint64] @go(Bits,[]uint64)
 }
 
-// Knowledge is a knower's facts, kept sorted by (Subject, Claim, Source). Use the knowledge
+// Knowledge is a knower's facts, kept sorted by (Subject, Cell, Claim, Source). Use the knowledge
 // package's Learn, Forget, About and Best rather than changing the slice.
 #Knowledge: {
 	facts: [...api.#Fact] @go(Facts,[]api.Fact)

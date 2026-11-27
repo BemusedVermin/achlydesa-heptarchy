@@ -12,6 +12,14 @@ _fallInjury: {
 	do: [{do: "damage", params: {parts: "target:legs", amount: "cells - 1"}}]
 }
 
+// A body that dies gives the dead from that tick, which moving clay needs.
+_corpseGivesDead: {
+	on:   "combat.body_died"
+	if:   ""
+	role: "target"
+	do: [{do: "afford", params: {bodies: "target", affordance: "affordance.the_dead"}}]
+}
+
 // What a person knows: the seven forms (tagged form in forms.cue), a step, and the types innate to a
 // body. The design gives everyone Cut and Name, and the Reaper Press (the thrukk grip). Relic is
 // innate to grafts: the type choice offers it to a body that carries one.
@@ -28,7 +36,7 @@ _#Person: {
 	faction:   "faction.party"
 	tags: ["graftable"]
 	lists: types: _innateTypes
-	triggers: [_fallInjury]
+	triggers: [_fallInjury, _corpseGivesDead]
 	...
 }
 
@@ -56,6 +64,7 @@ templates: {
 		name: "text.template.creature.moving_clay"
 		appearance: {glyph: "c", color: "yellow"}
 		body: "body.moving_clay"
+		triggers: [_corpseGivesDead]
 	}
 	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
 	// The 0.3 is a placeholder, for tuning.
@@ -68,13 +77,14 @@ templates: {
 			role: "target"
 			if:   "roll < 0.3"
 			do: [{do: "spawn_from_part", params: {faction: "faction.crawling", controller: "hunt"}}]
-		}]
+		}, _corpseGivesDead]
 	}
 	// A flesh creature with a skull and an eye: Press cracks the bone, Light blinds the eye.
 	"template.creature.beast": _#Hunter & {
 		name: "text.template.creature.beast"
 		appearance: {glyph: "b", color: "red"}
 		body: "body.beast"
+		triggers: [_corpseGivesDead]
 	}
 	// What a remnant's arm fights as once it crawls off (its part's crawls_as): the arm is its whole
 	// body, so it has none of its own, and spawn_from_part gives its faction and controller. It knows
@@ -108,6 +118,7 @@ templates: {
 		name: "text.template.source.well"
 		appearance: {glyph: "o", color: "blue"}
 		source: {item: "item.water", max: 20, refill: "2"}
+		affordances: ["affordance.water"]
 	}
 	"template.container.cistern": {
 		name: "text.template.container.cistern"

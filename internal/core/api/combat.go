@@ -127,6 +127,9 @@ func (e StatusAdded) Subjects() map[string]UID {
 	return withSource(map[string]UID{SubjectTarget: e.Body}, e.Source)
 }
 
+// Subjects implements [Subjected]: the body that died is the target.
+func (e BodyDied) Subjects() map[string]UID { return map[string]UID{SubjectTarget: e.Body} }
+
 // AlertStarted reports that the controlled party has a hostile body in sight.
 type AlertStarted struct {
 	Party UID `json:"party"`

@@ -10,9 +10,12 @@ const (
 
 // Fact is one thing a knower holds to be true about a subject.
 type Fact struct {
-	// Who or what the fact is about
-	Subject UID       `json:"subject"`
-	Claim   ContentID `json:"claim"`
+	// Who or what the fact is about; 0 for a fact about a cell
+	Subject UID `json:"subject"`
+	// Cell is the cell a fact about a place is about, such as how decayed its ground is. Facts about
+	// different cells are different facts.
+	Cell  *Cell     `json:"cell,omitempty"`
+	Claim ContentID `json:"claim"`
 	// E.g. "material.clay"
 	Value  string    `json:"value"`
 	Origin ContentID `json:"origin"`

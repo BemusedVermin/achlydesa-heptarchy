@@ -24,3 +24,10 @@ type Source struct {
 	// Refill is the template ("template." ID) whose source.refill formula sets the rate.
 	Refill api.ContentID `json:"refill"`
 }
+
+// Affordance makes an entity a landmark: what it gives, as "affordance." IDs in ID order, such as a
+// well's water or a corpse's dead. Any entity with a position can carry one: a body, an item or a place
+// mark.
+type Affordance struct {
+	Tags []api.ContentID `json:"tags"`
+}

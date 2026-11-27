@@ -99,3 +99,44 @@ func TestPlaceOpeningsAreChecked(t *testing.T) {
 		})
 	}
 }
+
+func TestLandmarkMarksAndAffordancesAreChecked(t *testing.T) {
+	tests := []struct {
+		name        string
+		affordances map[string][]api.ContentID
+		template    []api.ContentID
+		want        []string
+	}{
+		{
+			name:        "a mark that is not one",
+			affordances: map[string][]api.ContentID{"x": {"affordance.rest"}},
+			want:        []string{`places["place.a"].affordances["x"]`, "not one of the marks"},
+		},
+		{
+			name:        "an unknown affordance",
+			affordances: map[string][]api.ContentID{".": {"affordance.nothing"}},
+			want:        []string{`places["place.a"].affordances["."][0]`, `unknown affordance "affordance.nothing"`},
+		},
+		{
+			name:     "a template giving one twice",
+			template: []api.ContentID{"affordance.rest", "affordance.rest"},
+			want:     []string{`templates["template.test.dummy"].affordances[1]`, "listed twice"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			bundle := sampleBundle(t)
+			bundle.Start = Start{}
+			def := testPlace("place.a", PlaceAt{})
+			def.Marks = map[string]string{".": "floor"}
+			def.Affordances = test.affordances
+			bundle.Places = map[string]PlaceDef{"place.a": def}
+			bundle.Text[string(def.Name)] = "a place"
+			dummy := bundle.Templates["template.test.dummy"]
+			dummy.Affordances = test.template
+			bundle.Templates["template.test.dummy"] = dummy
+			_, err := New(bundle)
+			requireErrContains(t, err, test.want...)
+		})
+	}
+}

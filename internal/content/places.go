@@ -167,8 +167,21 @@ func (r *Registry) checkLayout(p *problems, path string, def PlaceDef) {
 			p.addf("%s.openings[%q]: the character is in no layer", path, char)
 		}
 	}
-	for _, char := range sortedKeys(def.Marks) {
+	for _, char := range sortedKeys(def.Affordances) {
+		if _, ok := def.Marks[char]; !ok {
+			p.addf("%s.affordances[%q]: not one of the marks", path, char)
+		}
 		if _, spawns := def.Spawns[char]; spawns || slices.Contains(def.Openings, char) {
+			p.addf("%s.affordances[%q]: also a spawn or an opening", path, char)
+		}
+		if found[char] < 1 {
+			p.addf("%s.affordances[%q]: the character is in no layer", path, char)
+		}
+	}
+	for _, char := range sortedKeys(def.Marks) {
+		_, spawns := def.Spawns[char]
+		_, gives := def.Affordances[char]
+		if spawns || gives || slices.Contains(def.Openings, char) {
 			continue
 		}
 		if n := found[char]; n != 1 {

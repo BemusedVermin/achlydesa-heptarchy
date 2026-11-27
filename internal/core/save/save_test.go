@@ -427,6 +427,7 @@ func TestAMigrationRunsOnAnOlderDocument(t *testing.T) {
 			9:  noMigration,
 			10: noMigration,
 			11: noMigration,
+			12: noMigration,
 		},
 	)
 	if err != nil {

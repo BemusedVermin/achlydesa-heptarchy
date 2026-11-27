@@ -67,6 +67,13 @@ func collections() []collection {
 			func(s Status) Data { return s.Data }, func(s Status) (api.ContentID, bool) { return s.Name, true }),
 		described(CollectionDrives, "drive", func(b *Bundle) map[string]Drive { return b.Drives },
 			func(d Drive) Data { return d.Data }, func(d Drive) (api.ContentID, bool) { return d.Name, true }),
+		described(
+			CollectionAffordances,
+			"affordance",
+			func(b *Bundle) map[string]Affordance { return b.Affordances },
+			func(a Affordance) Data { return a.Data },
+			func(a Affordance) (api.ContentID, bool) { return a.Name, true },
+		),
 	}
 }
 

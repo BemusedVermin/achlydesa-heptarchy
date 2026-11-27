@@ -34,6 +34,7 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **operator**: a content record a planner uses: preconditions and effects over beliefs, and the action that carries it out.
 - **belief**: what an agent remembers of the world, from sight and from being told. Plans use beliefs, never the truth.
 - **landmark**: a thing that advertises what it gives (`comp.Affordance`), such as a well, a bed or a corpse.
+- **affordance**: what a landmark gives, an `affordance.` record such as water, rest, worship or the dead.
 - **source**: a thing that refills a stock at a content rate (`comp.Source`), such as a well or a lake.
 - **container**: anything with a place and an inventory, such as a cistern, a larder or a pile on the floor.
 - **piece**: a content-defined sub-place (a house, a well) that the settlement stage lays out into a town.

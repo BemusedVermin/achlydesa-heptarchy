@@ -44,6 +44,8 @@ type Bundle struct {
 	Vocabulary Vocabulary `json:"vocabulary,omitempty"`
 	// Drives are the needs and desires bodies carry ("drive." IDs).
 	Drives map[string]Drive `json:"drives,omitempty"`
+	// Affordances are what a landmark can give ("affordance." IDs), such as water or the dead.
+	Affordances map[string]Affordance `json:"affordances,omitempty"`
 }
 
 // Data is what a record carries for rules to read. Code never reads a tag, prop or list key;
@@ -120,6 +122,13 @@ const (
 	ValueText ValueKind = "text"
 )
 
+// Affordance is something a landmark gives, which an agent plans toward when a goal needs it.
+type Affordance struct {
+	Data
+	// Name is a text ID.
+	Name api.ContentID `json:"name"`
+}
+
 // Origin is where a fact came from, such as a sweep.
 type Origin struct {
 	// Name is a text ID.
@@ -149,6 +158,13 @@ type AgentsConfig struct {
 	// it the agent is, from 0 to 1.
 	SeenOrigin     api.ContentID `json:"seen_origin,omitempty"`
 	SeenConfidence float64       `json:"seen_confidence"`
+	// GivesClaim is the claim an agent records for what a landmark it sees gives, its value the
+	// affordance IDs joined by commas; where the landmark is goes under AtClaim. Empty records neither.
+	GivesClaim api.ContentID `json:"gives_claim,omitempty"`
+	// GroundClaim is the claim an agent records for how decayed the ground is at a cell, its value the
+	// world geography's decay level there: for the cell it stands in, and for the nearest open cell it
+	// sees at each other level. Empty records none.
+	GroundClaim api.ContentID `json:"ground_claim,omitempty"`
 }
 
 // Material is a substance things are made of.
@@ -285,6 +301,9 @@ type Template struct {
 	// Drives maps each drive ID a body of this template carries to its typical weight, which each
 	// individual's own weight is drawn around.
 	Drives map[string]float64 `json:"drives,omitempty"`
+	// Affordances are what an entity of this template gives from the moment it spawns, as
+	// "affordance." IDs, which makes it a landmark.
+	Affordances []api.ContentID `json:"affordances,omitempty"`
 }
 
 // TriggerRole is which subject of an event a trigger's entity must be.
@@ -467,6 +486,10 @@ type PlaceDef struct {
 	// carves a tunnel from each such cell. The character may appear any number of times (at least once)
 	// and must be one of Marks and not one of Spawns.
 	Openings []string `json:"openings,omitempty"`
+	// Affordances maps a mark character to what each cell holding it gives ("affordance." IDs), such
+	// as a graveyard's dead: the cell is a landmark with no body. The character may appear any number of
+	// times (at least once) and must be one of Marks and neither a spawn nor an opening.
+	Affordances map[string][]api.ContentID `json:"affordances,omitempty"`
 }
 
 // PlaceAt is a world cell in odd-r offset. Row must be even, so the place's odd rows stay odd in the world.
@@ -515,21 +538,22 @@ type Collection string
 
 // Collections that hold records.
 const (
-	CollectionMaterials Collection = "materials"
-	CollectionTerrains  Collection = "terrains"
-	CollectionText      Collection = "text"
-	CollectionTemplates Collection = "templates"
-	CollectionActions   Collection = "actions"
-	CollectionPlaces    Collection = "places"
-	CollectionParts     Collection = "parts"
-	CollectionClaims    Collection = "claims"
-	CollectionOrigins   Collection = "origins"
-	CollectionBodies    Collection = "bodies"
-	CollectionTypes     Collection = "types"
-	CollectionItems     Collection = "items"
-	CollectionFactions  Collection = "factions"
-	CollectionStatuses  Collection = "statuses"
-	CollectionDrives    Collection = "drives"
+	CollectionMaterials   Collection = "materials"
+	CollectionTerrains    Collection = "terrains"
+	CollectionText        Collection = "text"
+	CollectionTemplates   Collection = "templates"
+	CollectionActions     Collection = "actions"
+	CollectionPlaces      Collection = "places"
+	CollectionParts       Collection = "parts"
+	CollectionClaims      Collection = "claims"
+	CollectionOrigins     Collection = "origins"
+	CollectionBodies      Collection = "bodies"
+	CollectionTypes       Collection = "types"
+	CollectionItems       Collection = "items"
+	CollectionFactions    Collection = "factions"
+	CollectionStatuses    Collection = "statuses"
+	CollectionDrives      Collection = "drives"
+	CollectionAffordances Collection = "affordances"
 )
 
 // TargetKind is what an action targets.

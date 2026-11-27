@@ -14,13 +14,34 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
-// compareKey orders facts by (Subject, Claim, Source).
+// compareKey orders facts by (Subject, Cell, Claim, Source), a fact with no cell first.
 func compareKey(a, b api.Fact) int {
-	return cmp.Or(cmp.Compare(a.Subject, b.Subject), cmp.Compare(a.Claim, b.Claim), cmp.Compare(a.Origin, b.Origin))
+	return cmp.Or(
+		cmp.Compare(a.Subject, b.Subject),
+		compareCell(a.Cell, b.Cell),
+		cmp.Compare(a.Claim, b.Claim),
+		cmp.Compare(a.Origin, b.Origin),
+	)
+}
+
+func compareCell(a, b *api.Cell) int {
+	switch {
+	case a == nil || b == nil:
+		return cmp.Compare(boolInt(a != nil), boolInt(b != nil))
+	default:
+		return cmp.Or(cmp.Compare(a.Depth, b.Depth), cmp.Compare(a.Hex.R, b.Hex.R), cmp.Compare(a.Hex.Q, b.Hex.Q))
+	}
+}
+
+func boolInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 // Learn records f for the knower, adding comp.Knowledge if it has none, and stamps it with the
-// current tick. A fact with the same (Subject, Claim, Source) is replaced, so each source keeps one
+// current tick. A fact with the same (Subject, Cell, Claim, Source) is replaced, so each source keeps one
 // fact per claim. A knower outside the controlled party keeps at most the content's knowledge cap:
 // past it, the fact with the lowest confidence, then the oldest tick, is forgotten, which may be f
 // itself. A fact it keeps publishes [api.FactLearned] unless the knower already held it with the same

@@ -13,6 +13,10 @@ claims: {
 	// A thing is at a cell, written "q,r,depth". It moves, so a newer sighting replaces it.
 	"claim.at": name:   "text.claim.at"
 	"claim.dead": name: "text.claim.dead"
+	// What a landmark gives: its affordance IDs, joined by commas.
+	"claim.gives": name: "text.claim.gives"
+	// How decayed the ground is at a cell: the geography's decay level there.
+	"claim.ground": name: "text.claim.ground"
 }
 
 origins: {
@@ -37,6 +41,9 @@ agents: {
 	dead_claim:      "claim.dead"
 	seen_origin:     "origin.seen"
 	seen_confidence: 1
+	// What an agent records of a landmark it sees, and of the ground.
+	gives_claim:  "claim.gives"
+	ground_claim: "claim.ground"
 }
 
 text: {
@@ -44,6 +51,8 @@ text: {
 	"text.claim.name":     "name"
 	"text.claim.at":       "whereabouts"
 	"text.claim.dead":     "death"
+	"text.claim.gives":    "what it gives"
+	"text.claim.ground":   "how decayed the ground is"
 	"text.origin.sweep":   "a sweep"
 	"text.origin.rumor":   "a rumor"
 	"text.origin.seen":    "sight"

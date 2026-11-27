@@ -120,6 +120,7 @@ func newRegistry(bundle Bundle) (*Registry, error) {
 	problems = append(problems, registry.checkTemplateActions()...)
 	problems = append(problems, registry.checkTriggers()...)
 	problems = append(problems, registry.checkDrives()...)
+	problems = append(problems, registry.checkAffordances()...)
 	problems = append(problems, registry.checkParty()...)
 	problems = append(problems, registry.checkWorld()...)
 	problems = append(problems, registry.checkGeographies()...)
@@ -183,7 +184,16 @@ func (r *Registry) checkKnowledge() []error {
 	if agents.DeadClaim != "" {
 		ref(p, r.bundle.Claims, "agents.dead_claim", "claim", agents.DeadClaim)
 	}
-	if agents.AtClaim != "" || agents.DeadClaim != "" {
+	if agents.GivesClaim != "" {
+		ref(p, r.bundle.Claims, "agents.gives_claim", "claim", agents.GivesClaim)
+		if agents.AtClaim == "" {
+			p.addf("agents.gives_claim: needs at_claim, to record where the landmark is")
+		}
+	}
+	if agents.GroundClaim != "" {
+		ref(p, r.bundle.Claims, "agents.ground_claim", "claim", agents.GroundClaim)
+	}
+	if agents.AtClaim != "" || agents.DeadClaim != "" || agents.GroundClaim != "" {
 		ref(p, r.bundle.Origins, "agents.seen_origin", "origin", agents.SeenOrigin)
 	}
 	return p.errs
@@ -199,16 +209,17 @@ func (r *Registry) checkCrawlsAs(path string, id api.ContentID) []error {
 		return p.errs
 	}
 	ignored := map[string]bool{
-		"body":      def.Body != nil,
-		"party":     def.Party != nil,
-		"actor":     def.Actor != nil,
-		"faction":   def.Faction != nil,
-		"protected": def.Protected,
-		"inventory": len(def.Inventory) > 0,
-		"container": def.Container,
-		"triggers":  len(def.Triggers) > 0,
-		"drives":    len(def.Drives) > 0,
-		"source":    def.Source != nil,
+		"body":        def.Body != nil,
+		"party":       def.Party != nil,
+		"actor":       def.Actor != nil,
+		"faction":     def.Faction != nil,
+		"protected":   def.Protected,
+		"inventory":   len(def.Inventory) > 0,
+		"container":   def.Container,
+		"triggers":    len(def.Triggers) > 0,
+		"drives":      len(def.Drives) > 0,
+		"affordances": len(def.Affordances) > 0,
+		"source":      def.Source != nil,
 	}
 	for _, field := range sortedKeys(ignored) {
 		if ignored[field] {

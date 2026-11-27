@@ -151,6 +151,10 @@ func TestReSensingAnUnchangedScenePublishesNothing(t *testing.T) {
 
 func BenchmarkThousandAgentsSenseOnce(b *testing.B) {
 	w := sightWorld(b)
+	bundle := contenttest.SampleBundle(b)
+	bundle.World.Geography = "geography.deep"
+	w.Content = contenttest.Registry(b, bundle)
+	w.ExportCount = 2
 	var bodies []ecs.Entity
 	for i := range 1000 {
 		bodies = append(bodies, spawnBody(w, at(i%32*2, i/32*2, i/7%4)))
