@@ -21,8 +21,8 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `items.cue` | `items`: what the inventory carries |
 | `factions.cue` | `factions`: the sides, and who is hostile to whom |
 | `statuses.cue` | `statuses`: conditions a body is under for a while |
-| `drives.cue` | `drives`: needs and desires (see Drives below), and `agents`: the numbers every agent shares |
-| `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from); the `knowledge` config (how many facts a knower outside the party keeps) and the `agents` config (how far an agent sees, and which claims it records of what it sees: where bodies and landmarks are, which are dead, what each landmark gives, and how decayed the ground is (`ground_claim`, from the world geography's decay level, for the cell an agent stands in and the nearest open cell it sees at each other level)) |
+| `drives.cue` | `drives`: needs and desires (see Drives below), and `agents`: the numbers every agent shares, such as `met`, when a planner counts a drive as met |
+| `knowledge.cue` | `claims` (kinds of fact) and `origins` (where a fact came from); the `knowledge` config (how many facts a knower outside the party keeps) and the `agents` config (how far an agent sees, and which claims it records of what it sees: where bodies and landmarks are, which are dead, what each landmark gives, how near a landmark must be to count as `near` (`near_radius`), and how decayed the ground is (`ground_claim`, from the world geography's decay level, for the cell an agent stands in and the nearest open cell it sees at each other level)) |
 | `world.cue` | `world`: the one world's size in columns, rows and depths, the `fill` of every cell no place covers, the `edge` beyond the bounds (solid and opaque), the `open` terrain of a marked cell and the `geography` that generates the cells no place covers |
 | `geography.cue` | `geographies`: kinds of generated ground. A geography lists its `stages` in order, each a registered stage's name (`stage`) and its numbers (`params`). Worldgen checks that every stage is registered and takes its params. Fixed cells always keep what their place authors. Its `spawns` list what starts on the generated ground: each entry names a `template`, a `weight`, a depth band (`min_depth`, `max_depth`) and a `density`. A cell that is open with solid ground below, inside the band and outside every place, draws once: an entry takes the share weight x density / (sum of the applying weights), and the rest of the draw is no body. A chunk is populated once, the first time it loads for an export count |
 | `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks`, `spawns`, `openings` and `affordances`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
@@ -62,6 +62,9 @@ An ID is lower-case words joined by dots, such as `material.clay` or `template.c
 | `factions` | `faction.` | `faction.wild` |
 | `statuses` | `status.` | `status.standing` |
 | `affordances` | `affordance.` | `affordance.water` |
+| `operators` | `operator.` | `operator.go_to` |
+| `goals` | `goal.` | `goal.drink` |
+| `recipes` | `recipe.` | `recipe.drink` |
 
 The day's phases in `calendar.cue` have IDs too (`phase.dawn`), and are named `text.<phase id>` like any record.
 
@@ -178,14 +181,41 @@ A drive is a need or a desire. A body carries the drives its template lists in `
 - After the rise, each threshold whose `at` the level has reached applies its effects, with the body as both `self` and `target`. Only a need has thresholds: a desire never kills.
 - The `satisfy` effect lowers a drive's level by `amount` for the `bodies` it selects (`drive` names the drive); a negative amount raises it.
 
-## Recipes
+## Operators, goals and recipes
+
+Planners plan over a small state of symbolic facts, built from what the agent carries and believes, never from the truth. A condition names a `fact` and a `tag`:
+
+| Fact | Tag | Holds when |
+| --- | --- | --- |
+| `has` | an item tag, one of `vocabulary.tags.items` | the agent carries at least `n` items in all with that tag |
+| `known` | an `affordance.` ID | it remembers a landmark giving it, and where |
+| `near` | an `affordance.` ID | the nearest such landmark it remembers is within `agents.near_radius` cells |
+| `drive_met` | a `drive.` ID | `agents.met`, a formula over `level` and `weight`, is true for that drive |
+
+`not: true` turns a condition around.
+
+```cue
+"operator.drink": {
+	pre: [{fact: "has", tag: "drinkable", n: 1}]
+	eff: [{fact: "has", tag: "drinkable", n: -1}, {fact: "drive_met", tag: "drive.water"}]
+	cost: 1
+	does: {action: "action.consume", target: "self"}
+	kind: "work"
+}
+```
+
+- An operator's `eff` makes each fact true, or false with `not`; a `has` effect adds `n` (negative to take away) instead. `cost` is above 0. `does` names the action a step starts and the target picker that aims it. `kind` is a free word that sorts operators.
+- A goal names the `drive` it serves and the conditions it `want`s.
+- A recipe names a `goal` and its `steps` in order; each step names exactly one `operator` or `recipe`.
+
+## How-tos
 
 ### A creature, in `templates.cue`
 
 1. Copy a hunter, such as `template.creature.beast`: `_#Hunter & {...}` gives it a step, Strike, Cut, the `hunt` controller and `faction.wild`.
 2. Give it an ID under `template.creature.`, a `name` of `text.<its ID>`, an `appearance` (one glyph and a color) and a `body` (a `body.` ID from `bodies.cue`).
 3. Add its name to the `text:` block at the bottom of `templates.cue`.
-4. To meet it, put it in a place: a mark character in `marks` and the same character in `spawns` (see the place recipe).
+4. To meet it, put it in a place: a mark character in `marks` and the same character in `spawns` (see the place how-to).
 
 Override the hunter's `actions` or `lists.types` to change what it fights with, and add `triggers` for anything it does on an event, as the remnant does.
 

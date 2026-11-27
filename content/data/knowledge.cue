@@ -44,6 +44,8 @@ agents: {
 	// What an agent records of a landmark it sees, and of the ground.
 	gives_claim:  "claim.gives"
 	ground_claim: "claim.ground"
+	// A landmark believed this many cells away or fewer counts as near, for planning.
+	near_radius: 1
 }
 
 text: {
