@@ -222,6 +222,10 @@ import (
 	// clearly beats it.
 	keep_bonus?: float64 @go(KeepBonus)
 
+	// HostileTicks is how many ticks after seeing a body an agent still believes it is near, while the
+	// agent stands within sight_radius of where it was seen. Zero means no hostile is ever believed near.
+	hostile_ticks?: int @go(HostileTicks)
+
 	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
 	// when any goal exists.
 	think_ticks?: int @go(ThinkTicks)

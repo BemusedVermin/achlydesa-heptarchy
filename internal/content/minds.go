@@ -84,6 +84,8 @@ type BeliefEnv struct {
 	Near  map[string]bool `expr:"near"`
 	Known map[string]bool `expr:"known"`
 	Met   map[string]bool `expr:"met"`
+	// Hostile is whether the agent believes a body hostile to it is near.
+	Hostile bool `expr:"hostile"`
 }
 
 // GoalEnv is what a goal's weight formula sees: the level of its drive, the individual's weight on
@@ -269,6 +271,9 @@ func (r *Registry) checkMinds() []error {
 	}
 	if r.bundle.Agents.KeepBonus < 0 {
 		p.addf("agents.keep_bonus: must not be negative, got %v", r.bundle.Agents.KeepBonus)
+	}
+	if r.bundle.Agents.HostileTicks < 0 {
+		p.addf("agents.hostile_ticks: must not be negative, got %d", r.bundle.Agents.HostileTicks)
 	}
 	if r.bundle.Agents.NearRadius < 0 {
 		p.addf("agents.near_radius: must not be negative, got %d", r.bundle.Agents.NearRadius)

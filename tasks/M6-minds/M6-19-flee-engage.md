@@ -1,7 +1,7 @@
 ---
 id: M6-19
 title: "Flee, terror and engaging: handing a fight over and back"
-status: todo
+status: done
 milestone: M6
 kind: feature
 depends_on: [M6-01, M6-12, M6-14]
@@ -36,8 +36,8 @@ An agent whose goal is to fight hands the body to the `hunt` controller; one who
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -45,3 +45,13 @@ An agent whose goal is to fight hands the body to the `hunt` controller; one who
 
 ## Notes
 
+
+- Terror is `drive.safety`, not a new `drive.terror`: `docs/game-design.md` says safety "is the same drive as terror". Its `rise` is now `-1`, so it fades by one a phase; being hit adds 2 through a `combat.part_damaged` trigger (`_terrorOnHit` in `templates.cue`). Owner: say if you want a separate drive.
+- Hostiles are "believed near" from the at-claims an agent holds: seen within the new `agents.hostile_ticks` (12), within sight radius of where seen, not seen dead, not out of the fight. `BeliefEnv` gains `hostile`.
+- `goal.fight` weighs 0.5 when a hostile is believed near; `goal.flee` is safety's `urge * weight` and applies only with a hostile near. First values, for tuning.
+- `operator.engage` has the `engage` picker, which calls `DelegateTo(hunt)` and returns no intent, so the plan is dropped. Its action (`action.strike`) is only there to satisfy content. `operator.flee` steps to the neighbouring cell farthest from the nearest believed hostile; with none farther, the `flee` picker delegates to `hunt`, so a body with nowhere to go fights.
+- Deviation: `hunt` already resumes the mind when prey is gone. A changed goal is noticed by a new per-entry system, `agents.rethink`, which re-chooses a delegated mind's goal every `think_ticks` and resumes it on a change; `combat` cannot see goals.
+- `think` now calls `sense` first, so a mind learns what it sees when it chooses.
+- Triggers are not attached to any template (it would change saved trigger IDs and goldens); no template has a mind yet. The two tests build their own.
+- Follow-ups: M6-19.F1 (a neighbour's death cannot be reached by a trigger: `body_died` has no source), M6-19.F2 (attach drive.safety and the trigger to mind templates).
+- Schemas regenerated for `hostile_ticks`.

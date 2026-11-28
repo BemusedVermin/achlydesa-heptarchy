@@ -182,6 +182,9 @@ type AgentsConfig struct {
 	// KeepBonus is added to the score of the goal an agent already has, so it keeps it unless another
 	// clearly beats it.
 	KeepBonus float64 `json:"keep_bonus,omitempty"`
+	// HostileTicks is how many ticks after seeing a body an agent still believes it is near, while the
+	// agent stands within sight_radius of where it was seen. Zero means no hostile is ever believed near.
+	HostileTicks int `json:"hostile_ticks,omitempty"`
 	// ThinkTicks is how many ticks pass between an agent's choices of goal. It must be at least 1
 	// when any goal exists.
 	ThinkTicks int `json:"think_ticks,omitempty"`
