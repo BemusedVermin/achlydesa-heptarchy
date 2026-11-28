@@ -112,8 +112,15 @@ func tickDrives(w *sim.World) error {
 		levels := carriers.Get(body).Levels
 		weights := carriers.Get(body).Weights
 		ids := slices.Sorted(maps.Keys(levels))
+		decay, err := decayUnderfoot(w, body)
+		if err != nil {
+			return err
+		}
 		for _, id := range ids {
-			rise, err := w.Content.DriveRise(id, content.DriveEnv{Level: levels[id], Weight: weights[id]})
+			rise, err := w.Content.DriveRise(
+				id,
+				content.DriveEnv{Level: levels[id], Weight: weights[id], Decay: float64(decay)},
+			)
 			if err != nil {
 				return fmt.Errorf("agents: body %d: %w", w.UIDOf(body), err)
 			}
