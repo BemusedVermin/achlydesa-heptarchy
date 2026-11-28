@@ -61,11 +61,19 @@ const (
 	None Refusal = iota
 	// OutOfReach: the body is not next to the thing it takes from or puts into.
 	OutOfReach
-	// Short: the giver holds fewer than the count.
+	// Short: the giver is a source of the item, or holds some, but has fewer than the count.
 	Short
-	// Full: a source would go over its Max, or is a source of another item.
+	// Full: a source of the item would go over its Max.
 	Full
+	// Absent: the giver holds none of the item and is no source of it.
+	Absent
+	// Unsuited: the receiver is a source of another item.
+	Unsuited
 )
+
+// Impossible reports whether the refusal is about what the things are rather than how much they
+// hold now: no take or put of the item between them is worth offering.
+func (r Refusal) Impossible() bool { return r == Absent || r == Unsuited }
 
 // Move carries count of the item, unbound, from one entity to another that stands next to it: on
 // the same cell or a neighboring one. A source of the item gives from and takes into its stock, up
@@ -127,13 +135,15 @@ func CheckTransfer(w *sim.World, from, to, by ecs.Entity, item api.ContentID, co
 		if giver.Stock < count {
 			return Short
 		}
-	} else if Count(w, from, item, 0) < count {
+	} else if held := Count(w, from, item, 0); held == 0 {
+		return Absent
+	} else if held < count {
 		return Short
 	}
-	if receiver := sourceOf(sources, to, item); receiver != nil && receiver.Stock+count > receiver.Max {
-		return Full
-	}
 	if sources.Has(to) && sourceOf(sources, to, item) == nil {
+		return Unsuited
+	}
+	if receiver := sourceOf(sources, to, item); receiver != nil && receiver.Stock+count > receiver.Max {
 		return Full
 	}
 	return None

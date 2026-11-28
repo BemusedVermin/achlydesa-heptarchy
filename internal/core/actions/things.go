@@ -60,17 +60,31 @@ func thingPrimitive(name string, taking bool) effects.Primitive {
 			return nil
 		},
 		Check: func(ctx *effects.Context, p effects.Params) (bool, api.Text) {
-			move, err := readThingMove(ctx, p, taking)
+			move, reason, err := checkThingMove(ctx, p, taking)
 			if err != nil {
 				return false, api.Text{ID: why("broken").ID, Args: map[string]string{"error": err.Error()}}
 			}
-			reason := inventory.CheckTransfer(ctx.World, move.from, move.to, move.by, move.item, move.count)
 			if reason == inventory.None {
 				return true, api.Text{}
 			}
 			return false, thingRefusal(ctx.World, reason, move.item, taking)
 		},
+		Impossible: func(ctx *effects.Context, p effects.Params) (bool, api.Text) {
+			move, reason, err := checkThingMove(ctx, p, taking)
+			if err != nil || !reason.Impossible() {
+				return false, api.Text{}
+			}
+			return true, thingRefusal(ctx.World, reason, move.item, taking)
+		},
 	}
+}
+
+func checkThingMove(ctx *effects.Context, p effects.Params, taking bool) (thingMove, inventory.Refusal, error) {
+	move, err := readThingMove(ctx, p, taking)
+	if err != nil {
+		return thingMove{}, inventory.None, err
+	}
+	return move, inventory.CheckTransfer(ctx.World, move.from, move.to, move.by, move.item, move.count), nil
 }
 
 // readThingMove reads the item the choice names and the count, and sets the ends of the move: the
@@ -105,7 +119,7 @@ func thingRefusal(w *sim.World, reason inventory.Refusal, item api.ContentID, ta
 	switch {
 	case reason == inventory.OutOfReach:
 		return why("out_of_range")
-	case reason == inventory.Full:
+	case reason == inventory.Full || reason == inventory.Unsuited:
 		return api.Text{ID: why("no_room").ID, Args: args}
 	case taking:
 		return api.Text{ID: why("none_there").ID, Args: args}

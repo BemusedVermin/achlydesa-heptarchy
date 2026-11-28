@@ -78,6 +78,10 @@ type Primitive struct {
 	Apply         func(ctx *Context, p Params) error
 	// Check, when set, says whether the effect could apply now, and why not. It must not change the world.
 	Check func(ctx *Context, p Params) (ok bool, reason api.Text)
+	// Impossible, when set, says whether the effect cannot apply to this target with these choices
+	// for what the target is, not for how it stands now, and why. An action it holds for is not
+	// offered at all, rather than offered disabled. It must not change the world.
+	Impossible func(ctx *Context, p Params) (impossible bool, reason api.Text)
 	// Confirm, when set, returns the question to ask the player before the effect applies, or an
 	// empty text when it needs none. It must not change the world.
 	Confirm func(ctx *Context, p Params) api.Text
@@ -232,6 +236,23 @@ func Check(ctx *Context, refs []content.EffectRef) (bool, api.Text) {
 	return true, api.Text{}
 }
 
+// Impossible asks each effect whether it can never apply to the context's target and returns the
+// first reason one cannot.
+func Impossible(ctx *Context, refs []content.EffectRef) (bool, api.Text) {
+	st := stateOf(ctx.World)
+	for _, ref := range refs {
+		prim, ok := st.primitives[ref.Do]
+		if !ok || prim.Impossible == nil {
+			continue
+		}
+		p := &params{ctx: ctx, st: st, prim: prim, raw: ref.Params, checking: true}
+		if impossible, reason := prim.Impossible(ctx, p); impossible {
+			return true, reason
+		}
+	}
+	return false, api.Text{}
+}
+
 // Confirm returns the first question an effect asks before it applies, or an empty text.
 func Confirm(ctx *Context, refs []content.EffectRef) api.Text {
 	st := stateOf(ctx.World)
@@ -330,7 +351,7 @@ func validateFormula(reg *content.Registry, prim Primitive, src string, option e
 	if _, err := reg.Compile(src, content.EffectEnv{}, options...); err != nil {
 		return err
 	}
-	if prim.Check == nil && prim.Confirm == nil {
+	if prim.Check == nil && prim.Confirm == nil && prim.Impossible == nil {
 		return nil
 	}
 	reads, err := reg.ReadsVariable(src, "roll")
