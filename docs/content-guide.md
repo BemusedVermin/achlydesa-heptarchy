@@ -27,7 +27,7 @@ Every file is in `package data`, and CUE merges them all into one bundle, so a r
 | `geography.cue` | `geographies`: kinds of generated ground. A geography lists its `stages` in order, each a registered stage's name (`stage`) and its numbers (`params`). Worldgen checks that every stage is registered and takes its params. Fixed cells always keep what their place authors. Its `spawns` list what starts on the generated ground: each entry names a `template`, a `weight`, a depth band (`min_depth`, `max_depth`) and a `density`. A cell that is open with solid ground below, inside the band and outside every place, draws once: an entry takes the share weight x density / (sum of the applying weights), and the rest of the draw is no body. A chunk is populated once, the first time it loads for an export count |
 | `places/` | `places`: hand-made pieces of the world (towns, set pieces), one file each, with the schema and `_#TestPlace` in `places.cue`. A place has `layers`, `legend`, `marks`, `spawns`, `openings` and `affordances`, and an `at`: the world cell of its column 0, row 0 and depth 0. `at.row` must be even, and no two places may author the same cell. Its mark names are its own: another place may reuse them |
 | `pieces/` | `pieces`: the building blocks towns are laid out from (a house, a well, a street), with the schema and `_#Piece` in `pieces.cue`. A piece is drawn like a place but has no `at`; its `doors` are where it joins a street or another piece |
-| `start.cue` | `start`: the place and mark a new game begins at, and the party template |
+| `start.cue` | `start`: the place or settlement and the mark a new game begins at (a settlement's mark is the first piece laid with it), and the party template |
 | `rules.cue` | `rules`: named formulas |
 | `choices.cue` | `choices`: what an action can ask the player to pick |
 | `vocabulary.cue` | `vocabulary`: which tags, grant kinds and list values are allowed |
@@ -270,7 +270,7 @@ A settlement is a town the world lays out from pieces, from the world seed alone
 - `street`: the piece it grows from. It must be one of `pieces`, and its doors left open are the only ways out.
 - `pieces`: for each piece, a `weight` (its share when the next piece is picked) and a `count` (the most uses).
 - `exits`: how many open street doors become ways out to the deep, where `join` carves a tunnel.
-- `landmark_min`: for each `affordance.` ID, the fewest landmark cells giving it. Pieces that give a lacking affordance are laid first. Laying fails with an error when the pieces cannot meet it.
+- `landmark_min`: for each `affordance.` ID, the fewest landmark cells giving it, counting the marks that give it and the spawns whose template does. Pieces that give a lacking affordance are laid first. Laying fails with an error when the pieces cannot meet it.
 
 The layout never changes after the world is built; only the town's condition does.
 

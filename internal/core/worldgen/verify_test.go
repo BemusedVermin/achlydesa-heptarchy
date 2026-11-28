@@ -10,6 +10,7 @@ import (
 
 	"pgregory.net/rapid"
 
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
@@ -30,7 +31,13 @@ func newVerifiedWorldWith(
 	tb testing.TB, seed, exportCount uint64, budget, workers int,
 ) (*worldgen.Source, *hexmap.Map) {
 	tb.Helper()
-	reg := contenttest.Sample(tb)
+	return verifiedWorldOf(tb, contenttest.Sample(tb), seed, exportCount, budget, workers)
+}
+
+func verifiedWorldOf(
+	tb testing.TB, reg *content.Registry, seed, exportCount uint64, budget, workers int,
+) (*worldgen.Source, *hexmap.Map) {
+	tb.Helper()
 	fixed, err := explore.NewWorldSource(reg, 0)
 	if err != nil {
 		tb.Fatal(err)

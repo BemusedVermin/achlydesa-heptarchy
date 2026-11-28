@@ -41,7 +41,7 @@ type shapeCell struct {
 	depth int
 }
 
-func shapeOf(def content.PieceDef) pieceShape {
+func shapeOf(reg *content.Registry, def content.PieceDef) pieceShape {
 	shape := pieceShape{gives: map[api.ContentID]int{}}
 	for _, layer := range def.Layers {
 		for row, text := range layer.Rows {
@@ -56,6 +56,11 @@ func shapeOf(def content.PieceDef) pieceShape {
 				}
 				for _, affordance := range def.Affordances[string(char)] {
 					shape.gives[affordance]++
+				}
+				if template, ok := reg.Template(def.Spawns[string(char)]); ok {
+					for _, affordance := range template.Affordances {
+						shape.gives[affordance]++
+					}
 				}
 			}
 		}
@@ -117,7 +122,7 @@ func LaySettlement(reg *content.Registry, id api.ContentID, seed uint64) (Settle
 		if !ok {
 			return SettlementLayout{}, fmt.Errorf("worldgen: settlement %q: unknown piece %q", id, pieceID)
 		}
-		s.shapes[api.ContentID(pieceID)] = shapeOf(piece)
+		s.shapes[api.ContentID(pieceID)] = shapeOf(reg, piece)
 	}
 	if err := s.lay(); err != nil {
 		return SettlementLayout{}, fmt.Errorf("worldgen: settlement %q: %w", id, err)
@@ -153,6 +158,10 @@ func (s *settler) lay() error {
 			pick := s.pickPiece(candidates)
 			placed = s.attach(candidates[pick])
 			candidates = slices.Delete(candidates, pick, pick+1)
+		}
+		// A street gives no landmark, so without this fallback it would never grow once a landmark is lacking.
+		if !placed && s.used[s.street] < s.def.Pieces[string(s.street)].Count {
+			placed = s.attach(s.street)
 		}
 		if !placed {
 			if deficit := s.deficit(); len(deficit) > 0 {
