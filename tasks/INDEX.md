@@ -197,7 +197,7 @@ Brief: [C2-cleanup/README.md](C2-cleanup/README.md). Runs after M6. C2-04 files 
 | [C2-01](C2-cleanup/C2-01-test-content.md) | Test content apart from production content | todo | debt | L | M6-27, M6-28, M1-11.F2 |
 | [C2-02](C2-cleanup/C2-02-embed-content.md) | One binary: embed the production content | todo | feature | M | C2-01 |
 | [C2-03](C2-cleanup/C2-03-pin-behavior-and-benchmark.md) | Pin every behavior with a game-level test, and benchmark the slow paths | todo | debt | L | C2-02 |
-| [C2-04](C2-cleanup/C2-04-map-and-propose.md) | Map the core as it is, and propose its new shape | todo | debt | L | C2-02 |
+| [C2-04](C2-cleanup/C2-04-map-and-propose.md) | Map the core as it is, and propose the simulation core | todo | debt | L | C2-02 |
 
 ## Later milestones (outlines)
 

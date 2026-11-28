@@ -1,6 +1,6 @@
 # C2 · Cleanup
 
-**Goal:** after M6, reshape the core into a few components a person can hold in their head, each owning its own state and talking to the others only through an API it defines. Rules a designer would tune move out of the engine into content. Tests get content of their own, so tuning the game never breaks a test, and the game ships as one binary with its content inside.
+**Goal:** after M6, turn the core into a reusable simulation core for a discrete simulation of many agents. Every agent, the player included, has a controller that decides. Every agent moves through a generated world and takes actions, and a separate rules system decides which actions are legal. The core is a few components a person can hold in their head, each owning its own state and talking to the others only through an API it defines. The game itself lives in content: its state, its rules and its tuning. Tests get content of their own, so tuning the game never breaks a test, and the game ships as one binary with its content inside.
 
 The owner asked for this one directly, so its tasks come from his request and from C2-04's proposal, not from `/audit`. In his words: software is "a set of very simple services that interact over some API", and the engine should hold the core components "instead of allowing malleable things to seep into the engine".
 
@@ -17,6 +17,11 @@ The owner asked for this one directly, so its tasks come from his request and fr
 - Production content lives in `content/data` and test content in `content/test`. Tests and goldens use only the test content. Tests may only load and validate the production content.
 - The released binary embeds the production content.
 - When the refactor finds a rule written in Go that a designer would tune, the same pass moves it into content. It isn't left for later.
+- The engine knows no setting word. Something belongs in the engine only if it has no setting words, content can't do it well, and it's reused. Game verbs such as damage, step and afford are content, built from engine verbs.
+- Content declares the state schema on generic engine shapes. Pathfinding, sight and the other hot algorithms stay in the engine and read costs and rules from content.
+- The controller interface supports research-style learning agents: a percept as plain data, a legal-action mask, and a reward that content defines.
+- The core stays under `internal/` for now. Making it public later isn't ruled out, so it imports nothing game-specific.
+- CUE stays for declarations and parameters. Behavior may need a language of its own, because rules written in CUE are awkward, some need steps, branches and loops, and they should be easy to organize. C2-04 compares the options on the same rules, and files the choice as a question for `/decide`.
 - The refactor gates on a proposal. C2-04 maps the core and proposes its new shape, and the owner approves it in that pull request. C2-04 also files the implementation tasks as `proposed`.
 
 ## Order
@@ -37,4 +42,4 @@ Once the lock-in is merged, run `/optimize` for the first speed pass. From then 
 | [C2-01](C2-01-test-content.md) | Test content apart from production content | debt | L | M6-27, M6-28, M1-11.F2 |
 | [C2-02](C2-02-embed-content.md) | One binary: embed the production content | feature | M | C2-01 |
 | [C2-03](C2-03-pin-behavior-and-benchmark.md) | Pin every behavior with a game-level test, and benchmark the slow paths | debt | L | C2-02 |
-| [C2-04](C2-04-map-and-propose.md) | Map the core as it is, and propose its new shape | debt | L | C2-02 |
+| [C2-04](C2-04-map-and-propose.md) | Map the core as it is, and propose the simulation core | debt | L | C2-02 |
