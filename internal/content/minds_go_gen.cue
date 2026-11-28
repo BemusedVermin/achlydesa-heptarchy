@@ -91,6 +91,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 	Near: {[string]: bool} @go(,map[string]bool)
 	Known: {[string]: bool} @go(,map[string]bool)
 	Met: {[string]: bool} @go(,map[string]bool)
+
+	// Hostile is whether the agent believes a body hostile to it is near.
+	Hostile: bool
 }
 
 // GoalEnv is what a goal's weight formula sees: the level of its drive, the individual's weight on

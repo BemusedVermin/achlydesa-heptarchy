@@ -40,4 +40,16 @@ goals: {
 	"goal.chat": {
 		weight: "0.08"
 	}
+	// Fight a hostile believed near. Weighed against the drives like any goal.
+	"goal.fight": {
+		when:   "hostile"
+		weight: "0.5"
+	}
+	// Run from it when safety, which is terror, is low.
+	"goal.flee": {
+		drive: "drive.safety"
+		want: [{fact: "drive_met", tag: "drive.safety"}]
+		when:   "hostile && !met[\"drive.safety\"]"
+		weight: "urge * weight"
+	}
 }
