@@ -286,11 +286,13 @@ func TestARecipeWhoseWhenFailsStopsTheStep(t *testing.T) {
 		Seed: 1, Content: contenttest.Registry(t, bundle),
 		Spawn: func(w *sim.World, _ *clock.Clock) error { return (&mindFixture{t: t}).spawn(w, 1) },
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	for range 20 {
-		if err != nil {
+		if _, err = g.Apply(api.Wait{Source: g.Current(), Until: api.WaitEvent}); err != nil {
 			break
 		}
-		_, err = g.Apply(api.Wait{Source: g.Current(), Until: api.WaitEvent})
 	}
 	if err == nil || !strings.Contains(err.Error(), broken) {
 		t.Fatalf("error = %v, want one naming %s", err, broken)

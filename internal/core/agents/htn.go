@@ -34,7 +34,7 @@ func (htnPlanner) Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool, error
 		}
 		operators, err := expandRecipe(snapshot.Content, id)
 		if err != nil {
-			return Plan{}, false, fmt.Errorf("recipes[%q]: %w", id, err)
+			return Plan{}, false, fmt.Errorf("agents: recipe %q: %w", id, err)
 		}
 		if plan, ok := walkOperators(snapshot, operators); ok {
 			return plan, true, nil
