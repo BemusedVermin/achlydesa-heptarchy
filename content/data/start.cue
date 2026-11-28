@@ -4,9 +4,9 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/content"
 
 start: content.#Start
 
-// The descent, whose way out leads into the generated deep.
+// The Reaper's crawlspace, whose ways out lead into the generated deep.
 start: {
-	place: "place.test.descent"
+	place: "settlement.reaper"
 	mark:  "party_start"
 	party: "template.party.main"
 }

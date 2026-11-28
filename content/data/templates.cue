@@ -135,6 +135,28 @@ templates: {
 		affordances: ["affordance.water", "affordance.store"]
 		tags: ["stock"]
 	}
+	"template.source.lake": {
+		name: "text.template.source.lake"
+		appearance: {glyph: "~", color: "blue"}
+		source: {item: "item.water", max: 200, refill: "10"}
+		affordances: ["affordance.water"]
+		tags: ["stock"]
+	}
+	"template.source.field": {
+		name: "text.template.source.field"
+		appearance: {glyph: "\"", color: "green"}
+		source: {item: "item.ration", max: 30, refill: "1"}
+		affordances: ["affordance.food"]
+		tags: ["stock"]
+	}
+	"template.container.coal_pile": {
+		name: "text.template.container.coal_pile"
+		appearance: {glyph: "^", color: "white"}
+		container: true
+		affordances: ["affordance.store"]
+		tags: ["stock"]
+		inventory: [{item: "item.coal", count: 20}]
+	}
 	"template.container.larder": {
 		name: "text.template.container.larder"
 		appearance: {glyph: "u", color: "yellow"}
@@ -170,4 +192,7 @@ text: {
 	"text.template.source.well":          "A well"
 	"text.template.container.cistern":    "A cistern"
 	"text.template.container.larder":     "A larder"
+	"text.template.source.lake":          "A lake"
+	"text.template.source.field":         "A field"
+	"text.template.container.coal_pile":  "A coal pile"
 }

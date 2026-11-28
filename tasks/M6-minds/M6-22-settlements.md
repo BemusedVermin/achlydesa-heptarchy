@@ -1,7 +1,7 @@
 ---
 id: M6-22
 title: "The three towns as settlements"
-status: todo
+status: done
 milestone: M6
 kind: content
 depends_on: [M6-09, M6-13, M6-20]
@@ -36,8 +36,8 @@ Three towns exist as generated settlements at different depths, each with the la
 
 ## Acceptance criteria
 
-- [ ] The tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -45,4 +45,13 @@ Three towns exist as generated settlements at different depths, each with the la
 - The thrukk, still town and archon's crawlspaces: later milestones.
 
 ## Notes
+
+- No stage places pieces in the deep, so the Reaper's water is `settlement.reaper_lake`: a one-piece settlement 50 hexes east of the Reaper's crawlspace, joined to the deep by its exit. Filed M6-22.F1 to make the geography place it.
+- The game starts in a settlement: `start.place` may name a settlement, and its mark is the first stamped piece carrying it. `piece.street` gains a `party_start` mark. `explore.WorldSource` records settlement marks; `checkStart` accepts a settlement; `contenttest.Fixture` drops settlements (they do not fit its small world).
+- `LaySettlement` change: landmark counts include the affordances of a piece's spawned templates (a well or cistern gives water through its template), and the street piece is laid as a fallback when no lacking piece fits. Before, a lacking landmark stopped the street growing at about six pieces. Radii (30) and street counts (20) are first values; F2 filed to tune.
+- Sources: `template.source.lake` (water), `template.source.field` (rations), `template.container.coal_pile` (20 coal). Their numbers are placeholders.
+- Depths: salken village 0, Reaper's crawlspace 6, lake crawlspace 18. Positions are first values.
+- Docs: `docs/content-guide.md` updated for `start` and `landmark_min`.
+- Test helper `verifiedWorldOf` split from `newVerifiedWorldWith` in `verify_test.go` to take a registry.
+- Follow-ups filed: M6-22.F1, M6-22.F2.
 

@@ -237,12 +237,23 @@ func (r *Registry) checkStart() []error {
 		return nil
 	}
 	p := r.problems()
-	def, ok := ref(p, r.bundle.Places, "start.place", "place", start.Place)
 	if template, found := r.bundle.Templates[string(start.Party)]; !found || template.Party == nil {
 		p.addf("start.party: %q is not a party template", start.Party)
 	}
-	if ok && !slices.Contains(slices.Collect(maps.Values(def.Marks)), start.Mark) {
-		p.addf("start.mark: place %q has no mark %q", start.Place, start.Mark)
+	var layouts []map[string]string
+	if town, isTown := r.bundle.Settlements[string(start.Place)]; isTown {
+		for _, id := range sortedKeys(town.Pieces) {
+			layouts = append(layouts, r.bundle.Pieces[id].Marks)
+		}
+	} else if def, ok := ref(p, r.bundle.Places, "start.place", "place or settlement", start.Place); ok {
+		layouts = append(layouts, def.Marks)
+	} else {
+		return p.errs
+	}
+	if !slices.ContainsFunc(layouts, func(marks map[string]string) bool {
+		return slices.Contains(slices.Collect(maps.Values(marks)), start.Mark)
+	}) {
+		p.addf("start.mark: %q has no mark %q", start.Place, start.Mark)
 	}
 	return p.errs
 }

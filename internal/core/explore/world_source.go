@@ -94,15 +94,23 @@ func NewWorldSource(reg *content.Registry, seed uint64) (*WorldSource, error) {
 	return src, nil
 }
 
-// stampSettlement lays out and stamps a settlement; its exits are the openings of its footprint.
+// stampSettlement lays out and stamps a settlement; its exits are the openings of its footprint. A mark
+// of its pieces is the settlement's too, at the first piece stamped with it.
 func (s *WorldSource) stampSettlement(reg *content.Registry, id api.ContentID, seed uint64) error {
 	layout, err := worldgen.LaySettlement(reg, id, seed)
 	if err != nil {
 		return err
 	}
 	for _, placement := range layout.Placements {
-		if _, err := s.Stamp(reg, placement.Piece, placement.At, placement.Rotation); err != nil {
+		stamped, err := s.Stamp(reg, placement.Piece, placement.At, placement.Rotation)
+		if err != nil {
 			return fmt.Errorf("settlement %q: %w", id, err)
+		}
+		for name, cell := range stamped.Marks {
+			key := placeMark{place: id, name: name}
+			if _, taken := s.marks[key]; !taken {
+				s.marks[key] = cell
+			}
 		}
 	}
 	s.places = append(s.places, hexmap.Footprint{Place: id, Openings: layout.Exits})
