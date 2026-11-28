@@ -228,7 +228,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | [M6-17.F2](followups/M6-17.F2-alert-cost.md) | Make the party's alert check cheap with many bodies near | todo | debt | M6 | M6-17 |
 | [M6-17.F1](followups/M6-17.F1-go-to-path-cost.md) | Stop the go_to picker searching a whole cell path at every step | todo | debt | M6 | M6-17 |
 | [M6-18.F1](followups/M6-18.F1-shared-language.md) | Decide what a shared language is for telling | todo | question | M6 | M6-18 |
-| [M6-13.F1](followups/M6-13.F1-take-options-noise.md) | Hide take options for items the thing does not hold | todo | seam | M6 | M6-13 |
+| [M6-13.F1](followups/M6-13.F1-take-options-noise.md) | Hide take options for items the thing does not hold | in-progress | seam | M6 | M6-13 |
 | [M1-11.F2](followups/M1-11.F2-height-glyphs-drop-prompt.md) | Plan view: ^ and v for height, red for out of reach, and ask before a drop | done | feature | M6 | M1-11 |
 | [M6-10.F1](followups/M6-10.F1-has-by-item-or-tag.md) | Decide whether a has fact names an item or an item tag | done | question | M6 | M6-10 |
 | [M6-07.F1](followups/M6-07.F1-ground-sightings.md) | Decide how much ground an agent remembers from one look | done | question | M6 | M6-07 |
