@@ -56,17 +56,17 @@ _#Person: {
 }
 
 _#Hunter: {
-	actor: controller: "hunt"
+	actor: controller: string | *"hunt"
 	actions: [...string] | *["action.step", "action.strike"]
 	lists: types: ["type.cut"]
 	faction: string | *"faction.wild"
 	...
 }
 
-// A creature with a mind. It still runs on the hunt controller: a body on the mind controller fights
-// only through goal.fight, which needs terror and sight to match the hunt it replaces.
+// A creature with a mind: it fights through goal.fight, weighed against its drives.
 _#Minded: _#Hunter & {
-	mind: planner: "htn"
+	actor: controller: "mind"
+	mind: planner:     "htn"
 }
 
 templates: {
