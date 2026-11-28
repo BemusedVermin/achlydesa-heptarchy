@@ -34,6 +34,9 @@ type Snapshot struct {
 	Agent   api.UID
 	Tick    int64
 	Beliefs State
+	// Nearest is, for each affordance the agent remembers, where it believes the nearest landmark
+	// giving it is.
+	Nearest map[api.ContentID]Target
 	Content *content.Registry
 	// Rand is the planner's own sequence, derived from the agent's UID and the tick, so planning draws
 	// no shared stream.
@@ -172,6 +175,9 @@ func installMind(w *sim.World) error {
 	if err := RegisterPicker(w, SelfPicker, selfPicker{}); err != nil {
 		return err
 	}
+	if err := RegisterPlanner(w, HTNPlanner, htnPlanner{}); err != nil {
+		return err
+	}
 	if err := RegisterPlanner(w, GOAPPlanner, newGOAP()); err != nil {
 		return err
 	}
@@ -289,11 +295,25 @@ func planInput(w *sim.World, body ecs.Entity) (Planner, Snapshot, error) {
 	if err != nil {
 		return nil, Snapshot{}, err
 	}
+	nearest := map[api.ContentID]Target{}
+	for _, fact := range beliefs {
+		if fact.Kind != content.FactKnown {
+			continue
+		}
+		known, err := Known(w, body, fact.Tag)
+		if err != nil {
+			return nil, Snapshot{}, err
+		}
+		if len(known) > 0 {
+			nearest[fact.Tag] = Target{Subject: known[0].Subject, At: known[0].At}
+		}
+	}
 	uid := w.UIDOf(body)
 	return planner, Snapshot{
 		Agent:   uid,
 		Tick:    w.Now,
 		Beliefs: beliefs,
+		Nearest: nearest,
 		Content: w.Content,
 		Rand:    w.RNG.Derived(planStream, planSalt(uid, w.Now)),
 	}, nil

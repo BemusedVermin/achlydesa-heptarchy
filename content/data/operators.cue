@@ -86,3 +86,49 @@ operators: {
 		kind: "work"
 	}
 }
+
+// Finding, reaching and using food and a place to rest, as for water.
+operators: {
+	"operator.go_to_food": {
+		pre: [{fact: "known", tag: "affordance.food"}, {fact: "near", tag: "affordance.food", not: true}]
+		eff: [{fact: "near", tag: "affordance.food"}]
+		cost: 2
+		does: {action: "action.step", target: "go_to"}
+		kind: "travel"
+	}
+	"operator.wander_food": {
+		pre: [{fact: "known", tag: "affordance.food", not: true}]
+		eff: [{fact: "known", tag: "affordance.food"}]
+		cost: 5
+		does: {action: "action.step", target: "wander"}
+		kind: "travel"
+	}
+	"operator.go_to_rest": {
+		pre: [{fact: "known", tag: "affordance.rest"}, {fact: "near", tag: "affordance.rest", not: true}]
+		eff: [{fact: "near", tag: "affordance.rest"}]
+		cost: 2
+		does: {action: "action.step", target: "go_to"}
+		kind: "travel"
+	}
+	"operator.wander_rest": {
+		pre: [{fact: "known", tag: "affordance.rest", not: true}]
+		eff: [{fact: "known", tag: "affordance.rest"}]
+		cost: 5
+		does: {action: "action.step", target: "wander"}
+		kind: "travel"
+	}
+	"operator.sleep": {
+		pre: [{fact: "near", tag: "affordance.rest"}]
+		eff: [{fact: "drive_met", tag: "drive.rest"}]
+		cost: 1
+		does: {action: "action.sleep", target: "self"}
+		kind: "work"
+	}
+	// Wandering for its own sake: it holds anywhere, and leaves whatever the agent was near.
+	"operator.roam": {
+		eff: [{fact: "near", tag: "affordance.water", not: true}]
+		cost: 5
+		does: {action: "action.step", target: "wander"}
+		kind: "travel"
+	}
+}

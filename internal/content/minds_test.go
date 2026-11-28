@@ -17,6 +17,9 @@ operators: "operator.drink": {
 }
 goals: "goal.drink": {drive: "drive.thirst", want: [{fact: "drive_met", tag: "drive.water"}]}
 recipes: "recipe.drink": {goal: "goal.drink", steps: [{operator: "operator.sip"}, {}]}
+recipes: "recipe.a": {goal: "goal.drink", when: "1 +", steps: [{recipe: "recipe.b"}]}
+recipes: "recipe.b": {goal: "goal.drink", steps: [{recipe: "recipe.c"}]}
+recipes: "recipe.c": {goal: "goal.drink", steps: [{recipe: "recipe.a"}]}
 `
 	_, err := Load(writeData(t, data))
 	requireErrContains(
@@ -30,6 +33,8 @@ recipes: "recipe.drink": {goal: "goal.drink", steps: [{operator: "operator.sip"}
 		`goals["goal.drink"].drive: unknown drive "drive.thirst"`,
 		`recipes["recipe.drink"].steps[0].operator: unknown operator "operator.sip"`,
 		`recipes["recipe.drink"].steps[1]: name exactly one of operator and recipe`,
+		`recipes["recipe.a"].when:`,
+		`recipes["recipe.a"]: cycles through its sub-recipes: recipe.a -> recipe.b -> recipe.c -> recipe.a`,
 		`agents.met: required when an operator or goal names drive_met`,
 	)
 }

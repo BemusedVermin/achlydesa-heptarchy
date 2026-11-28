@@ -108,6 +108,10 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 #Recipe: {
 	// Goal is the "goal." ID the recipe reaches.
 	goal: api.#ContentID @go(Goal)
+
+	// When is an Expr bool over BeliefEnv: whether the recipe applies to an agent choosing among the
+	// recipes for its goal. Empty means always. A recipe used as a step ignores it.
+	when?: string @go(When)
 	steps: [...#RecipeStep] @go(Steps,[]RecipeStep)
 }
 
