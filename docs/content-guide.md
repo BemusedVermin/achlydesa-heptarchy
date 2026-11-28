@@ -195,7 +195,7 @@ Planners plan over a small state of symbolic facts, built from what the agent ca
 
 `not: true` turns a condition around.
 
-An item's `on_consume` effects run on the body that consumes one with the `consume` effect, as `item.water` lowers `drive.water` by `satisfy`. `take`, `put` and `consume` read which item from the action's choice, named by their `choice` param.
+An item's `on_consume` effects run on the body that consumes one with the `consume` effect, as `item.water` lowers `drive.water` by `satisfy`. `take`, `put` and `consume` read which item from the action's choice, named by their `choice` param. A take of an item the thing neither holds nor is a source of, or a put into a source of another item, is not offered at all; one the thing could allow later, such as a take from an empty well, is offered disabled with its reason.
 
 ```cue
 "operator.consume": {

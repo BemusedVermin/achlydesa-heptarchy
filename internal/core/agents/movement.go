@@ -1,8 +1,6 @@
 package agents
 
 import (
-	"slices"
-
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
@@ -20,9 +18,9 @@ const (
 	wanderStream = "agents.wander"
 	// walkNodes bounds the search for a route to a believed cell.
 	walkNodes = 200
-	// heldCellCost prices a step into a cell a standing body holds so high that any route around is
-	// taken first.
-	heldCellCost = 1000
+	// heldCellCost prices a step into a cell a standing body holds: a short detour is taken first, but a
+	// crowd cannot make the search run out its nodes.
+	heldCellCost = 4
 )
 
 func installMovement(w *sim.World) error {
@@ -46,7 +44,7 @@ func (goToPicker) Pick(w *sim.World, body ecs.Entity, step Step) (actions.Intent
 	held := cellsHeldByOthers(w, body)
 	goal := step.Target.At
 	route, found, err := w.Map.Path(from.At, goal, rules, avoidHeldCells(held, goal), walkNodes)
-	if err == nil && (!found || slices.ContainsFunc(route[1:], func(c api.Cell) bool { return held[c] && c != goal })) {
+	if err == nil && !found {
 		route, found, err = w.Map.Path(from.At, goal, rules, nil, walkNodes)
 	}
 	if err != nil || !found || len(route) < 2 {

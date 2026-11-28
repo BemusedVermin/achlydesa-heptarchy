@@ -23,6 +23,24 @@ operators: {
 	}
 }
 
+// Fighting and fleeing. Engage's picker hands the body to the hunt controller instead of starting the
+// action; flee steps to the neighbouring cell farthest from the hostiles believed near.
+operators: {
+	"operator.engage": {
+		eff: [{fact: "drive_met", tag: "drive.safety"}]
+		cost: 1
+		does: {action: "action.strike", target: "engage"}
+		kind: "fight"
+	}
+	"operator.flee": {
+		pre: [{fact: "drive_met", tag: "drive.safety", not: true}]
+		eff: [{fact: "drive_met", tag: "drive.safety"}]
+		cost: 1
+		does: {action: "action.step", target: "flee"}
+		kind: "travel"
+	}
+}
+
 // Taking, putting away and consuming, for water and for food.
 operators: {
 	"operator.take": {
