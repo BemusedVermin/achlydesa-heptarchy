@@ -52,6 +52,10 @@ import "github.com/bemusedvermin/achlydesa-heptarchy/internal/core/api"
 
 	// Weight is the individual's own weight on the drive.
 	Weight: float64
+
+	// Decay is the geography's decay level of the ground the body stands in. Only a rise sees it; it
+	// is 0 elsewhere and wherever the world has no geography.
+	Decay: float64
 }
 
 // WeightEnv is what agents.weight sees, for one drive of one individual.

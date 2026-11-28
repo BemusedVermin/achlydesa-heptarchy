@@ -17,7 +17,7 @@ func (r *Registry) Geography(id api.ContentID) (GeographyDef, bool) {
 // GeographyIDs lists every geography ID in sorted order.
 func (r *Registry) GeographyIDs() []api.ContentID { return sortedIDs(r.bundle.Geographies) }
 
-// checkGeographies checks that every stage is named, every spawn is sound and that the world's geography exists. Whether a
+// checkGeographies checks that every stage is named, every spawn and landmark is sound and that the world's geography exists. Whether a
 // stage is registered and takes its params is for worldgen to check: only it knows the stages.
 func (r *Registry) checkGeographies() []error {
 	p := r.problems()
@@ -57,6 +57,9 @@ func (r *Registry) checkGeographies() []error {
 			}
 		}
 	}
+	for _, key := range sortedKeys(r.bundle.Geographies) {
+		r.checkLandmarks(p, key, r.bundle.Geographies[key].Landmarks)
+	}
 	if id := r.bundle.World.Geography; id != "" {
 		ref(p, r.bundle.Geographies, "world.geography", "geography", id)
 		if r.bundle.World.PocketExits < 1 {
@@ -89,6 +92,28 @@ func (r *Registry) checkDecay(p *problems, key string, decay *DecayDef) {
 		return
 	}
 	r.decays[api.ContentID(key)] = program
+}
+
+func (r *Registry) checkLandmarks(p *problems, key string, landmarks []GeographyLandmark) {
+	world := r.bundle.World
+	for i, landmark := range landmarks {
+		path := fmt.Sprintf("geographies[%q].landmarks[%d]", key, i)
+		ref(p, r.bundle.Pieces, path+".piece", "piece", landmark.Piece)
+		if town, ok := ref(p, r.bundle.Settlements, path+".near", "settlement", landmark.Near); ok &&
+			landmark.MinDistance <= town.Radius+1 {
+			p.addf("%s.min_distance: %d does not clear the settlement's radius %d and a hex of margin",
+				path, landmark.MinDistance, town.Radius)
+		}
+		if landmark.MinDistance > landmark.MaxDistance {
+			p.addf("%s: min_distance is above max_distance", path)
+		}
+		if landmark.MinDepth > landmark.MaxDepth {
+			p.addf("%s: min_depth is above max_depth", path)
+		}
+		if landmark.MinDepth < world.MinDepth || landmark.MaxDepth > world.MaxDepth {
+			p.addf("%s: the depth band reaches outside the world", path)
+		}
+	}
 }
 
 // GeographyPath is where a geography's stage sits in content, for error messages.

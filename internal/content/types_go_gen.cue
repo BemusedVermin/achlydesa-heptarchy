@@ -606,6 +606,28 @@ import (
 
 	// Decay changes the solid ground the stages leave, by depth and export count. Empty leaves it as it is.
 	decay?: null | #DecayDef @go(Decay,*DecayDef)
+
+	// Landmarks are pieces set into the deep near a settlement, laid from the world seed alone so that an
+	// export never moves them. Each is fixed ground, and its doors are openings onto the generated deep.
+	landmarks?: [...#GeographyLandmark] @go(Landmarks,[]GeographyLandmark)
+}
+
+// GeographyLandmark is one piece the geography sets into the deep, such as a lake outside a town.
+#GeographyLandmark: {
+	// Piece is the "piece." ID to stamp.
+	piece: api.#ContentID @go(Piece)
+
+	// Near is the "settlement." ID the piece lies near.
+	near: api.#ContentID @go(Near)
+
+	// MinDistance and MaxDistance bound how far the piece's column 0, row 0 lies from the settlement's
+	// centre, in hexes, both inclusive. MinDistance must clear the settlement's radius.
+	min_distance: int @go(MinDistance)
+	max_distance: int @go(MaxDistance)
+
+	// MinDepth and MaxDepth bound the world depth the piece is stamped at, both inclusive.
+	min_depth: int @go(MinDepth)
+	max_depth: int @go(MaxDepth)
 }
 
 // DecayDef says how decayed the generated ground is at a depth, and what decayed ground is made of.

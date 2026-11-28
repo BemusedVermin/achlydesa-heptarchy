@@ -92,3 +92,16 @@ _#spawns: [{
 }]
 
 geographies: "geography.deep": spawns: _#spawns
+
+// The lake that waters the Reaper's crawlspace, a walk out in the deep near its own depth. The distances
+// and band are first values, for tuning.
+_#landmarks: [{
+	piece:        "piece.lake"
+	near:         "settlement.reaper"
+	min_distance: 40
+	max_distance: 60
+	min_depth:    5
+	max_depth:    7
+}]
+
+geographies: "geography.deep": landmarks: _#landmarks

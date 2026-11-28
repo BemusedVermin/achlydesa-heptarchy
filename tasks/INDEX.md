@@ -223,7 +223,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M6-22.F1](followups/M6-22.F1-geography-landmarks.md) | Let the geography place landmark pieces in the deep | todo | seam | M6 | M6-22 |
+| [M6-22.F1](followups/M6-22.F1-geography-landmarks.md) | Let the geography place landmark pieces in the deep | done | seam | M6 | M6-22 |
 | [M6-22.F2](followups/M6-22.F2-street-growth-cap.md) | Tune how a settlement lays pieces when a landmark is lacking | todo | debt | M6 | M6-22 |
 | [M6-21.F1](followups/M6-21.F1-families-on-mind-controller.md) | Run the creature families on the mind controller | todo | content | M6 | M6-21 |
 | [M6-16.F1](followups/M6-16.F1-planner-errors.md) | Let a planner report a content error | done | seam | M6 | M6-16 |

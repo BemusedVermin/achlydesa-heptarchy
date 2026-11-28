@@ -45,6 +45,9 @@ func Fixture(bundle *content.Bundle) {
 		Edit(bundle.Places, id, func(place *content.PlaceDef) { place.At = at })
 	}
 	bundle.Settlements = nil
+	for id := range bundle.Geographies {
+		Edit(bundle.Geographies, id, func(geography *content.GeographyDef) { geography.Landmarks = nil })
+	}
 	bundle.Start.Place = "place.test.hall"
 }
 

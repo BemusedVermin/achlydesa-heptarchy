@@ -63,3 +63,43 @@ func TestSettlementsAreChecked(t *testing.T) {
 		})
 	}
 }
+
+func TestGeographyLandmarksAreChecked(t *testing.T) {
+	tests := []struct {
+		name string
+		edit func(*GeographyLandmark)
+		want string
+	}{
+		{"unknown piece", func(l *GeographyLandmark) { l.Piece = "piece.nope" }, `unknown piece "piece.nope"`},
+		{
+			"unknown settlement",
+			func(l *GeographyLandmark) { l.Near = "settlement.nope" },
+			`unknown settlement "settlement.nope"`,
+		},
+		{
+			"inside the walls",
+			func(l *GeographyLandmark) { l.MinDistance = 1 },
+			"does not clear the settlement's radius",
+		},
+		{
+			"distances reversed",
+			func(l *GeographyLandmark) { l.MaxDistance = l.MinDistance - 1 },
+			"min_distance is above max_distance",
+		},
+		{"below the world", func(l *GeographyLandmark) { l.MaxDepth = 500 }, "reaches outside the world"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			bundle := sampleBundle(t)
+			geography := bundle.Geographies["geography.deep"]
+			geography.Landmarks = []GeographyLandmark{{
+				Piece: "piece.lake", Near: "settlement.reaper",
+				MinDistance: 40, MaxDistance: 60, MinDepth: 5, MaxDepth: 7,
+			}}
+			test.edit(&geography.Landmarks[0])
+			bundle.Geographies["geography.deep"] = geography
+			_, err := New(bundle)
+			requireErrContains(t, err, test.want)
+		})
+	}
+}
