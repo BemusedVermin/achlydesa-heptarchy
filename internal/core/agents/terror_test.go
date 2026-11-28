@@ -3,6 +3,8 @@ package agents_test
 import (
 	"testing"
 
+	"github.com/mlange-42/ark/ecs"
+
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
@@ -30,7 +32,9 @@ func TestSeeingADeathRaisesTerror(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	w.Bus.Publish(api.BodyDied{Body: w.UIDOf(victim)})
+	ecs.NewMap[comp.Actor](w.ECS).Remove(victim)
+	ecs.NewMap[comp.Dead](w.ECS).Add(victim, &comp.Dead{Tick: w.Now})
+	w.Bus.Publish(api.BodyDied{Body: w.UIDOf(victim), Tick: w.Now})
 	if _, err := w.Bus.Drain(w); err != nil {
 		t.Fatal(err)
 	}
