@@ -1,6 +1,7 @@
 package worldgen_test
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
@@ -11,7 +12,7 @@ import (
 )
 
 var realTowns = []api.ContentID{
-	"settlement.reaper", "settlement.reaper_lake", "settlement.salken_village", "settlement.lake",
+	"settlement.reaper", "settlement.salken_village", "settlement.lake",
 }
 
 func TestTheRealTownsGenerateWithTheirLandmarks(t *testing.T) {
@@ -52,25 +53,40 @@ func TestTheReapersCrawlspaceHoldsNoWaterSource(t *testing.T) {
 	reg := contenttest.Full(t)
 	def, _ := reg.Settlement("settlement.reaper")
 	center := hexmap.FromOffsetOddR(def.At.Col, def.At.Row)
-	src, err := explore.NewWorldSource(reg, 1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, spawn := range src.Spawns() {
-		template, _ := reg.Template(spawn.Template)
-		if template.Source != nil && hexmap.Distance(spawn.Cell.Hex, center) <= def.Radius {
-			t.Errorf("%s stands inside the Reaper's crawlspace at %v", spawn.Template, spawn.Cell)
+	for _, id := range reg.SettlementIDs() {
+		town, _ := reg.Settlement(id)
+		if _, ok := town.Pieces["piece.lake"]; ok && id != "settlement.lake" {
+			t.Errorf("%s lays a lake; the Reaper's water should be the geography's landmark", id)
 		}
 	}
-	lake, _ := reg.Settlement("settlement.reaper_lake")
-	lakeCenter := hexmap.FromOffsetOddR(lake.At.Col, lake.At.Row)
-	found := false
-	for _, spawn := range src.Spawns() {
-		template, _ := reg.Template(spawn.Template)
-		found = found || template.Source != nil && hexmap.Distance(spawn.Cell.Hex, lakeCenter) <= lake.Radius
+	geography, _ := reg.Geography(reg.World().Geography)
+	reach := 0
+	for _, landmark := range geography.Landmarks {
+		if landmark.Near == "settlement.reaper" {
+			reach = max(reach, landmark.MaxDistance+hexmap.ChunkSize)
+		}
 	}
-	if !found {
-		t.Error("no water source stands in the lake outside")
+	for seed := uint64(1); seed <= 4; seed++ {
+		src, err := explore.NewWorldSource(reg, seed)
+		if err != nil {
+			t.Fatalf("seed %d: %v", seed, err)
+		}
+		outside := 0
+		for _, spawn := range src.Spawns() {
+			template, _ := reg.Template(spawn.Template)
+			if template.Source == nil {
+				continue
+			}
+			switch distance := hexmap.Distance(spawn.Cell.Hex, center); {
+			case distance <= def.Radius:
+				t.Errorf("seed %d: %s stands inside the Reaper's crawlspace at %v", seed, spawn.Template, spawn.Cell)
+			case distance <= reach:
+				outside++
+			}
+		}
+		if outside == 0 {
+			t.Errorf("seed %d: no water source stands in the deep near the Reaper's crawlspace", seed)
+		}
 	}
 }
 
@@ -94,7 +110,7 @@ func TestEveryRealTownConnectsToTheDeep(t *testing.T) {
 			}
 		}
 	}
-	for _, town := range realTowns {
+	for _, town := range append(slices.Clone(realTowns), "piece.lake") {
 		reached := false
 		for _, opening := range openings {
 			reached = reached || opening.Place == town && (seen[opening.Cell] || seen[opening.Exit])

@@ -46,9 +46,9 @@ type Stamped struct {
 	Doors []api.Cell
 }
 
-// NewWorldSource builds the world of the content's world, places and settlements. Marked cells hold the
-// world's Open terrain. Each settlement is laid out from the world seed alone and stamped after the places,
-// in ID order.
+// NewWorldSource builds the world of the content's world, places, settlements and the landmarks of its
+// geography. Marked cells hold the world's Open terrain. Each settlement is laid out from the world seed
+// alone and stamped after the places, in ID order; the landmarks follow, in the geography's order.
 func NewWorldSource(reg *content.Registry, seed uint64) (*WorldSource, error) {
 	world := reg.World()
 	src := &WorldSource{
@@ -91,7 +91,31 @@ func NewWorldSource(reg *content.Registry, seed uint64) (*WorldSource, error) {
 			return nil, err
 		}
 	}
+	if geography, ok := reg.Geography(world.Geography); ok {
+		for i := range geography.Landmarks {
+			if err := src.stampLandmark(reg, world.Geography, i, seed); err != nil {
+				return nil, err
+			}
+		}
+	}
 	return src, nil
+}
+
+// stampLandmark places and stamps one of the geography's landmarks; its doors are the openings of its
+// footprint.
+func (s *WorldSource) stampLandmark(reg *content.Registry, geography api.ContentID, index int, seed uint64) error {
+	placement, err := worldgen.PlaceLandmark(reg, geography, index, seed, s.Covers)
+	if err != nil {
+		return err
+	}
+	stamped, err := s.Stamp(reg, placement.Piece, placement.At, placement.Rotation)
+	if err != nil {
+		return fmt.Errorf("landmark %d of %q: %w", index, geography, err)
+	}
+	doors := slices.Clone(stamped.Doors)
+	slices.SortFunc(doors, hexmap.CompareCells)
+	s.places = append(s.places, hexmap.Footprint{Place: placement.Piece, Openings: doors})
+	return nil
 }
 
 // stampSettlement lays out and stamps a settlement; its exits are the openings of its footprint. A mark
@@ -171,7 +195,8 @@ func (s *WorldSource) add(id api.ContentID, drawn drawing) {
 // layer of worldgen.
 func (s *WorldSource) Covers(cell api.Cell) bool { return s.covered[cell] }
 
-// Places lists the openings of every place and settlement: places in ID order, then settlements.
+// Places lists the openings of every place, settlement and landmark: places in ID order, then
+// settlements, then landmarks.
 func (s *WorldSource) Places() []hexmap.Footprint { return slices.Clone(s.places) }
 
 // Chunk implements [hexmap.Source].

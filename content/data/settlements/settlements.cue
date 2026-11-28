@@ -31,17 +31,6 @@ settlements: "settlement.reaper": {
 	}
 }
 
-// The lake that waters the Reaper's crawlspace, a walk out in the deep.
-settlements: "settlement.reaper_lake": {
-	name: "text.settlement.reaper_lake"
-	at: {col: 150, row: 100, depth: 6}
-	radius: 10
-	street: "piece.lake"
-	pieces: "piece.lake": {weight: 1, count: 1}
-	exits: 1
-	landmark_min: "affordance.water": 2
-}
-
 // The salken village on the surface: fields and a well.
 settlements: "settlement.salken_village": {
 	name: "text.settlement.salken_village"
@@ -96,7 +85,6 @@ settlements: "settlement.lake": {
 
 text: {
 	"text.settlement.reaper":         "The Reaper's crawlspace"
-	"text.settlement.reaper_lake":    "The Reaper's lake"
 	"text.settlement.salken_village": "The salken village"
 	"text.settlement.lake":           "The lake crawlspace"
 }
