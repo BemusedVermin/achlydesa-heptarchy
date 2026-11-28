@@ -117,7 +117,10 @@ func tickDrives(w *sim.World) error {
 			return err
 		}
 		for _, id := range ids {
-			rise, err := w.Content.DriveRise(id, content.DriveEnv{Level: levels[id], Weight: weights[id], Decay: float64(decay)})
+			rise, err := w.Content.DriveRise(
+				id,
+				content.DriveEnv{Level: levels[id], Weight: weights[id], Decay: float64(decay)},
+			)
 			if err != nil {
 				return fmt.Errorf("agents: body %d: %w", w.UIDOf(body), err)
 			}
