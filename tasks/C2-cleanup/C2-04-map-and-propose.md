@@ -66,14 +66,45 @@ The owner's framing: "I always think of software as a set of very simple service
    - the new text of AGENTS.md rule 2;
    - the `depguard` rules that enforce the new graph.
 5. **Choices** (firm). For each big choice, such as whether to keep the entity store as it is, give the options briefly, what each costs, and a recommendation. If the owner should decide one, file it as a `kind: question` task. The tasks that need its answer depend on it.
-6. **The move table** (firm). Every package in `internal/core` today, and every file where a package splits, goes in the table with its new home and its renames as `old=new`.
-7. **Rules moving to content** (firm, owner decision 2026-11-27: they move in the same pass). This is a table of every rule in Go that a designer would tune:
+6. **The rule language** (firm that this part is there; the recommendation is the task's to make). The owner, on 2026-11-27, said: "CUE is great for configuration, but expressing behavior in it is weird." Writing rules is awkward, and some behavior needs steps, branches and loops. He also wants rules easy to organize. Today the content holds an unnamed rule language:
+   - triggers written as CUE data, with `on`, `if` and `do` (`_fallInjury` in `content/data/templates.cue`);
+   - conditions and amounts as Expr strings that nothing checks until load;
+   - effect primitives in Go as the verbs;
+   - Go pickers named by string from content, such as `target: "flee"` in `content/data/operators.cue`.
+
+   This part has four pieces.
+   - **The vocabulary.** The API content programs against: every verb (effect primitive), every query a rule may read, every event a rule may react to, and every Expr environment, each with its signature. Say which are missing and which should be merged. Suggestion: define the vocabulary once in Go and generate its reference from that, so the docs can't drift.
+   - **The options**, judged against the needs below. At least these:
+     - CUE plus Expr as today, made better, for example with typed checks, named helpers, and errors that give a file and line;
+     - an embedded scripting language for behavior, with CUE kept for data. Starlark (`go.starlark.net`) is the obvious candidate. Compare one or two others briefly, such as Lua or a Go interpreter, and say why each fits or doesn't;
+     - a language of the game's own, with its own parser.
+   - **The same rules in each option.** Write three real rules in each option, side by side, so the owner can compare them by reading:
+     - the fall injury trigger;
+     - one action whose effect runs several steps or branches;
+     - one operator with its picker, such as flee.
+   - **A recommendation,** including where the line between CUE data and behavior falls, and how behavior is organized into files and modules.
+
+   The needs, in order:
+   - deterministic under AGENTS.md rule 3: randomness only through the engine's streams, no clock, and a fixed iteration order;
+   - sandboxed, and sure to stop;
+   - errors found at load, with the file and line;
+   - compiled once at load, and fast on the hot paths;
+   - easy to organize: modules, imports, reuse, grouped by topic;
+   - works for both content sets and with hot reload;
+   - easy for the owner and for agents to read and write;
+   - testable with the test content;
+   - behavior state lives in components, never in the language, so saves are unchanged;
+   - keeps rule 10: a rule may not become a system that forces an outcome.
+
+   File the choice as a `kind: question` task for `/decide`. The implementation tasks that move rules depend on it. If the recommendation is a new language, the breakdown includes a task that adds it and ports the three rules before the others move. Its Notes give the sentence rule 8 asks for.
+7. **The move table** (firm). Every package in `internal/core` today, and every file where a package splits, goes in the table with its new home and its renames as `old=new`.
+8. **Rules moving to content** (firm, owner decision 2026-11-27: they move in the same pass). This is a table of every rule in Go that a designer would tune:
    - `file:line`;
-   - the content kind and field it becomes;
+   - what it becomes: a content kind and field, or a behavior in the rule language from part 6;
    - the implementation task that moves it.
 
    Production content keeps today's values exactly, so the game plays the same. The test content gets values of its own. Include the content IDs that C2-01 listed as named in Go.
-8. **The breakdown** (firm). These are the implementation tasks, C2-05 onward, with `kind: debt` and `status: proposed`. Each one is one boundary and a pull request small enough to review. Order them so that after each one:
+9. **The breakdown** (firm). These are the implementation tasks, C2-05 onward, with `kind: debt` and `status: proposed`. Each one is one boundary and a pull request small enough to review. Order them so that after each one:
    - the build is green;
    - every C2-03 game-level test passes unchanged;
    - the goldens are unchanged.
@@ -90,7 +121,8 @@ The owner's framing: "I always think of software as a set of very simple service
 
 ## Acceptance criteria
 
-- [ ] `proposal.md` has all eight parts, and both graphs render on GitHub.
+- [ ] `proposal.md` has all nine parts, and both graphs render on GitHub.
+- [ ] The rule-language part lists the whole vocabulary, writes the same three rules in each option, and its choice is filed as a `kind: question` task that the rule-moving tasks depend on.
 - [ ] Every package in `internal/core` today appears in the move table.
 - [ ] In the proposed graph, every piece of state has one owner, map state included, and every arrow names the API it goes through.
 - [ ] Every rule in the rules table names the task that moves it.

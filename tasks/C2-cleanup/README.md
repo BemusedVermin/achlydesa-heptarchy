@@ -17,6 +17,7 @@ The owner asked for this one directly, so its tasks come from his request and fr
 - Production content lives in `content/data` and test content in `content/test`. Tests and goldens use only the test content. Tests may only load and validate the production content.
 - The released binary embeds the production content.
 - When the refactor finds a rule written in Go that a designer would tune, the same pass moves it into content. It isn't left for later.
+- CUE stays for configuration. Behavior may need a language of its own, because rules written in CUE are awkward, some need steps, branches and loops, and they should be easy to organize. C2-04 sets out the engine's vocabulary as the API that content programs against, compares the options on the same three rules, and files the choice as a question for `/decide`.
 - The refactor gates on a proposal. C2-04 maps the core and proposes its new shape, and the owner approves it in that pull request. C2-04 also files the implementation tasks as `proposed`.
 
 ## Order
