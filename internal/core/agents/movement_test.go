@@ -28,8 +28,8 @@ var walkStart = api.Cell{Hex: api.Hex{Q: 5, R: 40}, Depth: 0}
 
 type wanderPlanner struct{}
 
-func (wanderPlanner) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
-	return agents.Plan{Goal: goal, Steps: []agents.Step{{Operator: wanderOp}}}, true
+func (wanderPlanner) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool, error) {
+	return agents.Plan{Goal: goal, Steps: []agents.Step{{Operator: wanderOp}}}, true, nil
 }
 
 type goToPlanner struct {
@@ -37,9 +37,9 @@ type goToPlanner struct {
 	well   *api.UID
 }
 
-func (p goToPlanner) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
+func (p goToPlanner) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool, error) {
 	step := agents.Step{Operator: goToOp, Target: &agents.Target{Subject: *p.well, At: p.target}}
-	return agents.Plan{Goal: goal, Steps: []agents.Step{step}}, true
+	return agents.Plan{Goal: goal, Steps: []agents.Step{step}}, true, nil
 }
 
 func walkingContent(b *content.Bundle) {

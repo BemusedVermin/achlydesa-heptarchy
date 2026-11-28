@@ -27,14 +27,14 @@ const (
 // fightPlanner plans one engage for the fight goal and one flee for the flee goal.
 type fightPlanner struct{}
 
-func (fightPlanner) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
+func (fightPlanner) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool, error) {
 	switch goal {
 	case "goal.fight":
-		return agents.Plan{Goal: goal, Steps: []agents.Step{{Operator: "operator.engage"}}}, true
+		return agents.Plan{Goal: goal, Steps: []agents.Step{{Operator: "operator.engage"}}}, true, nil
 	case "goal.flee":
-		return agents.Plan{Goal: goal, Steps: []agents.Step{{Operator: "operator.flee"}}}, true
+		return agents.Plan{Goal: goal, Steps: []agents.Step{{Operator: "operator.flee"}}}, true, nil
 	}
-	return agents.Plan{}, false
+	return agents.Plan{}, false, nil
 }
 
 type fightFixture struct {

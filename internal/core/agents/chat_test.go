@@ -26,7 +26,9 @@ const (
 
 type noPlan struct{}
 
-func (noPlan) Plan(agents.Snapshot, api.ContentID) (agents.Plan, bool) { return agents.Plan{}, false }
+func (noPlan) Plan(agents.Snapshot, api.ContentID) (agents.Plan, bool, error) {
+	return agents.Plan{}, false, nil
+}
 
 func chatContent(b *content.Bundle) {
 	for id, controller := range map[string]string{chatterTpl: agents.MindController, listenerTpl: "idle"} {

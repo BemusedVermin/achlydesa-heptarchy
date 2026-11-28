@@ -10,17 +10,24 @@ import (
 )
 
 var (
-	htnWater  = api.ContentID("affordance.water")
-	htnWell   = Target{Subject: 7, At: api.Cell{Hex: api.Hex{Q: 3, R: 4}}}
-	htnKnown  = Fact{Kind: content.FactKnown, Tag: htnWater}
-	htnNear   = Fact{Kind: content.FactNear, Tag: htnWater}
-	htnPlanOf = func(reg *content.Registry, goal api.ContentID, beliefs ...Fact) (Plan, bool) {
-		snapshot := Snapshot{
-			Beliefs: State(beliefs), Nearest: map[api.ContentID]Target{htnWater: htnWell}, Content: reg,
-		}
-		return htnPlanner{}.Plan(snapshot, goal)
-	}
+	htnWater = api.ContentID("affordance.water")
+	htnWell  = Target{Subject: 7, At: api.Cell{Hex: api.Hex{Q: 3, R: 4}}}
+	htnKnown = Fact{Kind: content.FactKnown, Tag: htnWater}
+	htnNear  = Fact{Kind: content.FactNear, Tag: htnWater}
 )
+
+// htnPlanOf plans goal from the beliefs, the well believed nearest, and fails the test on a planning error.
+func htnPlanOf(tb testing.TB, reg *content.Registry, goal api.ContentID, beliefs ...Fact) (Plan, bool) {
+	tb.Helper()
+	snapshot := Snapshot{
+		Beliefs: State(beliefs), Nearest: map[api.ContentID]Target{htnWater: htnWell}, Content: reg,
+	}
+	plan, found, err := htnPlanner{}.Plan(snapshot, goal)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return plan, found
+}
 
 func htnOperators(plan Plan) []api.ContentID {
 	var out []api.ContentID
@@ -54,7 +61,7 @@ func TestHTNPlansTheRecipeForTheGoal(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			plan, found := htnPlanOf(reg, tc.goal, tc.beliefs...)
+			plan, found := htnPlanOf(t, reg, tc.goal, tc.beliefs...)
 			if !found {
 				t.Fatal("no plan")
 			}
@@ -64,7 +71,7 @@ func TestHTNPlansTheRecipeForTheGoal(t *testing.T) {
 		})
 	}
 
-	plan, _ := htnPlanOf(reg, "goal.drink", htnKnown)
+	plan, _ := htnPlanOf(t, reg, "goal.drink", htnKnown)
 	if plan.Steps[0].Target == nil || *plan.Steps[0].Target != htnWell {
 		t.Errorf("walk target %v, want the believed well %v", plan.Steps[0].Target, htnWell)
 	}
@@ -76,7 +83,7 @@ func TestHTNFallsToTheNextRecipeWhenOneDoesNotHold(t *testing.T) {
 		Goal: "goal.drink", Steps: []content.RecipeStep{{Operator: "operator.take"}, {Operator: "operator.consume"}},
 	}
 	reg := contenttest.Registry(t, bundle)
-	plan, found := htnPlanOf(reg, "goal.drink", htnKnown)
+	plan, found := htnPlanOf(t, reg, "goal.drink", htnKnown)
 	if !found {
 		t.Fatal("no plan")
 	}
@@ -88,7 +95,7 @@ func TestHTNFallsToTheNextRecipeWhenOneDoesNotHold(t *testing.T) {
 
 func TestHTNFindsNoPlanWithoutARecipe(t *testing.T) {
 	reg := contenttest.Sample(t)
-	if plan, found := htnPlanOf(reg, "goal.chat", htnKnown); found {
+	if plan, found := htnPlanOf(t, reg, "goal.chat", htnKnown); found {
 		t.Errorf("plan %v for a goal with no recipe", htnOperators(plan))
 	}
 }

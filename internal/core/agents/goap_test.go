@@ -74,9 +74,19 @@ func operatorsOf(plan Plan) string {
 	return strings.Join(ids, ">")
 }
 
+// planGOAP plans storeGoal from goapSnapshot(reg) and fails the test on a planning error.
+func planGOAP(tb testing.TB, planner *goap, reg *content.Registry) (Plan, bool) {
+	tb.Helper()
+	plan, found, err := planner.Plan(goapSnapshot(reg), storeGoal)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return plan, found
+}
+
 func TestGOAPPlansFromBeliefsToTheGoal(t *testing.T) {
 	reg := goapContent(t, nil)
-	plan, ok := newGOAP().Plan(goapSnapshot(reg), storeGoal)
+	plan, ok := planGOAP(t, newGOAP(), reg)
 	if !ok || operatorsOf(plan) != stockedPlan {
 		t.Errorf("plan = %q, %v; want %q", operatorsOf(plan), ok, stockedPlan)
 	}
@@ -84,7 +94,7 @@ func TestGOAPPlansFromBeliefsToTheGoal(t *testing.T) {
 
 func TestGOAPNeverUsesAnOperatorWhosePreconditionsFail(t *testing.T) {
 	reg := goapContent(t, nil)
-	plan, _ := newGOAP().Plan(goapSnapshot(reg), storeGoal)
+	plan, _ := planGOAP(t, newGOAP(), reg)
 	if slices.ContainsFunc(plan.Steps, func(s Step) bool { return s.Operator == unusableOp }) {
 		t.Errorf("plan %q uses an operator whose precondition does not hold", operatorsOf(plan))
 	}
@@ -100,7 +110,7 @@ func TestGOAPGivesUpAtItsCaps(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			plan, ok := newGOAP().Plan(goapSnapshot(goapContent(t, tc.edit)), storeGoal)
+			plan, ok := planGOAP(t, newGOAP(), goapContent(t, tc.edit))
 			if ok {
 				t.Errorf("found plan %q within the %s", operatorsOf(plan), tc.name)
 			}
@@ -111,10 +121,10 @@ func TestGOAPGivesUpAtItsCaps(t *testing.T) {
 func TestGOAPGivesTheSamePlanEveryTimeAndFromItsCache(t *testing.T) {
 	reg := goapContent(t, nil)
 	cached := newGOAP()
-	first, _ := cached.Plan(goapSnapshot(reg), storeGoal)
+	first, _ := planGOAP(t, cached, reg)
 	for range 5 {
-		fresh, _ := newGOAP().Plan(goapSnapshot(reg), storeGoal)
-		again, _ := cached.Plan(goapSnapshot(reg), storeGoal)
+		fresh, _ := planGOAP(t, newGOAP(), reg)
+		again, _ := planGOAP(t, cached, reg)
 		if operatorsOf(fresh) != operatorsOf(first) || operatorsOf(again) != operatorsOf(first) {
 			t.Fatalf("plans differ: %q, %q, %q", operatorsOf(first), operatorsOf(fresh), operatorsOf(again))
 		}
