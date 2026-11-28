@@ -64,6 +64,16 @@ actions: {
 		recovery: "2"
 		on_land: [{do: "consume", params: {choice: "carried"}}]
 	}
+	// Sleep where there is a place to rest: the long recovery is the sleep. First values, for tuning.
+	"action.sleep": {
+		name: "text.action.sleep"
+		key:  "sleep"
+		uses: [{tag: "body", count: 1}]
+		target:   "self"
+		windup:   "0"
+		recovery: "12"
+		on_land: [{do: "satisfy", params: {bodies: "self", drive: "drive.rest", amount: "100"}}]
+	}
 }
 
 text: {
@@ -72,4 +82,5 @@ text: {
 	"text.action.take":    "Take"
 	"text.action.put":     "Put"
 	"text.action.consume": "Consume"
+	"text.action.sleep":   "Sleep"
 }

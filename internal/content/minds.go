@@ -3,6 +3,7 @@ package content
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
@@ -103,8 +104,11 @@ type compiledGoal struct {
 // Recipe is a written plan for a goal: its steps in order, each an operator or another recipe.
 type Recipe struct {
 	// Goal is the "goal." ID the recipe reaches.
-	Goal  api.ContentID `json:"goal"`
-	Steps []RecipeStep  `json:"steps"`
+	Goal api.ContentID `json:"goal"`
+	// When is an Expr bool over BeliefEnv: whether the recipe applies to an agent choosing among the
+	// recipes for its goal. Empty means always. A recipe used as a step ignores it.
+	When  string       `json:"when,omitempty"`
+	Steps []RecipeStep `json:"steps"`
 }
 
 // RecipeStep names exactly one of an operator and a recipe.
@@ -168,6 +172,21 @@ func (r *Registry) Recipe(id api.ContentID) (Recipe, bool) {
 	return recipe, ok
 }
 
+// RecipeIDs lists every recipe's ID in order, the order HTN tries them in.
+func (r *Registry) RecipeIDs() []api.ContentID { return sortedIDs(r.bundle.Recipes) }
+
+// RecipeApplies says by the recipe's when formula whether it applies given the beliefs.
+func (r *Registry) RecipeApplies(id api.ContentID, env BeliefEnv) (bool, error) {
+	if _, ok := r.bundle.Recipes[string(id)]; !ok {
+		return false, fmt.Errorf("content: unknown recipe %q", id)
+	}
+	when := r.recipeWhen[id]
+	if when == nil {
+		return true, nil
+	}
+	return run[bool](when, env, fmt.Sprintf("recipe %q when", id))
+}
+
 // DriveMet says by agents.met whether a drive at env's level counts as met. It is false when
 // agents.met is empty, which content allows only while nothing names drive_met.
 func (r *Registry) DriveMet(env DriveEnv) (bool, error) {
@@ -181,6 +200,7 @@ func (r *Registry) DriveMet(env DriveEnv) (bool, error) {
 func (r *Registry) checkMinds() []error {
 	p := r.problems()
 	r.goals = map[api.ContentID]compiledGoal{}
+	r.recipeWhen = map[api.ContentID]*vm.Program{}
 	namesMet := false
 	conditions := func(path string, conds []Condition, effect bool) {
 		for i, cond := range conds {
@@ -236,6 +256,13 @@ func (r *Registry) checkMinds() []error {
 		recipe := r.bundle.Recipes[key]
 		path := fmt.Sprintf("recipes[%q]", key)
 		ref(p, r.bundle.Goals, path+".goal", "goal", recipe.Goal)
+		if recipe.When != "" {
+			program, err := r.Compile(recipe.When, BeliefEnv{}, expr.AsBool())
+			if err != nil {
+				p.addf("%s.when: %w", path, err)
+			}
+			r.recipeWhen[api.ContentID(key)] = program
+		}
 		if len(recipe.Steps) == 0 {
 			p.addf("%s.steps: at least one step is required", path)
 		}
@@ -251,6 +278,7 @@ func (r *Registry) checkMinds() []error {
 			}
 		}
 	}
+	r.checkRecipeCycles(p)
 	switch met := r.bundle.Agents.Met; {
 	case met != "":
 		program, err := r.Compile(met, DriveEnv{}, expr.AsBool())
@@ -304,5 +332,41 @@ func (r *Registry) checkCondition(p *problems, path string, cond Condition, effe
 	}
 	if cond.N != 0 {
 		p.addf("%s.n: only a has fact takes a count", path)
+	}
+}
+
+// checkRecipeCycles reports each recipe that reaches itself through its sub-recipe steps, so that
+// every recipe expands to a finite list of operators.
+func (r *Registry) checkRecipeCycles(p *problems) {
+	const (
+		visiting = iota + 1
+		done
+	)
+	marks := map[string]int{}
+	var path []string
+	var visit func(key string)
+	visit = func(key string) {
+		recipe, ok := r.bundle.Recipes[key]
+		if !ok || marks[key] == done {
+			return
+		}
+		if marks[key] == visiting {
+			from := slices.Index(path, key)
+			p.addf("recipes[%q]: cycles through its sub-recipes: %s", key,
+				strings.Join(append(slices.Clone(path[from:]), key), " -> "))
+			return
+		}
+		marks[key] = visiting
+		path = append(path, key)
+		for _, step := range recipe.Steps {
+			if step.Recipe != "" {
+				visit(string(step.Recipe))
+			}
+		}
+		path = path[:len(path)-1]
+		marks[key] = done
+	}
+	for _, key := range sortedKeys(r.bundle.Recipes) {
+		visit(key)
 	}
 }
