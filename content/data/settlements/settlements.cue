@@ -9,7 +9,7 @@ settlements: [string]: content.#SettlementDef
 settlements: "settlement.reaper": {
 	name: "text.settlement.reaper"
 	at: {col: 100, row: 100, depth: 6}
-	radius: 30
+	radius: 18
 	street: "piece.street"
 	pieces: {
 		"piece.street": {weight: 8, count: 20}
@@ -46,7 +46,7 @@ settlements: "settlement.reaper_lake": {
 settlements: "settlement.salken_village": {
 	name: "text.settlement.salken_village"
 	at: {col: 300, row: 100, depth: 0}
-	radius: 30
+	radius: 22
 	street: "piece.street"
 	pieces: {
 		"piece.street": {weight: 8, count: 20}
@@ -72,7 +72,7 @@ settlements: "settlement.salken_village": {
 settlements: "settlement.lake": {
 	name: "text.settlement.lake"
 	at: {col: 300, row: 300, depth: 18}
-	radius: 30
+	radius: 20
 	street: "piece.street"
 	pieces: {
 		"piece.street": {weight: 8, count: 20}
