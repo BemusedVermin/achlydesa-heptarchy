@@ -150,3 +150,27 @@ func TestARouteWithANodeLimitStopsSearchingForAnUnreachableChunk(t *testing.T) {
 		t.Fatalf("the search summarized %d chunks, want it to stop near its limit of 10 areas", count)
 	}
 }
+
+func TestARouteFromACellStartsInThatCellsArea(t *testing.T) {
+	cfg := tunnelConfig(0)
+	cfg.Source = hexmap.FuncSource(func(cell api.Cell) hexmap.Terrain {
+		if cell.Depth == 5 && cell.Hex.R == 5 && cell.Hex.Q >= 5 && cell.Hex.Q <= 40 && cell.Hex.Q != 24 {
+			return air
+		}
+		return rock
+	})
+	graph := worldgen.NewGraph(cfg)
+	east := hexmap.ChunkKey{Q: 2}
+	west := api.Cell{Hex: api.Hex{Q: hexmap.ChunkSize, R: 5}, Depth: 5}
+	if _, ok, err := graph.RouteFrom(west, east, 0); err != nil || ok {
+		t.Fatalf("route out of the middle chunk's west area: ok %v, err %v; want none", ok, err)
+	}
+	inEast := api.Cell{Hex: api.Hex{Q: 2*hexmap.ChunkSize - 1, R: 5}, Depth: 5}
+	route, ok, err := graph.RouteFrom(inEast, east, 0)
+	if err != nil || !ok {
+		t.Fatalf("route out of the middle chunk's east area: ok %v, err %v", ok, err)
+	}
+	if len(route.Entries) != len(route.Chunks)-1 {
+		t.Fatalf("%d entries for %d chunks", len(route.Entries), len(route.Chunks))
+	}
+}
