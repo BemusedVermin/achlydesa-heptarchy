@@ -1,6 +1,7 @@
 package worldgen
 
 import (
+	"cmp"
 	"fmt"
 	"hash/fnv"
 	"slices"
@@ -29,6 +30,10 @@ type SettlementLayout struct {
 	// Exits are the street door cells left open as ways out to the deep.
 	Exits []api.Cell
 }
+
+// layAttempts is how many times a layout that fails is drawn again, the stream moving on each time, so that a
+// settlement that fits does not hang on one unlucky seed.
+const layAttempts = 20
 
 type pieceShape struct {
 	cells []shapeCell
@@ -124,10 +129,15 @@ func LaySettlement(reg *content.Registry, id api.ContentID, seed uint64) (Settle
 		}
 		s.shapes[api.ContentID(pieceID)] = shapeOf(reg, piece)
 	}
-	if err := s.lay(); err != nil {
-		return SettlementLayout{}, fmt.Errorf("worldgen: settlement %q: %w", id, err)
+	var err error
+	for range layAttempts {
+		if err = s.lay(); err == nil {
+			return s.out, nil
+		}
+		s.occupied, s.used, s.gives = map[api.Cell]bool{}, map[api.ContentID]int{}, map[api.ContentID]int{}
+		s.open, s.out = nil, SettlementLayout{}
 	}
-	return s.out, nil
+	return SettlementLayout{}, fmt.Errorf("worldgen: settlement %q: %w", id, err)
 }
 
 func (s *settler) lay() error {
@@ -144,10 +154,9 @@ func (s *settler) lay() error {
 	for {
 		candidates := s.candidates()
 		if deficit := s.deficit(); len(deficit) > 0 {
+			scarce := s.scarcest(deficit)
 			candidates = slices.DeleteFunc(candidates, func(piece api.ContentID) bool {
-				return !slices.ContainsFunc(deficit, func(affordance api.ContentID) bool {
-					return s.shapes[piece].gives[affordance] > 0
-				})
+				return s.shapes[piece].gives[scarce] == 0
 			})
 			if len(candidates) == 0 {
 				return fmt.Errorf("the pieces cannot give the landmarks %v", deficit)
@@ -171,6 +180,21 @@ func (s *settler) lay() error {
 		}
 	}
 	return s.chooseExits()
+}
+
+// scarcest returns the affordance of the deficit that the settlement's pieces can give the fewest of in all,
+// so the landmark with the least room to spare is laid before the plentiful ones take the doors.
+func (s *settler) scarcest(deficit []api.ContentID) api.ContentID {
+	supply := func(affordance api.ContentID) int {
+		total := 0
+		for pieceID, use := range s.def.Pieces {
+			total += use.Count * s.shapes[api.ContentID(pieceID)].gives[affordance]
+		}
+		return total
+	}
+	return slices.MinFunc(deficit, func(a, b api.ContentID) int {
+		return cmp.Or(cmp.Compare(supply(a), supply(b)), cmp.Compare(a, b))
+	})
 }
 
 // candidates lists the pieces with uses left, in ID order.

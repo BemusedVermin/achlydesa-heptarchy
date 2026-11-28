@@ -48,6 +48,17 @@ func TestTheRealTownsGenerateWithTheirLandmarks(t *testing.T) {
 	}
 }
 
+func TestEveryRealTownLaysOnManySeeds(t *testing.T) {
+	reg := contenttest.Full(t)
+	for _, id := range realTowns {
+		for seed := uint64(1); seed <= 100; seed++ {
+			if _, err := worldgen.LaySettlement(reg, id, seed); err != nil {
+				t.Errorf("%s seed %d: %v", id, seed, err)
+			}
+		}
+	}
+}
+
 func TestTheReapersCrawlspaceHoldsNoWaterSource(t *testing.T) {
 	reg := contenttest.Full(t)
 	def, _ := reg.Settlement("settlement.reaper")
