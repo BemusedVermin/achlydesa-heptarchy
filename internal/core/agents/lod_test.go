@@ -46,9 +46,9 @@ type drinkPlanner struct {
 	carry bool
 }
 
-func (p drinkPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
+func (p drinkPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents.Plan, bool, error) {
 	if goal != drinkGoal {
-		return agents.Plan{}, false
+		return agents.Plan{}, false, nil
 	}
 	drink := []agents.Step{{Operator: farDrinkOp}}
 	if p.carry {
@@ -56,12 +56,12 @@ func (p drinkPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents
 	}
 	switch {
 	case slices.Contains(snapshot.Beliefs, agents.Fact{Kind: content.FactNear, Tag: waterMark}):
-		return agents.Plan{Steps: drink}, true
+		return agents.Plan{Steps: drink}, true, nil
 	case slices.Contains(snapshot.Beliefs, agents.Fact{Kind: content.FactKnown, Tag: waterMark}):
 		walk := agents.Step{Operator: goToOp, Target: &agents.Target{Subject: *p.well, At: farWell}}
-		return agents.Plan{Steps: append([]agents.Step{walk}, drink...)}, true
+		return agents.Plan{Steps: append([]agents.Step{walk}, drink...)}, true, nil
 	}
-	return agents.Plan{}, false
+	return agents.Plan{}, false, nil
 }
 
 func farContent(b *content.Bundle) {

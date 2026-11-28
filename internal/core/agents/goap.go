@@ -35,7 +35,7 @@ func newGOAP() *goap { return &goap{cache: map[goapKey]goapResult{}} }
 // Plan finds the cheapest plan within the node and depth caps. Equal costs break by depth, then by
 // the order states were reached, and operators are tried in ID order, so the same state and goal
 // always give the same plan. The cache is keyed by the whole state, so a belief that changes misses it.
-func (g *goap) Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool) {
+func (g *goap) Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool, error) {
 	key := goapKey{state: snapshot.Beliefs.Key(), goal: goal}
 	g.mu.Lock()
 	result, hit := g.cache[key]
@@ -51,13 +51,13 @@ func (g *goap) Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool) {
 		g.mu.Unlock()
 	}
 	if !result.found {
-		return Plan{}, false
+		return Plan{}, false, nil
 	}
 	steps := make([]Step, len(result.steps))
 	for i, id := range result.steps {
 		steps[i] = Step{Operator: id}
 	}
-	return Plan{Steps: steps}, true
+	return Plan{Steps: steps}, true, nil
 }
 
 type goapNode struct {

@@ -192,6 +192,7 @@ type planJob struct {
 	goal     api.ContentID
 	plan     Plan
 	found    bool
+	err      error
 }
 
 // decideFar has each due body arrive where its route has brought it, choose a goal, and act on its plan:
@@ -239,6 +240,9 @@ func decideFar(w *sim.World, due []ecs.Entity, members []hexmap.ChunkKey) error 
 	planAll(jobs)
 	planned := map[ecs.Entity]*planJob{}
 	for i := range jobs {
+		if job := jobs[i]; job.err != nil {
+			return fmt.Errorf("agents: planning %q for body %d: %w", job.goal, w.UIDOf(job.body), job.err)
+		}
 		planned[jobs[i].body] = &jobs[i]
 	}
 	for _, body := range deciding {
@@ -262,7 +266,7 @@ func planAll(jobs []planJob) {
 		from, to := i*len(jobs)/count, (i+1)*len(jobs)/count
 		wg.Go(func() {
 			for j := from; j < to; j++ {
-				jobs[j].plan, jobs[j].found = jobs[j].planner.Plan(jobs[j].snapshot, jobs[j].goal)
+				jobs[j].plan, jobs[j].found, jobs[j].err = jobs[j].planner.Plan(jobs[j].snapshot, jobs[j].goal)
 			}
 		})
 	}

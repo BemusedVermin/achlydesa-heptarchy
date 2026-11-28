@@ -17,26 +17,30 @@ type htnPlanner struct{}
 
 // Plan tries the recipes for the goal in ID order. A recipe is taken when its when formula holds and
 // each operator of its expansion holds in the beliefs as the steps before it have changed them. A
-// recipe whose formula fails is skipped.
-func (htnPlanner) Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool) {
+// recipe whose formula fails, or that names a missing recipe, is an error naming it.
+func (htnPlanner) Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool, error) {
 	env := beliefEnv(snapshot.Beliefs)
 	for _, id := range snapshot.Content.RecipeIDs() {
 		recipe, _ := snapshot.Content.Recipe(id)
 		if recipe.Goal != goal {
 			continue
 		}
-		if applies, err := snapshot.Content.RecipeApplies(id, env); err != nil || !applies {
+		applies, err := snapshot.Content.RecipeApplies(id, env)
+		if err != nil {
+			return Plan{}, false, err
+		}
+		if !applies {
 			continue
 		}
 		operators, err := expandRecipe(snapshot.Content, id)
 		if err != nil {
-			continue
+			return Plan{}, false, fmt.Errorf("agents: recipe %q: %w", id, err)
 		}
 		if plan, ok := walkOperators(snapshot, operators); ok {
-			return plan, true
+			return plan, true, nil
 		}
 	}
-	return Plan{}, false
+	return Plan{}, false, nil
 }
 
 // expandRecipe lists the operators of the recipe in order, sub-recipes flattened in place. Content

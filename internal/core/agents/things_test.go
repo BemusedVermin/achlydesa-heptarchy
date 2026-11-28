@@ -51,7 +51,7 @@ type porterPlan struct {
 	steps []api.ContentID
 }
 
-func (p porterPlan) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
+func (p porterPlan) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bool, error) {
 	plan := agents.Plan{Goal: goal}
 	for _, op := range p.steps {
 		step := agents.Step{Operator: op, Target: &agents.Target{Subject: p.fx.well, At: porterAt}}
@@ -60,7 +60,7 @@ func (p porterPlan) Plan(_ agents.Snapshot, goal api.ContentID) (agents.Plan, bo
 			plan.Claims = append(plan.Claims, claim)
 		}
 	}
-	return plan, true
+	return plan, true, nil
 }
 
 type porterFixture struct {

@@ -30,16 +30,16 @@ var crowdParty = api.Cell{Hex: api.Hex{Q: 200, R: 200}}
 // nothing to do wanders.
 type crowdPlanner struct{ wells map[api.UID]agents.Target }
 
-func (p crowdPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
+func (p crowdPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents.Plan, bool, error) {
 	drink := agents.Step{Operator: farDrinkOp}
 	well, knows := p.wells[snapshot.Agent]
 	switch {
 	case goal != drinkGoal || !knows:
-		return agents.Plan{Steps: []agents.Step{{Operator: wanderOp}}}, true
+		return agents.Plan{Steps: []agents.Step{{Operator: wanderOp}}}, true, nil
 	case slices.Contains(snapshot.Beliefs, agents.Fact{Kind: content.FactNear, Tag: waterMark}):
-		return agents.Plan{Steps: []agents.Step{drink}}, true
+		return agents.Plan{Steps: []agents.Step{drink}}, true, nil
 	}
-	return agents.Plan{Steps: []agents.Step{{Operator: goToOp, Target: &well}, drink}}, true
+	return agents.Plan{Steps: []agents.Step{{Operator: goToOp, Target: &well}, drink}}, true, nil
 }
 
 // crowdCell spreads the i-th cell over a square of side hexes around center, the same every run. A far cell

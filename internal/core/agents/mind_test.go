@@ -2,11 +2,13 @@ package agents_test
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content/contenttest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/agents"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/clock"
@@ -59,17 +61,17 @@ func thinkingContent(b *content.Bundle) {
 // hold, claiming the whole well.
 type oneOperator struct{ fx *mindFixture }
 
-func (p oneOperator) Plan(s agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
+func (p oneOperator) Plan(s agents.Snapshot, goal api.ContentID) (agents.Plan, bool, error) {
 	p.fx.calls++
 	op, ok := s.Content.Operator(ponderOp)
 	if !ok || !agents.Holds(op, s.Beliefs) {
-		return agents.Plan{}, false
+		return agents.Plan{}, false, nil
 	}
 	return agents.Plan{
 		Goal:   goal,
 		Steps:  slices.Repeat([]agents.Step{{Operator: ponderOp}}, planSteps),
 		Claims: []comp.Claim{{Target: p.fx.well}},
-	}, true
+	}, true, nil
 }
 
 // mindFixture is a game with a well and thirsty thinkers that all plan to ponder by it.
@@ -267,6 +269,33 @@ func TestADelegatedMindWaitsUntilItsDelegateResumes(t *testing.T) {
 	fx.until(20, "finishing the plan", func() bool { return len(fx.starts) == planSteps })
 	if fx.calls != 1 {
 		t.Errorf("the planner was asked %d times, want the first plan kept through the hand-off", fx.calls)
+	}
+}
+
+func TestARecipeWhoseWhenFailsStopsTheStep(t *testing.T) {
+	const broken = "recipe.test.broken"
+	bundle := contenttest.SampleBundle(t)
+	thinkingContent(&bundle)
+	bundle.Templates[string(thinker)].Mind.Planner = agents.HTNPlanner
+	bundle.Goals[string(thinkGoal)] = content.Goal{Weight: "0", When: "false"}
+	bundle.Recipes[broken] = content.Recipe{
+		Goal: thinkGoal, When: `has["nothing"] % has["nothing"] == 0`,
+		Steps: []content.RecipeStep{{Operator: ponderOp}},
+	}
+	g, err := game.New(game.Config{
+		Seed: 1, Content: contenttest.Registry(t, bundle),
+		Spawn: func(w *sim.World, _ *clock.Clock) error { return (&mindFixture{t: t}).spawn(w, 1) },
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for range 20 {
+		if _, err = g.Apply(api.Wait{Source: g.Current(), Until: api.WaitEvent}); err != nil {
+			break
+		}
+	}
+	if err == nil || !strings.Contains(err.Error(), broken) {
+		t.Fatalf("error = %v, want one naming %s", err, broken)
 	}
 }
 

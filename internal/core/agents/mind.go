@@ -45,9 +45,9 @@ type Snapshot struct {
 
 // Planner makes a plan for a goal from a snapshot alone. Plan may run on several goroutines at once
 // and must change no shared state. It reports false when it finds none. A plan with no steps counts
-// as none.
+// as none. An error is a content bug met while planning, and stops the game step.
 type Planner interface {
-	Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool)
+	Plan(snapshot Snapshot, goal api.ContentID) (Plan, bool, error)
 }
 
 // Picker aims a step's action: it returns the intent with its target, direction or choices filled
@@ -288,7 +288,10 @@ func makePlan(w *sim.World, body ecs.Entity) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	plan, found := planner.Plan(snapshot, mind.Goal)
+	plan, found, err := planner.Plan(snapshot, mind.Goal)
+	if err != nil {
+		return false, fmt.Errorf("agents: planning %q for body %d: %w", mind.Goal, w.UIDOf(body), err)
+	}
 	return adopt(w, body, plan, found)
 }
 
