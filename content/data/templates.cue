@@ -27,6 +27,14 @@ _terrorOnHit: {
 	do: [{do: "satisfy", params: {bodies: "target", drive: "drive.safety", amount: "-2"}}]
 }
 
+// Seeing a neighbour die raises safety in those who see it. The template of the body that dies lists
+// it. Placeholder amount.
+_terrorOnDeath: {
+	on:   "combat.body_died"
+	role: "target"
+	do: [{do: "satisfy", params: {bodies: "witnesses", drive: "drive.safety", amount: "-3"}}]
+}
+
 // What a person knows: the seven forms (tagged form in forms.cue), a step, and the types innate to a
 // body. The design gives everyone Cut and Name, and the Reaper Press (the thrukk grip). Relic is
 // innate to grafts: the type choice offers it to a body that carries one.

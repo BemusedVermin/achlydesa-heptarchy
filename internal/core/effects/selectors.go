@@ -19,7 +19,8 @@ const allTag = "all"
 // BodySet is which bodies a selector means.
 type BodySet string
 
-// The body selectors. Allies, enemies, others and everyone all mean "in sight of the source".
+// The body selectors. Allies, enemies, others and everyone all mean "in sight of the source";
+// witnesses means in sight of the target, for an event such as a death that has no source.
 const (
 	BodiesSelf   BodySet = "self"
 	BodiesTarget BodySet = "target"
@@ -31,9 +32,13 @@ const (
 	BodiesOthers BodySet = "others"
 	// In sight, and the source.
 	BodiesEveryone BodySet = "everyone"
+	// In sight of the target, not the target.
+	BodiesWitnesses BodySet = "witnesses"
 )
 
-var bodySets = []BodySet{BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, BodiesOthers, BodiesEveryone}
+var bodySets = []BodySet{
+	BodiesSelf, BodiesTarget, BodiesAllies, BodiesEnemies, BodiesOthers, BodiesEveryone, BodiesWitnesses,
+}
 
 // BodySelector is a parsed body selector: a set of bodies, optionally narrowed to those whose
 // template carries a tag, written <set>[<tag>] such as others[crawls].
@@ -53,7 +58,7 @@ type ChannelSelector struct {
 	Tag string
 }
 
-// ParseBodies parses a body selector: self, target, allies, enemies, others or everyone, each
+// ParseBodies parses a body selector: self, target, allies, enemies, others, everyone or witnesses, each
 // optionally followed by a template tag in brackets, such as others[crawls].
 func ParseBodies(src string) (BodySelector, error) {
 	name, tag := src, ""
@@ -114,8 +119,14 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 		out = livingOnly(w, ctx.Source)
 	case BodiesTarget:
 		out = livingOnly(w, ctx.Target)
+	case BodiesWitnesses:
+		inSight, err := bodiesInSight(w, ctx.Target)
+		if err != nil {
+			return nil, err
+		}
+		out = slices.DeleteFunc(inSight, func(body ecs.Entity) bool { return body == ctx.Target })
 	default:
-		inSight, err := bodiesInSight(ctx)
+		inSight, err := bodiesInSight(w, ctx.Source)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +148,7 @@ func (s BodySelector) Resolve(ctx *Context) ([]ecs.Entity, error) {
 				if !isSource && hostile(w, ctx.Source, body) {
 					out = append(out, body)
 				}
-			case BodiesSelf, BodiesTarget:
+			case BodiesSelf, BodiesTarget, BodiesWitnesses:
 			}
 		}
 	}
@@ -203,16 +214,15 @@ func livingOnly(w *sim.World, e ecs.Entity) []ecs.Entity {
 }
 
 // bodiesInSight lists the bodies (entities on the timeline with a position) standing in a cell the
-// source can see, the source itself included. Sight is hexmap.Visible out to the party's sight
+// viewer can see, the viewer itself included. Sight is hexmap.Visible out to the party's sight
 // radius, and as many depths up and down, until content says otherwise.
-func bodiesInSight(ctx *Context) ([]ecs.Entity, error) {
-	w := ctx.World
+func bodiesInSight(w *sim.World, viewer ecs.Entity) ([]ecs.Entity, error) {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	m := w.Map
-	if !w.Alive(ctx.Source) || !positions.Has(ctx.Source) || m == nil {
+	if !w.Alive(viewer) || !positions.Has(viewer) || m == nil {
 		return nil, nil
 	}
-	from := positions.Get(ctx.Source)
+	from := positions.Get(viewer)
 	radius := w.Content.Party().SightRadius
 	cells, err := m.Visible(from.At, radius, w.Content.Party().SightDepth)
 	if err != nil {
