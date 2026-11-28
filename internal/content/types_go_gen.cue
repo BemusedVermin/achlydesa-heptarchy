@@ -239,6 +239,16 @@ import (
 	// confidence the fact keeps when told, above 0 and at most 1.
 	told_origin?:     api.#ContentID @go(ToldOrigin)
 	told_confidence?: float64        @go(ToldConfidence)
+
+	// GoapNodes is how many states the goap planner expands before it gives up on a goal, GoapDepth
+	// the most steps it plans, and GoapCache how many plans it remembers. All must be at least 1 when
+	// a template or spawn uses the goap planner.
+	goap_nodes?: int @go(GoapNodes)
+	goap_depth?: int @go(GoapDepth)
+	goap_cache?: int @go(GoapCache)
+
+	// TracePlans logs a line for every plan an agent adopts, naming its goal and steps.
+	trace_plans?: bool @go(TracePlans)
 }
 
 // Material is a substance things are made of.

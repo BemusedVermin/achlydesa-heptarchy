@@ -51,6 +51,10 @@ agents: {
 	chat_action:     "action.chat"
 	told_origin:     "origin.told"
 	told_confidence: 0.6
+	// The goap planner's search caps and how many plans it remembers. Set trace_plans to log plans.
+	goap_nodes: 400
+	goap_depth: 8
+	goap_cache: 256
 }
 
 text: {
