@@ -1,6 +1,7 @@
 package combat
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/mlange-42/ark/ecs"
@@ -8,6 +9,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/anatomy"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 )
 
@@ -31,23 +33,43 @@ func hostileCandidates(w *sim.World) []ecs.Entity {
 	return out
 }
 
+// allegedBodies lists every body with an allegiance, by UID, standing or not: the caller tests
+// OutOfFight only on the few it needs.
+func allegedBodies(w *sim.World) []ecs.Entity {
+	var out []ecs.Entity
+	query := ecs.NewFilter2[comp.Pos, comp.Allegiance](w.ECS).Query()
+	for query.Next() {
+		out = append(out, query.Entity())
+	}
+	w.SortByUID(out)
+	return out
+}
+
 // firstHostileSeen finds the hostile body with the lowest UID that any living member can see.
 func firstHostileSeen(w *sim.World, party ecs.Entity) (ecs.Entity, bool, error) {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
-	candidates := hostileCandidates(w)
+	candidates := allegedBodies(w)
+	cfg := w.Content.Combat()
 	var first ecs.Entity
 	for _, member := range livingMembers(w, party) {
 		if !positions.Has(member) {
 			continue
 		}
-		from := *positions.Get(member)
-		visible, err := seenCells(w, from)
-		if err != nil {
-			return ecs.Entity{}, false, err
+		from := positions.Get(member).At
+		if w.Map == nil || !w.Map.IsLoaded(hexmap.KeyOf(from)) {
+			continue
 		}
 		for _, other := range candidates {
-			pos := positions.Get(other)
-			if !visible[pos.At] || !anatomy.Hostile(w, member, other) {
+			at := positions.Get(other).At
+			if hexmap.Distance(from.Hex, at.Hex) > cfg.SightRadius ||
+				!anatomy.Hostile(w, member, other) || anatomy.OutOfFight(w, other) {
+				continue
+			}
+			visible, err := w.Map.Sees(from, at, cfg.SightRadius, cfg.SightDepth)
+			if err != nil {
+				return ecs.Entity{}, false, fmt.Errorf("combat: sight: %w", err)
+			}
+			if !visible {
 				continue
 			}
 			if first.IsZero() || w.UIDOf(other) < w.UIDOf(first) {
