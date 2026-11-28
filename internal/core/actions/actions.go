@@ -401,7 +401,7 @@ func (ev *evaluator) evaluate(in Intent, requireFree bool) (*plan, api.Text, err
 	return &p, ev.verdict(&p), nil
 }
 
-// impossible is why an effect says the plan can never apply to its target, or empty. Such a plan
+// impossible is why an effect says the plan is not worth offering for its target, or empty. Such a plan
 // is no option at all, so a menu does not list a disabled take for every ware a well lacks.
 func (ev *evaluator) impossible(p *plan) api.Text {
 	ctx := p.context(ev.w)

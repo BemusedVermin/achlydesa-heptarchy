@@ -71,8 +71,8 @@ const (
 	Unsuited
 )
 
-// Impossible reports whether the refusal is about what the things are rather than how much they
-// hold now: no take or put of the item between them is worth offering.
+// Impossible reports whether no take or put of the item between the things is worth offering: the
+// giver neither holds the item nor is a source of it, or the receiver is a source of another item.
 func (r Refusal) Impossible() bool { return r == Absent || r == Unsuited }
 
 // Move carries count of the item, unbound, from one entity to another that stands next to it: on
