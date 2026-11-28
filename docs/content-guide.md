@@ -160,7 +160,7 @@ An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, 
 
 Params that pick bodies or parts are selectors:
 
-- bodies: `self`, `target`, `allies`, `enemies`, `others` or `everyone`, optionally narrowed to a template tag, as in `others[crawls]`;
+- bodies: `self`, `target`, `allies`, `enemies`, `others`, `everyone` or `witnesses`, optionally narrowed to a template tag, as in `others[crawls]`. `allies`, `enemies`, `others` and `everyone` are the bodies in sight of the source; `witnesses` are those in sight of the target, not the target, which reaches the bodies that see a `combat.body_died` (an event with no source);
 - channels and parts: `used`, `target_part`, or `<bodies>:<tag>`, as in `target:all`, `target:legs` or `self:all`.
 
 ## Drives
