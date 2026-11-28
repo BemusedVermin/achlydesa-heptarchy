@@ -508,7 +508,7 @@ type GeographyLandmark struct {
 	// Near is the "settlement." ID the piece lies near.
 	Near api.ContentID `json:"near"`
 	// MinDistance and MaxDistance bound how far the piece's column 0, row 0 lies from the settlement's
-	// centre, in hexes, both inclusive. MinDistance must clear the settlement's radius.
+	// centre, in hexes, both inclusive. MinDistance must exceed the settlement's radius plus one.
 	MinDistance int `json:"min_distance"`
 	MaxDistance int `json:"max_distance"`
 	// MinDepth and MaxDepth bound the world depth the piece is stamped at, both inclusive.

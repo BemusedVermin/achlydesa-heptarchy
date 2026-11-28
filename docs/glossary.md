@@ -42,6 +42,7 @@ One line per term: **term**: definition. Terms the cleanup milestone C1 contests
 - **source**: a thing that refills a stock at a content rate (`comp.Source`), such as a well or a lake.
 - **container**: anything with a place and an inventory, such as a cistern, a larder or a pile on the floor.
 - **piece**: a content-defined sub-place (a house, a well) that the settlement stage lays out into a town.
+- **landmark piece**: a piece a geography sets into the deep near a settlement, such as the Reaper's lake (`content.GeographyLandmark`, a geography's `landmarks`). It is fixed ground that holds landmarks; it is not itself one.
 - **move**: movement across the world (`api.Moved`, `move_cost`); never form x type.
 - **type**: what a form carries into the part it lands on (`content.Type`). Not every type does damage.
 - **still**: the controller for a creature that keeps still (`still_ticks`). Not rest.

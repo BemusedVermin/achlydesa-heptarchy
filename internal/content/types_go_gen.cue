@@ -621,7 +621,7 @@ import (
 	near: api.#ContentID @go(Near)
 
 	// MinDistance and MaxDistance bound how far the piece's column 0, row 0 lies from the settlement's
-	// centre, in hexes, both inclusive. MinDistance must clear the settlement's radius.
+	// centre, in hexes, both inclusive. MinDistance must exceed the settlement's radius plus one.
 	min_distance: int @go(MinDistance)
 	max_distance: int @go(MaxDistance)
 
