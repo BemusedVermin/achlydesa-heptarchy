@@ -176,6 +176,8 @@ Sketches of what that produces:
 | The archon's creatures | To protect the archon and its worshippers | Attack outsiders, spare believers |
 | The flock | To fight over females | Moves across the salk, killing whoever is in the fields |
 
+A beast meets its hunger by eating corpses, through the same corpse-seeking behavior moving clay uses, driven by its own food need. It does not raid larders, so it needs no take or consume grant.
+
 What falls out of it:
 
 - **Deaths in towns become candidates.** They add losses to the cast model, which shapes who takes the next passed seat.
