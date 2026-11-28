@@ -223,8 +223,8 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M6-21.F1.F1](followups/M6-21.F1.F1-beast-food.md) | Decide how a beast meets its hunger | proposed | question | M6 | M6-21.F1 |
-| [M6-19.F1.F2](followups/M6-19.F1.F2-witnesses-selector-name.md) | Confirm the witnesses body selector in the content grammar | proposed | question | M6 | M6-19.F1 |
+| [M6-21.F1.F1](followups/M6-21.F1.F1-beast-food.md) | Decide how a beast meets its hunger | todo | question | M6 | M6-21.F1 |
+| [M6-19.F1.F2](followups/M6-19.F1.F2-witnesses-selector-name.md) | Confirm the witnesses body selector in the content grammar | done | question | M6 | M6-19.F1 |
 | [M6-19.F1.F1](followups/M6-19.F1.F1-attach-death-terror.md) | Attach the death-terror trigger to the templates whose deaths others see | proposed | content | M6 | M6-19.F1 |
 | [M6-22.F1](followups/M6-22.F1-geography-landmarks.md) | Let the geography place landmark pieces in the deep | done | seam | M6 | M6-22 |
 | [M6-22.F2](followups/M6-22.F2-street-growth-cap.md) | Tune how a settlement lays pieces when a landmark is lacking | todo | debt | M6 | M6-22 |
