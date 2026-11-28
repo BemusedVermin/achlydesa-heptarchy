@@ -1,6 +1,8 @@
 {"kind":"explore.moved","data":{"source":2,"from":{"hex":{"q":12,"r":14},"depth":0},"to":{"hex":{"q":11,"r":14},"depth":0},"kind":"level"}}
 {"kind":"combat.alert_started","data":{"party":1,"hostile":28,"name":"Moving clay","tick":0}}
 {"kind":"explore.control_changed","data":{"party":1,"mode":"individual","by":"alert"}}
+{"kind":"knowledge.fact_learned","data":{"knower":14,"fact":{"subject":18,"claim":"claim.at","value":"60,6,0","origin":"origin.seen","confidence":1,"tick":0}}}
+{"kind":"knowledge.fact_learned","data":{"knower":18,"fact":{"subject":14,"claim":"claim.at","value":"55,6,0","origin":"origin.seen","confidence":1,"tick":0}}}
 {"kind":"explore.moved","data":{"source":28,"from":{"hex":{"q":15,"r":14},"depth":0},"to":{"hex":{"q":14,"r":14},"depth":0},"kind":"level"}}
 {"kind":"actions.started","data":{"source":28,"action":"action.strike","target":8,"tick":0,"lands":3,"line":{"id":"text.actions.started","args":{"action":"Strike","actor":"Moving clay","target":"Salken","tick":"3"}}}}
 {"kind":"actions.started","data":{"source":28,"action":"action.strike","target":8,"tick":0,"lands":3,"line":{"id":"text.actions.started","args":{"action":"Strike","actor":"Moving clay","target":"Salken","tick":"3"}}}}

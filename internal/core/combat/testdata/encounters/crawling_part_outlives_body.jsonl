@@ -7,6 +7,8 @@
 {"kind":"combat.body_died","data":{"body":28,"name":"Moving clay","tick":0}}
 {"kind":"combat.alert_started","data":{"party":1,"hostile":37,"name":"A crawling arm","tick":0}}
 {"kind":"explore.control_changed","data":{"party":1,"mode":"individual","by":"alert"}}
+{"kind":"knowledge.fact_learned","data":{"knower":14,"fact":{"subject":18,"claim":"claim.at","value":"60,6,0","origin":"origin.seen","confidence":1,"tick":0}}}
+{"kind":"knowledge.fact_learned","data":{"knower":18,"fact":{"subject":14,"claim":"claim.at","value":"55,6,0","origin":"origin.seen","confidence":1,"tick":0}}}
 {"kind":"combat.part_damaged","data":{"body":37,"part":34,"amount":4,"integrity":0,"source":2,"tick":3,"line":{"id":"text.combat.part_damaged_plain","args":{"amount":"4","left":"0","part":"old arm","target":"A crawling arm"}}}}
 {"kind":"combat.part_severed","data":{"body":37,"part":34,"cause":"worn","source":2,"tick":3,"line":{"id":"text.combat.part_severed","args":{"part":"old arm","target":"A crawling arm"}}}}
 {"kind":"combat.body_died","data":{"body":37,"name":"A crawling arm","tick":3}}

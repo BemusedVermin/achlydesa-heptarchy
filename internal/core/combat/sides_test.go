@@ -157,7 +157,11 @@ func TestWalkingIntoSightOfTheHallsCreatureRaisesTheAlert(t *testing.T) {
 }
 
 func TestThereIsNoSightThroughRock(t *testing.T) {
-	f := newField(t, "place.test.descent", nil)
+	f := newField(t, "place.test.descent", func(b *content.Bundle) {
+		clay := b.Templates["template.creature.moving_clay"]
+		clay.Actor = &content.ActorDef{Controller: "idle"}
+		b.Templates["template.creature.moving_clay"] = clay
+	})
 	creature := f.creature()
 	at := *ecs.NewMap[comp.Pos](f.w.ECS).Get(creature)
 	if at.At.Depth != 2 {

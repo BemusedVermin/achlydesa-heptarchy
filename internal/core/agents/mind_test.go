@@ -53,6 +53,10 @@ func thinkingContent(b *content.Bundle) {
 		Drives:  map[string]float64{string(water): 1, "drive.rest": 1},
 	}
 	b.Agents.ThinkTicks = 1 << 40
+	for id, place := range b.Places {
+		place.Spawns = nil
+		b.Places[id] = place
+	}
 	b.Text["text.action.test.ponder"] = "Ponder"
 	b.Text["text.template.test.thinker"] = "Thinker"
 }

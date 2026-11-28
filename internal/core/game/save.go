@@ -10,8 +10,10 @@ import (
 	"slices"
 
 	arkserde "github.com/mlange-42/ark-serde"
+	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/explore"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/save"
@@ -116,6 +118,9 @@ func (g *Game) restore(snapshot save.Snapshot) error {
 	if err := applyEdits(w, snapshot.Edits); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}
+	if err := loadBodyChunks(w); err != nil {
+		return fmt.Errorf("game: load: %w", err)
+	}
 	if err := timeline.Import(w, snapshot.Timeline); err != nil {
 		return fmt.Errorf("game: load: %w", err)
 	}
@@ -162,6 +167,22 @@ func loadedPocket(pocket save.Pocket) explore.Pocket {
 }
 
 // applyEdits reapplies saved edits to the world, resolving each terrain from content.
+// loadBodyChunks loads the chunk under every body, which a played game has by having walked there:
+// a step from an unloaded chunk is refused.
+func loadBodyChunks(w *sim.World) error {
+	if w.Map == nil {
+		return nil
+	}
+	query := ecs.NewFilter1[comp.Pos](w.ECS).Query()
+	for query.Next() {
+		if _, err := w.Map.At(query.Get().At); err != nil {
+			query.Close()
+			return err
+		}
+	}
+	return nil
+}
+
 func applyEdits(w *sim.World, edits []save.Edit) error {
 	if len(edits) > 0 && w.Map == nil {
 		return errors.New("saved edits but the world has no cells")
