@@ -27,6 +27,12 @@ func installMovement(w *sim.World) error {
 	if err := RegisterPicker(w, GoToPicker, goToPicker{}); err != nil {
 		return err
 	}
+	if err := RegisterPicker(w, SeekGroundPicker, seekGroundPicker{}); err != nil {
+		return err
+	}
+	if err := RegisterPicker(w, CorpsePicker, corpsePicker{}); err != nil {
+		return err
+	}
 	return RegisterPicker(w, WanderPicker, wanderPicker{})
 }
 

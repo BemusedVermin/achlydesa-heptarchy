@@ -36,6 +36,21 @@ drives: {
 		rise: "-1"
 		urge: "min(level / 4, 1)"
 	}
+	// Moving clay's want of the dead: met by consuming a corpse.
+	"drive.the_dead": {
+		name: "text.drive.the_dead"
+		kind: "need"
+		rise: "1"
+		urge: "min(level / 8, 1)"
+	}
+	// A remnant's want of undecayed ground: it rises a phase at a time in decayed ground and falls
+	// in undecayed ground.
+	"drive.old_ground": {
+		name: "text.drive.old_ground"
+		kind: "need"
+		rise: "decay > 0 ? 1 : -1"
+		urge: "min(level / 4, 1)"
+	}
 	// Raised by going unpaid, once something pays and hires.
 	"drive.pay": {
 		name: "text.drive.pay"
@@ -51,9 +66,11 @@ agents: weight: "typical * (0.5 + roll)"
 agents: met: "level < 1"
 
 text: {
-	"text.drive.water":  "water"
-	"text.drive.food":   "food"
-	"text.drive.rest":   "rest"
-	"text.drive.safety": "safety"
-	"text.drive.pay":    "pay"
+	"text.drive.water":      "water"
+	"text.drive.food":       "food"
+	"text.drive.rest":       "rest"
+	"text.drive.safety":     "safety"
+	"text.drive.the_dead":   "the dead"
+	"text.drive.old_ground": "old ground"
+	"text.drive.pay":        "pay"
 }

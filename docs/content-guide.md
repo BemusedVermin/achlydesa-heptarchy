@@ -156,7 +156,7 @@ Several triggers that match one event fire in UID order of their carriers, then 
 
 ## Effects
 
-An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `step` and `satisfy`. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
+An effect is `{do: "<primitive>", params: {...}}`. The primitives are `damage`, `sever`, `lock`, `delay`, `ready`, `interrupt`, `add_status`, `attach_part`, `raise_max_integrity`, `reveal`, `consume`, `act_alone`, `spawn_from_part`, `remove_corpse`, `step` and `satisfy`. `remove_corpse` takes no params and removes a dead target body from the world. A new primitive is an engine change. An unknown primitive, a missing param or a bad selector fails when a game starts.
 
 Params that pick bodies or parts are selectors:
 
@@ -177,7 +177,7 @@ A drive is a need or a desire. A body carries the drives its template lists in `
 }
 ```
 
-- A level is 0 when the drive is met and never goes below it. Once a phase, every living body's levels rise by `rise`, a formula over `level` and `weight`. A need requires a rise; a desire without one keeps its level until something changes it.
+- A level is 0 when the drive is met and never goes below it. Once a phase, every living body's levels rise by `rise`, a formula over `level`, `weight` and `decay` (the decay level of the ground the body stands in, 0 with no geography). A need requires a rise; a desire without one keeps its level until something changes it.
 - `urge` says how pressing the drive is at its level, from 0 to 1; anything outside that is a content bug.
 - After the rise, each threshold whose `at` the level has reached applies its effects, with the body as both `self` and `target`. Only a need has thresholds: a desire never kills.
 - The `satisfy` effect lowers a drive's level by `amount` for the `bodies` it selects (`drive` names the drive); a negative amount raises it.
@@ -207,7 +207,7 @@ An item's `on_consume` effects run on the body that consumes one with the `consu
 }
 ```
 
-- An operator's `eff` makes each fact true, or false with `not`; a `has` effect adds `n` (negative to take away) instead. `cost` is above 0. `does` names the action a step starts and the target picker that aims it; the game refuses to start when no picker of that name is registered. The `self` picker aims the action at the agent itself; `go_to` steps along a route (around standing bodies) to the cell the plan step names, and repeats until the agent is there or, for a landmark, near it; `wander` steps in a random open direction, not back into the cell it just left. `kind` is a free word that sorts operators.
+- An operator's `eff` makes each fact true, or false with `not`; a `has` effect adds `n` (negative to take away) instead. `cost` is above 0. `does` names the action a step starts and the target picker that aims it; the game refuses to start when no picker of that name is registered. The `self` picker aims the action at the agent itself; `go_to` steps along a route (around standing bodies) to the cell the plan step names, and repeats until the agent is there or, for a landmark, near it; `wander` steps in a random open direction, not back into the cell it just left; `corpse` aims an action at the nearest remembered landmark that is a corpse, and makes the agent forget a landmark it finds gone; `seek_ground` steps toward the least decayed ground the agent remembers when that is less decayed than where it stands, else wanders, and repeats until it stands in undecayed ground. `kind` is a free word that sorts operators.
 - A template whose bodies decide by goal and plan sets `actor: controller: "mind"` and `mind: planner: "<name>"`, naming a registered planner. The `mind` controller starts a plan's steps one at a time, and drops the plan and makes another when a step's action can't start, a belief a step needs no longer holds, a claim is lost, the goal changes, or an export begins.
 - A goal names the `drive` it serves and the conditions it `want`s.
 - A recipe names a `goal`, an optional `when` (a bool formula over the same beliefs as a goal's `when`) and its `steps` in order; each step names exactly one `operator` or `recipe`. A recipe may not reach itself through sub-recipes. The `htn` planner (`mind: planner: "htn"`) takes the first recipe for the agent's goal, in ID order, whose `when` holds and whose operators each hold in turn from the agent's beliefs; with none, the agent has no plan. Write `when` formulas that exclude each other so the order does not matter. A sub-recipe step ignores its `when`. A step that brings the agent near a landmark goes to the nearest one it believes in.

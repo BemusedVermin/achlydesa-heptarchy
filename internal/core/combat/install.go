@@ -69,6 +69,7 @@ func primitives() []effects.Primitive {
 			VerifyContent: verifyKnownIDs, Apply: applyConsume, Check: checkConsume,
 		},
 		{Name: "act_alone", Apply: applyActAlone},
+		{Name: "remove_corpse", Apply: applyRemoveCorpse},
 		{
 			Name: "spawn_from_part", Params: []string{"faction", "controller"},
 			Kinds:         map[string]effects.Kind{"faction": effects.KindText, "controller": effects.KindText},

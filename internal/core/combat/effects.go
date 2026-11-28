@@ -607,3 +607,14 @@ func statusLine(w *sim.World, body ecs.Entity, entry comp.StatusEntry) api.Text 
 		"target": nameOf(w, body), "status": name, "until": strconv.FormatInt(entry.Until, 10),
 	}}
 }
+
+// applyRemoveCorpse removes the target body from the world if it is dead, and does nothing to a
+// living one.
+func applyRemoveCorpse(ctx *effects.Context, _ effects.Params) error {
+	w := ctx.World
+	if ctx.Target.IsZero() || !w.Alive(ctx.Target) || !ecs.NewMap[comp.Dead](w.ECS).Has(ctx.Target) {
+		return nil
+	}
+	w.Despawn(ctx.Target)
+	return nil
+}
