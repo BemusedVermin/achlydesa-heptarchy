@@ -225,7 +225,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | --- | --- | --- | --- | --- | --- |
 | [M6-22.F1](followups/M6-22.F1-geography-landmarks.md) | Let the geography place landmark pieces in the deep | proposed | seam | M6 | M6-22 |
 | [M6-22.F2](followups/M6-22.F2-street-growth-cap.md) | Tune how a settlement lays pieces when a landmark is lacking | proposed | debt | M6 | M6-22 |
-| [M6-21.F1](followups/M6-21.F1-families-on-mind-controller.md) | Run the creature families on the mind controller | proposed | content | M6 | M6-21 |
+| [M6-21.F1](followups/M6-21.F1-families-on-mind-controller.md) | Run the creature families on the mind controller | todo | content | M6 | M6-21 |
 | [M6-16.F1](followups/M6-16.F1-planner-errors.md) | Let a planner report a content error | done | seam | M6 | M6-16 |
 | [M6-19.F2](followups/M6-19.F2-attach-terror-triggers.md) | Attach the terror trigger and drive.safety to the templates that get minds | todo | content | M6 | M6-19 |
 | [M6-19.F1](followups/M6-19.F1-witness-death-terror.md) | Let a trigger reach the bodies near a death, so a neighbour's death raises terror | todo | seam | M6 | M6-19 |
