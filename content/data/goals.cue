@@ -32,6 +32,18 @@ goals: {
 		when:   "!met[\"drive.rest\"]"
 		weight: "urge * weight"
 	}
+	"goal.hold_dead": {
+		drive: "drive.the_dead"
+		want: [{fact: "drive_met", tag: "drive.the_dead"}]
+		when:   "!met[\"drive.the_dead\"]"
+		weight: "urge * weight"
+	}
+	"goal.old_ground": {
+		drive: "drive.old_ground"
+		want: [{fact: "drive_met", tag: "drive.old_ground"}]
+		when:   "!met[\"drive.old_ground\"]"
+		weight: "urge * weight"
+	}
 	"goal.wander": {
 		weight: "0.05"
 	}

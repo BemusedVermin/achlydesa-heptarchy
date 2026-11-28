@@ -157,6 +157,7 @@ func TestADelegatedHunterHandsTheBodyBackWithNoPreyInSight(t *testing.T) {
 	f := huntField(t, func(b *content.Bundle) {
 		movingClay := b.Templates["template.creature.moving_clay"]
 		movingClay.Actor = &content.ActorDef{Controller: "still"}
+		movingClay.Mind = nil
 		b.Templates["template.creature.moving_clay"] = movingClay
 	})
 	creature := f.creature()

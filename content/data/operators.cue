@@ -132,3 +132,38 @@ operators: {
 		kind: "travel"
 	}
 }
+
+// Moving clay: find the dead, go to them, and consume one.
+operators: {
+	"operator.go_to_dead": {
+		pre: [{fact: "known", tag: "affordance.the_dead"}, {fact: "near", tag: "affordance.the_dead", not: true}]
+		eff: [{fact: "near", tag: "affordance.the_dead"}]
+		cost: 2
+		does: {action: "action.step", target: "go_to"}
+		kind: "travel"
+	}
+	"operator.wander_dead": {
+		pre: [{fact: "known", tag: "affordance.the_dead", not: true}]
+		eff: [{fact: "known", tag: "affordance.the_dead"}]
+		cost: 5
+		does: {action: "action.step", target: "wander"}
+		kind: "travel"
+	}
+	// The corpse is consumed: it leaves the world.
+	"operator.consume_corpse": {
+		pre: [{fact: "near", tag: "affordance.the_dead"}]
+		eff: [{fact: "drive_met", tag: "drive.the_dead"}]
+		cost: 1
+		does: {action: "action.consume_corpse", target: "corpse"}
+		kind: "work"
+	}
+}
+
+// A remnant seeks undecayed ground: toward the least decayed it remembers, else wandering to learn
+// some, until it stands in it.
+operators: "operator.seek_old_ground": {
+	eff: [{fact: "drive_met", tag: "drive.old_ground"}]
+	cost: 3
+	does: {action: "action.step", target: "seek_ground"}
+	kind: "travel"
+}
