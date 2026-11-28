@@ -225,7 +225,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | --- | --- | --- | --- | --- | --- |
 | [M6-16.F1](followups/M6-16.F1-planner-errors.md) | Let a planner report a content error | todo | seam | M6 | M6-16 |
 | [M6-19.F2](followups/M6-19.F2-attach-terror-triggers.md) | Attach the terror trigger and drive.safety to the templates that get minds | proposed | content | M6 | M6-19 |
-| [M6-19.F1](followups/M6-19.F1-witness-death-terror.md) | Let a trigger reach the bodies near a death, so a neighbour's death raises terror | proposed | seam | M6 | M6-19 |
+| [M6-19.F1](followups/M6-19.F1-witness-death-terror.md) | Let a trigger reach the bodies near a death, so a neighbour's death raises terror | todo | seam | M6 | M6-19 |
 | [M6-17.F4](followups/M6-17.F4-far-act-targets.md) | Give far agents' take and put a target when the plan names none | done | seam | M6 | M6-17 |
 | [M6-17.F3](followups/M6-17.F3-far-route-start-area.md) | Start a far route from the agent's own local area | done | debt | unplanned | M6-17 |
 | [M6-17.F2](followups/M6-17.F2-alert-cost.md) | Make the party's alert check cheap with many bodies near | done | debt | M6 | M6-17 |
