@@ -46,6 +46,8 @@ agents: {
 	ground_claim: "claim.ground"
 	// A landmark believed this many cells away or fewer counts as near, for planning.
 	near_radius: 1
+	// A body seen this long ago, and not seen dead, is still believed near.
+	hostile_ticks: 12
 	// What an agent does to pass a fact on, and how much of its confidence the fact keeps when told.
 	chat_goal:       "goal.chat"
 	chat_action:     "action.chat"

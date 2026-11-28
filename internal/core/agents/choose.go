@@ -41,6 +41,11 @@ func Choose(w *sim.World, body ecs.Entity) (api.ContentID, error) {
 		return "", err
 	}
 	env := beliefEnv(beliefs)
+	foes, err := believedHostiles(w, body)
+	if err != nil {
+		return "", err
+	}
+	env.Hostile = len(foes) > 0
 	current := ecs.NewMap[comp.Mind](w.ECS).Get(body).Goal
 	var carried *comp.Drives
 	if carriers := ecs.NewMap[comp.Drives](w.ECS); carriers.Has(body) {
@@ -98,6 +103,9 @@ func think(w *sim.World, body ecs.Entity) error {
 	mind := ecs.NewMap[comp.Mind](w.ECS).Get(body)
 	if mind.Goal != "" && w.Now-mind.Thought < int64(w.Content.Agents().ThinkTicks) {
 		return nil
+	}
+	if err := sense(w, body); err != nil {
+		return err
 	}
 	goal, err := Choose(w, body)
 	if err != nil {

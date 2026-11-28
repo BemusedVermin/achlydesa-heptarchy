@@ -29,11 +29,11 @@ drives: {
 		urge: "min(level / 8, 1)"
 		thresholds: [{at: 24, do: [{do: "damage", params: {parts: "self:torso", amount: "1"}}]}]
 	}
-	// Raised by events, not time: being hit or a neighbour dying.
+	// Terror. Raised by events (being hit), and it fades by one a phase.
 	"drive.safety": {
 		name: "text.drive.safety"
 		kind: "need"
-		rise: "0"
+		rise: "-1"
 		urge: "min(level / 4, 1)"
 	}
 	// Raised by going unpaid, once something pays and hires.
