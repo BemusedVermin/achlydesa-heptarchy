@@ -1,7 +1,7 @@
 ---
 id: M6-15
 title: "The GOAP planner for important individuals"
-status: todo
+status: done
 milestone: M6
 kind: feature
 depends_on: [M6-10, M6-12, M6-13, M6-14]
@@ -36,8 +36,8 @@ An important individual plans by search: from its believed state to its goal's w
 
 ## Acceptance criteria
 
-- [ ] The tests above pass, with a benchmark of one plan recorded in Notes.
-- [ ] `go tool task check` passes.
+- [x] The tests above pass, with a benchmark of one plan recorded in Notes.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -45,3 +45,8 @@ An important individual plans by search: from its believed state to its goal's w
 
 ## Notes
 
+- Uniform-cost search (no heuristic) forward from beliefs to `goal.want`; ties break by cost, depth, then discovery order, operators tried in ID order. Steps carry no target: pickers aim them at step start.
+- New `agents` content: `goap_nodes` (nodes expanded), `goap_depth`, `goap_cache` (plans kept; cleared when full), `trace_plans`. `ValidateContent` requires the first three at 1 or more when a template or spawn uses `goap`. The cache key is the whole state, so changed beliefs miss it rather than being cleared.
+- Plan trace: with `agents.trace_plans` on, `adopt` publishes a loggable `api.PlanMade` (text `text.agents.plan_made`), for any planner. Not covered by a test.
+- Benchmark: one four-step plan, about 57 us and 642 allocs (`BenchmarkGOAPPlan`).
+- Files outside the list: `api/agents.go`, `content/types.go` and generated schemas, `content/data/knowledge.cue`, `content/data/text/agents.cue`, `agents/mind.go`.

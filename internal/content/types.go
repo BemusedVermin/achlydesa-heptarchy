@@ -196,6 +196,14 @@ type AgentsConfig struct {
 	// confidence the fact keeps when told, above 0 and at most 1.
 	ToldOrigin     api.ContentID `json:"told_origin,omitempty"`
 	ToldConfidence float64       `json:"told_confidence,omitempty"`
+	// GoapNodes is how many states the goap planner expands before it gives up on a goal, GoapDepth
+	// the most steps it plans, and GoapCache how many plans it remembers. All must be at least 1 when
+	// a template or spawn uses the goap planner.
+	GoapNodes int `json:"goap_nodes,omitempty"`
+	GoapDepth int `json:"goap_depth,omitempty"`
+	GoapCache int `json:"goap_cache,omitempty"`
+	// TracePlans logs a line for every plan an agent adopts, naming its goal and steps.
+	TracePlans bool `json:"trace_plans,omitempty"`
 }
 
 // Material is a substance things are made of.
