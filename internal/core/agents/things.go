@@ -60,11 +60,40 @@ func (consumePicker) Pick(w *sim.World, body ecs.Entity, step Step) (actions.Int
 	return actions.Intent{Target: body, Choices: map[string]string{action.Choices[0]: string(items[0])}}, true, nil
 }
 
+// PickFar is Pick, which looks only at what the agent carries.
+func (p consumePicker) PickFar(w *sim.World, body ecs.Entity, step Step) (actions.Intent, bool, error) {
+	return p.Pick(w, body, step)
+}
+
 // thingPicker aims a take or a put. A step that names its target uses it; otherwise the picker looks
 // through the landmarks the agent remembers for the operator's near fact.
 type thingPicker struct{ taking bool }
 
 func (p thingPicker) Pick(w *sim.World, body ecs.Entity, step Step) (actions.Intent, bool, error) {
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	return p.pick(w, body, step, func(thing ecs.Entity, _ Landmark) bool {
+		return positions.Has(thing) && positions.Has(body) &&
+			hexmap.CellDistance(positions.Get(body).At, positions.Get(thing).At) <= 1
+	})
+}
+
+// PickFar aims at the nearest landmark the agent believes stands in its own chunk, by the cell it
+// believes the landmark is in, or the step names.
+func (p thingPicker) PickFar(w *sim.World, body ecs.Entity, step Step) (actions.Intent, bool, error) {
+	positions := ecs.NewMap[comp.Pos](w.ECS)
+	return p.pick(w, body, step, func(_ ecs.Entity, mark Landmark) bool {
+		return positions.Has(body) && hexmap.KeyOf(mark.At) == hexmap.KeyOf(positions.Get(body).At)
+	})
+}
+
+// pick aims at the first landmark within reach that holds an item with the tag to take, or has room
+// for one to put.
+func (p thingPicker) pick(
+	w *sim.World,
+	body ecs.Entity,
+	step Step,
+	reach func(thing ecs.Entity, mark Landmark) bool,
+) (actions.Intent, bool, error) {
 	op, ok := w.Content.Operator(step.Operator)
 	if !ok {
 		return actions.Intent{}, false, fmt.Errorf("agents: unknown operator %q", step.Operator)
@@ -77,15 +106,13 @@ func (p thingPicker) Pick(w *sim.World, body ecs.Entity, step Step) (actions.Int
 	if !ok {
 		return actions.Intent{}, false, fmt.Errorf("agents: operator %q changes no carried item", step.Operator)
 	}
-	subjects, err := p.subjects(w, body, op, step)
+	marks, err := p.subjects(w, body, op, step)
 	if err != nil {
 		return actions.Intent{}, false, err
 	}
-	positions := ecs.NewMap[comp.Pos](w.ECS)
-	for _, subject := range subjects {
-		thing, ok := w.ByUID(subject)
-		if !ok || !w.Alive(thing) || !positions.Has(thing) || !positions.Has(body) ||
-			hexmap.CellDistance(positions.Get(body).At, positions.Get(thing).At) > 1 {
+	for _, mark := range marks {
+		thing, ok := w.ByUID(mark.Subject)
+		if !ok || !w.Alive(thing) || !reach(thing, mark) {
 			continue
 		}
 		for _, item := range p.items(w, body, thing, tag) {
@@ -101,24 +128,15 @@ func (p thingPicker) Pick(w *sim.World, body ecs.Entity, step Step) (actions.Int
 	return actions.Intent{}, false, nil
 }
 
-// subjects lists the things the step may be aimed at, nearest believed first.
-func (thingPicker) subjects(w *sim.World, body ecs.Entity, op content.Operator, step Step) ([]api.UID, error) {
+// subjects lists the landmarks the step may be aimed at, nearest believed first.
+func (thingPicker) subjects(w *sim.World, body ecs.Entity, op content.Operator, step Step) ([]Landmark, error) {
 	if step.Target != nil && step.Target.Subject != 0 {
-		return []api.UID{step.Target.Subject}, nil
+		return []Landmark{{Subject: step.Target.Subject, At: step.Target.At}}, nil
 	}
 	for _, cond := range op.Pre {
-		if cond.Fact != content.FactNear || cond.Not {
-			continue
+		if cond.Fact == content.FactNear && !cond.Not {
+			return Known(w, body, cond.Tag)
 		}
-		known, err := Known(w, body, cond.Tag)
-		if err != nil {
-			return nil, err
-		}
-		out := make([]api.UID, len(known))
-		for i, landmark := range known {
-			out[i] = landmark.Subject
-		}
-		return out, nil
 	}
 	return nil, nil
 }

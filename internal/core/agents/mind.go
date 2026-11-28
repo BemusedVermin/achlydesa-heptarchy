@@ -61,6 +61,14 @@ type Finisher interface {
 	Finished(w *sim.World, body ecs.Entity, step Step) bool
 }
 
+// FarPicker is a picker that can also aim a far agent's step, from what the agent believes alone:
+// PickFar never looks or paths cell by cell. A far step whose picker is not one is aimed at the
+// step's target, or at the agent itself.
+type FarPicker interface {
+	Picker
+	PickFar(w *sim.World, body ecs.Entity, step Step) (actions.Intent, bool, error)
+}
+
 type selfPicker struct{}
 
 func (selfPicker) Pick(_ *sim.World, body ecs.Entity, _ Step) (actions.Intent, bool, error) {

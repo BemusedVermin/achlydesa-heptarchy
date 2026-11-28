@@ -15,6 +15,7 @@ import (
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/game/gametest"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/hexmap"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/inventory"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/knowledge"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/sim"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/worldgen"
@@ -22,6 +23,8 @@ import (
 
 const (
 	farPlanner     = "test.far"
+	carryPlanner   = "test.far.carry"
+	farCarrier     = api.ContentID("template.test.far.carrier")
 	farAgent       = api.ContentID("template.test.far")
 	farDrinkOp     = api.ContentID("operator.test.drink")
 	farDrinkAction = api.ContentID("action.test.drink")
@@ -37,20 +40,26 @@ var (
 )
 
 // drinkPlanner drinks when it believes water is near, and walks to the well first when it only knows of
-// it.
-type drinkPlanner struct{ well *api.UID }
+// it. A carrying planner drinks by taking water from a well it does not name, then consuming it.
+type drinkPlanner struct {
+	well  *api.UID
+	carry bool
+}
 
 func (p drinkPlanner) Plan(snapshot agents.Snapshot, goal api.ContentID) (agents.Plan, bool) {
 	if goal != drinkGoal {
 		return agents.Plan{}, false
 	}
-	drink := agents.Step{Operator: farDrinkOp}
+	drink := []agents.Step{{Operator: farDrinkOp}}
+	if p.carry {
+		drink = []agents.Step{{Operator: takeOp}, {Operator: drinkOp}}
+	}
 	switch {
 	case slices.Contains(snapshot.Beliefs, agents.Fact{Kind: content.FactNear, Tag: waterMark}):
-		return agents.Plan{Steps: []agents.Step{drink}}, true
+		return agents.Plan{Steps: drink}, true
 	case slices.Contains(snapshot.Beliefs, agents.Fact{Kind: content.FactKnown, Tag: waterMark}):
 		walk := agents.Step{Operator: goToOp, Target: &agents.Target{Subject: *p.well, At: farWell}}
-		return agents.Plan{Steps: []agents.Step{walk, drink}}, true
+		return agents.Plan{Steps: append([]agents.Step{walk}, drink...)}, true
 	}
 	return agents.Plan{}, false
 }
@@ -78,6 +87,22 @@ func farContent(b *content.Bundle) {
 	}
 	b.Text["text.action.test.drink"] = "Drink"
 	b.Text["text.template.test.far"] = "Traveller"
+	b.Templates[string(farCarrier)] = content.Template{
+		Name:    new(api.ContentID("text.template.test.far.carrier")),
+		Actor:   &content.ActorDef{Controller: agents.MindController},
+		Mind:    &content.MindDef{Planner: carryPlanner},
+		Body:    new(api.ContentID("body.human")),
+		Actions: []api.ContentID{"action.step", "action.take", "action.consume"},
+		Faction: new(api.ContentID("faction.party")),
+		Drives:  map[string]float64{string(water): 1},
+	}
+	b.Text["text.template.test.far.carrier"] = "Carrier"
+	thirst := b.Drives[string(water)]
+	thirst.Thresholds = nil
+	b.Drives[string(water)] = thirst
+	well := b.Templates["template.source.well"]
+	well.Source.Refill = "0"
+	b.Templates["template.source.well"] = well
 }
 
 type farFixture struct {
@@ -99,15 +124,18 @@ func floorGround() hexmap.Source {
 	})
 }
 
-// newFarFixture is the party at partyAt and a thirsty agent at farStart that knows of the well at farWell,
-// with a second well at farBed it has never seen.
-func newFarFixture(tb testing.TB, seed uint64) *farFixture {
+// newFarFixture is the party at partyAt and a thirsty agent of the template at farStart that knows of the
+// well at farWell, with a second well at farBed it has never seen.
+func newFarFixture(tb testing.TB, seed uint64, template api.ContentID) *farFixture {
 	tb.Helper()
 	fx := &farFixture{tb: tb}
 	fx.g, fx.w, fx.cfg = gametest.New(tb, seed, farContent, func(cfg *game.Config) {
 		cfg.Install = func(w *sim.World, _ *clock.Clock) error {
 			setGround(w, floorGround())
-			return agents.RegisterPlanner(w, farPlanner, drinkPlanner{well: &fx.well})
+			if err := agents.RegisterPlanner(w, farPlanner, drinkPlanner{well: &fx.well}); err != nil {
+				return err
+			}
+			return agents.RegisterPlanner(w, carryPlanner, drinkPlanner{well: &fx.well, carry: true})
 		}
 		cfg.Spawn = func(w *sim.World, _ *clock.Clock) error {
 			placeParty(w, partyAt)
@@ -121,7 +149,7 @@ func newFarFixture(tb testing.TB, seed uint64) *farFixture {
 				return err
 			}
 			fx.farOther = w.UIDOf(other)
-			body, err := w.Spawn(farAgent, &comp.Pos{At: farStart})
+			body, err := w.Spawn(template, &comp.Pos{At: farStart})
 			if err != nil {
 				return err
 			}
@@ -201,7 +229,7 @@ func (fx *farFixture) route() []comp.FarHop {
 }
 
 func TestAFarAgentTravelsTheGraphToAWellItKnowsAndDrinks(t *testing.T) {
-	fx := newFarFixture(t, 1)
+	fx := newFarFixture(t, 1, farAgent)
 	hops := fx.route()
 	if got := hops[len(hops)-1].At; got != farWell {
 		t.Fatalf("route ends at %v, want the well at %v", got, farWell)
@@ -227,9 +255,9 @@ func TestAFarAgentTravelsTheGraphToAWellItKnowsAndDrinks(t *testing.T) {
 }
 
 func TestTheSameSeedGivesAFarAgentTheSameArrivalTicksSavedOrNot(t *testing.T) {
-	fx := newFarFixture(t, 7)
+	fx := newFarFixture(t, 7, farAgent)
 	first := fx.route()
-	if again := newFarFixture(t, 7).route(); !slices.Equal(first, again) {
+	if again := newFarFixture(t, 7, farAgent).route(); !slices.Equal(first, again) {
 		t.Fatalf("the same seed routed %v then %v", first, again)
 	}
 	loaded, _, _ := gametest.Reload(t, fx.cfg, fx.g)
@@ -254,7 +282,7 @@ func TestTheSameSeedGivesAFarAgentTheSameArrivalTicksSavedOrNot(t *testing.T) {
 }
 
 func TestAFarAgentThePartyComesNearStandsOnGroundAndDecidesAsABody(t *testing.T) {
-	fx := newFarFixture(t, 1)
+	fx := newFarFixture(t, 1, farAgent)
 	fx.route()
 	inRock := farStart
 	inRock.Depth = 3
@@ -274,5 +302,40 @@ func TestAFarAgentThePartyComesNearStandsOnGroundAndDecidesAsABody(t *testing.T)
 	}
 	if !agents.Near(fx.w, body) {
 		t.Error("a promoted agent is not near")
+	}
+}
+
+func TestAFarAgentTakesWaterFromTheWellItReachedAndDrinksIt(t *testing.T) {
+	fx := newFarFixture(t, 1, farCarrier)
+	sources := ecs.NewMap[comp.Source](fx.w.ECS)
+	stock := func(uid api.UID) int {
+		e, ok := fx.w.ByUID(uid)
+		if !ok {
+			t.Fatalf("well %d is gone", uid)
+		}
+		return sources.Get(e).Stock
+	}
+	wellStock, otherStock := stock(fx.well), stock(fx.farOther)
+	fx.route()
+	for range 100 {
+		if fx.thirst() < 1 {
+			break
+		}
+		fx.wait(50)
+	}
+	if level := fx.thirst(); level >= 1 {
+		t.Fatalf("thirst %v after travelling, want it met", level)
+	}
+	if got := stock(fx.well); got >= wellStock {
+		t.Errorf("the well it reached holds %d, want less than its %d", got, wellStock)
+	}
+	if got := stock(fx.farOther); got != otherStock {
+		t.Errorf("the farther well holds %d, want it untouched at %d", got, otherStock)
+	}
+	if got := inventory.Count(fx.w, fx.body(), waterItem, 0); got != 0 {
+		t.Errorf("agent still carries %d water, want it drunk", got)
+	}
+	if !ecs.NewMap[comp.Parked](fx.w.ECS).Has(fx.body()) {
+		t.Error("the agent drank on the timeline, not far")
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/mlange-42/ark/ecs"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
+	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/actions"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/api"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/comp"
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/core/effects"
@@ -435,25 +436,23 @@ func wanderFar(w *sim.World, body ecs.Entity) (bool, error) {
 	return true, nil
 }
 
-// act does a step's action at once, as a far body does: its start and landing effects apply to the
-// step's target, or to the body itself when the step names none, when they could apply now. It reports
-// false when they could not, or the target is gone.
+// act does a step's action at once, as a far body does: its start and landing effects apply, when they
+// could apply now, as the operator's [FarPicker] aims them, or else at the step's target or the body
+// itself. It reports false when they could not, or there is nothing to aim at.
 func act(w *sim.World, body ecs.Entity, step Step, op content.Operator) (bool, error) {
 	action, ok := w.Content.Action(op.Does.Action)
 	if !ok {
 		return false, fmt.Errorf("agents: operator %q names unknown action %q", step.Operator, op.Does.Action)
 	}
-	// TODO(M6-17.F4): a far choice of target for pickers that pick one, such as take and put.
-	target := body
-	if step.Target != nil && step.Target.Subject != 0 {
-		found, ok := w.ByUID(step.Target.Subject)
-		if !ok || !w.Alive(found) {
-			return false, nil
-		}
-		target = found
+	intent, ok, err := aimFar(w, body, step, op)
+	if err != nil || !ok {
+		return false, err
 	}
 	refs := slices.Concat(action.OnStart, action.OnLand)
-	ctx := &effects.Context{World: w, Source: body, Target: target, Action: op.Does.Action}
+	ctx := &effects.Context{
+		World: w, Source: body, Target: intent.Target, Dir: intent.Dir, Choices: intent.Choices,
+		Action: op.Does.Action,
+	}
 	if ok, _ := effects.Check(ctx, refs); !ok {
 		return false, nil
 	}
@@ -461,4 +460,19 @@ func act(w *sim.World, body ecs.Entity, step Step, op content.Operator) (bool, e
 		return false, fmt.Errorf("agents: body %d acting far: %w", w.UIDOf(body), err)
 	}
 	return true, nil
+}
+
+// aimFar aims a far step's action. It reports false when there is nothing to aim at.
+func aimFar(w *sim.World, body ecs.Entity, step Step, op content.Operator) (actions.Intent, bool, error) {
+	if picker, ok := mindsOf(w).pickers[op.Does.Target].(FarPicker); ok {
+		return picker.PickFar(w, body, step)
+	}
+	if step.Target == nil || step.Target.Subject == 0 {
+		return actions.Intent{Target: body}, true, nil
+	}
+	found, ok := w.ByUID(step.Target.Subject)
+	if !ok || !w.Alive(found) {
+		return actions.Intent{}, false, nil
+	}
+	return actions.Intent{Target: found}, true, nil
 }
