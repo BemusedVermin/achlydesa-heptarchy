@@ -462,7 +462,8 @@ func act(w *sim.World, body ecs.Entity, step Step, op content.Operator) (bool, e
 	return true, nil
 }
 
-// aimFar aims a far step's action. It reports false when there is nothing to aim at.
+// aimFar picks what a far step's action lands on: what the operator's [FarPicker] picks, else the step's
+// target, else the body. It reports false when the named target is gone or the picker finds nothing.
 func aimFar(w *sim.World, body ecs.Entity, step Step, op content.Operator) (actions.Intent, bool, error) {
 	if picker, ok := mindsOf(w).pickers[op.Does.Target].(FarPicker); ok {
 		return picker.PickFar(w, body, step)

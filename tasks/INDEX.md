@@ -223,7 +223,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
-| [M6-17.F4](followups/M6-17.F4-far-act-targets.md) | Give far agents' take and put a target when the plan names none | in-progress | seam | M6 | M6-17 |
+| [M6-17.F4](followups/M6-17.F4-far-act-targets.md) | Give far agents' take and put a target when the plan names none | done | seam | M6 | M6-17 |
 | [M6-17.F3](followups/M6-17.F3-far-route-start-area.md) | Start a far route from the agent's own local area | done | debt | unplanned | M6-17 |
 | [M6-17.F2](followups/M6-17.F2-alert-cost.md) | Make the party's alert check cheap with many bodies near | done | debt | M6 | M6-17 |
 | [M6-17.F1](followups/M6-17.F1-go-to-path-cost.md) | Stop the go_to picker searching a whole cell path at every step | todo | debt | M6 | M6-17 |

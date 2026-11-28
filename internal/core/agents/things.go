@@ -77,8 +77,8 @@ func (p thingPicker) Pick(w *sim.World, body ecs.Entity, step Step) (actions.Int
 	})
 }
 
-// PickFar aims at the nearest landmark the agent believes stands in its own chunk, by the cell it
-// believes the landmark is in, or the step names.
+// PickFar aims at the step's named landmark, or else the nearest one the agent remembers for the
+// operator's near fact, provided the agent believes it stands in the agent's own chunk.
 func (p thingPicker) PickFar(w *sim.World, body ecs.Entity, step Step) (actions.Intent, bool, error) {
 	positions := ecs.NewMap[comp.Pos](w.ECS)
 	return p.pick(w, body, step, func(_ ecs.Entity, mark Landmark) bool {

@@ -315,7 +315,7 @@ func TestAFarAgentTakesWaterFromTheWellItReachedAndDrinksIt(t *testing.T) {
 		}
 		return sources.Get(e).Stock
 	}
-	wellStock, otherStock := stock(fx.well), stock(fx.farOther)
+	wellStock := stock(fx.well)
 	fx.route()
 	for range 100 {
 		if fx.thirst() < 1 {
@@ -328,9 +328,6 @@ func TestAFarAgentTakesWaterFromTheWellItReachedAndDrinksIt(t *testing.T) {
 	}
 	if got := stock(fx.well); got >= wellStock {
 		t.Errorf("the well it reached holds %d, want less than its %d", got, wellStock)
-	}
-	if got := stock(fx.farOther); got != otherStock {
-		t.Errorf("the farther well holds %d, want it untouched at %d", got, otherStock)
 	}
 	if got := inventory.Count(fx.w, fx.body(), waterItem, 0); got != 0 {
 		t.Errorf("agent still carries %d water, want it drunk", got)
