@@ -1,6 +1,7 @@
 package agents
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/BemusedVermin/achlydesa-heptarchy/internal/content"
@@ -21,7 +22,7 @@ var (
 	}
 )
 
-func operatorsOf(plan Plan) []api.ContentID {
+func htnOperators(plan Plan) []api.ContentID {
 	var out []api.ContentID
 	for _, step := range plan.Steps {
 		out = append(out, step.Operator)
@@ -57,7 +58,7 @@ func TestHTNPlansTheRecipeForTheGoal(t *testing.T) {
 			if !found {
 				t.Fatal("no plan")
 			}
-			if got := operatorsOf(plan); !equalIDs(got, tc.want) {
+			if got := htnOperators(plan); !slices.Equal(got, tc.want) {
 				t.Errorf("operators %v, want %v", got, tc.want)
 			}
 		})
@@ -67,18 +68,6 @@ func TestHTNPlansTheRecipeForTheGoal(t *testing.T) {
 	if plan.Steps[0].Target == nil || *plan.Steps[0].Target != htnWell {
 		t.Errorf("walk target %v, want the believed well %v", plan.Steps[0].Target, htnWell)
 	}
-}
-
-func equalIDs(a, b []api.ContentID) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func TestHTNFallsToTheNextRecipeWhenOneDoesNotHold(t *testing.T) {
@@ -92,7 +81,7 @@ func TestHTNFallsToTheNextRecipeWhenOneDoesNotHold(t *testing.T) {
 		t.Fatal("no plan")
 	}
 	want := []api.ContentID{"operator.go_to", "operator.take", "operator.consume"}
-	if got := operatorsOf(plan); !equalIDs(got, want) {
+	if got := htnOperators(plan); !slices.Equal(got, want) {
 		t.Errorf("operators %v, want %v", got, want)
 	}
 }
@@ -100,6 +89,6 @@ func TestHTNFallsToTheNextRecipeWhenOneDoesNotHold(t *testing.T) {
 func TestHTNFindsNoPlanWithoutARecipe(t *testing.T) {
 	reg := contenttest.Sample(t)
 	if plan, found := htnPlanOf(reg, "goal.chat", htnKnown); found {
-		t.Errorf("plan %v for a goal with no recipe", operatorsOf(plan))
+		t.Errorf("plan %v for a goal with no recipe", htnOperators(plan))
 	}
 }
