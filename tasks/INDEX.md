@@ -223,12 +223,14 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 
 | ID | Title | Status | Kind | Milestone | Discovered by |
 | --- | --- | --- | --- | --- | --- |
+| [M6-19.F1.F2](followups/M6-19.F1.F2-witnesses-selector-name.md) | Confirm the witnesses body selector in the content grammar | proposed | question | M6 | M6-19.F1 |
+| [M6-19.F1.F1](followups/M6-19.F1.F1-attach-death-terror.md) | Attach the death-terror trigger to the templates whose deaths others see | proposed | content | M6 | M6-19.F1 |
 | [M6-22.F1](followups/M6-22.F1-geography-landmarks.md) | Let the geography place landmark pieces in the deep | todo | seam | M6 | M6-22 |
 | [M6-22.F2](followups/M6-22.F2-street-growth-cap.md) | Tune how a settlement lays pieces when a landmark is lacking | todo | debt | M6 | M6-22 |
 | [M6-21.F1](followups/M6-21.F1-families-on-mind-controller.md) | Run the creature families on the mind controller | todo | content | M6 | M6-21 |
 | [M6-16.F1](followups/M6-16.F1-planner-errors.md) | Let a planner report a content error | done | seam | M6 | M6-16 |
 | [M6-19.F2](followups/M6-19.F2-attach-terror-triggers.md) | Attach the terror trigger and drive.safety to the templates that get minds | todo | content | M6 | M6-19 |
-| [M6-19.F1](followups/M6-19.F1-witness-death-terror.md) | Let a trigger reach the bodies near a death, so a neighbour's death raises terror | todo | seam | M6 | M6-19 |
+| [M6-19.F1](followups/M6-19.F1-witness-death-terror.md) | Let a trigger reach the bodies near a death, so a neighbour's death raises terror | done | seam | M6 | M6-19 |
 | [M6-17.F4](followups/M6-17.F4-far-act-targets.md) | Give far agents' take and put a target when the plan names none | done | seam | M6 | M6-17 |
 | [M6-17.F3](followups/M6-17.F3-far-route-start-area.md) | Start a far route from the agent's own local area | done | debt | unplanned | M6-17 |
 | [M6-17.F2](followups/M6-17.F2-alert-cost.md) | Make the party's alert check cheap with many bodies near | done | debt | M6 | M6-17 |

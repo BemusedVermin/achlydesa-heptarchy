@@ -164,6 +164,7 @@ func TestBodySelectors(t *testing.T) {
 		{"everyone", []ecs.Entity{fx.s, fx.a, fx.b}},
 		{"allies", []ecs.Entity{fx.a}},
 		{"enemies", []ecs.Entity{fx.b}},
+		{"witnesses", []ecs.Entity{fx.s, fx.b}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.src, func(t *testing.T) {
