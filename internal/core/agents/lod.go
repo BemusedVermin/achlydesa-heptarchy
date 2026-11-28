@@ -396,14 +396,13 @@ func travel(w *sim.World, body ecs.Entity, step Step) (bool, error) {
 	if hexmap.KeyOf(from) == hexmap.KeyOf(goal) {
 		hops = []comp.FarHop{{At: goal, Arrive: w.Now + ticks*int64(max(1, hexmap.CellDistance(from, goal)))}}
 	} else {
-		// TODO(M6-17.F3): start from the agent's own local area, not any area of its chunk.
-		route, found, err := graph.Route(hexmap.KeyOf(from), hexmap.KeyOf(goal), farRouteNodes)
+		route, found, err := graph.RouteFrom(from, hexmap.KeyOf(goal), farRouteNodes)
 		if err != nil || !found {
 			return false, err
 		}
 		legs := int64(len(route.Chunks) - 1)
-		for i, key := range route.Chunks[1:] {
-			at := worldgen.Center(key)
+		for i := range route.Chunks[1:] {
+			at := route.Entries[i]
 			if int64(i+1) == legs {
 				at = goal
 			}

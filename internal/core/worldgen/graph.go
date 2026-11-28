@@ -76,6 +76,8 @@ type ChunkLink struct {
 type Route struct {
 	Chunks []hexmap.ChunkKey
 	Cost   int
+	// Entries holds the cell each chunk after the first is entered at: Entries[i] lies in Chunks[i+1].
+	Entries []api.Cell
 }
 
 // Summarize lists the openings out of a chunk and splits its walkable cells into local areas. It is a pure
@@ -388,8 +390,26 @@ type areaNode struct {
 // searches without limit. The cost is an estimate of the walk, counted from chunk center to chunk center,
 // never less than the straight distance between the two centers.
 func (g *Graph) Route(from, to hexmap.ChunkKey, maxNodes int) (Route, bool, error) {
+	return g.route(from, -1, to, maxNodes)
+}
+
+// RouteFrom is [Graph.Route] starting from a cell. When the cell is a border cell of its chunk the route
+// leaves from that cell's local area only; any other cell may start from any area of its chunk.
+func (g *Graph) RouteFrom(from api.Cell, to hexmap.ChunkKey, maxNodes int) (Route, bool, error) {
+	key := hexmap.KeyOf(from)
+	summary, err := g.Summary(key)
+	if err != nil {
+		return Route{}, false, err
+	}
+	return g.route(key, summary.areaOf(from), to, maxNodes)
+}
+
+func (g *Graph) route(from hexmap.ChunkKey, startArea int, to hexmap.ChunkKey, maxNodes int) (Route, bool, error) {
 	start, dest := areaNode{key: from, area: -1}, areaNode{key: to, area: -1}
-	search := &areaSearch{graph: g, start: start, dest: dest, maxNodes: maxNodes, costs: map[[2]areaNode]int{}}
+	search := &areaSearch{
+		graph: g, start: start, dest: dest, startArea: startArea, maxNodes: maxNodes,
+		costs: map[[2]areaNode]int{}, entries: map[[2]areaNode]api.Cell{},
+	}
 	price := func(a, b areaNode) float64 { return float64(search.costs[[2]areaNode{a, b}]) }
 	heuristic := func(a, b areaNode) float64 { return float64(hexmap.CellDistance(center(a.key), center(b.key))) }
 	path := astar.FindPath[areaNode](search, start, dest, price, heuristic)
@@ -404,6 +424,7 @@ func (g *Graph) Route(from, to hexmap.ChunkKey, maxNodes int) (Route, bool, erro
 		route.Cost += search.costs[[2]areaNode{path[i-1], path[i]}]
 		if key := path[i].key; key != route.Chunks[len(route.Chunks)-1] {
 			route.Chunks = append(route.Chunks, key)
+			route.Entries = append(route.Entries, search.entries[[2]areaNode{path[i-1], path[i]}])
 		}
 	}
 	return route, true, nil
@@ -413,9 +434,11 @@ func (g *Graph) Route(from, to hexmap.ChunkKey, maxNodes int) (Route, bool, erro
 type areaSearch struct {
 	graph       *Graph
 	start, dest areaNode
+	startArea   int
 	maxNodes    int
 	expanded    int
 	costs       map[[2]areaNode]int
+	entries     map[[2]areaNode]api.Cell
 	err         error
 }
 
@@ -433,6 +456,7 @@ func (s *areaSearch) Neighbours(node areaNode) iter.Seq[areaNode] {
 		}
 		for _, link := range links {
 			s.costs[[2]areaNode{node, link.to}] = link.cost
+			s.entries[[2]areaNode{node, link.to}] = link.entry
 			if !yield(link.to) {
 				return
 			}
@@ -441,8 +465,9 @@ func (s *areaSearch) Neighbours(node areaNode) iter.Seq[areaNode] {
 }
 
 type areaLink struct {
-	to   areaNode
-	cost int
+	to    areaNode
+	cost  int
+	entry api.Cell
 }
 
 // links lists where a step leads from an area: into a neighbor's area through an opening, into another area
@@ -458,6 +483,9 @@ func (s *areaSearch) links(node areaNode) ([]areaLink, error) {
 	}
 	var links []areaLink
 	if node.area < 0 {
+		if s.startArea >= 0 {
+			return []areaLink{{to: areaNode{key: node.key, area: s.startArea}}}, nil
+		}
 		for area := range summary.Areas {
 			links = append(links, areaLink{to: areaNode{key: node.key, area: area}})
 		}
@@ -480,10 +508,12 @@ func (s *areaSearch) links(node areaNode) ([]areaLink, error) {
 		cost := hexmap.CellDistance(from, opening.From) + opening.Cost + hexmap.CellDistance(opening.To, center(into))
 		next := areaNode{key: into, area: opening.ToArea}
 		if at := slices.IndexFunc(links, func(l areaLink) bool { return l.to == next }); at >= 0 {
-			links[at].cost = min(links[at].cost, cost)
+			if cost < links[at].cost {
+				links[at].cost, links[at].entry = cost, opening.To
+			}
 			continue
 		}
-		links = append(links, areaLink{to: next, cost: cost})
+		links = append(links, areaLink{to: next, cost: cost, entry: opening.To})
 	}
 	return links, nil
 }
