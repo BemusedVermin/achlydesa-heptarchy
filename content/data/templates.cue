@@ -49,10 +49,16 @@ _#Person: {
 
 _#Hunter: {
 	actor: controller: "hunt"
-	actions: ["action.step", "action.strike"]
+	actions: [...string] | *["action.step", "action.strike"]
 	lists: types: ["type.cut"]
-	faction: "faction.wild"
+	faction: string | *"faction.wild"
 	...
+}
+
+// A creature with a mind. It still runs on the hunt controller: a body on the mind controller fights
+// only through goal.fight, which needs terror and sight to match the hunt it replaces.
+_#Minded: _#Hunter & {
+	mind: planner: "htn"
 }
 
 templates: {
@@ -67,7 +73,10 @@ templates: {
 		actor: controller: "follow"
 	}
 	// A creature of the soop, all clay.
-	"template.creature.moving_clay": _#Hunter & {
+	"template.creature.moving_clay": _#Minded & {
+		actions: ["action.step", "action.strike", "action.consume_corpse"]
+		faction: "faction.clay"
+		drives: "drive.the_dead": 1
 		name: "text.template.creature.moving_clay"
 		appearance: {glyph: "c", color: "yellow"}
 		body: "body.moving_clay"
@@ -75,7 +84,8 @@ templates: {
 	}
 	// A thing of the deep that has never died. A part cut off it sometimes crawls away and fights.
 	// The 0.3 is a placeholder, for tuning.
-	"template.creature.remnant": _#Hunter & {
+	"template.creature.remnant": _#Minded & {
+		drives: "drive.old_ground": 1
 		name: "text.template.creature.remnant"
 		appearance: {glyph: "r", color: "magenta"}
 		body: "body.remnant"
@@ -87,7 +97,7 @@ templates: {
 		}, _corpseGivesDead]
 	}
 	// A flesh creature with a skull and an eye: Press cracks the bone, Light blinds the eye.
-	"template.creature.beast": _#Hunter & {
+	"template.creature.beast": _#Minded & {
 		name: "text.template.creature.beast"
 		appearance: {glyph: "b", color: "red"}
 		body: "body.beast"

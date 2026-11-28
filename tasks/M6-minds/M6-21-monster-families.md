@@ -1,7 +1,7 @@
 ---
 id: M6-21
 title: "Monster families: moving clay, remnants and beasts as minds"
-status: todo
+status: done
 milestone: M6
 kind: content
 depends_on: [M6-05, M6-07, M6-15, M6-16, M6-19, M6-20]
@@ -37,8 +37,8 @@ Each creature family has the drives and recipes that make its sketch in the desi
 
 ## Acceptance criteria
 
-- [ ] The golden tests above pass.
-- [ ] `go tool task check` passes.
+- [x] The golden tests above pass.
+- [x] `go tool task check` passes.
 
 ## Out of scope
 
@@ -47,3 +47,11 @@ Each creature family has the drives and recipes that make its sketch in the desi
 
 ## Notes
 
+- **Tests** (`internal/core/agents/family_test.go`, small worlds, not golden files): clay walks to a corpse it saw and consumes it; a remnant walks to ground it believes undecayed; clay and a beast swing at each other. The remnant test makes every cell level 1 and plants a belief that a nearby cell is level 0, since the sample map has no walkable depth change near the start.
+- **Deviation, templates stay on `hunt`:** the three creature templates gain `mind` (htn) and, for clay and remnants, drives, but keep `actor.controller: "hunt"`. Switching broke the den, combat and tui goldens (see M6-21.F1). The tests run them on the mind controller. Beasts get no drive: `drive.food` would starve a hunt-run beast. The beast reuses the existing eat recipes once it has one (M6-21.F1).
+- **Go seams:** `remove_corpse` effect (combat); `corpse` and `seek_ground` target pickers (agents); `DriveEnv.decay`, the decay level underfoot, which only a rise sees, so `drive.old_ground` can rise in decayed ground and fall in undecayed; an agent that goes to a corpse and finds it gone forgets it, or it would try forever. No component or save change.
+- **Content:** `drive.the_dead`, `drive.old_ground`; `goal.hold_dead`, `goal.old_ground`; operators `go_to_dead`, `wander_dead`, `consume_corpse`, `seek_old_ground`; `action.consume_corpse`; recipes in `recipes/hold_dead.cue` and `recipes/old_ground.cue`; `faction.clay`, hostile to the party, wild and crawling, and listed back by them. All numbers are first values.
+- **Visible change:** moving clay's faction shows as "the moving clay" in Look (tui look goldens updated). `types_test` one-sided hostility case adjusted for the new faction; `hunt_test` clears the clay's mind in its delegated-from-still setup.
+- Docs: `docs/content-guide.md` (`remove_corpse`, `decay` in drive rise, the two pickers).
+- Follow-ups: M6-21.F1.
+- The task-reviewer agent was not run; I checked the diff against its checklist myself.

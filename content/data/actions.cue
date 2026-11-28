@@ -74,13 +74,29 @@ actions: {
 		recovery: "12"
 		on_land: [{do: "satisfy", params: {bodies: "self", drive: "drive.rest", amount: "100"}}]
 	}
+	// Consume a corpse next to the body: it leaves the world and satisfies the want of the dead.
+	"action.consume_corpse": {
+		name: "text.action.consume_corpse"
+		key:  "consume_corpse"
+		uses: [{tag: "body", count: 1}]
+		target: "body"
+		targets: {corpse: true}
+		range:    1
+		windup:   "0"
+		recovery: "6"
+		on_land: [
+			{do: "satisfy", params: {bodies: "self", drive: "drive.the_dead", amount: "100"}},
+			{do: "remove_corpse", params: {}},
+		]
+	}
 }
 
 text: {
-	"text.action.chat":    "Chat"
-	"text.action.step":    "Step"
-	"text.action.take":    "Take"
-	"text.action.put":     "Put"
-	"text.action.consume": "Consume"
-	"text.action.sleep":   "Sleep"
+	"text.action.chat":           "Chat"
+	"text.action.step":           "Step"
+	"text.action.take":           "Take"
+	"text.action.put":            "Put"
+	"text.action.consume":        "Consume"
+	"text.action.sleep":          "Sleep"
+	"text.action.consume_corpse": "Consume a corpse"
 }

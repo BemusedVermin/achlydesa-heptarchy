@@ -179,7 +179,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | done | feature | S | M6-04, M6-11 |
 | [M6-19](M6-minds/M6-19-flee-engage.md) | Flee, terror and engaging: handing a fight over and back | done | feature | M | M6-01, M6-12, M6-14 |
 | [M6-20](M6-minds/M6-20-populate-world.md) | Populate the whole world at start, with minds | done | feature | M | M6-03, M6-06, M6-14 |
-| [M6-21](M6-minds/M6-21-monster-families.md) | Monster families: moving clay, remnants and beasts as minds | todo | content | M | M6-05, M6-07, M6-15, M6-16, M6-19, M6-20 |
+| [M6-21](M6-minds/M6-21-monster-families.md) | Monster families: moving clay, remnants and beasts as minds | done | content | M | M6-05, M6-07, M6-15, M6-16, M6-19, M6-20 |
 | [M6-22](M6-minds/M6-22-settlements.md) | The three towns as settlements | done | content | M | M6-09, M6-13, M6-20 |
 | [M6-23](M6-minds/M6-23-residents.md) | Residents: roles, jobs and a town that can run dry | todo | content | M | M6-15, M6-16, M6-18, M6-22 |
 | [M6-24](M6-minds/M6-24-party-needs.md) | The party eats, drinks and rests | todo | feature | M | M6-03, M6-07, M6-13 |
@@ -225,6 +225,7 @@ Filed by agents while working (see the Follow-ups section of [README.md](README.
 | --- | --- | --- | --- | --- | --- |
 | [M6-22.F1](followups/M6-22.F1-geography-landmarks.md) | Let the geography place landmark pieces in the deep | proposed | seam | M6 | M6-22 |
 | [M6-22.F2](followups/M6-22.F2-street-growth-cap.md) | Tune how a settlement lays pieces when a landmark is lacking | proposed | debt | M6 | M6-22 |
+| [M6-21.F1](followups/M6-21.F1-families-on-mind-controller.md) | Run the creature families on the mind controller | proposed | content | M6 | M6-21 |
 | [M6-16.F1](followups/M6-16.F1-planner-errors.md) | Let a planner report a content error | todo | seam | M6 | M6-16 |
 | [M6-19.F2](followups/M6-19.F2-attach-terror-triggers.md) | Attach the terror trigger and drive.safety to the templates that get minds | todo | content | M6 | M6-19 |
 | [M6-19.F1](followups/M6-19.F1-witness-death-terror.md) | Let a trigger reach the bodies near a death, so a neighbour's death raises terror | todo | seam | M6 | M6-19 |
