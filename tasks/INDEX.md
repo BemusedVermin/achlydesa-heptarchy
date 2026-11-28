@@ -173,7 +173,7 @@ Brief: [M6-minds/README.md](M6-minds/README.md)
 | [M6-12](M6-minds/M6-12-movement-actions.md) | Movement actions: go to, and wander | done | feature | M | M6-11 |
 | [M6-13](M6-minds/M6-13-thing-actions.md) | Thing actions: take, put and consume | done | feature | M | M6-02, M6-11 |
 | [M6-14](M6-minds/M6-14-goal-choice.md) | Goal choice: drives score into a goal | done | feature | M | M6-03, M6-11 |
-| [M6-15](M6-minds/M6-15-goap.md) | The GOAP planner for important individuals | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
+| [M6-15](M6-minds/M6-15-goap.md) | The GOAP planner for important individuals | done | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-16](M6-minds/M6-16-htn.md) | The HTN planner and recipes for everyone else | todo | feature | M | M6-10, M6-12, M6-13, M6-14 |
 | [M6-17](M6-minds/M6-17-far-agents.md) | Far agents: goals only, over the chunk graph | done | feature | L | M6-06, M6-12, M6-14 |
 | [M6-18](M6-minds/M6-18-hearsay.md) | Hearsay: agents tell each other what they know | done | feature | S | M6-04, M6-11 |

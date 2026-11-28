@@ -126,17 +126,27 @@ func ValidateContent(w *sim.World) error {
 			errs = append(errs, fmt.Errorf("templates[%q].mind.planner: unknown planner %q", id, template.Mind.Planner))
 		}
 	}
+	usesGOAP := false
+	for _, id := range w.Content.RecordIDs(content.CollectionTemplates) {
+		template, _ := w.Content.Template(id)
+		usesGOAP = usesGOAP || (template.Mind != nil && template.Mind.Planner == GOAPPlanner)
+	}
 	for _, id := range w.Content.GeographyIDs() {
 		geography, _ := w.Content.Geography(id)
 		for i, spawn := range geography.Spawns {
 			if spawn.Mind == nil {
 				continue
 			}
+			usesGOAP = usesGOAP || spawn.Mind.Planner == GOAPPlanner
 			if _, ok := st.planners[spawn.Mind.Planner]; !ok {
 				errs = append(errs, fmt.Errorf("geographies[%q].spawns[%d].mind.planner: unknown planner %q",
 					id, i, spawn.Mind.Planner))
 			}
 		}
+	}
+	if cfg := w.Content.Agents(); usesGOAP && (cfg.GoapNodes < 1 || cfg.GoapDepth < 1 || cfg.GoapCache < 1) {
+		errs = append(errs, fmt.Errorf("agents.goap_nodes, goap_depth and goap_cache: must be at least 1 when "+
+			"a template or spawn uses the %q planner, got %d, %d, %d", GOAPPlanner, cfg.GoapNodes, cfg.GoapDepth, cfg.GoapCache))
 	}
 	for _, id := range w.Content.OperatorIDs() {
 		op, _ := w.Content.Operator(id)
@@ -160,6 +170,12 @@ func installMind(w *sim.World) error {
 		return err
 	}
 	if err := RegisterPicker(w, SelfPicker, selfPicker{}); err != nil {
+		return err
+	}
+	if err := RegisterPlanner(w, GOAPPlanner, newGOAP()); err != nil {
+		return err
+	}
+	if err := api.RegisterEvent[api.PlanMade](w.Codec); err != nil {
 		return err
 	}
 	return timeline.RegisterController(w, MindController, mindController{})
@@ -295,6 +311,13 @@ func adopt(w *sim.World, body ecs.Entity, plan Plan, found bool) (bool, error) {
 	}
 	stored := minds.Get(body)
 	stored.Plan, stored.Step, stored.Exports = plan, 0, w.ExportCount
+	if w.Content.Agents().TracePlans {
+		steps := make([]api.ContentID, len(plan.Steps))
+		for i, step := range plan.Steps {
+			steps[i] = step.Operator
+		}
+		w.Bus.Publish(api.PlanMade{Agent: w.UIDOf(body), Goal: plan.Goal, Steps: steps, Tick: w.Now})
+	}
 	return true, nil
 }
 
